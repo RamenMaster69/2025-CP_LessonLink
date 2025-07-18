@@ -87,8 +87,6 @@
                         >
                     </div>
                     
-
-                    
                     <!-- Register Button -->
                     <button 
                         type="submit" 
@@ -164,7 +162,9 @@
                 return false;
             }
             
-            return true;
+            // If validation passes, redirect to Registration_3.html
+            window.location.href = 'Registration_3.html';
+            return false; // Prevent default form submission
         }
     </script>
 </body>
