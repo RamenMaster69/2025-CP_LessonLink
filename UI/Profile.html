@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LessonLink - Edit Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-in-out',
+                        'slide-in': 'slideIn 0.3s ease-out',
+                        'scale-in': 'scaleIn 0.2s ease-out'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9) translateY(-10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .dropdown-enter {
+            animation: scaleIn 0.2s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 py-3 md:px-6 md:py-4">
+            <div class="flex items-center justify-between">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full shadow-md">
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900">LessonLink</h1>
+                        <p class="text-sm text-gray-500 hidden lg:block">WMSU College of Teacher Education</p>
+                    </div>
+                </div>
+                
+                <!-- Right side actions -->
+                <div class="flex items-center space-x-4">
+                    <!-- Search -->
+                    <div class="relative hidden md:block">
+                        <input 
+                            type="text" 
+                            placeholder="Search" 
+                            class="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                        >
+                        <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button id="notification-btn" class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                            <i class="fas fa-bell text-lg"></i>
+                            <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                        </button>
+                    </div>
+                    
+                    <!-- Profile -->
+                    <div class="relative">
+                        <button id="profile-btn" class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                            <i class="fas fa-user text-gray-600"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+        <!-- Combined Container -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="flex flex-col lg:flex-row">
+                <!-- Left Side - Profile Card (now part of the same container) -->
+                <div class="w-full lg:w-1/3 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 p-8 text-white relative">
+                    <!-- Back Button -->
+                    <a href="Dashboard.html"><button class="flex items-center space-x-2 text-white/90 hover:text-white mb-6 transition-colors">
+                        <i class="fas fa-arrow-left"></i>
+                        <span class="font-medium">Back to Dashboard</span>
+                    </button></a>
+                    
+                    <!-- Profile Image Placeholder -->
+                    <div class="flex justify-center mb-6">
+                        <div class="relative">
+                            <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-white/20 shadow-lg bg-white/10 flex items-center justify-center">
+                                <i class="fas fa-user text-5xl text-white/50"></i>
+                            </div>
+                            <!-- Camera icon for upload -->
+                            <button class="absolute bottom-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center text-blue-600 hover:bg-gray-100 transition-colors shadow-lg">
+                                <i class="fas fa-camera text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Profile Info -->
+                    <div class="text-center mb-8">
+                        <h2 class="text-2xl font-bold mb-2">Viktor Greg A. Lim</h2>
+                        <p class="text-blue-100 mb-1">Filipino Teacher</p>
+                        <p class="text-blue-200 text-sm">Western Mindanao State University</p>
+                    </div>
+                    
+                    <!-- Email -->
+                    <div class="text-center mb-8">
+                        <p class="text-blue-100 text-sm">limviktorgreg14@gmail.com</p>
+                    </div>
+                    
+                    <!-- Logout Button -->
+                    <a href="landing.html"><button class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition-colors">
+                        Logout
+                    </button></a>
+                    
+                    <!-- Decorative element -->
+                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
+                </div>
+                
+                <!-- Right Side - Edit Form (now part of the same container) -->
+                <div class="w-full lg:w-2/3 p-8">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between mb-8">
+                        <h1 class="text-2xl font-bold text-gray-900">Edit Profile</h1>
+                        <button id="edit-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                            Edit
+                        </button>
+                    </div>
+                    
+                    <!-- Form -->
+                    <form class="space-y-6">
+                        <!-- Full Name -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name:</label>
+                            <input 
+                                type="text" 
+                                value="Viktor Greg A. Lim"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
+                                readonly
+                            >
+                        </div>
+                        
+                        <!-- Position and Birth Date Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Position/Rank:</label>
+                                <input 
+                                    type="text" 
+                                    value="Filipino Teacher"
+                                    class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
+                                    readonly
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Birth Date:</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="mm/dd/yyyy"
+                                    class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
+                                    readonly
+                                >
+                            </div>
+                        </div>
+                        
+                        <!-- Affiliation -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Affiliation:</label>
+                            <input 
+                                type="text" 
+                                value="Western Mindanao State University"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
+                                readonly
+                            >
+                        </div>
+                        
+                        <!-- Email -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email:</label>
+                            <input 
+                                type="email" 
+                                value="limviktorgreg14@gmail.com"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
+                                readonly
+                            >
+                        </div>
+                        
+                        <!-- Save Button (hidden by default) -->
+                        <div id="save-section" class="hidden pt-4">
+                            <div class="flex space-x-4">
+                                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                    Save Changes
+                                </button>
+                                <button type="button" id="cancel-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Footer Links -->
+            <div class="flex flex-wrap justify-center gap-8 p-8 text-sm text-gray-500 border-t border-gray-200">
+                <a href="#" class="hover:text-gray-700 transition-colors">Settings</a>
+                <a href="#" class="hover:text-gray-700 transition-colors">Privacy and Policy</a>
+                <a href="#" class="hover:text-gray-700 transition-colors">Terms and Condition</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Edit functionality
+        const editBtn = document.getElementById('edit-btn');
+        const saveSection = document.getElementById('save-section');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const inputs = document.querySelectorAll('input');
+        
+        let originalValues = {};
+        
+        // Store original values
+        inputs.forEach(input => {
+            originalValues[input.name || input.type] = input.value;
+        });
+        
+        editBtn.addEventListener('click', () => {
+            // Enable all inputs except full name
+            inputs.forEach(input => {
+                if (!input.value.includes('Viktor Greg A. Lim')) {
+                    input.removeAttribute('readonly');
+                    input.classList.remove('bg-gray-50');
+                    input.classList.add('bg-white');
+                }
+            });
+            
+            // Show save section and hide edit button
+            saveSection.classList.remove('hidden');
+            editBtn.classList.add('hidden');
+        });
+        
+        cancelBtn.addEventListener('click', () => {
+            // Restore original values and make inputs readonly again
+            inputs.forEach(input => {
+                input.value = originalValues[input.name || input.type] || input.value;
+                input.setAttribute('readonly', true);
+                input.classList.add('bg-gray-50');
+                input.classList.remove('bg-white');
+            });
+            
+            // Hide save section and show edit button
+            saveSection.classList.add('hidden');
+            editBtn.classList.remove('hidden');
+        });
+        
+        // Form submission
+        document.querySelector('form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Simulate saving
+            const saveBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = 'Saving...';
+            saveBtn.disabled = true;
+            
+            setTimeout(() => {
+                // Make inputs readonly again
+                inputs.forEach(input => {
+                    input.setAttribute('readonly', true);
+                    input.classList.add('bg-gray-50');
+                    input.classList.remove('bg-white');
+                });
+                
+                // Update original values
+                inputs.forEach(input => {
+                    originalValues[input.name || input.type] = input.value;
+                });
+                
+                // Hide save section and show edit button
+                saveSection.classList.add('hidden');
+                editBtn.classList.remove('hidden');
+                
+                // Reset button
+                saveBtn.textContent = originalText;
+                saveBtn.disabled = false;
+                
+                // Show success message
+                alert('Profile updated successfully!');
+            }, 1500);
+        });
+        
+        // Back to dashboard functionality
+        document.querySelector('button').addEventListener('click', () => {
+            // This would normally navigate back to the dashboard
+            alert('Navigating back to dashboard...');
+        });
+        
+        // Camera button functionality
+        document.querySelector('.fa-camera').parentElement.addEventListener('click', () => {
+            // This would normally open a file picker for profile image upload
+            alert('Profile image upload functionality would be implemented here');
+        });
+    </script>
+</body>
+</html>
