@@ -9,3 +9,6 @@ def registration_1(request):
 
 def registration_2(request):
     return render(request, 'registration_2.html')
+
+def registration_3(request):
+    return render(request, 'registration_3.html')

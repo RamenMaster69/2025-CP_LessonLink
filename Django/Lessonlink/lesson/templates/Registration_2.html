@@ -88,7 +88,7 @@
                     </div>
                     
                     <!-- Register Button -->
-                    <a href="Registration_3.html"><button 
+                    <a href="{% url 'registration_3' %}"><button 
                         type="submit" 
                         class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
                     >
@@ -163,7 +163,7 @@
             }
             
             // If validation passes, redirect to Registration_3.html
-            window.location.href = 'Registration_3.html';
+            window.location.href = "/register_3/";
             return false; // Prevent default form submission
         }
     </script>
