@@ -38,6 +38,13 @@
         .dropdown-enter {
             animation: scaleIn 0.2s ease-out;
         }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -108,7 +115,7 @@
                                         <p class="text-sm text-gray-900 font-medium">Class schedule updated</p>
                                         <p class="text-xs text-gray-500 mt-1">Grade 2B math class moved to 11:30 AM</p>
                                         <p class="text-xs text-gray-400 mt-1">1 hour ago</p>
-                                    </div>
+                    </div>
                                 </div>
                             </div>
                             <div class="p-4 hover:bg-gray-50 border-b border-gray-100">
@@ -150,7 +157,7 @@
                             </div>
                         </div>
                         <div class="py-2">
-                            <a href="{% url 'profile' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+                            <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
                                 <i class="fas fa-user w-4"></i>
                                 <span>My Profile</span>
                             </a>
@@ -159,10 +166,6 @@
                                 <span>Settings</span>
                             </a>
                             <hr class="my-2">
-                            <!-- <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
-                                <i class="fas fa-question-circle w-4"></i>
-                                <span>Help & Support</span>
-                            </a> -->
                             <a href="#" class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
                                 <i class="fas fa-sign-out-alt w-4"></i>
                                 <span>Sign Out</span>
@@ -178,21 +181,21 @@
         <!-- Sidebar -->
         <aside id="sidebar" class="w-64 bg-white shadow-lg h-screen fixed md:static -translate-x-full md:translate-x-0 sidebar-transition z-30">
             <nav class="p-4 space-y-2">
-                <!-- Create Lesson Button (Updated) -->
+                <!-- Create Lesson Button -->
                 <a href="{% url 'lesson_planner' %}"><button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
                     <i class="fas fa-plus text-lg"></i>
                     <span class="font-medium">Create Lesson</span>
                 </button></a>
                 
-                <!-- Navigation Items (Updated) -->
-                <a href="#" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
-                    <i class="fas fa-home text-lg w-5"></i>
-                    <span class="font-medium">Dashboard</span>
+                <!-- Navigation Items -->
+                <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Dashboard</span>
                 </a>
-                <a href="{% url 'draft' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                    <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                    <span>Drafts</span>
-                    <span class="ml-auto bg-[#e0e9ff] text-[#11468F] text-xs px-2 py-1 rounded-full">5</span>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                    <i class="fas fa-file-alt text-lg w-5"></i>
+                    <span class="font-medium">Drafts</span>
+                    <span class="ml-auto bg-[#e0e9ff] text-[#11468F] text-xs px-2 py-1 rounded-full">6</span>
                 </a>
                 <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-tasks text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
@@ -209,179 +212,122 @@
         <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
 
         <!-- Main Content -->
-        <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-full">
-            <!-- Welcome Banner -->
-            <div class="bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-2xl p-6 md:p-8 text-white mb-8">
-                <div>
-                    <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">Hello Viktor,</h2>
-                    <h3 class="text-lg md:text-xl lg:text-2xl font-semibold mb-3 text-white/90">Welcome back, Teacher Viktor!</h3>
-                    <p class="text-white/80 mb-6 text-sm md:text-base max-w-md">Ready to create amazing lessons with AI assistance? Let's make learning exciting today!</p>
-                    <a href="{% url 'lesson_planner' %}"><button class="bg-white text-[#11468F] px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl inline-flex items-center space-x-2">
-                        <i class="fas fa-plus"></i>
-                        <span>Start New Lesson Plan</span>
-                    </button></a>
+        <main class="flex-1 md:ml-0 bg-gray-50">
+            <div class="p-4 md:p-6 lg:p-8">
+                <!-- Page Header -->
+                <div class="mb-6">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Drafts</h1>
+                    <p class="text-gray-600">Manage your lesson plan drafts and continue where you left off</p>
                 </div>
-            </div>
 
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
-                <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-book text-blue-600 text-lg"></i>
+                <!-- Drafts Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                    <!-- Draft Card 1 -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden card-hover">
+                        <div class="h-32 bg-gradient-to-br from-blue-100 to-purple-100 relative">
+                            <div class="absolute top-3 right-3">
+                                <button class="p-2 bg-white/80 rounded-full hover:bg-white transition-colors">
+                                    <i class="fas fa-ellipsis-h text-gray-600"></i>
+                                </button>
+                            </div>
                         </div>
-                        <span class="text-green-500 text-sm font-medium">+12%</span>
-                    </div>
-                    <h3 class="text-gray-600 font-medium text-sm mb-1">Total Lessons</h3>
-                    <p class="text-3xl font-bold text-gray-900">24</p>
-                </div>
-                
-                <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-edit text-yellow-600 text-lg"></i>
+                        <div class="p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Finished
+                                </span>
+                                <span class="text-xs text-gray-500">2 days ago</span>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 mb-1">Grade 1 - English</h3>
+                            <p class="text-sm text-gray-600 mb-3">Introduction to Reading Comprehension</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-clock text-xs text-gray-400"></i>
+                                    <span class="text-xs text-gray-500">45 min</span>
+                                </div>
+                                <button class="text-[#11468F] hover:text-[#0d3a7a] transition-colors">
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
                         </div>
-                        <span class="text-blue-500 text-sm font-medium">5 active</span>
                     </div>
-                    <h3 class="text-gray-600 font-medium text-sm mb-1">Drafts</h3>
-                    <p class="text-3xl font-bold text-gray-900">8</p>
-                </div>
-                
-                <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-clock text-purple-600 text-lg"></i>
-                        </div>
-                        <span class="text-gray-400 text-sm">avg/lesson</span>
-                    </div>
-                    <h3 class="text-gray-600 font-medium text-sm mb-1">Prep Time</h3>
-                    <p class="text-3xl font-bold text-gray-900">2.5h</p>
-                </div>
-            </div>
 
-            <!-- Content Grid -->
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
-                <!-- Recent Lesson Plans -->
-                <div class="xl:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-900">Recent Lesson Plans</h3>
-                            <p class="text-gray-500 text-sm">Your latest teaching materials</p>
+                    <!-- Draft Card 2 -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden card-hover">
+                        <div class="h-32 bg-gradient-to-br from-green-100 to-blue-100 relative">
+                            <div class="absolute top-3 right-3">
+                                <button class="p-2 bg-white/80 rounded-full hover:bg-white transition-colors">
+                                    <i class="fas fa-ellipsis-h text-gray-600"></i>
+                                </button>
+                            </div>
                         </div>
-                        <a href="#" class="text-purple-600 hover:text-purple-700 font-medium text-sm bg-purple-50 px-3 py-2 rounded-lg hover:bg-purple-100 transition-colors">
-                            View All
-                        </a>
+                        <div class="p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    Draft
+                                </span>
+                                <span class="text-xs text-gray-500">1 day ago</span>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 mb-1">Grade 2 - Araling Panlipunan</h3>
+                            <p class="text-sm text-gray-600 mb-3">Our Community Helpers</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-clock text-xs text-gray-400"></i>
+                                    <span class="text-xs text-gray-500">30 min</span>
+                                </div>
+                                <button class="text-[#11468F] hover:text-[#0d3a7a] transition-colors">
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="space-y-4">
-                        <div class="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:border-purple-200 transition-colors">
-                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-                                <span class="text-white font-bold">E</span>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="font-semibold text-gray-900 truncate">Introduction to English Grammar</h4>
-                                <p class="text-gray-500 text-sm">Grade 2 • Created 2 days ago</p>
-                                <div class="flex items-center mt-2 space-x-4">
-                                    <span class="text-xs text-gray-400">45 min duration</span>
-                                    <span class="text-xs text-gray-400">•</span>
-                                    <span class="text-xs text-gray-400">Interactive activities</span>
-                                </div>
-                            </div>
-                            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                                Complete
-                            </span>
-                        </div>
-                        
-                        <div class="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:border-purple-200 transition-colors">
-                            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-                                <span class="text-white font-bold">M</span>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="font-semibold text-gray-900 truncate">Basic Mathematics Operations</h4>
-                                <p class="text-gray-500 text-sm">Grade 1 • Created 1 week ago</p>
-                                <div class="flex items-center mt-2 space-x-4">
-                                    <span class="text-xs text-gray-400">30 min duration</span>
-                                    <span class="text-xs text-gray-400">•</span>
-                                    <span class="text-xs text-gray-400">Visual aids included</span>
-                                </div>
-                            </div>
-                            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
-                                In Progress
-                            </span>
-                        </div>
 
-                        <div class="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:border-purple-200 transition-colors">
-                            <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-                                <span class="text-white font-bold">S</span>
+                    <!-- Draft Card 3 -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden card-hover">
+                        <div class="h-32 bg-gradient-to-br from-purple-100 to-pink-100 relative">
+                            <div class="absolute top-3 right-3">
+                                <button class="p-2 bg-white/80 rounded-full hover:bg-white transition-colors">
+                                    <i class="fas fa-ellipsis-h text-gray-600"></i>
+                                </button>
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="font-semibold text-gray-900 truncate">Science Experiments for Kids</h4>
-                                <p class="text-gray-500 text-sm">Grade 3 • Created 3 days ago</p>
-                                <div class="flex items-center mt-2 space-x-4">
-                                    <span class="text-xs text-gray-400">60 min duration</span>
-                                    <span class="text-xs text-gray-400">•</span>
-                                    <span class="text-xs text-gray-400">Hands-on learning</span>
+                        </div>
+                        <div class="p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    Draft
+                                </span>
+                                <span class="text-xs text-gray-500">3 hours ago</span>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 mb-1">Grade 1 - English</h3>
+                            <p class="text-sm text-gray-600 mb-3">Basic Phonics and Letter Recognition</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-clock text-xs text-gray-400"></i>
+                                    <span class="text-xs text-gray-500">40 min</span>
                                 </div>
+                                <button class="text-[#11468F] hover:text-[#0d3a7a] transition-colors">
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
                             </div>
-                            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                                Complete
-                            </span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right Column -->
-                <div class="space-y-6">
-                    <!-- Upcoming Classes -->
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <div class="flex items-center justify-between mb-6">
-                            <div>
-                                <h3 class="text-lg font-bold text-gray-900">Today's Classes</h3>
-                                <p class="text-gray-500 text-sm">Your schedule for today</p>
-                            </div>
-                        </div>
-                        
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                                        <span class="text-white font-semibold text-sm">3A</span>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-semibold text-gray-900 text-sm">Grade 3A</h4>
-                                        <p class="text-gray-500 text-xs">English • 9:00 AM</p>
-                                    </div>
-                                </div>
-                                <span class="text-green-600 text-sm font-medium">Next</span>
-                            </div>
-                            
-                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
-                                        <span class="text-white font-semibold text-sm">2B</span>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-semibold text-gray-900 text-sm">Grade 2B</h4>
-                                        <p class="text-gray-500 text-xs">Math • 11:00 AM</p>
-                                    </div>
-                                </div>
-                                <span class="text-gray-400 text-sm">Later</span>
-                            </div>
-                            
-                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
-                                        <span class="text-white font-semibold text-sm">1A</span>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-semibold text-gray-900 text-sm">Grade 1A</h4>
-                                        <p class="text-gray-500 text-xs">Science • 2:00 PM</p>
-                                    </div>
-                                </div>
-                                <span class="text-gray-400 text-sm">Later</span>
-                            </div>
-                        </div>
+                <!-- Empty State (Hidden when there are drafts) -->
+                <div class="hidden text-center py-12">
+                    <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-file-alt text-3xl text-gray-400"></i>
                     </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No drafts yet</h3>
+                    <p class="text-gray-600 mb-6">Start creating your first lesson plan to see your drafts here.</p>
+                    <button class="bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white px-6 py-3 rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all">
+                        Create Your First Lesson
+                    </button>
+                </div>
+
+                <!-- Load More Button -->
+                <div class="mt-8 text-center">
+                    <p class="text-gray-500 text-sm mb-4">Nothing follows...</p>
                 </div>
             </div>
         </main>
@@ -460,25 +406,6 @@
                 document.body.classList.remove('overflow-hidden');
             }
         });
-
-        // Add smooth animations on load
-        document.addEventListener('DOMContentLoaded', () => {
-            const elements = document.querySelectorAll('.animate-fade-in');
-            elements.forEach((el, index) => {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(20px)';
-                setTimeout(() => {
-                    el.style.transition = 'all 0.3s ease';
-                    el.style.opacity = '1';
-                    el.style.transform = 'translateY(0)';
-                }, index * 100);
-            });
-        });
-
-        // Show notification badge after page load (simulate new notifications)
-        setTimeout(() => {
-            notificationBadge.classList.remove('hidden');
-        }, 2000);
     </script>
 </body>
 </html>

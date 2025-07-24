@@ -24,3 +24,6 @@ def profile(request):
 
 def lesson_planner(request):
     return render(request, 'lesson_planner.html')
+
+def draft(request):
+    return render(request, 'draft.html')
