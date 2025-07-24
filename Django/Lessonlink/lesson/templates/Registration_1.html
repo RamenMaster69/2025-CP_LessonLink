@@ -189,7 +189,7 @@
             }
             
             // If validation passes, redirect to Registration_2.html
-            window.location.href = "/registration_2/"; // Replace with the actual URL path
+            window.location.href = "{% url 'registration_2' %}"; // Replace with the actual URL path
             return false; // Prevent default form submission
         }
     </script>
