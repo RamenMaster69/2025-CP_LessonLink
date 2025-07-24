@@ -28,7 +28,7 @@
                     <p class="text-gray-600">Create your educator account and start planning smarter lessons</p>
                 </div>
                 
-                <form class="space-y-6" action="Registration_4.html" method="GET" onsubmit="return validateForm(event)">
+                <form class="space-y-6" action="{% url 'registration_4' %}" method="GET" onsubmit="return validateForm(event)">
                     <!-- Role Dropdown -->
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -70,7 +70,7 @@
                     </div>
                     
                     <!-- Register Button -->
-                    <a href="Registration_4.html"><button 
+                    <a href="{% url 'registration_4' %}"><button 
                         type="submit" 
                         class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
                     >

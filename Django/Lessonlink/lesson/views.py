@@ -12,3 +12,15 @@ def registration_2(request):
 
 def registration_3(request):
     return render(request, 'registration_3.html')
+
+def registration_4(request):
+    return render(request, 'registration_4.html')
+
+def dashboard(request):
+    return render(request, 'dashboard.html')
+
+def profile(request):
+    return render(request, 'profile.html')
+
+def lesson_planner(request):
+    return render(request, 'lesson_planner.html')

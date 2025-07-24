@@ -151,7 +151,7 @@
                     </div>
                     
                     <!-- Register Button -->
-                    <button 
+                    <a href=""></a><button 
                         type="submit" 
                         class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
                     >
@@ -202,7 +202,7 @@
                 <h3 class="text-lg font-medium text-gray-900 mb-2">Success!</h3>
                 <p class="text-sm text-gray-600">You have successfully created an account!</p>
             </div>
-            <a href="Dashboard.html"><button 
+            <a href="{% url 'dashboard' %}"><button 
                 onclick="closeSuccessModal()"
                 class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
             >
