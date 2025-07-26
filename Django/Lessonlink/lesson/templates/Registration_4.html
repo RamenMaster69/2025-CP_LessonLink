@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +12,7 @@
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
-        
+
         /* Success Modal Styles */
         .modal-overlay {
             position: fixed;
@@ -28,12 +29,12 @@
             visibility: hidden;
             transition: all 0.3s ease;
         }
-        
+
         .modal-overlay.show {
             opacity: 1;
             visibility: visible;
         }
-        
+
         .modal-content {
             background: white;
             border-radius: 12px;
@@ -44,19 +45,21 @@
             transform: translateY(-20px);
             transition: transform 0.3s ease;
         }
-        
+
         .modal-overlay.show .modal-content {
             transform: translateY(0);
         }
     </style>
 </head>
+
 <body class="bg-gray-50 min-h-screen">
     <div class="flex min-h-screen">
         <!-- Left Side - Image -->
         <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-            <img src="img/Screenshot 2025-07-16 024301.png" alt="LessonLink - AI-Powered Lesson Planning" class="w-full h-full object-cover">
+            <img src="img/Screenshot 2025-07-16 024301.png" alt="LessonLink - AI-Powered Lesson Planning"
+                class="w-full h-full object-cover">
         </div>
-        
+
         <!-- Right Side - Registration Form -->
         <div class="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12">
             <div class="w-full max-w-md">
@@ -64,19 +67,19 @@
                     <h1 class="text-3xl font-bold text-gray-900 mb-2">Join LessonLink</h1>
                     <p class="text-gray-600">Create your educator account and start planning smarter lessons</p>
                 </div>
-                
-                <form class="space-y-6" onsubmit="return validateForm(event)">
+
+                <form method="POST" action="{% url 'registration_4' %}" class="space-y-6"
+                    onsubmit="return validateForm(event)">
+                    {% csrf_token %}
+
                     <!-- Department Dropdown -->
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-building text-gray-400"></i>
                         </div>
-                        <select 
-                            id="department"
-                            name="department"
+                        <select id="department" name="department"
                             class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white"
-                            required
-                        >
+                            required>
                             <option value="">Select Department</option>
                             <option value="english">English Department</option>
                             <option value="filipino">Filipino Department</option>
@@ -91,40 +94,33 @@
                             <i class="fas fa-chevron-down text-gray-400"></i>
                         </div>
                     </div>
-                    
+
                     <!-- Specialization Dropdown -->
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-graduation-cap text-gray-400"></i>
                         </div>
-                        <select 
-                            id="specialization"
-                            name="specialization"
+                        <select id="specialization" name="specialization"
                             class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                            required
-                            disabled
-                        >
+                            required disabled>
                             <option value="">Select Department first</option>
                         </select>
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                             <i class="fas fa-chevron-down text-gray-400"></i>
                         </div>
                     </div>
-                    
+
                     <!-- Affiliation Section -->
                     <div class="space-y-4">
                         <div class="flex items-center justify-between">
                             <label class="block text-sm font-medium text-gray-700">Affiliation</label>
-                            <button 
-                                type="button" 
-                                id="addAffiliation"
+                            <button type="button" id="addAffiliation"
                                 class="text-blue-600 hover:text-blue-500 text-sm font-medium transition-colors duration-200"
-                                onclick="addAffiliationField()"
-                            >
+                                onclick="addAffiliationField()">
                                 + Add Affiliation
                             </button>
                         </div>
-                        
+
                         <!-- Container for affiliation input fields -->
                         <div id="affiliationContainer">
                             <!-- Initial affiliation field -->
@@ -132,32 +128,24 @@
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <i class="fas fa-university text-gray-400"></i>
                                 </div>
-                                <input 
-                                    type="text"
-                                    name="affiliation[]"
+                                <input type="text" name="affiliation[]"
                                     placeholder="Enter your affiliation (e.g., University, School, Organization)"
-                                    class="input-focus block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                />
-                                <button 
-                                    type="button" 
+                                    class="input-focus block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" />
+                                <button type="button"
                                     class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-red-500 transition-colors duration-200 remove-affiliation"
-                                    onclick="removeAffiliationField(this)"
-                                    style="display: none;"
-                                >
+                                    onclick="removeAffiliationField(this)" style="display: none;">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Register Button -->
-                    <a href=""></a><button 
-                        type="submit" 
-                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
-                    >
+                    <a href=""></a><button type="submit"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
                         Create Educator Account
                     </button>
-                    
+
                     <!-- Divider -->
                     <div class="relative my-6">
                         <div class="absolute inset-0 flex items-center">
@@ -167,22 +155,21 @@
                             <span class="px-2 bg-gray-50 text-gray-500">Or continue with</span>
                         </div>
                     </div>
-                    
+
                     <!-- Social Login - Only Google -->
                     <div class="w-full">
-                        <button 
-                            type="button" 
-                            class="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200"
-                        >
+                        <button type="button"
+                            class="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
                             <i class="fab fa-google text-red-500 text-lg"></i>
                         </button>
                     </div>
-                    
+
                     <!-- Login Link -->
                     <div class="text-center">
                         <p class="text-sm text-gray-600">
-                            Already have a LessonLink account? 
-                            <a href="#" class="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
+                            Already have a LessonLink account?
+                            <a href="#"
+                                class="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
                                 Sign in here
                             </a>
                         </p>
@@ -191,7 +178,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Success Modal -->
     <div id="successModal" class="modal-overlay">
         <div class="modal-content">
@@ -202,23 +189,21 @@
                 <h3 class="text-lg font-medium text-gray-900 mb-2">Success!</h3>
                 <p class="text-sm text-gray-600">You have successfully created an account!</p>
             </div>
-            <a href="{% url 'dashboard' %}"><button 
-                onclick="closeSuccessModal()"
-                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
-            >
-                Continue
-            </button></a>
+            <a href="{% url 'dashboard' %}"><button onclick="closeSuccessModal()"
+                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
+                    Continue
+                </button></a>
         </div>
     </div>
-    
+
     <script>
         function updateSpecializationOptions() {
             const department = document.getElementById('department').value;
             const specializationSelect = document.getElementById('specialization');
-            
+
             // Clear existing options
             specializationSelect.innerHTML = '<option value="">Select Specialization</option>';
-            
+
             if (department === 'english') {
                 specializationSelect.disabled = false;
                 const specializations = [
@@ -227,7 +212,7 @@
                     { value: 'creative-writing', text: 'Creative Writing' },
                     { value: 'journalism', text: 'Journalism' }
                 ];
-                
+
                 specializations.forEach(spec => {
                     const option = document.createElement('option');
                     option.value = spec.value;
@@ -241,7 +226,7 @@
                     { value: 'filipino-language', text: 'Filipino Language' },
                     { value: 'philippine-studies', text: 'Philippine Studies' }
                 ];
-                
+
                 specializations.forEach(spec => {
                     const option = document.createElement('option');
                     option.value = spec.value;
@@ -256,7 +241,7 @@
                     { value: 'statistics', text: 'Statistics' },
                     { value: 'calculus', text: 'Calculus' }
                 ];
-                
+
                 specializations.forEach(spec => {
                     const option = document.createElement('option');
                     option.value = spec.value;
@@ -271,7 +256,7 @@
                     { value: 'physics', text: 'Physics' },
                     { value: 'earth-science', text: 'Earth Science' }
                 ];
-                
+
                 specializations.forEach(spec => {
                     const option = document.createElement('option');
                     option.value = spec.value;
@@ -286,7 +271,7 @@
                     { value: 'civics', text: 'Civics' },
                     { value: 'economics', text: 'Economics' }
                 ];
-                
+
                 specializations.forEach(spec => {
                     const option = document.createElement('option');
                     option.value = spec.value;
@@ -301,7 +286,7 @@
                     { value: 'industrial-arts', text: 'Industrial Arts' },
                     { value: 'information-technology', text: 'Information Technology' }
                 ];
-                
+
                 specializations.forEach(spec => {
                     const option = document.createElement('option');
                     option.value = spec.value;
@@ -316,7 +301,7 @@
                     { value: 'physical-education', text: 'Physical Education' },
                     { value: 'health', text: 'Health' }
                 ];
-                
+
                 specializations.forEach(spec => {
                     const option = document.createElement('option');
                     option.value = spec.value;
@@ -331,7 +316,7 @@
                     { value: 'character-education', text: 'Character Education' },
                     { value: 'religious-studies', text: 'Religious Studies' }
                 ];
-                
+
                 specializations.forEach(spec => {
                     const option = document.createElement('option');
                     option.value = spec.value;
@@ -343,14 +328,14 @@
                 specializationSelect.innerHTML = '<option value="">Select Department first</option>';
             }
         }
-        
+
         // Add event listener to department dropdown
         document.getElementById('department').addEventListener('change', updateSpecializationOptions);
-        
+
         function addAffiliationField() {
             const container = document.getElementById('affiliationContainer');
             const fieldCount = container.children.length;
-            
+
             // Create new affiliation field
             const newField = document.createElement('div');
             newField.className = 'affiliation-field relative mt-3';
@@ -372,23 +357,23 @@
                     <i class="fas fa-times"></i>
                 </button>
             `;
-            
+
             container.appendChild(newField);
-            
+
             // Show remove button on all fields if more than one
             updateRemoveButtons();
         }
-        
+
         function removeAffiliationField(button) {
             const field = button.closest('.affiliation-field');
             field.remove();
             updateRemoveButtons();
         }
-        
+
         function updateRemoveButtons() {
             const fields = document.querySelectorAll('.affiliation-field');
             const removeButtons = document.querySelectorAll('.remove-affiliation');
-            
+
             removeButtons.forEach((button, index) => {
                 if (fields.length > 1) {
                     button.style.display = 'flex';
@@ -397,37 +382,35 @@
                 }
             });
         }
-        
+
         function validateForm(event) {
-            event.preventDefault(); // Prevent default form submission
-            
             const department = document.getElementById('department').value;
             const specialization = document.getElementById('specialization').value;
-            
+
             // Check if required fields are selected
             if (!department || !specialization) {
                 alert('Please select both Department and Specialization.');
                 return false;
             }
-            
+
             // If validation passes, show success modal
-            showSuccessModal();
-            return false; // Prevent actual form submission for demo
+            return true; // Prevent actual form submission for demo
         }
-        
+
         function showSuccessModal() {
             const modal = document.getElementById('successModal');
             modal.classList.add('show');
         }
-        
+
         function closeSuccessModal() {
             const modal = document.getElementById('successModal');
             modal.classList.remove('show');
-            
+
             // Here you can add code to redirect to another page or reset the form
             // For example: window.location.href = '/dashboard';
             // Or reset the form: document.querySelector('form').reset();
         }
     </script>
 </body>
+
 </html>

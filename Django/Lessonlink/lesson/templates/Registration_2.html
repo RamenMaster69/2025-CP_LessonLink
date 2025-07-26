@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,13 +14,15 @@
         }
     </style>
 </head>
+
 <body class="bg-gray-50 min-h-screen">
     <div class="flex min-h-screen">
         <!-- Left Side - Image -->
         <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-            <img src="img/Screenshot 2025-07-16 024301.png" alt="LessonLink - AI-Powered Lesson Planning" class="w-full h-full object-cover">
+            <img src="img/Screenshot 2025-07-16 024301.png" alt="LessonLink - AI-Powered Lesson Planning"
+                class="w-full h-full object-cover">
         </div>
-        
+
         <!-- Right Side - Registration Form -->
         <div class="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12">
             <div class="w-full max-w-md">
@@ -27,74 +30,57 @@
                     <h1 class="text-3xl font-bold text-gray-900 mb-2">Join LessonLink</h1>
                     <p class="text-gray-600">Create your educator account and start planning smarter lessons</p>
                 </div>
-                
-                <form class="space-y-6" onsubmit="return validateForm(event)">
+
+                <form method="POST" action="{% url 'registration_2' %}" class="space-y-6"
+                    onsubmit="return validateForm(event)">
+                    {% csrf_token %}
+
                     <!-- First Name -->
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-user text-gray-400"></i>
                         </div>
-                        <input 
-                            type="text" 
-                            id="firstName"
-                            name="firstName"
+                        <input type="text" id="firstName" name="firstName"
                             class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                            placeholder="First Name"
-                            required
-                        >
+                            placeholder="First Name" required>
                     </div>
-                    
+
                     <!-- Middle Name (Optional) -->
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-user text-gray-400"></i>
                         </div>
-                        <input 
-                            type="text" 
-                            id="middleName"
-                            name="middleName"
+                        <input type="text" id="middleName" name="middleName"
                             class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                            placeholder="Middle Name (Optional)"
-                        >
+                            placeholder="Middle Name (Optional)">
                     </div>
-                    
+
                     <!-- Last Name -->
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-user text-gray-400"></i>
                         </div>
-                        <input 
-                            type="text" 
-                            id="lastName"
-                            name="lastName"
+                        <input type="text" id="lastName" name="lastName"
                             class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                            placeholder="Last Name"
-                            required
-                        >
+                            placeholder="Last Name" required>
                     </div>
-                    
+
                     <!-- Date of Birth -->
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-calendar-alt text-gray-400"></i>
                         </div>
-                        <input 
-                            type="date" 
-                            id="dateOfBirth"
-                            name="dateOfBirth"
+                        <input type="date" id="dateOfBirth" name="dateOfBirth"
                             class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                            required
-                        >
+                            required>
                     </div>
-                    
+
                     <!-- Register Button -->
-                    <a href="{% url 'registration_3' %}"><button 
-                        type="submit" 
-                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
-                    >
+                    <button type="submit"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
                         Create Educator Account
-                    </button></a>
-                    
+                    </button>
+
                     <!-- Divider -->
                     <div class="relative my-6">
                         <div class="absolute inset-0 flex items-center">
@@ -104,22 +90,21 @@
                             <span class="px-2 bg-gray-50 text-gray-500">Or continue with</span>
                         </div>
                     </div>
-                    
+
                     <!-- Social Login - Only Google -->
                     <div class="w-full">
-                        <button 
-                            type="button" 
-                            class="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200"
-                        >
+                        <button type="button"
+                            class="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
                             <i class="fab fa-google text-red-500 text-lg"></i>
                         </button>
                     </div>
-                    
+
                     <!-- Login Link -->
                     <div class="text-center">
                         <p class="text-sm text-gray-600">
-                            Already have a LessonLink account? 
-                            <a href="#" class="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
+                            Already have a LessonLink account?
+                            <a href="#"
+                                class="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
                                 Sign in here
                             </a>
                         </p>
@@ -128,44 +113,45 @@
             </div>
         </div>
     </div>
-    
+
     <script>
         function validateForm(event) {
             const firstName = document.getElementById('firstName').value.trim();
             const lastName = document.getElementById('lastName').value.trim();
             const dateOfBirth = document.getElementById('dateOfBirth').value;
-            
+
             // Check if required fields are filled
             if (!firstName || !lastName || !dateOfBirth) {
                 event.preventDefault();
                 alert('Please fill in all required fields.');
                 return false;
             }
-            
+
             // Check if date of birth is valid (not in the future)
             const today = new Date();
             const birthDate = new Date(dateOfBirth);
-            
+
             if (birthDate > today) {
                 event.preventDefault();
                 alert('Date of birth cannot be in the future.');
                 return false;
             }
-            
+
             // Check if user is at least 13 years old (typical minimum age for online accounts)
             const minAge = new Date();
             minAge.setFullYear(minAge.getFullYear() - 13);
-            
+
             if (birthDate > minAge) {
                 event.preventDefault();
                 alert('You must be at least 13 years old to create an account.');
                 return false;
             }
-            
+
             // If validation passes, redirect to Registration_3.html
-            window.location.href = "{% url 'registration_3' %}";
-            return false; // Prevent default form submission
+
+            return true; // Prevent default form submission
         }
     </script>
 </body>
+
 </html>

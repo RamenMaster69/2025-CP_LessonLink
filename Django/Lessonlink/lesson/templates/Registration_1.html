@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,13 +14,15 @@
         }
     </style>
 </head>
+
 <body class="bg-gray-50 min-h-screen">
     <div class="flex min-h-screen">
         <!-- Left Side - Image -->
         <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-            <img src="img/Screenshot 2025-07-16 024301.png" alt="LessonLink - AI-Powered Lesson Planning" class="w-full h-full object-cover">
+            <img src="img/Screenshot 2025-07-16 024301.png" alt="LessonLink - AI-Powered Lesson Planning"
+                class="w-full h-full object-cover">
         </div>
-        
+
         <!-- Right Side - Registration Form -->
         <div class="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12">
             <div class="w-full max-w-md">
@@ -27,59 +30,50 @@
                     <h1 class="text-3xl font-bold text-gray-900 mb-2">Join LessonLink</h1>
                     <p class="text-gray-600">Create your educator account and start planning smarter lessons</p>
                 </div>
-                
-                <form class="space-y-6" onsubmit="return validateForm(event)">
+
+                <form class="space-y-6" method="POST" action="{% url 'registration_1' %}"
+                    onsubmit="return validateForm(event)">
+                    {% csrf_token %}
+
+
                     <!-- Email -->
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-envelope text-gray-400"></i>
                         </div>
-                        <input 
-                            type="email" 
-                            id="email"
-                            name="email"
+                        <input type="email" id="email" name="email"
                             class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                            placeholder="Email Address"
-                            required
-                        >
+                            placeholder="Email Address" required>
                     </div>
-                    
+
                     <!-- Password -->
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-lock text-gray-400"></i>
                         </div>
-                        <input 
-                            type="password" 
-                            id="password"
-                            name="password"
+                        <input type="password" id="password" name="password"
                             class="input-focus block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                            placeholder="Password"
-                            required
-                        >
+                            placeholder="Password" required>
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                            <button type="button" class="text-gray-400 hover:text-gray-600" onclick="togglePassword('password')">
+                            <button type="button" class="text-gray-400 hover:text-gray-600"
+                                onclick="togglePassword('password')">
                                 <i class="fas fa-eye" id="togglePassword"></i>
                             </button>
                         </div>
                     </div>
-                    
+
                     <!-- Confirm Password -->
                     <div>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i class="fas fa-lock text-gray-400"></i>
                             </div>
-                            <input 
-                                type="password" 
-                                id="confirmPassword"
-                                name="confirmPassword"
+                            <input type="password" id="confirmPassword" name="confirmPassword"
                                 class="input-focus block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                placeholder="Confirm Password"
-                                required
-                            >
+                                placeholder="Confirm Password" required>
                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                <button type="button" class="text-gray-400 hover:text-gray-600" onclick="togglePassword('confirmPassword')">
+                                <button type="button" class="text-gray-400 hover:text-gray-600"
+                                    onclick="togglePassword('confirmPassword')">
                                     <i class="fas fa-eye" id="toggleConfirmPassword"></i>
                                 </button>
                             </div>
@@ -90,29 +84,24 @@
                             Passwords do not match
                         </div>
                     </div>
-                    
+
                     <!-- Terms Checkbox -->
                     <div class="flex items-center">
-                        <input 
-                            id="terms" 
-                            name="terms" 
-                            type="checkbox" 
-                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            required
-                        >
+                        <input id="terms" name="terms" type="checkbox"
+                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" required>
                         <label for="terms" class="ml-3 block text-sm text-gray-700">
-                            I agree to the <a href="#" class="text-blue-600 hover:text-blue-500 font-medium">Terms of Service</a> and <a href="#" class="text-blue-600 hover:text-blue-500 font-medium">Privacy Policy</a>
+                            I agree to the <a href="#" class="text-blue-600 hover:text-blue-500 font-medium">Terms of
+                                Service</a> and <a href="#"
+                                class="text-blue-600 hover:text-blue-500 font-medium">Privacy Policy</a>
                         </label>
                     </div>
-                    
+
                     <!-- Register Button -->
-                    <a href="{% url 'registration_2' %}"><button 
-                        type="submit" 
-                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
-                    >
+                    <button type="submit"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
                         Create Educator Account
                     </button></a>
-                    
+
                     <!-- Divider -->
                     <div class="relative my-6">
                         <div class="absolute inset-0 flex items-center">
@@ -122,22 +111,21 @@
                             <span class="px-2 bg-gray-50 text-gray-500">Or continue with</span>
                         </div>
                     </div>
-                    
+
                     <!-- Social Login - Only Google -->
                     <div class="w-full">
-                        <button 
-                            type="button" 
-                            class="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200"
-                        >
+                        <button type="button"
+                            class="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
                             <i class="fab fa-google text-red-500 text-lg"></i>
                         </button>
                     </div>
-                    
+
                     <!-- Login Link -->
                     <div class="text-center">
                         <p class="text-sm text-gray-600">
-                            Already have a LessonLink account? 
-                            <a href="#" class="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
+                            Already have a LessonLink account?
+                            <a href="#"
+                                class="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
                                 Sign in here
                             </a>
                         </p>
@@ -146,18 +134,18 @@
             </div>
         </div>
     </div>
-    
+
     <script>
         function togglePassword(inputId) {
             const input = document.getElementById(inputId);
             let iconId = 'togglePassword';
-            
+
             if (inputId === 'confirmPassword') {
                 iconId = 'toggleConfirmPassword';
             }
-            
+
             const icon = document.getElementById(iconId);
-            
+
             if (input.type === 'password') {
                 input.type = 'text';
                 icon.classList.remove('fa-eye');
@@ -168,18 +156,18 @@
                 icon.classList.add('fa-eye');
             }
         }
-        
+
         function validateForm(event) {
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             const errorMessage = document.getElementById('passwordError');
             const confirmPasswordInput = document.getElementById('confirmPassword');
-            
+
             // Reset error state first
             errorMessage.classList.add('hidden');
             confirmPasswordInput.classList.remove('border-red-500');
             confirmPasswordInput.classList.add('border-gray-300');
-            
+
             if (password !== confirmPassword) {
                 event.preventDefault();
                 errorMessage.classList.remove('hidden');
@@ -187,11 +175,16 @@
                 confirmPasswordInput.classList.remove('border-gray-300');
                 return false;
             }
-            
-            // If validation passes, redirect to Registration_2.html
-            window.location.href = "{% url 'registration_2' %}"; // Replace with the actual URL path
-            return false; // Prevent default form submission
+
+            if (password !== confirmPassword) {
+                event.preventDefault();
+                // show error
+                return false;
+            }
+            return true; // allow form submission if everything's fine
+
         }
     </script>
 </body>
+
 </html>
