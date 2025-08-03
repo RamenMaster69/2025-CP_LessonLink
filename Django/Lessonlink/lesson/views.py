@@ -115,6 +115,24 @@ def registration_4(request):
 
     return render(request, 'registration_4.html')
 
+def login_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+
+        try:
+            user = User.objects.get(email=email)
+            if user.check_password(password):
+                request.session['user_id'] = user.id
+                messages.success(request, "Login successful!")
+                return redirect('dashboard')
+            else:
+                messages.error(request, "Invalid password.")
+        except User.DoesNotExist:
+            messages.error(request, "Email not registered.")
+
+    return render(request, 'login.html')
+
 def dashboard(request):
     return render(request, 'dashboard.html')
 

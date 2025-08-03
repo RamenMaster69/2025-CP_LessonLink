@@ -1,21 +1,21 @@
+from django.contrib.auth.hashers import make_password, check_password
 from django.db import models
-from django.contrib.auth.hashers import make_password
 
 class User(models.Model):
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=128)
     
     first_name = models.CharField(max_length=100)
-    middle_name = models.CharField(max_length=100, blank=True, null=True)  # Made optional
+    middle_name = models.CharField(max_length=100, blank=True, null=True)
     last_name = models.CharField(max_length=100)
     dob = models.DateField()
     
-    role = models.CharField(max_length=100)  # Keep required
-    rank = models.CharField(max_length=100)  # Keep required
+    role = models.CharField(max_length=100)
+    rank = models.CharField(max_length=100)
     
-    department = models.CharField(max_length=100)  # Keep required
-    specialization = models.CharField(max_length=100)  # Keep required
-    affiliations = models.TextField(blank=True, null=True)  # Made optional
+    department = models.CharField(max_length=100)
+    specialization = models.CharField(max_length=100)
+    affiliations = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.email
@@ -25,3 +25,7 @@ class User(models.Model):
         if not self.password.startswith('pbkdf2_sha256$'):
             self.password = make_password(self.password)
         super().save(*args, **kwargs)
+    
+    def check_password(self, raw_password):
+        """Check if the provided raw password matches the stored hashed password"""
+        return check_password(raw_password, self.password)
