@@ -17,6 +17,8 @@ class User(models.Model):
     specialization = models.CharField(max_length=100)
     affiliations = models.TextField(blank=True, null=True)
 
+    image = models.ImageField(null=True, blank=True, upload_to='images/') # Image field for user profile picture
+
     def __str__(self):
         return self.email
 
