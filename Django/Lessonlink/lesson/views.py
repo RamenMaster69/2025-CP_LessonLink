@@ -134,7 +134,17 @@ def login_view(request):
     return render(request, 'login.html')
 
 def dashboard(request):
-    return render(request, 'dashboard.html')
+    user_id = request.session.get('user_id')
+    user = None
+
+    if user_id:
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            messages.error(request, "User not found. Please log in again.")
+            return redirect('login')
+
+    return render(request, 'dashboard.html', {'user': user})
 
 def profile(request):
     return render(request, 'profile.html')
