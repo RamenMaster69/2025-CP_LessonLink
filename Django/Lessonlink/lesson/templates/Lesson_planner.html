@@ -55,27 +55,27 @@
             <!-- Form Container -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <!-- Form Fields -->
-                <div class="space-y-4 sm:space-y-6">
+                <form id="lesson-plan-form" action="/submit-lesson-plan" method="POST" class="space-y-4 sm:space-y-6">
                     <!-- Row 1: Subject and Grade Level -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                            <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option>Select Subject</option>
-                                <option>Mathematics</option>
-                                <option>Science</option>
-                                <option>English</option>
-                                <option>History</option>
+                            <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                            <select id="subject" name="subject" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                <option value="">Select Subject</option>
+                                <option value="Mathematics">Mathematics</option>
+                                <option value="Science">Science</option>
+                                <option value="English">English</option>
+                                <option value="History">History</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
-                            <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option>Select Grade</option>
-                                <option>Kindergarten</option>
-                                <option>1st Grade</option>
-                                <option>2nd Grade</option>
-                                <option>3rd Grade</option>
+                            <label for="grade-level" class="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
+                            <select id="grade-level" name="grade_level" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                <option value="">Select Grade</option>
+                                <option value="Kindergarten">Kindergarten</option>
+                                <option value="1st Grade">1st Grade</option>
+                                <option value="2nd Grade">2nd Grade</option>
+                                <option value="3rd Grade">3rd Grade</option>
                             </select>
                         </div>
                     </div>
@@ -83,42 +83,42 @@
                     <!-- Row 2: Quarter and Duration -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Quarter</label>
-                            <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option>Select Quarter</option>
-                                <option>1st Quarter</option>
-                                <option>2nd Quarter</option>
-                                <option>3rd Quarter</option>
-                                <option>4th Quarter</option>
+                            <label for="quarter" class="block text-sm font-medium text-gray-700 mb-2">Quarter</label>
+                            <select id="quarter" name="quarter" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                <option value="">Select Quarter</option>
+                                <option value="1st Quarter">1st Quarter</option>
+                                <option value="2nd Quarter">2nd Quarter</option>
+                                <option value="3rd Quarter">3rd Quarter</option>
+                                <option value="4th Quarter">4th Quarter</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Duration (minutes)</label>
-                            <input type="text" id="duration-input" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g. 60">
+                            <label for="duration-input" class="block text-sm font-medium text-gray-700 mb-2">Duration (minutes)</label>
+                            <input type="text" id="duration-input" name="duration" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g. 60" required>
                         </div>
                     </div>
 
                     <!-- Population -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Population</label>
-                        <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g. 40">
+                        <label for="population" class="block text-sm font-medium text-gray-700 mb-2">Population</label>
+                        <input type="text" id="population" name="population" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g. 40" required>
                     </div>
 
                     <!-- Learning Objectives -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Learning Objectives</label>
-                        <textarea class="w-full border border-gray-300 rounded-lg px-3 py-2 h-20 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="At the end of the lesson, student will be able to learn..."></textarea>
+                        <label for="learning-objectives" class="block text-sm font-medium text-gray-700 mb-2">Learning Objectives</label>
+                        <textarea id="learning-objectives" name="learning_objectives" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-20 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="At the end of the lesson, student will be able to learn..." required></textarea>
                     </div>
 
                     <!-- Subject Matter and Materials Needed -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Subject Matter</label>
-                            <textarea class="w-full border border-gray-300 rounded-lg px-3 py-2 h-20 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Key concepts and topic to be covered"></textarea>
+                            <label for="subject-matter" class="block text-sm font-medium text-gray-700 mb-2">Subject Matter</label>
+                            <textarea id="subject-matter" name="subject_matter" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-20 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Key concepts and topic to be covered" required></textarea>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Materials Needed</label>
-                            <textarea class="w-full border border-gray-300 rounded-lg px-3 py-2 h-20 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Lists of materials, resources, and tools..."></textarea>
+                            <label for="materials-needed" class="block text-sm font-medium text-gray-700 mb-2">Materials Needed</label>
+                            <textarea id="materials-needed" name="materials_needed" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-20 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Lists of materials, resources, and tools..." required></textarea>
                         </div>
                     </div>
 
@@ -127,45 +127,39 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Lesson Procedure</label>
                         <div class="space-y-3 sm:space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Introduction (5 minutes)</label>
-                                <textarea class="w-full border border-gray-300 rounded-lg px-3 py-2 h-14 sm:h-16 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="How will you begin the lesson? Outline..."></textarea>
+                                <label for="introduction" class="block text-sm font-medium text-gray-600 mb-1">Introduction (5 minutes)</label>
+                                <textarea id="introduction" name="introduction" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-14 sm:h-16 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="How will you begin the lesson? Outline..." required></textarea>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Instruction (25 minutes)</label>
-                                <textarea class="w-full border border-gray-300 rounded-lg px-3 py-2 h-14 sm:h-16 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="How will you present the new content?"></textarea>
+                                <label for="instruction" class="block text-sm font-medium text-gray-600 mb-1">Instruction (25 minutes)</label>
+                                <textarea id="instruction" name="instruction" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-14 sm:h-16 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="How will you present the new content?" required></textarea>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Application (20 minutes)</label>
-                                <textarea class="w-full border border-gray-300 rounded-lg px-3 py-2 h-14 sm:h-16 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="How will you provide the lesson content?"></textarea>
+                                <label for="application" class="block text-sm font-medium text-gray-600 mb-1">Application (20 minutes)</label>
+                                <textarea id="application" name="application" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-14 sm:h-16 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="How will you provide the lesson content?" required></textarea>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Evaluation (5 minutes)</label>
-                                <textarea class="w-full border border-gray-300 rounded-lg px-3 py-2 h-14 sm:h-16 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="How will you assess the lesson content?"></textarea>
+                                <label for="evaluation" class="block text-sm font-medium text-gray-600 mb-1">Evaluation (5 minutes)</label>
+                                <textarea id="evaluation" name="evaluation" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-14 sm:h-16 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="How will you assess the lesson content?" required></textarea>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Assessment (5 min-out)</label>
-                                <textarea class="w-full border border-gray-300 rounded-lg px-3 py-2 h-14 sm:h-16 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="How will you assess the lesson content?"></textarea>
+                                <label for="assessment" class="block text-sm font-medium text-gray-600 mb-1">Assessment (5 min-out)</label>
+                                <textarea id="assessment" name="assessment" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-14 sm:h-16 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="How will you assess the lesson content?" required></textarea>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Action Buttons -->
-                <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mt-6 sm:mt-8">
-                    <button class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium text-sm">
-                        Save Draft
-                    </button>
-                    <button class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium text-sm">
-                        Generate Lesson Plan
-                    </button>
-                    <button class="bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-lg font-medium text-sm">
-                        Export
-                    </button>
-                </div>
+                    <!-- Action Button -->
+                    <div class="mt-6 sm:mt-8">
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium text-sm">
+                            Generate Lesson Plan
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -386,6 +380,29 @@
             if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
                 e.preventDefault();
             }
+        });
+
+        // Form submission handling
+        const lessonPlanForm = document.getElementById('lesson-plan-form');
+        lessonPlanForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Here you would typically gather the form data and send it to your server
+            // For example:
+            // const formData = new FormData(lessonPlanForm);
+            // fetch('/submit-lesson-plan', {
+            //     method: 'POST',
+            //     body: formData
+            // })
+            // .then(response => response.json())
+            // .then(data => {
+            //     console.log('Success:', data);
+            // })
+            // .catch(error => {
+            //     console.error('Error:', error);
+            // });
+            
+            console.log('Form submitted!');
+            // You can add your form submission logic here
         });
     </script>
 </body>
