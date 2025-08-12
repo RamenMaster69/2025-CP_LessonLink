@@ -360,7 +360,14 @@ def draft(request):
     return render(request, 'draft.html')
 
 def task(request):
-    return render(request, 'task.html')
+    user_id = request.session.get('user_id')
+    user = None
+    if user_id:
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            user = None
+    return render(request, 'task.html', {'user': user})
 
 def template(request):
     return render(request, 'template.html')

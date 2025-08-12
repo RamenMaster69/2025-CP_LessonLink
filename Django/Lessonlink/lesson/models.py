@@ -31,3 +31,24 @@ class User(models.Model):
     def check_password(self, raw_password):
         """Check if the provided raw password matches the stored hashed password"""
         return check_password(raw_password, self.password)
+
+class draft(models.Model)
+
+class task(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    due_date = models.DateTimeField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks')
+
+    def __str__(self):
+        return self.title
+
+class schedule(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='schedules')
+    class_name = models.CharField(max_length=255)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    location = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.class_name} - {self.user.first_name}"
