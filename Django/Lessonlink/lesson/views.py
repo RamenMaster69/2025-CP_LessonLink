@@ -225,6 +225,10 @@ def registration_4(request):
     return render(request, 'registration_4.html')
 
 def login_view(request):
+    # If user is already logged in, redirect to dashboard
+    if request.session.get('user_id'):
+        return redirect('dashboard')
+        
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
@@ -264,6 +268,7 @@ def login_view(request):
     return render(request, 'login.html')
 
 def dashboard(request):
+    # Check if user is logged in
     user_id = request.session.get('user_id')
     
     if not user_id:
@@ -297,6 +302,7 @@ def logout_view(request):
     return redirect('landing')
 
 def profile(request):
+    # Check if user is logged in
     user_id = request.session.get('user_id')
     
     if not user_id:
@@ -311,9 +317,13 @@ def profile(request):
         })
     except User.DoesNotExist:
         messages.error(request, "User account not found. Please log in again.")
+        # Clear the invalid session
+        if 'user_id' in request.session:
+            del request.session['user_id']
         return redirect('login')
 
 def lesson_planner(request):
+    # Check if user is logged in
     user_id = request.session.get('user_id')
     
     if not user_id:
@@ -325,9 +335,13 @@ def lesson_planner(request):
         return render(request, 'lesson_planner.html', {'user': user})
     except User.DoesNotExist:
         messages.error(request, "User account not found. Please log in again.")
+        # Clear the invalid session
+        if 'user_id' in request.session:
+            del request.session['user_id']
         return redirect('login')
 
 def draft(request):
+    # Check if user is logged in
     user_id = request.session.get('user_id')
     
     if not user_id:
@@ -339,4 +353,7 @@ def draft(request):
         return render(request, 'draft.html', {'user': user})
     except User.DoesNotExist:
         messages.error(request, "User account not found. Please log in again.")
+        # Clear the invalid session
+        if 'user_id' in request.session:
+            del request.session['user_id']
         return redirect('login')

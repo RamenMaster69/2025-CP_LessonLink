@@ -44,11 +44,11 @@
             <div class="flex items-center justify-between">
                 <!-- Logo -->
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full shadow-md">
+                    <div class="w-10 h-10 bg-gradient-to-br from-[#11468F] to-[#9E5EFF] rounded-full shadow-md">
                     </div>
                     <div>
                         <h1 class="text-xl font-bold text-gray-900">LessonLink</h1>
-                        <p class="text-sm text-gray-500 hidden lg:block">WMSU College of Teacher Education</p>
+                        <p class="text-sm text-gray-500 hidden lg:block">Western Mindanao State University</p>
                     </div>
                 </div>
                 
@@ -83,18 +83,31 @@
         </div>
     </header>
 
+    <!-- Messages -->
+    {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 py-2">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} bg-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-100 border border-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-400 text-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-700 px-4 py-3 rounded mb-4">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
         <!-- Combined Container -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="flex flex-col lg:flex-row">
-                <!-- Left Side - Profile Card (now part of the same container) -->
-                <div class="w-full lg:w-1/3 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 p-8 text-white relative">
+                <!-- Left Side - Profile Card -->
+                <div class="w-full lg:w-1/3 bg-gradient-to-br from-[#11468F] via-blue-700 to-[#9E5EFF] p-8 text-white relative">
                     <!-- Back Button -->
-                    <a href="{% url 'dashboard' %}"><button class="flex items-center space-x-2 text-white/90 hover:text-white mb-6 transition-colors">
-                        <i class="fas fa-arrow-left"></i>
-                        <span class="font-medium">Back to Dashboard</span>
-                    </button></a>
+                    <a href="{% url 'dashboard' %}">
+                        <button class="flex items-center space-x-2 text-white/90 hover:text-white mb-6 transition-colors">
+                            <i class="fas fa-arrow-left"></i>
+                            <span class="font-medium">Back to Dashboard</span>
+                        </button>
+                    </a>
                     
                     <!-- Profile Image Placeholder -->
                     <div class="flex justify-center mb-6">
@@ -111,26 +124,28 @@
                     
                     <!-- Profile Info -->
                     <div class="text-center mb-8">
-                        <h2 class="text-2xl font-bold mb-2">Viktor Greg A. Lim</h2>
-                        <p class="text-blue-100 mb-1">Filipino Teacher</p>
-                        <p class="text-blue-200 text-sm">Western Mindanao State University</p>
+                        <h2 class="text-2xl font-bold mb-2">{{ user.first_name }} {% if user.middle_name %}{{ user.middle_name }} {% endif %}{{ user.last_name }}</h2>
+                        <p class="text-blue-100 mb-1">{{ user.role }}</p>
+                        <p class="text-blue-200 text-sm">{{ user.department }}</p>
                     </div>
                     
                     <!-- Email -->
                     <div class="text-center mb-8">
-                        <p class="text-blue-100 text-sm">limviktorgreg14@gmail.com</p>
+                        <p class="text-blue-100 text-sm">{{ user.email }}</p>
                     </div>
                     
                     <!-- Logout Button -->
-                    <a href="landing.html"><button class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition-colors">
-                        Logout
-                    </button></a>
+                    <a href="{% url 'logout' %}">
+                        <button class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition-colors">
+                            Logout
+                        </button>
+                    </a>
                     
                     <!-- Decorative element -->
                     <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
                 </div>
                 
-                <!-- Right Side - Edit Form (now part of the same container) -->
+                <!-- Right Side - Edit Form -->
                 <div class="w-full lg:w-2/3 p-8">
                     <!-- Header -->
                     <div class="flex items-center justify-between mb-8">
@@ -141,25 +156,53 @@
                     </div>
                     
                     <!-- Form -->
-                    <form class="space-y-6">
-                        <!-- Full Name -->
+                    <form method="post" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        <!-- First Name -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name:</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">First Name:</label>
                             <input 
                                 type="text" 
-                                value="Viktor Greg A. Lim"
+                                name="first_name"
+                                value="{{ user.first_name }}"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
+                                readonly
+                            >
+                        </div>
+
+                        <!-- Middle Name -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Middle Name:</label>
+                            <input 
+                                type="text" 
+                                name="middle_name"
+                                value="{{ user.middle_name|default:'' }}"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
+                                readonly
+                            >
+                        </div>
+
+                        <!-- Last Name -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Last Name:</label>
+                            <input 
+                                type="text" 
+                                name="last_name"
+                                value="{{ user.last_name }}"
                                 class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
                                 readonly
                             >
                         </div>
                         
-                        <!-- Position and Birth Date Row -->
+                        <!-- Position/Role and Birth Date Row -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Position/Rank:</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Role:</label>
                                 <input 
                                     type="text" 
-                                    value="Filipino Teacher"
+                                    name="role"
+                                    value="{{ user.role }}"
                                     class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
                                     readonly
                                 >
@@ -167,23 +210,60 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Birth Date:</label>
                                 <input 
-                                    type="text" 
-                                    placeholder="mm/dd/yyyy"
+                                    type="date" 
+                                    name="dob"
+                                    value="{{ user.dob }}"
                                     class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
                                     readonly
                                 >
                             </div>
                         </div>
-                        
-                        <!-- Affiliation -->
+
+                        <!-- Rank -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Affiliation:</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Rank:</label>
                             <input 
                                 type="text" 
-                                value="Western Mindanao State University"
+                                name="rank"
+                                value="{{ user.rank }}"
                                 class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
                                 readonly
                             >
+                        </div>
+                        
+                        <!-- Department -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Department:</label>
+                            <input 
+                                type="text" 
+                                name="department"
+                                value="{{ user.department }}"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
+                                readonly
+                            >
+                        </div>
+
+                        <!-- Specialization -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Specialization:</label>
+                            <input 
+                                type="text" 
+                                name="specialization"
+                                value="{{ user.specialization }}"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
+                                readonly
+                            >
+                        </div>
+
+                        <!-- Affiliations -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Affiliations:</label>
+                            <textarea 
+                                name="affiliations"
+                                rows="3"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
+                                readonly
+                            >{{ user.affiliations|default:'' }}</textarea>
                         </div>
                         
                         <!-- Email -->
@@ -191,7 +271,8 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Email:</label>
                             <input 
                                 type="email" 
-                                value="limviktorgreg14@gmail.com"
+                                name="email"
+                                value="{{ user.email }}"
                                 class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
                                 readonly
                             >
@@ -226,19 +307,19 @@
         const editBtn = document.getElementById('edit-btn');
         const saveSection = document.getElementById('save-section');
         const cancelBtn = document.getElementById('cancel-btn');
-        const inputs = document.querySelectorAll('input');
+        const inputs = document.querySelectorAll('input, textarea');
         
         let originalValues = {};
         
         // Store original values
         inputs.forEach(input => {
-            originalValues[input.name || input.type] = input.value;
+            originalValues[input.name] = input.value;
         });
         
         editBtn.addEventListener('click', () => {
-            // Enable all inputs except full name
+            // Enable all inputs except email (usually shouldn't be changed)
             inputs.forEach(input => {
-                if (!input.value.includes('Viktor Greg A. Lim')) {
+                if (input.name !== 'email') {
                     input.removeAttribute('readonly');
                     input.classList.remove('bg-gray-50');
                     input.classList.add('bg-white');
@@ -253,7 +334,7 @@
         cancelBtn.addEventListener('click', () => {
             // Restore original values and make inputs readonly again
             inputs.forEach(input => {
-                input.value = originalValues[input.name || input.type] || input.value;
+                input.value = originalValues[input.name] || '';
                 input.setAttribute('readonly', true);
                 input.classList.add('bg-gray-50');
                 input.classList.remove('bg-white');
@@ -262,48 +343,6 @@
             // Hide save section and show edit button
             saveSection.classList.add('hidden');
             editBtn.classList.remove('hidden');
-        });
-        
-        // Form submission
-        document.querySelector('form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            // Simulate saving
-            const saveBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = saveBtn.textContent;
-            saveBtn.textContent = 'Saving...';
-            saveBtn.disabled = true;
-            
-            setTimeout(() => {
-                // Make inputs readonly again
-                inputs.forEach(input => {
-                    input.setAttribute('readonly', true);
-                    input.classList.add('bg-gray-50');
-                    input.classList.remove('bg-white');
-                });
-                
-                // Update original values
-                inputs.forEach(input => {
-                    originalValues[input.name || input.type] = input.value;
-                });
-                
-                // Hide save section and show edit button
-                saveSection.classList.add('hidden');
-                editBtn.classList.remove('hidden');
-                
-                // Reset button
-                saveBtn.textContent = originalText;
-                saveBtn.disabled = false;
-                
-                // Show success message
-                alert('Profile updated successfully!');
-            }, 1500);
-        });
-        
-        // Back to dashboard functionality
-        document.querySelector('button').addEventListener('click', () => {
-            // This would normally navigate back to the dashboard
-            alert('Navigating back to dashboard...');
         });
         
         // Camera button functionality

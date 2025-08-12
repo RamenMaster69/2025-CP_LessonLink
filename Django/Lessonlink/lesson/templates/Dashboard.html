@@ -173,7 +173,7 @@
                             <div class="flex items-center space-x-3">
                                 <div
                                     class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-
+                                    <i class="fas fa-user text-white text-lg"></i>
                                 </div>
                                 <div>
                                     <p class="font-semibold text-gray-900">{{ user.first_name }} {{ user.last_name }}</p>
@@ -193,14 +193,10 @@
                                 <span>Settings</span>
                             </a>
                             <hr class="my-2">
-                            <!-- <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
-                                <i class="fas fa-question-circle w-4"></i>
-                                <span>Help & Support</span>
-                            </a> -->
-                            <a href="{% url 'landing' %}"
+                            <a href="{% url 'logout' %}"
                                 class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
                                 <i class="fas fa-sign-out-alt w-4"></i>
-                                <span>Sign Out</span>
+                                <span>Logout</span>
                             </a>
                         </div>
                     </div>
