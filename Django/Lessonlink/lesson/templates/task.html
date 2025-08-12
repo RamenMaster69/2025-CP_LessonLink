@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LessonLink - Class Schedule</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-in-out',
+                        'slide-in': 'slideIn 0.3s ease-out',
+                        'scale-in': 'scaleIn 0.2s ease-out'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .sidebar-transition {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dropdown-enter {
+            animation: scaleIn 0.2s ease-out;
+        }
+
+        /* Desktop schedule grid */
+        @media (min-width: 768px) {
+            .schedule-grid {
+                display: grid;
+                grid-template-columns: repeat(6, 1fr);
+                gap: 1px;
+                background-color: #e5e7eb;
+            }
+
+            .schedule-cell {
+                background-color: white;
+                min-height: 400px;
+            }
+        }
+
+        /* Mobile schedule layout */
+        @media (max-width: 767px) {
+            .mobile-schedule .day-section {
+                margin-bottom: 1rem;
+                background: white;
+                border-radius: 0.75rem;
+                border: 1px solid #e5e7eb;
+                overflow: hidden;
+            }
+
+            .mobile-schedule .day-header {
+                padding: 1rem;
+                background: #f9fafb;
+                border-bottom: 1px solid #e5e7eb;
+                font-weight: 600;
+                text-align: center;
+            }
+
+            .mobile-schedule .day-content {
+                padding: 1rem;
+                min-height: 100px;
+            }
+        }
+
+        .class-block {
+            border-radius: 8px;
+            padding: 12px;
+            margin: 4px;
+            color: white;
+            font-weight: 500;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .class-block:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+            .class-block {
+                padding: 10px;
+                margin: 2px 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-40">
+        <div class="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
+            <!-- Mobile menu button -->
+            <button id="mobile-menu-btn"
+                class="md:hidden p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
+                <i class="fas fa-bars text-lg"></i>
+            </button>
+
+            <!-- Logo -->
+            <div class="flex items-center space-x-2 md:space-x-3 flex-1 md:flex-none">
+                <div class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
+                <div class="hidden sm:block">
+                    <h1 class="text-lg md:text-xl font-bold text-gray-900">LessonLink</h1>
+                    <p class="text-xs md:text-sm text-gray-500 hidden lg:block">Western Mindanao State University</p>
+                </div>
+            </div>
+
+            <!-- Right side actions -->
+            <div class="flex items-center space-x-1 md:space-x-4">
+                <!-- Search - Hidden on small mobile -->
+                <div class="relative hidden lg:block">
+                    <input type="text" placeholder="Search lessons..."
+                        class="w-48 xl:w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                    <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+
+                <!-- Mobile search button -->
+                <button class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <i class="fas fa-search text-sm md:text-lg"></i>
+                </button>
+
+                <!-- Notifications -->
+                <div class="relative">
+                    <button id="notification-btn"
+                        class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-bell text-sm md:text-lg"></i>
+                        <span id="notification-badge"
+                            class="absolute -top-1 -right-1 w-2 h-2 md:w-3 md:h-3 bg-red-500 rounded-full"></span>
+                    </button>
+
+                    <!-- Notifications Dropdown -->
+                    <div id="notification-dropdown"
+                        class="absolute right-0 mt-2 w-72 md:w-80 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50 max-h-screen overflow-auto">
+                        <div class="p-3 md:p-4 border-b border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-semibold text-gray-900 text-sm md:text-base">Notifications</h3>
+                                <button class="text-purple-600 text-xs md:text-sm hover:text-purple-700">Mark all read</button>
+                            </div>
+                        </div>
+                        <div class="max-h-64 md:max-h-96 overflow-y-auto">
+                            <div class="p-3 md:p-4 hover:bg-gray-50 border-b border-gray-100">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-900 font-medium">New lesson plan submitted</p>
+                                        <p class="text-xs text-gray-500 mt-1">Grade 3A English lesson ready for review</p>
+                                        <p class="text-xs text-gray-400 mt-1">2 minutes ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-3 md:p-4 hover:bg-gray-50 border-b border-gray-100">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-900 font-medium">Class schedule updated</p>
+                                        <p class="text-xs text-gray-500 mt-1">Grade 2B math class moved to 11:30 AM</p>
+                                        <p class="text-xs text-gray-400 mt-1">1 hour ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-3 md:p-4 hover:bg-gray-50 border-b border-gray-100">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-2 h-2 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-900 font-medium">Assignment reminder</p>
+                                        <p class="text-xs text-gray-500 mt-1">5 students haven't submitted their homework</p>
+                                        <p class="text-xs text-gray-400 mt-1">3 hours ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 md:p-4 border-t border-gray-100">
+                            <button
+                                class="w-full text-center text-purple-600 text-xs md:text-sm hover:text-purple-700 font-medium">
+                                View all notifications
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile -->
+                <div class="relative">
+                    <button id="profile-btn"
+                        class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                        <i class="fas fa-user text-gray-500 text-xs md:text-sm"></i>
+                    </button>
+
+                    <!-- Profile Dropdown -->
+                    <div id="profile-dropdown"
+                        class="absolute right-0 mt-2 w-56 md:w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
+                        <div class="p-3 md:p-4 border-b border-gray-100">
+                            <div class="flex items-center space-x-3">
+                                <div
+                                    class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                                    <span class="text-white font-bold text-sm md:text-lg">V</span>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900 text-sm md:text-base">Viktor Teacher</p>
+                                    <p class="text-xs md:text-sm text-gray-500">Elementary Teacher</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="py-2">
+                            <a href="{% url 'profile' %}"
+                                class="flex items-center space-x-3 px-3 md:px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors text-sm md:text-base">
+                                <i class="fas fa-user w-4"></i>
+                                <span>My Profile</span>
+                            </a>
+                            <a href="#"
+                                class="flex items-center space-x-3 px-3 md:px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors text-sm md:text-base">
+                                <i class="fas fa-cog w-4"></i>
+                                <span>Settings</span>
+                            </a>
+                            <hr class="my-2">
+                            <a href="#"
+                                class="flex items-center space-x-3 px-3 md:px-4 py-3 text-red-600 hover:bg-red-50 transition-colors text-sm md:text-base">
+                                <i class="fas fa-sign-out-alt w-4"></i>
+                                <span>Sign Out</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex pt-16">
+        <!-- Sidebar -->
+        <aside id="sidebar"
+            class="w-64 bg-white shadow-lg h-screen fixed md:static -translate-x-full md:translate-x-0 sidebar-transition z-30">
+            <nav class="p-4 space-y-2">
+                <!-- Create Lesson Button -->
+                <a href="{% url 'lesson_planner' %}"><button
+                    class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md text-sm md:text-base">
+                    <i class="fas fa-plus text-sm md:text-lg"></i>
+                    <span class="font-medium">Create Lesson</span>
+                </button></a>
+
+                <!-- Navigation Items -->
+                <a href="{% url 'dashboard' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
+                    <i class="fas fa-home text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'draft' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
+                    <i class="fas fa-file-alt text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Drafts</span>
+                    <span class="ml-auto bg-[#e0e9ff] text-[#11468F] text-xs px-2 py-1 rounded-full">5</span>
+                </a>
+                <a href="{% url 'task' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff] text-sm md:text-base">
+                    <i class="fas fa-tasks text-sm md:text-lg w-5"></i>
+                    <span class="font-medium">Tasks</span>
+                </a>
+                <a href="{% url 'schedule' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
+                    <i class="fas fa-calendar-alt text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Schedule</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Overlay for mobile -->
+        <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-3 md:p-6 md:ml-0">
+            <!-- Page Header -->
+            <div class="mb-4 md:mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h1 class="text-xl md:text-2xl font-bold text-gray-900">Class Schedule</h1>
+                        <p class="text-gray-600 mt-1 text-sm md:text-base">Welcome to your Settings.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule Container -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <!-- Schedule Header -->
+                <div class="flex items-center justify-between p-4 md:p-6 border-b border-gray-200">
+                    <h2 class="text-lg md:text-xl font-semibold text-gray-900">Class Schedule</h2>
+                    <button id="add-class-btn"
+                        class="flex items-center space-x-2 px-3 py-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm md:text-base">
+                        <i class="fas fa-plus text-xs md:text-sm"></i>
+                        <span>Add Class</span>
+                    </button>
+                </div>
+
+                <!-- Desktop Schedule View -->
+                <div class="hidden md:block">
+                    <!-- Days Header -->
+                    <div class="grid grid-cols-6 bg-gray-50 border-b border-gray-200">
+                        <div class="p-4 text-center font-medium text-gray-700 border-r border-gray-200 bg-blue-600 text-white">Mon</div>
+                        <div class="p-4 text-center font-medium text-gray-700 border-r border-gray-200 bg-gray-100">Tue</div>
+                        <div class="p-4 text-center font-medium text-gray-700 border-r border-gray-200 bg-gray-100">Wed</div>
+                        <div class="p-4 text-center font-medium text-gray-700 border-r border-gray-200 bg-gray-100">Thu</div>
+                        <div class="p-4 text-center font-medium text-gray-700 border-r border-gray-200 bg-gray-100">Fri</div>
+                        <div class="p-4 text-center font-medium text-gray-700 bg-gray-100">Sat</div>
+                    </div>
+
+                    <!-- Schedule Grid -->
+                    <div class="schedule-grid">
+                        <!-- Monday -->
+                        <div class="schedule-cell p-4">
+                            <div class="class-block bg-blue-600" style="margin-top: 20px; height: 80px;">
+                                <div class="text-sm font-medium">2:00-4:00PM</div>
+                                <div class="text-sm opacity-90">English</div>
+                                <div class="text-xs opacity-75">Literature</div>
+                            </div>
+                        </div>
+
+                        <!-- Tuesday -->
+                        <div class="schedule-cell p-4 bg-gray-50">
+                            <div class="text-center text-gray-500 mt-20">
+                                <div class="text-sm">No</div>
+                                <div class="text-sm">classes</div>
+                                <div class="text-sm">scheduled</div>
+                            </div>
+                        </div>
+
+                        <!-- Wednesday -->
+                        <div class="schedule-cell p-4 bg-gray-50">
+                            <div class="text-center text-gray-500 mt-20">
+                                <div class="text-sm">No</div>
+                                <div class="text-sm">classes</div>
+                                <div class="text-sm">scheduled</div>
+                            </div>
+                        </div>
+
+                        <!-- Thursday -->
+                        <div class="schedule-cell p-4 bg-gray-50">
+                            <div class="text-center text-gray-500 mt-20">
+                                <div class="text-sm">No</div>
+                                <div class="text-sm">classes</div>
+                                <div class="text-sm">scheduled</div>
+                            </div>
+                        </div>
+
+                        <!-- Friday -->
+                        <div class="schedule-cell p-4 bg-gray-50">
+                            <div class="text-center text-gray-500 mt-20">
+                                <div class="text-sm">No</div>
+                                <div class="text-sm">classes</div>
+                                <div class="text-sm">scheduled</div>
+                            </div>
+                        </div>
+
+                        <!-- Saturday -->
+                        <div class="schedule-cell p-4 bg-gray-50">
+                            <div class="text-center text-gray-500 mt-20">
+                                <div class="text-sm">No</div>
+                                <div class="text-sm">classes</div>
+                                <div class="text-sm">scheduled</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Schedule View -->
+                <div class="md:hidden mobile-schedule p-4">
+                    <!-- Monday -->
+                    <div class="day-section">
+                        <div class="day-header bg-blue-600 text-white">Monday</div>
+                        <div class="day-content">
+                            <div class="class-block bg-blue-600">
+                                <div class="text-sm font-medium">2:00-4:00PM</div>
+                                <div class="text-sm opacity-90">English</div>
+                                <div class="text-xs opacity-75">Literature</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tuesday -->
+                    <div class="day-section">
+                        <div class="day-header">Tuesday</div>
+                        <div class="day-content bg-gray-50">
+                            <div class="text-center text-gray-500 py-8">
+                                <div class="text-sm">No classes scheduled</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wednesday -->
+                    <div class="day-section">
+                        <div class="day-header">Wednesday</div>
+                        <div class="day-content bg-gray-50">
+                            <div class="text-center text-gray-500 py-8">
+                                <div class="text-sm">No classes scheduled</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thursday -->
+                    <div class="day-section">
+                        <div class="day-header">Thursday</div>
+                        <div class="day-content bg-gray-50">
+                            <div class="text-center text-gray-500 py-8">
+                                <div class="text-sm">No classes scheduled</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Friday -->
+                    <div class="day-section">
+                        <div class="day-header">Friday</div>
+                        <div class="day-content bg-gray-50">
+                            <div class="text-center text-gray-500 py-8">
+                                <div class="text-sm">No classes scheduled</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Saturday -->
+                    <div class="day-section">
+                        <div class="day-header">Saturday</div>
+                        <div class="day-content bg-gray-50">
+                            <div class="text-center text-gray-500 py-8">
+                                <div class="text-sm">No classes scheduled</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Class Modal -->
+    <div id="add-class-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-md w-full p-4 md:p-6 animate-scale-in max-h-screen overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base md:text-lg font-semibold text-gray-900">Add New Class</h3>
+                <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            
+            <form id="add-class-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base" placeholder="e.g., Mathematics">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Topic</label>
+                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base" placeholder="e.g., Algebra">
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Day</label>
+                        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base">
+                            <option value="monday">Monday</option>
+                            <option value="tuesday">Tuesday</option>
+                            <option value="wednesday">Wednesday</option>
+                            <option value="thursday">Thursday</option>
+                            <option value="friday">Friday</option>
+                            <option value="saturday">Saturday</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                        <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base" placeholder="e.g., 10:00-11:30AM">
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
+                    <button type="button" id="cancel-add" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm md:text-base">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm md:text-base">
+                        Add Class
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        });
+
+        // Close sidebar on window resize to desktop size
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.add('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+
+        // Dropdown toggles
+        const notificationBtn = document.getElementById('notification-btn');
+        const notificationDropdown = document.getElementById('notification-dropdown');
+        const profileBtn = document.getElementById('profile-btn');
+        const profileDropdown = document.getElementById('profile-dropdown');
+
+        notificationBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notificationDropdown.classList.toggle('hidden');
+            profileDropdown.classList.add('hidden');
+            if (!notificationDropdown.classList.contains('hidden')) {
+                notificationDropdown.classList.add('dropdown-enter');
+            }
+        });
+
+        profileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('hidden');
+            notificationDropdown.classList.add('hidden');
+            if (!profileDropdown.classList.contains('hidden')) {
+                profileDropdown.classList.add('dropdown-enter');
+            }
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+                notificationDropdown.classList.add('hidden');
+            }
+            if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+                profileDropdown.classList.add('hidden');
+            }
+        });
+
+        // Add Class Modal
+        const addClassBtn = document.getElementById('add-class-btn');
+        const addClassModal = document.getElementById('add-class-modal');
+        const closeModal = document.getElementById('close-modal');
+        const cancelAdd = document.getElementById('cancel-add');
+
+        addClassBtn.addEventListener('click', () => {
+            addClassModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent background scroll
+        });
+
+        const closeModalFunction = () => {
+            addClassModal.classList.add('hidden');
+            document.body.style.overflow = 'auto'; // Restore scroll
+        };
+
+        closeModal.addEventListener('click', closeModalFunction);
+        cancelAdd.addEventListener('click', closeModalFunction);
+
+        addClassModal.addEventListener('click', (e) => {
+            if (e.target === addClassModal) {
+                closeModalFunction();
+            }
+        });
+
+        // Form submission
+        document.getElementById('add-class-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            // Here you would typically send the data to your backend
+            console.log('Adding new class...');
+            closeModalFunction();
+            
+            // Show success message (you can customize this)
+            alert('Class added successfully!');
+        });
+
+        // Add hover effects and interactions for class blocks
+        document.querySelectorAll('.class-block').forEach(block => {
+            block.addEventListener('click', () => {
+                // Handle class block click - could open edit modal
+                console.log('Class block clicked');
+            });
+        });
+
+        // Handle escape key for modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (!addClassModal.classList.contains('hidden')) {
+                    closeModalFunction();
+                }
+                notificationDropdown.classList.add('hidden');
+                profileDropdown.classList.add('hidden');
+            }
+        });
+
+        // Prevent dropdown from closing when clicking inside
+        notificationDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        profileDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    </script>
+</body>
+
+</html>

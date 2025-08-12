@@ -357,3 +357,13 @@ def draft(request):
         if 'user_id' in request.session:
             del request.session['user_id']
         return redirect('login')
+    return render(request, 'draft.html')
+
+def task(request):
+    return render(request, 'task.html')
+
+def template(request):
+    return render(request, 'template.html')
+
+def schedule(request):
+    return render(request, 'schedule.html')
