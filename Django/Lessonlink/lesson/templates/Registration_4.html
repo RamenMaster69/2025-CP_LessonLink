@@ -70,7 +70,7 @@
                 </div>
 
                 <form method="POST" action="{% url 'registration_4' %}" class="space-y-6"
-                    onsubmit="return validateForm(event)">
+                    onsubmit="return handleFormSubmission(event)">
                     {% csrf_token %}
 
                     <!-- Department Dropdown -->
@@ -169,7 +169,7 @@
                     <div class="text-center">
                         <p class="text-sm text-gray-600">
                             Already have a LessonLink account?
-                            <a href="#"
+                            <a href="{% url 'login' %}"
                                 class="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
                                 Sign in here
                             </a>
@@ -188,12 +188,12 @@
                     <i class="fas fa-check text-blue-600 text-2xl"></i>
                 </div>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">Success!</h3>
-                <p class="text-sm text-gray-600">You have successfully created an account!</p>
+                <p class="text-sm text-gray-600">Account created successfully! You will be redirected to login.</p>
             </div>
-            <a href="{% url 'dashboard' %}"><button onclick="closeSuccessModal()"
-                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
-                    Continue
-                </button></a>
+            <button onclick="closeSuccessModal()"
+                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
+                Continue to Login
+            </button>
         </div>
     </div>
 
@@ -384,18 +384,18 @@
             });
         }
 
-        function validateForm(event) {
+        function handleFormSubmission(event) {
             const department = document.getElementById('department').value;
             const specialization = document.getElementById('specialization').value;
 
-            // Check if required fields are selected
+            // Client-side validation
             if (!department || !specialization) {
                 alert('Please select both Department and Specialization.');
                 return false;
             }
 
-            // If validation passes, show success modal
-            return true; // Prevent actual form submission for demo
+            // Allow form submission to Django backend
+            return true;
         }
 
         function showSuccessModal() {
@@ -406,10 +406,15 @@
         function closeSuccessModal() {
             const modal = document.getElementById('successModal');
             modal.classList.remove('show');
+            
+            // Redirect to login page
+            window.location.href = "{% url 'login' %}";
+        }
 
-            // Here you can add code to redirect to another page or reset the form
-            // For example: window.location.href = '/dashboard';
-            // Or reset the form: document.querySelector('form').reset();
+        // Check if there's a success parameter in the URL (set by Django view)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            showSuccessModal();
         }
     </script>
 </body>

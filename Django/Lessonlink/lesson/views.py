@@ -90,28 +90,34 @@ def registration_4(request):
             messages.error(request, "Session expired. Please restart registration.")
             return redirect('registration_1')
 
-        # Save to your custom User model
-        User.objects.create(
-            email=email,
-            password=make_password(raw_password),
-            first_name=first_name,
-            middle_name=middle_name,
-            last_name=last_name,
-            dob=dob,
-            role=role,
-            rank=rank,
-            department=department,
-            specialization=specialization,
-            affiliations=", ".join(affiliations)
-        )
+        try:
+            # Save to your custom User model
+            User.objects.create(
+                email=email,
+                password=make_password(raw_password),
+                first_name=first_name,
+                middle_name=middle_name,
+                last_name=last_name,
+                dob=dob,
+                role=role,
+                rank=rank,
+                department=department,
+                specialization=specialization,
+                affiliations=", ".join(affiliations)
+            )
 
-        # Clear session data
-        for key in list(request.session.keys()):
-            if key.startswith("reg_"):
-                del request.session[key]
+            # Clear session data
+            for key in list(request.session.keys()):
+                if key.startswith("reg_"):
+                    del request.session[key]
 
-        messages.success(request, "Registration complete!")
-        return redirect('dashboard')
+            # Success message and redirect to login
+            messages.success(request, "Account created successfully! Please log in with your credentials.")
+            return redirect('login')  # Changed from 'dashboard' to 'login'
+
+        except Exception as e:
+            messages.error(request, f"Registration failed: {str(e)}")
+            return redirect('registration_4')
 
     return render(request, 'registration_4.html')
 
