@@ -13,6 +13,12 @@
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
+        .error-border {
+            border-color: #ef4444;
+        }
+        .success-border {
+            border-color: #10b981;
+        }
     </style>
 </head>
 
@@ -32,8 +38,29 @@
                     <p class="text-gray-600">Create your educator account and start planning smarter lessons</p>
                 </div>
 
-                <form class="space-y-6" method="POST" action="{% url 'registration_1' %}"
-                    onsubmit="return validateForm(event)">
+                <!-- Display Django Messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="mb-4 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 border border-red-300 text-red-700{% elif message.tags == 'success' %}bg-green-100 border border-green-300 text-green-700{% else %}bg-blue-100 border border-blue-300 text-blue-700{% endif %}">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    {% if message.tags == 'error' %}
+                                        <i class="fas fa-exclamation-circle"></i>
+                                    {% elif message.tags == 'success' %}
+                                        <i class="fas fa-check-circle"></i>
+                                    {% else %}
+                                        <i class="fas fa-info-circle"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm">{{ message }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form class="space-y-6" method="POST" action="{% url 'registration_1' %}" onsubmit="return validateForm(event)">
                     {% csrf_token %}
 
                     <!-- Email -->
@@ -41,13 +68,31 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-envelope text-gray-400"></i>
                         </div>
-                        <input type="email" id="email" name="email"
-                            class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        <input type="email" id="email" name="email" value="{{ email|default:'' }}"
+                            class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 {% if email_exists %}error-border{% endif %}"
                             placeholder="Email Address" required>
+                        
+                        <!-- Real-time email validation feedback -->
+                        <div id="emailFeedback" class="hidden text-sm mt-2 flex items-center">
+                            <i class="fas fa-circle-notch fa-spin mr-2" id="emailSpinner" style="display: none;"></i>
+                            <i class="fas fa-exclamation-circle mr-2 text-red-500" id="emailErrorIcon" style="display: none;"></i>
+                            <i class="fas fa-check-circle mr-2 text-green-500" id="emailSuccessIcon" style="display: none;"></i>
+                            <span id="emailFeedbackText"></span>
+                        </div>
+                        
+                        <!-- Client-side email validation error -->
                         <div id="emailError" class="hidden text-red-500 text-sm mt-2 flex items-center">
                             <i class="fas fa-exclamation-circle mr-2"></i>
                             Please enter a valid email address
                         </div>
+                        
+                        <!-- Django validation error -->
+                        {% if show_error and email_exists %}
+                        <div class="text-red-500 text-sm mt-2 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-2"></i>
+                            {{ error_message }} <a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-500 ml-1">Sign in here</a>
+                        </div>
+                        {% endif %}
                     </div>
 
                     <!-- Password -->
@@ -68,6 +113,14 @@
                             <i class="fas fa-exclamation-circle mr-2"></i>
                             Password must be at least 8 characters long
                         </div>
+                        
+                        <!-- Django password mismatch error -->
+                        {% if show_error and password_mismatch %}
+                        <div class="text-red-500 text-sm mt-2 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-2"></i>
+                            {{ error_message }}
+                        </div>
+                        {% endif %}
                     </div>
 
                     <!-- Confirm Password -->
@@ -91,6 +144,30 @@
                             <i class="fas fa-exclamation-circle mr-2"></i>
                             Passwords do not match
                         </div>
+                        
+                        <!-- Real-time password match feedback -->
+                        <div id="passwordMatchFeedback" class="hidden text-sm mt-2 flex items-center">
+                            <i class="fas fa-check-circle mr-2 text-green-500"></i>
+                            <span class="text-green-600">Passwords match!</span>
+                        </div>
+                    </div>
+
+                    <!-- Math CAPTCHA -->
+                    <div class="bg-gray-100 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-700">Security Check</p>
+                                <p class="text-sm text-gray-600">Solve this simple math problem</p>
+                            </div>
+                            <div id="mathQuestion" class="text-lg font-bold"></div>
+                        </div>
+                        <input type="text" id="mathAnswer" name="mathAnswer"
+                            class="mt-2 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                            placeholder="Your answer" required>
+                        <div id="mathError" class="hidden text-red-500 text-sm mt-2 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-2"></i>
+                            Incorrect answer, please try again
+                        </div>
                     </div>
 
                     <!-- Terms Checkbox -->
@@ -105,9 +182,10 @@
                     </div>
 
                     <!-- Register Button -->
-                    <button type="submit"
-                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
-                        Create Educator Account
+                    <button type="submit" id="submitBtn"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span id="submitText">Create Educator Account</span>
+                        <i class="fas fa-spinner fa-spin ml-2" id="submitSpinner" style="display: none;"></i>
                     </button>
 
                     <!-- Divider -->
@@ -144,6 +222,129 @@
     </div>
 
     <script>
+        // Math CAPTCHA variables
+        let mathResult;
+        let emailValid = false;
+        
+        // Generate math question for CAPTCHA
+        function generateMathCaptcha() {
+            const num1 = Math.floor(Math.random() * 10) + 1;
+            const num2 = Math.floor(Math.random() * 10) + 1;
+            mathResult = num1 + num2;
+            document.getElementById('mathQuestion').textContent = `${num1} + ${num2} = ?`;
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            generateMathCaptcha();
+            updateSubmitButton();
+            
+            // Real-time email validation via AJAX
+            document.getElementById('email').addEventListener('blur', async function() {
+                const email = this.value.trim();
+                const feedback = document.getElementById('emailFeedback');
+                const feedbackText = document.getElementById('emailFeedbackText');
+                const spinner = document.getElementById('emailSpinner');
+                const errorIcon = document.getElementById('emailErrorIcon');
+                const successIcon = document.getElementById('emailSuccessIcon');
+                
+                // Reset feedback
+                feedback.classList.add('hidden');
+                this.classList.remove('error-border', 'success-border');
+                
+                // Only check if email is valid format
+                if (email && validateEmail(email)) {
+                    // Show loading
+                    feedback.classList.remove('hidden');
+                    spinner.style.display = 'inline';
+                    errorIcon.style.display = 'none';
+                    successIcon.style.display = 'none';
+                    feedbackText.textContent = 'Checking email...';
+                    feedbackText.className = 'text-gray-600';
+                    
+                    try {
+                        const response = await fetch('{% url "registration_1" %}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                            },
+                            body: `email=${encodeURIComponent(email)}`
+                        });
+                        
+                        const data = await response.json();
+                        
+                        // Hide loading
+                        spinner.style.display = 'none';
+                        
+                        if (data.exists) {
+                            // Email exists - show error
+                            errorIcon.style.display = 'inline';
+                            feedbackText.textContent = data.message;
+                            feedbackText.className = 'text-red-600';
+                            this.classList.add('error-border');
+                            emailValid = false;
+                        } else {
+                            // Email available - show success
+                            successIcon.style.display = 'inline';
+                            feedbackText.textContent = data.message;
+                            feedbackText.className = 'text-green-600';
+                            this.classList.add('success-border');
+                            emailValid = true;
+                        }
+                        
+                    } catch (error) {
+                        spinner.style.display = 'none';
+                        errorIcon.style.display = 'inline';
+                        feedbackText.textContent = 'Error checking email. Please try again.';
+                        feedbackText.className = 'text-red-600';
+                        emailValid = false;
+                    }
+                    
+                    updateSubmitButton();
+                }
+            });
+            
+            // Real-time password confirmation check
+            document.getElementById('confirmPassword').addEventListener('input', function() {
+                const password = document.getElementById('password').value;
+                const confirmPassword = this.value;
+                const feedback = document.getElementById('passwordMatchFeedback');
+                
+                if (confirmPassword && password === confirmPassword) {
+                    feedback.classList.remove('hidden');
+                    this.classList.remove('error-border');
+                    this.classList.add('success-border');
+                } else {
+                    feedback.classList.add('hidden');
+                    if (confirmPassword) {
+                        this.classList.add('error-border');
+                        this.classList.remove('success-border');
+                    } else {
+                        this.classList.remove('error-border', 'success-border');
+                    }
+                }
+                updateSubmitButton();
+            });
+            
+            // Update submit button on input changes
+            document.getElementById('password').addEventListener('input', updateSubmitButton);
+            document.getElementById('terms').addEventListener('change', updateSubmitButton);
+        });
+
+        function updateSubmitButton() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const terms = document.getElementById('terms').checked;
+            const submitBtn = document.getElementById('submitBtn');
+            
+            const isValid = emailValid && password.length >= 8 && 
+                          confirmPassword && password === confirmPassword && terms;
+            
+            submitBtn.disabled = !isValid;
+        }
 
         function togglePassword(inputId) {
             const input = document.getElementById(inputId);
@@ -178,7 +379,7 @@
             document.getElementById('passwordMatchError').classList.add('hidden');
             document.getElementById('mathError').classList.add('hidden');
             
-            // Get form values (even if user removes 'required' attribute)
+            // Get form values
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
@@ -186,8 +387,6 @@
             const termsChecked = document.getElementById('terms').checked;
             
             let isValid = true;
-            
-            // JavaScript validation that can't be bypassed by removing HTML 'required'
             
             // Email validation
             if (!email || !validateEmail(email)) {
@@ -231,20 +430,17 @@
                 return false;
             }
             
+            // Show loading state
+            const submitBtn = document.getElementById('submitBtn');
+            const submitText = document.getElementById('submitText');
+            const submitSpinner = document.getElementById('submitSpinner');
+            
+            submitBtn.disabled = true;
+            submitText.textContent = 'Creating Account...';
+            submitSpinner.style.display = 'inline';
+            
             return true;
         }
-
-        // Prevent common bypass attempts
-        document.addEventListener('DOMContentLoaded', function() {
-            // Prevent form submission via Enter without validation
-            document.getElementById('mathAnswer').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    validateForm(e);
-                }
-            });
-        });
     </script>
 </body>
-
 </html>
