@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,41 +22,59 @@
     </script>
     <style>
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         @keyframes slideIn {
-            from { transform: translateX(-100%); }
-            to { transform: translateX(0); }
+            from {
+                transform: translateX(-100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
         }
+
         @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0.9) translateY(-10px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
+
         .sidebar-transition {
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
         .dropdown-enter {
             animation: scaleIn 0.2s ease-out;
         }
-        .card-hover {
-            transition: all 0.3s ease;
-        }
-        .card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
     </style>
 </head>
+
 <body class="bg-gray-50 min-h-screen">
-    <!-- Header -->
+    <!-- Header - Fixed at top -->
     <header class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-40">
         <div class="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
             <!-- Mobile menu button -->
-            <button id="mobile-menu-btn" class="md:hidden p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
+            <button id="mobile-menu-btn"
+                class="md:hidden p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
                 <i class="fas fa-bars text-lg"></i>
             </button>
-            
+
             <!-- Logo -->
             <div class="flex items-center space-x-3 flex-1 md:flex-none">
                 <div class="w-10 h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
@@ -64,33 +83,33 @@
                     <p class="text-sm text-gray-500 hidden lg:block">Western Mindanao State University</p>
                 </div>
             </div>
-            
+
             <!-- Right side actions -->
             <div class="flex items-center space-x-2 md:space-x-4">
                 <!-- Search -->
                 <div class="relative hidden md:block">
-                    <input 
-                        type="text" 
-                        placeholder="Search lessons..." 
-                        class="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                    >
+                    <input type="text" placeholder="Search lessons..."
+                        class="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
                     <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
-                
+
                 <!-- Mobile search button -->
                 <button class="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                     <i class="fas fa-search text-lg"></i>
                 </button>
-                
+
                 <!-- Notifications -->
                 <div class="relative">
-                    <button id="notification-btn" class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button id="notification-btn"
+                        class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                         <i class="fas fa-bell text-lg"></i>
-                        <span id="notification-badge" class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                        <span id="notification-badge"
+                            class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
                     </button>
-                    
+
                     <!-- Notifications Dropdown -->
-                    <div id="notification-dropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
+                    <div id="notification-dropdown"
+                        class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
                         <div class="p-4 border-b border-gray-100">
                             <div class="flex items-center justify-between">
                                 <h3 class="font-semibold text-gray-900">Notifications</h3>
@@ -103,7 +122,8 @@
                                     <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                                     <div class="flex-1">
                                         <p class="text-sm text-gray-900 font-medium">New lesson plan submitted</p>
-                                        <p class="text-xs text-gray-500 mt-1">Grade 3A English lesson ready for review</p>
+                                        <p class="text-xs text-gray-500 mt-1">Grade 3A English lesson ready for review
+                                        </p>
                                         <p class="text-xs text-gray-400 mt-1">2 minutes ago</p>
                                     </div>
                                 </div>
@@ -115,7 +135,7 @@
                                         <p class="text-sm text-gray-900 font-medium">Class schedule updated</p>
                                         <p class="text-xs text-gray-500 mt-1">Grade 2B math class moved to 11:30 AM</p>
                                         <p class="text-xs text-gray-400 mt-1">1 hour ago</p>
-                    </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="p-4 hover:bg-gray-50 border-b border-gray-100">
@@ -123,52 +143,60 @@
                                     <div class="w-2 h-2 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
                                     <div class="flex-1">
                                         <p class="text-sm text-gray-900 font-medium">Assignment reminder</p>
-                                        <p class="text-xs text-gray-500 mt-1">5 students haven't submitted their homework</p>
+                                        <p class="text-xs text-gray-500 mt-1">5 students haven't submitted their
+                                            homework</p>
                                         <p class="text-xs text-gray-400 mt-1">3 hours ago</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="p-4 border-t border-gray-100">
-                            <button class="w-full text-center text-purple-600 text-sm hover:text-purple-700 font-medium">
+                            <button
+                                class="w-full text-center text-purple-600 text-sm hover:text-purple-700 font-medium">
                                 View all notifications
                             </button>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Profile -->
                 <div class="relative">
-                    <button id="profile-btn" class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                    <button id="profile-btn"
+                        class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
                         <i class="fas fa-user text-gray-500"></i>
                     </button>
-                    
+
                     <!-- Profile Dropdown -->
-                    <div id="profile-dropdown" class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
+                    <div id="profile-dropdown"
+                        class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
                         <div class="p-4 border-b border-gray-100">
                             <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-
+                                <div
+                                    class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                                    <i class="fas fa-user text-white text-lg"></i>
                                 </div>
                                 <div>
-                                    <p class="font-semibold text-gray-900">Viktor Greg Lim</p>
+                                    <p class="font-semibold text-gray-900">{{ user.first_name }} {{ user.last_name }}</p>
                                     <p class="text-sm text-gray-500">Elementary Teacher</p>
                                 </div>
                             </div>
                         </div>
                         <div class="py-2">
-                            <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+                            <a href="{% url 'profile' %}"
+                                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
                                 <i class="fas fa-user w-4"></i>
                                 <span>My Profile</span>
                             </a>
-                            <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+                            <a href="#"
+                                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
                                 <i class="fas fa-cog w-4"></i>
                                 <span>Settings</span>
                             </a>
                             <hr class="my-2">
-                            <a href="#" class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
+                            <a href="{% url 'logout' %}"
+                                class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
                                 <i class="fas fa-sign-out-alt w-4"></i>
-                                <span>Sign Out</span>
+                                <span>Logout</span>
                             </a>
                         </div>
                     </div>
@@ -178,30 +206,36 @@
     </header>
 
     <div class="flex pt-16">
-        <!-- Sidebar -->
-        <aside id="sidebar" class="w-64 bg-white shadow-lg h-screen fixed md:static -translate-x-full md:translate-x-0 sidebar-transition z-30">
+        <!-- Sidebar - Fixed and sticky -->
+        <aside id="sidebar"
+            class="w-64 bg-white shadow-lg h-[calc(100vh-4rem)] fixed top-16 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
             <nav class="p-4 space-y-2">
-                <!-- Create Lesson Button -->
-                <a href="{% url 'lesson_planner' %}"><button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
-                    <i class="fas fa-plus text-lg"></i>
-                    <span class="font-medium">Create Lesson</span>
-                </button></a>
-                
-                <!-- Navigation Items -->
-                <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                <!-- Create Lesson Button (Updated) -->
+                <a href="{% url 'lesson_planner' %}"><button
+                        class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
+                        <i class="fas fa-plus text-lg"></i>
+                        <span class="font-medium">Create Lesson</span>
+                    </button></a>
+
+                <!-- Navigation Items (Updated) -->
+                <a href="{% url 'dashboard' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                <a href="{% url 'draft' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
                     <i class="fas fa-file-alt text-lg w-5"></i>
                     <span class="font-medium">Drafts</span>
-                    <span class="ml-auto bg-[#e0e9ff] text-[#11468F] text-xs px-2 py-1 rounded-full">6</span>
+                    <span class="ml-auto bg-[#e0e9ff] text-[#11468F] text-xs px-2 py-1 rounded-full">5</span>
                 </a>
-                <a href="{% url 'task' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                <a href="{% url 'task' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-tasks text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Tasks</span>
                 </a>
-                <a href="{% url 'schedule' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                <a href="{% url 'schedule' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-calendar-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Schedule</span>
                 </a>
@@ -212,7 +246,7 @@
         <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
 
         <!-- Main Content -->
-        <main class="flex-1 md:ml-0 bg-gray-50">
+        <main class="flex-1 md:ml-64 bg-gray-50">
             <div class="p-4 md:p-6 lg:p-8">
                 <!-- Page Header -->
                 <div class="mb-6">

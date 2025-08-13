@@ -66,7 +66,7 @@
 </head>
 
 <body class="bg-gray-50 min-h-screen">
-    <!-- Header -->
+    <!-- Header - Fixed at top -->
     <header class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-40">
         <div class="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
             <!-- Mobile menu button -->
@@ -206,9 +206,9 @@
     </header>
 
     <div class="flex pt-16">
-        <!-- Sidebar -->
+        <!-- Sidebar - Fixed and sticky -->
         <aside id="sidebar"
-            class="w-64 bg-white shadow-lg h-screen fixed md:static -translate-x-full md:translate-x-0 sidebar-transition z-30">
+            class="w-64 bg-white shadow-lg h-screen fixed top-16 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
             <nav class="p-4 space-y-2">
                 <!-- Create Lesson Button (Updated) -->
                 <a href="{% url 'lesson_planner' %}"><button
@@ -246,7 +246,7 @@
         <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
 
         <!-- Main Content -->
-        <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-full">
+        <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-full md:ml-64">
             <!-- Welcome Banner -->
             <div class="bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-2xl p-6 md:p-8 text-white mb-8">
                 <div>

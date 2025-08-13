@@ -32,8 +32,6 @@ class User(models.Model):
         """Check if the provided raw password matches the stored hashed password"""
         return check_password(raw_password, self.password)
 
-class draft(models.Model)
-
 class task(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
