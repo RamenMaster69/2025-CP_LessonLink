@@ -5,6 +5,9 @@ from .models import User
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from django.core.files.storage import default_storage 
+
 
 
 def landing(request):
@@ -301,27 +304,56 @@ def logout_view(request):
     messages.success(request, "You have been logged out successfully.")
     return redirect('landing')
 
+from django.core.files.storage import default_storage  # Make sure this import exists
+
 def profile(request):
     # Check if user is logged in
     user_id = request.session.get('user_id')
-    
     if not user_id:
         messages.error(request, "Please log in to view your profile.")
         return redirect('login')
     
     try:
         user = User.objects.get(id=user_id)
+        
+        if request.method == 'POST':
+            # Handle profile picture upload
+            if 'profile_picture' in request.FILES:
+                # Delete old profile picture if exists
+                if user.profile_picture:
+                    default_storage.delete(user.profile_picture.path)
+                user.profile_picture = request.FILES['profile_picture']
+            
+            # Update all fields - ensure you're getting ALL fields from the form
+            user.first_name = request.POST.get('first_name', user.first_name)
+            user.middle_name = request.POST.get('middle_name', user.middle_name)
+            user.last_name = request.POST.get('last_name', user.last_name)
+            user.dob = request.POST.get('dob', user.dob)
+            user.role = request.POST.get('role', user.role)
+            user.rank = request.POST.get('rank', user.rank)
+            user.department = request.POST.get('department', user.department)
+            user.specialization = request.POST.get('specialization', user.specialization)
+            user.affiliations = request.POST.get('affiliations', user.affiliations)
+            
+            try:
+                user.save()
+                messages.success(request, "Profile updated successfully!")
+                return redirect('profile')  # CRITICAL: Add this redirect
+            except Exception as e:
+                messages.error(request, f"Error updating profile: {str(e)}")
+                # Stay on same page to show errors
+        
+        # GET request - show profile
         return render(request, 'profile.html', {
             'user': user,
             'full_name': f"{user.first_name} {user.middle_name} {user.last_name}".strip()
         })
+    
     except User.DoesNotExist:
         messages.error(request, "User account not found. Please log in again.")
-        # Clear the invalid session
         if 'user_id' in request.session:
             del request.session['user_id']
         return redirect('login')
-
 def lesson_planner(request):
     # Check if user is logged in
     user_id = request.session.get('user_id')

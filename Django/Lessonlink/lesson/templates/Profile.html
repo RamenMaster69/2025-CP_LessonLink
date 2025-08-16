@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,22 +22,45 @@
     </script>
     <style>
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         @keyframes slideIn {
-            from { transform: translateX(-100%); }
-            to { transform: translateX(0); }
+            from {
+                transform: translateX(-100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
         }
+
         @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0.9) translateY(-10px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
+
         .dropdown-enter {
             animation: scaleIn 0.2s ease-out;
         }
     </style>
 </head>
+
 <body class="bg-gray-100 min-h-screen">
     <!-- Header -->
     <header class="bg-white shadow-sm border-b">
@@ -44,37 +68,35 @@
             <div class="flex items-center justify-between">
                 <!-- Logo -->
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-[#11468F] to-[#9E5EFF] rounded-full shadow-md">
-                    </div>
+                    <div class="w-10 h-10 bg-gradient-to-br from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
                     <div>
                         <h1 class="text-xl font-bold text-gray-900">LessonLink</h1>
                         <p class="text-sm text-gray-500 hidden lg:block">Western Mindanao State University</p>
                     </div>
                 </div>
-                
+
                 <!-- Right side actions -->
                 <div class="flex items-center space-x-4">
                     <!-- Search -->
                     <div class="relative hidden md:block">
-                        <input 
-                            type="text" 
-                            placeholder="Search" 
-                            class="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                        >
+                        <input type="text" placeholder="Search"
+                            class="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
                         <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                     </div>
-                    
+
                     <!-- Notifications -->
                     <div class="relative">
-                        <button id="notification-btn" class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                        <button id="notification-btn"
+                            class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                             <i class="fas fa-bell text-lg"></i>
                             <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
                         </button>
                     </div>
-                    
+
                     <!-- Profile -->
                     <div class="relative">
-                        <button id="profile-btn" class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                        <button id="profile-btn"
+                            class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
                             <i class="fas fa-user text-gray-600"></i>
                         </button>
                     </div>
@@ -85,13 +107,14 @@
 
     <!-- Messages -->
     {% if messages %}
-        <div class="max-w-7xl mx-auto px-4 py-2">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} bg-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-100 border border-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-400 text-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-700 px-4 py-3 rounded mb-4">
-                    {{ message }}
-                </div>
-            {% endfor %}
+    <div class="max-w-7xl mx-auto px-4 py-2">
+        {% for message in messages %}
+        <div
+            class="alert alert-{{ message.tags }} bg-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-100 border border-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-400 text-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-700 px-4 py-3 rounded mb-4">
+            {{ message }}
         </div>
+        {% endfor %}
+    </div>
     {% endif %}
 
     <!-- Main Content -->
@@ -100,191 +123,176 @@
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="flex flex-col lg:flex-row">
                 <!-- Left Side - Profile Card -->
-                <div class="w-full lg:w-1/3 bg-gradient-to-br from-[#11468F] via-blue-700 to-[#9E5EFF] p-8 text-white relative">
+                <div
+                    class="w-full lg:w-1/3 bg-gradient-to-br from-[#11468F] via-blue-700 to-[#9E5EFF] p-8 text-white relative">
                     <!-- Back Button -->
                     <a href="{% url 'dashboard' %}">
-                        <button class="flex items-center space-x-2 text-white/90 hover:text-white mb-6 transition-colors">
+                        <button
+                            class="flex items-center space-x-2 text-white/90 hover:text-white mb-6 transition-colors">
                             <i class="fas fa-arrow-left"></i>
                             <span class="font-medium">Back to Dashboard</span>
                         </button>
                     </a>
-                    
+
                     <!-- Profile Image Placeholder -->
                     <div class="flex justify-center mb-6">
                         <div class="relative">
-                            <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-white/20 shadow-lg bg-white/10 flex items-center justify-center">
+                            <div
+                                class="w-32 h-32 rounded-full overflow-hidden border-4 border-white/20 shadow-lg bg-white/10 flex items-center justify-center">
+                                {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
+                                    class="w-full h-full object-cover">
+                                {% else %}
                                 <i class="fas fa-user text-5xl text-white/50"></i>
+                                {% endif %}
                             </div>
                             <!-- Camera icon for upload -->
-                            <button class="absolute bottom-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center text-blue-600 hover:bg-gray-100 transition-colors shadow-lg">
+                            <button id="upload-profile-pic"
+                                class="absolute bottom-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center text-blue-600 hover:bg-gray-100 transition-colors shadow-lg">
                                 <i class="fas fa-camera text-sm"></i>
                             </button>
+                            <input type="file" id="profile-picture-input" accept="image/*" class="hidden">
                         </div>
                     </div>
-                    
+
                     <!-- Profile Info -->
                     <div class="text-center mb-8">
-                        <h2 class="text-2xl font-bold mb-2">{{ user.first_name }} {% if user.middle_name %}{{ user.middle_name }} {% endif %}{{ user.last_name }}</h2>
-                        <p class="text-blue-100 mb-1">{{ user.role }}</p>
-                        <p class="text-blue-200 text-sm">{{ user.department }}</p>
+                        <h2 class="text-2xl font-bold mb-2">
+                            {{ user.first_name }}
+                            {% if user.middle_name and user.middle_name.strip %}
+                            {{ user.middle_name }}
+                            {% endif %}
+                            {{ user.last_name }}
+                        </h2>
+                        <p class="text-blue-100 mb-1">{{ user.role|default:"" }}</p>
+                        <p class="text-blue-200 text-sm">{{ user.department|default:"" }}</p>
                     </div>
-                    
+
                     <!-- Email -->
                     <div class="text-center mb-8">
                         <p class="text-blue-100 text-sm">{{ user.email }}</p>
                     </div>
-                    
+
                     <!-- Logout Button -->
                     <a href="{% url 'logout' %}">
-                        <button class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition-colors">
+                        <button
+                            class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition-colors">
                             Logout
                         </button>
                     </a>
-                    
+
                     <!-- Decorative element -->
-                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
+                    <div
+                        class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12">
+                    </div>
                 </div>
-                
+
                 <!-- Right Side - Edit Form -->
                 <div class="w-full lg:w-2/3 p-8">
                     <!-- Header -->
                     <div class="flex items-center justify-between mb-8">
                         <h1 class="text-2xl font-bold text-gray-900">Edit Profile</h1>
-                        <button id="edit-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                        <button id="edit-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg">
                             Edit
                         </button>
                     </div>
-                    
+
                     <!-- Form -->
-                    <form method="post" class="space-y-6">
+                    <form method="post" class="space-y-6" enctype="multipart/form-data">
                         {% csrf_token %}
-                        
+
                         <!-- First Name -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">First Name:</label>
-                            <input 
-                                type="text" 
-                                name="first_name"
-                                value="{{ user.first_name }}"
+                            <input type="text" name="first_name" value="{{ user.first_name }}"
                                 class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
-                                readonly
-                            >
+                                readonly>
                         </div>
 
                         <!-- Middle Name -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Middle Name:</label>
-                            <input 
-                                type="text" 
-                                name="middle_name"
-                                value="{{ user.middle_name|default:'' }}"
+                            <input type="text" name="middle_name" value="{{ user.middle_name|default:'' }}"
                                 class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
-                                readonly
-                            >
+                                readonly>
                         </div>
 
                         <!-- Last Name -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Last Name:</label>
-                            <input 
-                                type="text" 
-                                name="last_name"
-                                value="{{ user.last_name }}"
+                            <input type="text" name="last_name" value="{{ user.last_name }}"
                                 class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
-                                readonly
-                            >
+                                readonly>
                         </div>
-                        
+
                         <!-- Position/Role and Birth Date Row -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Role:</label>
-                                <input 
-                                    type="text" 
-                                    name="role"
-                                    value="{{ user.role }}"
+                                <input type="text" name="role" value="{{ user.role }}"
                                     class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
-                                    readonly
-                                >
+                                    readonly>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Birth Date:</label>
-                                <input 
-                                    type="date" 
-                                    name="dob"
-                                    value="{{ user.dob }}"
+                                <input type="date" name="dob" value="{{ user.dob|date:'Y-m-d' }}"
                                     class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
-                                    readonly
-                                >
+                                    readonly>
                             </div>
                         </div>
 
                         <!-- Rank -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Rank:</label>
-                            <input 
-                                type="text" 
-                                name="rank"
-                                value="{{ user.rank }}"
+                            <input type="text" name="rank" value="{{ user.rank }}"
                                 class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
-                                readonly
-                            >
+                                readonly>
                         </div>
-                        
+
                         <!-- Department -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Department:</label>
-                            <input 
-                                type="text" 
-                                name="department"
-                                value="{{ user.department }}"
+                            <input type="text" name="department" value="{{ user.department }}"
                                 class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
-                                readonly
-                            >
+                                readonly>
                         </div>
 
                         <!-- Specialization -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Specialization:</label>
-                            <input 
-                                type="text" 
-                                name="specialization"
-                                value="{{ user.specialization }}"
+                            <input type="text" name="specialization" value="{{ user.specialization }}"
                                 class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
-                                readonly
-                            >
+                                readonly>
                         </div>
 
                         <!-- Affiliations -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Affiliations:</label>
-                            <textarea 
-                                name="affiliations"
-                                rows="3"
+                            <textarea name="affiliations" rows="3"
                                 class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
-                                readonly
-                            >{{ user.affiliations|default:'' }}</textarea>
+                                readonly>{{ user.affiliations|default:'' }}</textarea>
                         </div>
-                        
+
                         <!-- Email -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Email:</label>
-                            <input 
-                                type="email" 
-                                name="email"
-                                value="{{ user.email }}"
+                            <input type="email" name="email" value="{{ user.email }}"
                                 class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
-                                readonly
-                            >
+                                readonly>
                         </div>
-                        
+
+                        <!-- Hidden field for profile picture -->
+                        <input type="hidden" name="profile_picture" id="profile_picture" value="">
+
                         <!-- Save Button (hidden by default) -->
                         <div id="save-section" class="hidden pt-4">
                             <div class="flex space-x-4">
-                                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                <button type="submit"
+                                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
                                     Save Changes
                                 </button>
-                                <button type="button" id="cancel-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                <button type="button" id="cancel-btn"
+                                    class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
                                     Cancel
                                 </button>
                             </div>
@@ -292,7 +300,7 @@
                     </form>
                 </div>
             </div>
-            
+
             <!-- Footer Links -->
             <div class="flex flex-wrap justify-center gap-8 p-8 text-sm text-gray-500 border-t border-gray-200">
                 <a href="#" class="hover:text-gray-700 transition-colors">Settings</a>
@@ -307,15 +315,18 @@
         const editBtn = document.getElementById('edit-btn');
         const saveSection = document.getElementById('save-section');
         const cancelBtn = document.getElementById('cancel-btn');
-        const inputs = document.querySelectorAll('input, textarea');
-        
+        const inputs = document.querySelectorAll('input:not([type="hidden"]), textarea');
+        const uploadBtn = document.getElementById('upload-profile-pic');
+        const profilePicInput = document.getElementById('profile-picture-input');
+        const profilePicField = document.getElementById('profile_picture');
+
         let originalValues = {};
-        
+
         // Store original values
         inputs.forEach(input => {
             originalValues[input.name] = input.value;
         });
-        
+
         editBtn.addEventListener('click', () => {
             // Enable all inputs except email (usually shouldn't be changed)
             inputs.forEach(input => {
@@ -325,12 +336,15 @@
                     input.classList.add('bg-white');
                 }
             });
-            
+
             // Show save section and hide edit button
             saveSection.classList.remove('hidden');
             editBtn.classList.add('hidden');
+
+            // Enable profile picture upload
+            uploadBtn.style.display = 'flex';
         });
-        
+
         cancelBtn.addEventListener('click', () => {
             // Restore original values and make inputs readonly again
             inputs.forEach(input => {
@@ -339,17 +353,53 @@
                 input.classList.add('bg-gray-50');
                 input.classList.remove('bg-white');
             });
-            
+
             // Hide save section and show edit button
             saveSection.classList.add('hidden');
             editBtn.classList.remove('hidden');
+
+            // Hide profile picture upload button
+            uploadBtn.style.display = 'none';
         });
-        
-        // Camera button functionality
-        document.querySelector('.fa-camera').parentElement.addEventListener('click', () => {
-            // This would normally open a file picker for profile image upload
-            alert('Profile image upload functionality would be implemented here');
+
+        // Profile picture upload functionality
+        uploadBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            profilePicInput.click();
         });
+
+        profilePicInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                // Here you would typically upload the file to your server
+                // For now, we'll just store the filename
+                profilePicField.value = file.name;
+
+                // Preview the image
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const profileImg = document.querySelector('.w-32.h-32.rounded-full img');
+                    if (profileImg) {
+                        profileImg.src = event.target.result;
+                    } else {
+                        // Replace the icon with the image
+                        const icon = document.querySelector('.w-32.h-32.rounded-full .fa-user');
+                        if (icon) {
+                            icon.remove();
+                            const img = document.createElement('img');
+                            img.src = event.target.result;
+                            img.className = 'w-full h-full object-cover';
+                            document.querySelector('.w-32.h-32.rounded-full').appendChild(img);
+                        }
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Initialize - hide upload button when not in edit mode
+        uploadBtn.style.display = 'none';
     </script>
 </body>
+
 </html>
