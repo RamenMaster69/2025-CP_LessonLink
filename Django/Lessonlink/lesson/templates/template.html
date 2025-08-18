@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LessonLink - Teacher Dashboard</title>
+    <title>LessonLink - Department Head Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script>
@@ -13,8 +13,7 @@
                 extend: {
                     animation: {
                         'fade-in': 'fadeIn 0.3s ease-in-out',
-                        'slide-in': 'slideIn 0.3s ease-out',
-                        'scale-in': 'scaleIn 0.2s ease-out'
+                        'slide-in': 'slideIn 0.3s ease-out'
                     }
                 }
             }
@@ -26,7 +25,6 @@
                 opacity: 0;
                 transform: translateY(-10px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -37,21 +35,8 @@
             from {
                 transform: translateX(-100%);
             }
-
             to {
                 transform: translateX(0);
-            }
-        }
-
-        @keyframes scaleIn {
-            from {
-                opacity: 0;
-                transform: scale(0.9) translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
             }
         }
 
@@ -59,8 +44,28 @@
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .dropdown-enter {
-            animation: scaleIn 0.2s ease-out;
+        .lesson-card {
+            transition: all 0.3s ease;
+        }
+
+        .lesson-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-approved {
+            background: linear-gradient(135deg, #d1fae5 0%, #34d399 100%);
+            color: #065f46;
+        }
+
+        .status-rejected {
+            background: linear-gradient(135deg, #fee2e2 0%, #f87171 100%);
+            color: #991b1b;
         }
     </style>
 </head>
@@ -88,7 +93,7 @@
             <div class="flex items-center space-x-2 md:space-x-4">
                 <!-- Search -->
                 <div class="relative hidden md:block">
-                    <input type="text" placeholder="Search lessons..."
+                    <input type="text" placeholder="Search lesson plans..."
                         class="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
                     <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
@@ -104,48 +109,55 @@
                         class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                         <i class="fas fa-bell text-lg"></i>
                         <span id="notification-badge"
-                            class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                            class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">3</span>
                     </button>
 
                     <!-- Notifications Dropdown -->
                     <div id="notification-dropdown"
-                        class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
+                        class="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
                         <div class="p-4 border-b border-gray-100">
                             <div class="flex items-center justify-between">
-                                <h3 class="font-semibold text-gray-900">Notifications</h3>
+                                <h3 class="font-semibold text-gray-900">Lesson Plan Reviews</h3>
                                 <button class="text-purple-600 text-sm hover:text-purple-700">Mark all read</button>
                             </div>
                         </div>
                         <div class="max-h-96 overflow-y-auto">
-                            <div class="p-4 hover:bg-gray-50 border-b border-gray-100">
+                            <div class="p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer" onclick="openLessonModal('lesson1')">
                                 <div class="flex items-start space-x-3">
-                                    <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                                    <div class="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                                     <div class="flex-1">
                                         <p class="text-sm text-gray-900 font-medium">New lesson plan submitted</p>
-                                        <p class="text-xs text-gray-500 mt-1">Grade 3A English lesson ready for review
-                                        </p>
-                                        <p class="text-xs text-gray-400 mt-1">2 minutes ago</p>
+                                        <p class="text-xs text-gray-500 mt-1">Grade 3A English - "Reading Comprehension" by Ms. Sarah Johnson</p>
+                                        <div class="flex items-center justify-between mt-2">
+                                            <p class="text-xs text-gray-400">5 minutes ago</p>
+                                            <span class="status-pending px-2 py-1 rounded-full text-xs font-medium">Pending Review</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="p-4 hover:bg-gray-50 border-b border-gray-100">
+                            <div class="p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer" onclick="openLessonModal('lesson2')">
                                 <div class="flex items-start space-x-3">
-                                    <div class="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                                    <div class="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
                                     <div class="flex-1">
-                                        <p class="text-sm text-gray-900 font-medium">Class schedule updated</p>
-                                        <p class="text-xs text-gray-500 mt-1">Grade 2B math class moved to 11:30 AM</p>
-                                        <p class="text-xs text-gray-400 mt-1">1 hour ago</p>
+                                        <p class="text-sm text-gray-900 font-medium">Lesson plan revised</p>
+                                        <p class="text-xs text-gray-500 mt-1">Grade 2B Math - "Addition & Subtraction" by Mr. Carlos Rivera</p>
+                                        <div class="flex items-center justify-between mt-2">
+                                            <p class="text-xs text-gray-400">1 hour ago</p>
+                                            <span class="status-pending px-2 py-1 rounded-full text-xs font-medium">Pending Review</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="p-4 hover:bg-gray-50 border-b border-gray-100">
+                            <div class="p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer" onclick="openLessonModal('lesson3')">
                                 <div class="flex items-start space-x-3">
-                                    <div class="w-2 h-2 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
+                                    <div class="w-3 h-3 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
                                     <div class="flex-1">
-                                        <p class="text-sm text-gray-900 font-medium">Assignment reminder</p>
-                                        <p class="text-xs text-gray-500 mt-1">5 students haven't submitted their
-                                            homework</p>
-                                        <p class="text-xs text-gray-400 mt-1">3 hours ago</p>
+                                        <p class="text-sm text-gray-900 font-medium">New lesson plan submitted</p>
+                                        <p class="text-xs text-gray-500 mt-1">Grade 1C Science - "Plants Around Us" by Ms. Maria Santos</p>
+                                        <div class="flex items-center justify-between mt-2">
+                                            <p class="text-xs text-gray-400">2 hours ago</p>
+                                            <span class="status-pending px-2 py-1 rounded-full text-xs font-medium">Pending Review</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -173,16 +185,16 @@
                             <div class="flex items-center space-x-3">
                                 <div
                                     class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-
+                                    <i class="fas fa-user-tie text-white"></i>
                                 </div>
                                 <div>
-                                    <p class="font-semibold text-gray-900">{{ user.first_name }} {{ user.last_name }}</p>
-                                    <p class="text-sm text-gray-500">Elementary Teacher</p>
+                                    <p class="font-semibold text-gray-900">Dr. Amanda Cruz</p>
+                                    <p class="text-sm text-gray-500">Department Head</p>
                                 </div>
                             </div>
                         </div>
                         <div class="py-2">
-                            <a href="{% url 'profile' %}"
+                            <a href="#"
                                 class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
                                 <i class="fas fa-user w-4"></i>
                                 <span>My Profile</span>
@@ -193,11 +205,7 @@
                                 <span>Settings</span>
                             </a>
                             <hr class="my-2">
-                            <!-- <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
-                                <i class="fas fa-question-circle w-4"></i>
-                                <span>Help & Support</span>
-                            </a> -->
-                            <a href="{% url 'landing' %}"
+                            <a href="#"
                                 class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
                                 <i class="fas fa-sign-out-alt w-4"></i>
                                 <span>Sign Out</span>
@@ -214,37 +222,539 @@
         <aside id="sidebar"
             class="w-64 bg-white shadow-lg h-screen fixed md:static -translate-x-full md:translate-x-0 sidebar-transition z-30">
             <nav class="p-4 space-y-2">
-                <!-- Create Lesson Button (Updated) -->
-                <a href=""><button
-                        class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
-                        <i class="fas fa-plus text-lg"></i>
-                        <span class="font-medium">Create Lesson</span>
-                    </button></a>
+                <!-- Quick Actions Button -->
+                <button
+                    class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
+                    <i class="fas fa-clipboard-check text-lg"></i>
+                    <span class="font-medium">Review Queue</span>
+                    <span class="ml-auto bg-white text-[#11468F] text-xs px-2 py-1 rounded-full font-bold">3</span>
+                </button>
 
-                <!-- Navigation Items (Updated) -->
+                <!-- Navigation Items -->
                 <a href="#"
                     class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
                     <i class="fas fa-home text-lg w-5"></i>
                     <span class="font-medium">Dashboard</span>
                 </a>
-                <a href=""
+                <a href="#"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                    <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                    <span>Drafts</span>
-                    <span class="ml-auto bg-[#e0e9ff] text-[#11468F] text-xs px-2 py-1 rounded-full">5</span>
+                    <i class="fas fa-clock text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Pending Reviews</span>
                 </a>
                 <a href="#"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                    <i class="fas fa-tasks text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                    <span>Tasks</span>
+                    <i class="fas fa-check-circle text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Approved</span>
                 </a>
                 <a href="#"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                    <i class="fas fa-calendar-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                    <span>Schedule</span>
+                    <i class="fas fa-times-circle text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Rejected</span>
+                </a>
+                <a href="#"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-users text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Faculty</span>
                 </a>
             </nav>
         </aside>
 
         <!-- Overlay for mobile -->
         <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 md:p-8 ml-0 md:ml-0">
+            <!-- Dashboard Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 lesson-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Pending Reviews</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">3</p>
+                        </div>
+                        <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 lesson-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Approved Today</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">5</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 lesson-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Total Faculty</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">24</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-users text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 lesson-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">This Month</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">47</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-file-alt text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Reviews Section -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-bold text-gray-900">Pending Lesson Plan Reviews</h2>
+                        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">3 Pending</span>
+                    </div>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="lesson-card border border-gray-200 rounded-lg p-4 cursor-pointer" onclick="openLessonModal('lesson1')">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <h3 class="font-semibold text-gray-900">Reading Comprehension Strategies</h3>
+                                    <span class="status-pending px-2 py-1 rounded-full text-xs font-medium">Pending</span>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                                    <div><strong>Teacher:</strong> Ms. Sarah Johnson</div>
+                                    <div><strong>Grade:</strong> Grade 3A English</div>
+                                    <div><strong>Submitted:</strong> 5 minutes ago</div>
+                                </div>
+                                <p class="text-sm text-gray-500 mt-2">Focus on developing reading comprehension skills through interactive activities...</p>
+                            </div>
+                            <div class="flex space-x-2 ml-4">
+                                <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm transition-colors" onclick="event.stopPropagation(); approveLesson('lesson1')">
+                                    <i class="fas fa-check mr-1"></i>Approve
+                                </button>
+                                <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm transition-colors" onclick="event.stopPropagation(); rejectLesson('lesson1')">
+                                    <i class="fas fa-times mr-1"></i>Reject
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lesson-card border border-gray-200 rounded-lg p-4 cursor-pointer" onclick="openLessonModal('lesson2')">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <h3 class="font-semibold text-gray-900">Addition and Subtraction Practice</h3>
+                                    <span class="status-pending px-2 py-1 rounded-full text-xs font-medium">Pending</span>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                                    <div><strong>Teacher:</strong> Mr. Carlos Rivera</div>
+                                    <div><strong>Grade:</strong> Grade 2B Mathematics</div>
+                                    <div><strong>Submitted:</strong> 1 hour ago</div>
+                                </div>
+                                <p class="text-sm text-gray-500 mt-2">Hands-on activities to strengthen basic arithmetic skills using manipulatives...</p>
+                            </div>
+                            <div class="flex space-x-2 ml-4">
+                                <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm transition-colors" onclick="event.stopPropagation(); approveLesson('lesson2')">
+                                    <i class="fas fa-check mr-1"></i>Approve
+                                </button>
+                                <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm transition-colors" onclick="event.stopPropagation(); rejectLesson('lesson2')">
+                                    <i class="fas fa-times mr-1"></i>Reject
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lesson-card border border-gray-200 rounded-lg p-4 cursor-pointer" onclick="openLessonModal('lesson3')">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <h3 class="font-semibold text-gray-900">Plants Around Us</h3>
+                                    <span class="status-pending px-2 py-1 rounded-full text-xs font-medium">Pending</span>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                                    <div><strong>Teacher:</strong> Ms. Maria Santos</div>
+                                    <div><strong>Grade:</strong> Grade 1C Science</div>
+                                    <div><strong>Submitted:</strong> 2 hours ago</div>
+                                </div>
+                                <p class="text-sm text-gray-500 mt-2">Introduction to plant life cycles and basic botanical concepts for young learners...</p>
+                            </div>
+                            <div class="flex space-x-2 ml-4">
+                                <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm transition-colors" onclick="event.stopPropagation(); approveLesson('lesson3')">
+                                    <i class="fas fa-check mr-1"></i>Approve
+                                </button>
+                                <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm transition-colors" onclick="event.stopPropagation(); rejectLesson('lesson3')">
+                                    <i class="fas fa-times mr-1"></i>Reject
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Lesson Plan Review Modal -->
+    <div id="lessonModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 id="modalTitle" class="text-xl font-bold text-gray-900">Lesson Plan Review</h2>
+                    <button onclick="closeLessonModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-times text-gray-500"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="modalContent" class="p-6">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="p-6 border-t border-gray-200 flex justify-end space-x-4">
+                <button onclick="rejectCurrentLesson()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-times mr-2"></i>Reject
+                </button>
+                <button onclick="approveCurrentLesson()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-check mr-2"></i>Approve
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLessonId = null;
+
+        const lessonData = {
+            lesson1: {
+                title: "Reading Comprehension Strategies",
+                teacher: "Ms. Sarah Johnson",
+                grade: "Grade 3A English",
+                submitted: "5 minutes ago",
+                subject: "English",
+                duration: "45 minutes",
+                objectives: [
+                    "Students will identify main ideas in a text",
+                    "Students will make inferences based on context clues",
+                    "Students will demonstrate comprehension through discussion"
+                ],
+                materials: ["Storybook", "Worksheets", "Reading journals", "Whiteboard"],
+                activities: [
+                    "Warm-up reading circle (10 minutes)",
+                    "Guided reading activity (20 minutes)",
+                    "Comprehension discussion (10 minutes)",
+                    "Individual reflection (5 minutes)"
+                ]
+            },
+            lesson2: {
+                title: "Addition and Subtraction Practice",
+                teacher: "Mr. Carlos Rivera",
+                grade: "Grade 2B Mathematics",
+                submitted: "1 hour ago",
+                subject: "Mathematics",
+                duration: "40 minutes",
+                objectives: [
+                    "Students will solve addition problems up to 100",
+                    "Students will solve subtraction problems up to 100",
+                    "Students will use manipulatives to understand concepts"
+                ],
+                materials: ["Counting blocks", "Number cards", "Worksheets", "Calculator"],
+                activities: [
+                    "Number warm-up game (5 minutes)",
+                    "Manipulative exploration (15 minutes)",
+                    "Problem-solving practice (15 minutes)",
+                    "Review and wrap-up (5 minutes)"
+                ]
+            },
+            lesson3: {
+                title: "Plants Around Us",
+                teacher: "Ms. Maria Santos",
+                grade: "Grade 1C Science",
+                submitted: "2 hours ago",
+                subject: "Science",
+                duration: "30 minutes",
+                objectives: [
+                    "Students will identify different parts of plants",
+                    "Students will understand basic plant needs",
+                    "Students will observe plants in their environment"
+                ],
+                materials: ["Plant samples", "Magnifying glasses", "Observation sheets", "Colored pencils"],
+                activities: [
+                    "Plant observation walk (10 minutes)",
+                    "Parts of a plant discussion (10 minutes)",
+                    "Drawing activity (10 minutes)"
+                ]
+            }
+        };
+
+        // Mobile menu functionality
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+
+        function toggleMobileMenu() {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+            document.body.classList.toggle('overflow-hidden');
+        }
+
+        mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        });
+
+        // Profile dropdown functionality
+        const profileBtn = document.getElementById('profile-btn');
+        const profileDropdown = document.getElementById('profile-dropdown');
+
+        profileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('hidden');
+            if (!profileDropdown.classList.contains('hidden')) {
+                // Close notifications dropdown if open
+                document.getElementById('notification-dropdown').classList.add('hidden');
+            }
+        });
+
+        // Notification dropdown functionality
+        const notificationBtn = document.getElementById('notification-btn');
+        const notificationDropdown = document.getElementById('notification-dropdown');
+        const notificationBadge = document.getElementById('notification-badge');
+
+        notificationBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notificationDropdown.classList.toggle('hidden');
+            if (!notificationDropdown.classList.contains('hidden')) {
+                // Close profile dropdown if open
+                profileDropdown.classList.add('hidden');
+            }
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+                profileDropdown.classList.add('hidden');
+            }
+            if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+                notificationDropdown.classList.add('hidden');
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+        });
+
+        // Modal functionality
+        function openLessonModal(lessonId) {
+            currentLessonId = lessonId;
+            const lesson = lessonData[lessonId];
+            const modal = document.getElementById('lessonModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+
+            modalTitle.textContent = lesson.title;
+            
+            modalContent.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Lesson Details</h3>
+                        <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                            <div><strong>Teacher:</strong> ${lesson.teacher}</div>
+                            <div><strong>Grade & Subject:</strong> ${lesson.grade}</div>
+                            <div><strong>Duration:</strong> ${lesson.duration}</div>
+                            <div><strong>Submitted:</strong> ${lesson.submitted}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Learning Objectives</h3>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <ul class="list-disc list-inside space-y-1 text-sm">
+                                ${lesson.objectives.map(obj => `<li>${obj}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Required Materials</h3>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex flex-wrap gap-2">
+                                ${lesson.materials.map(material => 
+                                    `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">${material}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Lesson Activities</h3>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <ol class="list-decimal list-inside space-y-1 text-sm">
+                                ${lesson.activities.map(activity => `<li>${activity}</li>`).join('')}
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Review Notes</h3>
+                    <textarea 
+                        id="reviewNotes" 
+                        placeholder="Add your review notes or feedback here..."
+                        class="w-full h-24 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    ></textarea>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeLessonModal() {
+            const modal = document.getElementById('lessonModal');
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+            currentLessonId = null;
+        }
+
+        function approveLesson(lessonId) {
+            const lesson = lessonData[lessonId];
+            showToast(`✅ "${lesson.title}" has been approved!`, 'success');
+            updateLessonStatus(lessonId, 'approved');
+        }
+
+        function rejectLesson(lessonId) {
+            const lesson = lessonData[lessonId];
+            showToast(`❌ "${lesson.title}" has been rejected.`, 'error');
+            updateLessonStatus(lessonId, 'rejected');
+        }
+
+        function approveCurrentLesson() {
+            if (currentLessonId) {
+                approveLesson(currentLessonId);
+                closeLessonModal();
+            }
+        }
+
+        function rejectCurrentLesson() {
+            if (currentLessonId) {
+                rejectLesson(currentLessonId);
+                closeLessonModal();
+            }
+        }
+
+        function updateLessonStatus(lessonId, status) {
+            // Update notification count
+            const badge = document.getElementById('notification-badge');
+            let currentCount = parseInt(badge.textContent) || 0;
+            if (currentCount > 1) {
+                badge.textContent = currentCount - 1;
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            // Remove the lesson card from pending reviews
+            const lessonCards = document.querySelectorAll('.lesson-card');
+            lessonCards.forEach(card => {
+                if (card.onclick && card.onclick.toString().includes(lessonId)) {
+                    card.style.opacity = '0.5';
+                    card.style.pointerEvents = 'none';
+                    setTimeout(() => {
+                        card.remove();
+                    }, 500);
+                }
+            });
+
+            // Update stats
+            updateDashboardStats();
+        }
+
+        function updateDashboardStats() {
+            // This would typically connect to your backend to update the stats
+            // For demo purposes, we'll just update the pending count
+            const pendingElements = document.querySelectorAll('[class*="pending"]');
+            pendingElements.forEach(el => {
+                if (el.textContent.includes('3')) {
+                    el.textContent = el.textContent.replace('3', '2');
+                }
+            });
+        }
+
+        function showToast(message, type = 'info') {
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `fixed top-20 right-4 z-60 max-w-sm bg-white border border-gray-200 rounded-lg shadow-lg p-4 transform translate-x-full transition-transform duration-300`;
+            
+            if (type === 'success') {
+                toast.classList.add('border-green-200');
+                toast.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-check text-green-600"></i>
+                        </div>
+                        <p class="text-gray-900">${message}</p>
+                    </div>
+                `;
+            } else if (type === 'error') {
+                toast.classList.add('border-red-200');
+                toast.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-times text-red-600"></i>
+                        </div>
+                        <p class="text-gray-900">${message}</p>
+                    </div>
+                `;
+            }
+
+            document.body.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Animate out and remove
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeLessonModal();
+            }
+        });
+
+        // Simulate real-time notifications
+        setTimeout(() => {
+            const badge = document.getElementById('notification-badge');
+            badge.classList.remove('hidden');
+            showToast('📝 New lesson plan submitted for review!', 'info');
+        }, 5000);
+    </script>
+</body>
+
+</html>
