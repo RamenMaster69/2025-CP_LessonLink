@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LessonLink - Department Head Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-in-out',
+                        'slide-in': 'slideIn 0.3s ease-out'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .sidebar-transition {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .lesson-card {
+            transition: all 0.3s ease;
+        }
+
+        .lesson-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-approved {
+            background: linear-gradient(135deg, #d1fae5 0%, #34d399 100%);
+            color: #065f46;
+        }
+
+        .status-rejected {
+            background: linear-gradient(135deg, #fee2e2 0%, #f87171 100%);
+            color: #991b1b;
+        }
+        
+        .faculty-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: #d1d5db #f3f4f6;
+        }
+        
+        .faculty-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .faculty-scroll::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 3px;
+        }
+        
+        .faculty-scroll::-webkit-scrollbar-thumb {
+            background-color: #d1d5db;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-40">
+        <div class="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
+            <!-- Mobile menu button -->
+            <button id="mobile-menu-btn"
+                class="md:hidden p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
+                <i class="fas fa-bars text-lg"></i>
+            </button>
+
+            <!-- Logo -->
+            <div class="flex items-center space-x-3 flex-1 md:flex-none">
+                <div class="w-10 h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
+                <div class="hidden sm:block">
+                    <h1 class="text-xl font-bold text-gray-900">LessonLink</h1>
+                    <p class="text-sm text-gray-500 hidden lg:block">Western Mindanao State University</p>
+                </div>
+            </div>
+
+            <!-- Right side actions -->
+            <div class="flex items-center space-x-2 md:space-x-4">
+                <!-- Search -->
+                <div class="relative hidden md:block">
+                    <input type="text" placeholder="Search lesson plans..."
+                        class="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                    <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+
+                <!-- Mobile search button -->
+                <button class="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <i class="fas fa-search text-lg"></i>
+                </button>
+
+                <!-- Notifications -->
+                <div class="relative">
+                    <button id="notification-btn"
+                        class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span id="notification-badge"
+                            class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">3</span>
+                    </button>
+
+                    <!-- Notifications Dropdown -->
+                    <div id="notification-dropdown"
+                        class="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
+                        <div class="p-4 border-b border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-semibold text-gray-900">Lesson Plan Reviews</h3>
+                                <button class="text-purple-600 text-sm hover:text-purple-700">Mark all read</button>
+                            </div>
+                        </div>
+                        <div class="max-h-96 overflow-y-auto">
+                            <div class="p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer" onclick="openLessonModal('lesson1')">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-900 font-medium">New lesson plan submitted</p>
+                                        <p class="text-xs text-gray-500 mt-1">Grade 3A English - "Reading Comprehension" by Ms. Sarah Johnson</p>
+                                        <div class="flex items-center justify-between mt-2">
+                                            <p class="text-xs text-gray-400">5 minutes ago</p>
+                                            <span class="status-pending px-2 py-1 rounded-full text-xs font-medium">Pending Review</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer" onclick="openLessonModal('lesson2')">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-900 font-medium">Lesson plan revised</p>
+                                        <p class="text-xs text-gray-500 mt-1">Grade 2B Math - "Addition & Subtraction" by Mr. Carlos Rivera</p>
+                                        <div class="flex items-center justify-between mt-2">
+                                            <p class="text-xs text-gray-400">1 hour ago</p>
+                                            <span class="status-pending px-2 py-1 rounded-full text-xs font-medium">Pending Review</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer" onclick="openLessonModal('lesson3')">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-3 h-3 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-900 font-medium">New lesson plan submitted</p>
+                                        <p class="text-xs text-gray-500 mt-1">Grade 1C Science - "Plants Around Us" by Ms. Maria Santos</p>
+                                        <div class="flex items-center justify-between mt-2">
+                                            <p class="text-xs text-gray-400">2 hours ago</p>
+                                            <span class="status-pending px-2 py-1 rounded-full text-xs font-medium">Pending Review</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4 border-t border-gray-100">
+                            <button
+                                class="w-full text-center text-purple-600 text-sm hover:text-purple-700 font-medium">
+                                View all notifications
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile -->
+                <div class="relative">
+                    <button id="profile-btn"
+                        class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                        <i class="fas fa-user text-gray-500"></i>
+                    </button>
+
+                    <!-- Profile Dropdown -->
+                    <div id="profile-dropdown"
+                        class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
+                        <div class="p-4 border-b border-gray-100">
+                            <div class="flex items-center space-x-3">
+                                <div
+                                    class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                                    <i class="fas fa-user-tie text-white"></i>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900">Dr. Amanda Cruz</p>
+                                    <p class="text-sm text-gray-500">Department Head</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="py-2">
+                            <a href="#"
+                                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-user w-4"></i>
+                                <span>My Profile</span>
+                            </a>
+                            <a href="#"
+                                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-cog w-4"></i>
+                                <span>Settings</span>
+                            </a>
+                            <hr class="my-2">
+                            <a href="#"
+                                class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
+                                <i class="fas fa-sign-out-alt w-4"></i>
+                                <span>Sign Out</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex pt-20">
+        <!-- Sidebar -->
+        <aside id="sidebar"
+            class="w-64 bg-white shadow-lg h-screen fixed md:static -translate-x-full md:translate-x-0 sidebar-transition z-30">
+            <nav class="p-4 space-y-2">
+                <!-- Quick Actions Button -->
+                <button
+                    class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
+                    <i class="fas fa-clipboard-check text-lg"></i>
+                    <span class="font-medium">Review Queue</span>
+                </button>
+
+                <!-- Navigation Items -->
+                <a href="#"
+                    class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                    <i class="fas fa-home text-lg w-5"></i>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                <a href="#"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-clock text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Pending Reviews</span>
+                </a>
+                <a href="{% url 'Dep_Faculty' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-users text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Faculty</span>
+                </a>
+                
+                <!-- Faculty Section -->
+                <div class="pt-4">
+                    <div class="px-4 mb-2">
+                        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Faculty Members</h3>
+                    </div>
+                    
+                    <div class="faculty-scroll max-h-[calc(100vh-300px)] overflow-y-auto">
+                        <!-- Faculty Search -->
+                        <div class="px-4 mb-3">
+                            <div class="relative">
+                                <input type="text" placeholder="Search faculty..."
+                                    class="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-transparent">
+                                <i class="fas fa-search absolute right-3 top-2.5 text-gray-400 text-sm"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Faculty List -->
+                        <div class="space-y-1">
+                            <!-- Faculty Member 1 -->
+                            <div class="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer group">
+                                <div class="relative">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                                        <span class="text-blue-600 font-medium">SR</span>
+                                    </div>
+                                    <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">Dr. Sarah Rodriguez</p>
+                                    <p class="text-xs text-gray-500 truncate">English Department</p>
+                                </div>
+                                <button class="text-gray-400 hover:text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <i class="fas fa-ellipsis-v text-sm"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Faculty Member 2 -->
+                            <div class="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer group">
+                                <div class="relative">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center">
+                                        <span class="text-purple-600 font-medium">CR</span>
+                                    </div>
+                                    <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">Mr. Carlos Rivera</p>
+                                    <p class="text-xs text-gray-500 truncate">Mathematics Department</p>
+                                </div>
+                                <button class="text-gray-400 hover:text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <i class="fas fa-ellipsis-v text-sm"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Faculty Member 3 -->
+                            <div class="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer group">
+                                <div class="relative">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
+                                        <span class="text-green-600 font-medium">MS</span>
+                                    </div>
+                                    <span class="absolute bottom-0 right-0 w-3 h-3 bg-yellow-500 rounded-full border-2 border-white"></span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">Ms. Maria Santos</p>
+                                    <p class="text-xs text-gray-500 truncate">Science Department</p>
+                                </div>
+                                <button class="text-gray-400 hover:text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <i class="fas fa-ellipsis-v text-sm"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Faculty Member 4 -->
+                            <div class="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer group">
+                                <div class="relative">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-100 to-yellow-200 flex items-center justify-center">
+                                        <span class="text-yellow-600 font-medium">JD</span>
+                                    </div>
+                                    <span class="absolute bottom-0 right-0 w-3 h-3 bg-gray-500 rounded-full border-2 border-white"></span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">Dr. James Dela Cruz</p>
+                                    <p class="text-xs text-gray-500 truncate">History Department</p>
+                                </div>
+                                <button class="text-gray-400 hover:text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <i class="fas fa-ellipsis-v text-sm"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Faculty Member 5 -->
+                            <div class="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer group">
+                                <div class="relative">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center">
+                                        <span class="text-red-600 font-medium">AP</span>
+                                    </div>
+                                    <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">Ms. Anna Perez</p>
+                                    <p class="text-xs text-gray-500 truncate">Filipino Department</p>
+                                </div>
+                                <button class="text-gray-400 hover:text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <i class="fas fa-ellipsis-v text-sm"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Faculty Member 6 -->
+                            <div class="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer group">
+                                <div class="relative">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center">
+                                        <span class="text-indigo-600 font-medium">RG</span>
+                                    </div>
+                                    <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">Mr. Robert Garcia</p>
+                                    <p class="text-xs text-gray-500 truncate">Physical Education</p>
+                                </div>
+                                <button class="text-gray-400 hover:text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <i class="fas fa-ellipsis-v text-sm"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Faculty Member 7 -->
+                            <div class="flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer group">
+                                <div class="relative">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-100 to-pink-200 flex items-center justify-center">
+                                        <span class="text-pink-600 font-medium">LT</span>
+                                    </div>
+                                    <span class="absolute bottom-0 right-0 w-3 h-3 bg-yellow-500 rounded-full border-2 border-white"></span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">Ms. Lourdes Torres</p>
+                                    <p class="text-xs text-gray-500 truncate">Music Department</p>
+                                </div>
+                                <button class="text-gray-400 hover:text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <i class="fas fa-ellipsis-v text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Overlay for mobile -->
+        <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 ml-0 md:ml-64">
+            <div class="max-w-6xl mx-auto">
+                <!-- Page Header -->
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Faculty Management</h2>
+                        <p class="text-gray-600">View and manage faculty members in your department</p>
+                    </div>
+                    <button class="px-4 py-2 bg-[#11468F] text-white rounded-lg hover:bg-[#0d3a7a] transition-colors flex items-center space-x-2">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Faculty</span>
+                    </button>
+                </div>
+                
+                <!-- Faculty Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Total Faculty</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-1">24</p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center">
+                                <i class="fas fa-users text-blue-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Active Today</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-1">18</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center">
+                                <i class="fas fa-check-circle text-green-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Pending Reviews</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-1">7</p>
+                            </div>
+                            <div class="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center">
+                                <i class="fas fa-clock text-yellow-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Departments</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-1">5</p>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center">
+                                <i class="fas fa-building text-purple-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Faculty Table -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                        <h3 class="font-semibold text-gray-900">Faculty Members</h3>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">
+                                <i class="fas fa-filter mr-2"></i>
+                                Filter
+                            </button>
+                            <button class="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">
+                                <i class="fas fa-download mr-2"></i>
+                                Export
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-3">Name</th>
+                                    <th class="px-6 py-3">Department</th>
+                                    <th class="px-6 py-3">Status</th>
+                                    <th class="px-6 py-3">Last Active</th>
+                                    <th class="px-6 py-3">Pending Reviews</th>
+                                    <th class="px-6 py-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 text-sm">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                                <span class="text-blue-600 font-medium">SR</span>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-gray-900">Dr. Sarah Rodriguez</p>
+                                                <p class="text-gray-500">sarah.rodriguez@wmsu.edu</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">English</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Active</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-gray-500">Today, 10:45 AM</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">2 pending</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                                        <button class="p-1.5 text-gray-400 hover:text-purple-600">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                                <span class="text-purple-600 font-medium">CR</span>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-gray-900">Mr. Carlos Rivera</p>
+                                                <p class="text-gray-500">carlos.rivera@wmsu.edu</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">Mathematics</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Active</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-gray-500">Today, 9:30 AM</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">1 pending</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                                        <button class="p-1.5 text-gray-400 hover:text-purple-600">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                                                <span class="text-green-600 font-medium">MS</span>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-gray-900">Ms. Maria Santos</p>
+                                                <p class="text-gray-500">maria.santos@wmsu.edu</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Science</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Away</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-gray-500">Yesterday, 3:15 PM</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">3 pending</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                                        <button class="p-1.5 text-gray-400 hover:text-purple-600">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                                                <span class="text-yellow-600 font-medium">JD</span>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-gray-900">Dr. James Dela Cruz</p>
+                                                <p class="text-gray-500">james.delacruz@wmsu.edu</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">History</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">Offline</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-gray-500">2 days ago</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">0 pending</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                                        <button class="p-1.5 text-gray-400 hover:text-purple-600">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                                                <span class="text-red-600 font-medium">AP</span>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-gray-900">Ms. Anna Perez</p>
+                                                <p class="text-gray-500">anna.perez@wmsu.edu</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Filipino</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Active</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-gray-500">Today, 11:20 AM</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">1 pending</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                                        <button class="p-1.5 text-gray-400 hover:text-purple-600">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="p-4 border-t border-gray-200 flex items-center justify-between">
+                        <div class="text-sm text-gray-500">
+                            Showing <span class="font-medium">1</span> to <span class="font-medium">5</span> of <span class="font-medium">24</span> faculty
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                Previous
+                            </button>
+                            <button class="px-3 py-1 bg-[#11468F] text-white rounded-lg hover:bg-[#0d3a7a]">
+                                1
+                            </button>
+                            <button class="px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50">
+                                2
+                            </button>
+                            <button class="px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50">
+                                3
+                            </button>
+                            <button class="px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50">
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Faculty Modal (hidden by default) -->
+    <div id="facultyModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900">Faculty Details</h3>
+                    <button onclick="closeFacultyModal()" class="text-gray-400 hover:text-gray-500">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="md:col-span-1 flex flex-col items-center">
+                        <div class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center mb-4">
+                            <span class="text-blue-600 text-4xl font-medium">SR</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-gray-900">Dr. Sarah Rodriguez</h4>
+                        <p class="text-gray-500">English Department</p>
+                        <div class="mt-3">
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Active</span>
+                        </div>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <p class="text-gray-900">sarah.rodriguez@wmsu.edu</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                                <p class="text-gray-900">+63 912 345 6789</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Date Joined</label>
+                                <p class="text-gray-900">June 15, 2015</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Last Active</label>
+                                <p class="text-gray-900">Today, 10:45 AM</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                            <p class="text-gray-900">
+                                Dr. Rodriguez specializes in English Literature and Composition. She has been with the university for 8 years and leads the Advanced Writing program.
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Current Classes</label>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">Grade 11 - World Literature</span>
+                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">Grade 12 - Creative Writing</span>
+                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">Grade 10 - Grammar & Composition</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-6">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">Pending Lesson Plans (2)</h4>
+                    
+                    <div class="space-y-3">
+                        <div class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="font-medium text-gray-900">"Modern Poetry Analysis"</p>
+                                    <p class="text-sm text-gray-500">Grade 11 English - Submitted 2 days ago</p>
+                                </div>
+                                <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Pending Review</span>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="font-medium text-gray-900">"Shakespearean Sonnets"</p>
+                                    <p class="text-sm text-gray-500">Grade 10 English - Submitted yesterday</p>
+                                </div>
+                                <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Pending Review</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button onclick="closeFacultyModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        Close
+                    </button>
+                    <button class="px-4 py-2 bg-[#11468F] text-white rounded-lg hover:bg-[#0d3a7a]">
+                        <i class="fas fa-envelope mr-2"></i> Send Message
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLessonId = null;
+
+        const lessonData = {
+            lesson1: {
+                title: "Reading Comprehension Strategies",
+                teacher: "Ms. Sarah Johnson",
+                grade: "Grade 3A English",
+                submitted: "5 minutes ago",
+                subject: "English",
+                duration: "45 minutes",
+                objectives: [
+                    "Students will identify main ideas in a text",
+                    "Students will make inferences based on context clues",
+                    "Students will demonstrate comprehension through discussion"
+                ],
+                materials: ["Storybook", "Worksheets", "Reading journals", "Whiteboard"],
+                activities: [
+                    "Warm-up reading circle (10 minutes)",
+                    "Guided reading activity (20 minutes)",
+                    "Comprehension discussion (10 minutes)",
+                    "Individual reflection (5 minutes)"
+                ]
+            },
+            lesson2: {
+                title: "Addition and Subtraction Practice",
+                teacher: "Mr. Carlos Rivera",
+                grade: "Grade 2B Mathematics",
+                submitted: "1 hour ago",
+                subject: "Mathematics",
+                duration: "40 minutes",
+                objectives: [
+                    "Students will solve addition problems up to 100",
+                    "Students will solve subtraction problems up to 100",
+                    "Students will use manipulatives to understand concepts"
+                ],
+                materials: ["Counting blocks", "Number cards", "Worksheets", "Calculator"],
+                activities: [
+                    "Number warm-up game (5 minutes)",
+                    "Manipulative exploration (15 minutes)",
+                    "Problem-solving practice (15 minutes)",
+                    "Review and wrap-up (5 minutes)"
+                ]
+            },
+            lesson3: {
+                title: "Plants Around Us",
+                teacher: "Ms. Maria Santos",
+                grade: "Grade 1C Science",
+                submitted: "2 hours ago",
+                subject: "Science",
+                duration: "30 minutes",
+                objectives: [
+                    "Students will identify different parts of plants",
+                    "Students will understand basic plant needs",
+                    "Students will observe plants in their environment"
+                ],
+                materials: ["Plant samples", "Magnifying glasses", "Observation sheets", "Colored pencils"],
+                activities: [
+                    "Plant observation walk (10 minutes)",
+                    "Parts of a plant discussion (10 minutes)",
+                    "Drawing activity (10 minutes)"
+                ]
+            }
+        };
+
+        // Mobile menu functionality
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+
+        function toggleMobileMenu() {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+            document.body.classList.toggle('overflow-hidden');
+        }
+
+        mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        });
+
+        // Profile dropdown functionality
+        const profileBtn = document.getElementById('profile-btn');
+        const profileDropdown = document.getElementById('profile-dropdown');
+
+        profileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('hidden');
+            if (!profileDropdown.classList.contains('hidden')) {
+                // Close notifications dropdown if open
+                document.getElementById('notification-dropdown').classList.add('hidden');
+            }
+        });
+
+        // Notification dropdown functionality
+        const notificationBtn = document.getElementById('notification-btn');
+        const notificationDropdown = document.getElementById('notification-dropdown');
+        const notificationBadge = document.getElementById('notification-badge');
+
+        notificationBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notificationDropdown.classList.toggle('hidden');
+            if (!notificationDropdown.classList.contains('hidden')) {
+                // Close profile dropdown if open
+                profileDropdown.classList.add('hidden');
+            }
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+                profileDropdown.classList.add('hidden');
+            }
+            if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+                notificationDropdown.classList.add('hidden');
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+        });
+
+        // Modal functionality
+        function openLessonModal(lessonId) {
+            currentLessonId = lessonId;
+            const lesson = lessonData[lessonId];
+            const modal = document.getElementById('lessonModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+
+            modalTitle.textContent = lesson.title;
+            
+            modalContent.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Lesson Details</h3>
+                        <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                            <div><strong>Teacher:</strong> ${lesson.teacher}</div>
+                            <div><strong>Grade & Subject:</strong> ${lesson.grade}</div>
+                            <div><strong>Duration:</strong> ${lesson.duration}</div>
+                            <div><strong>Submitted:</strong> ${lesson.submitted}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Learning Objectives</h3>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <ul class="list-disc list-inside space-y-1 text-sm">
+                                ${lesson.objectives.map(obj => `<li>${obj}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Required Materials</h3>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex flex-wrap gap-2">
+                                ${lesson.materials.map(material => 
+                                    `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">${material}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Lesson Activities</h3>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <ol class="list-decimal list-inside space-y-1 text-sm">
+                                ${lesson.activities.map(activity => `<li>${activity}</li>`).join('')}
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Review Notes</h3>
+                    <textarea 
+                        id="reviewNotes" 
+                        placeholder="Add your review notes or feedback here..."
+                        class="w-full h-24 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    ></textarea>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeLessonModal() {
+            const modal = document.getElementById('lessonModal');
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+            currentLessonId = null;
+        }
+
+        function approveLesson(lessonId) {
+            const lesson = lessonData[lessonId];
+            showToast(`✅ "${lesson.title}" has been approved!`, 'success');
+            updateLessonStatus(lessonId, 'approved');
+        }
+
+        function rejectLesson(lessonId) {
+            const lesson = lessonData[lessonId];
+            showToast(`❌ "${lesson.title}" has been rejected.`, 'error');
+            updateLessonStatus(lessonId, 'rejected');
+        }
+
+        function approveCurrentLesson() {
+            if (currentLessonId) {
+                approveLesson(currentLessonId);
+                closeLessonModal();
+            }
+        }
+
+        function rejectCurrentLesson() {
+            if (currentLessonId) {
+                rejectLesson(currentLessonId);
+                closeLessonModal();
+            }
+        }
+
+        function updateLessonStatus(lessonId, status) {
+            // Update notification count
+            const badge = document.getElementById('notification-badge');
+            let currentCount = parseInt(badge.textContent) || 0;
+            if (currentCount > 1) {
+                badge.textContent = currentCount - 1;
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            // Remove the lesson card from pending reviews
+            const lessonCards = document.querySelectorAll('.lesson-card');
+            lessonCards.forEach(card => {
+                if (card.onclick && card.onclick.toString().includes(lessonId)) {
+                    card.style.opacity = '0.5';
+                    card.style.pointerEvents = 'none';
+                    setTimeout(() => {
+                        card.remove();
+                    }, 500);
+                }
+            });
+
+            // Update stats
+            updateDashboardStats();
+        }
+
+        function updateDashboardStats() {
+            // This would typically connect to your backend to update the stats
+            // For demo purposes, we'll just update the pending count
+            const pendingElements = document.querySelectorAll('[class*="pending"]');
+            pendingElements.forEach(el => {
+                if (el.textContent.includes('3')) {
+                    el.textContent = el.textContent.replace('3', '2');
+                }
+            });
+        }
+
+        function showToast(message, type = 'info') {
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `fixed top-20 right-4 z-60 max-w-sm bg-white border border-gray-200 rounded-lg shadow-lg p-4 transform translate-x-full transition-transform duration-300`;
+            
+            if (type === 'success') {
+                toast.classList.add('border-green-200');
+                toast.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-check text-green-600"></i>
+                        </div>
+                        <p class="text-gray-900">${message}</p>
+                    </div>
+                `;
+            } else if (type === 'error') {
+                toast.classList.add('border-red-200');
+                toast.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-times text-red-600"></i>
+                        </div>
+                        <p class="text-gray-900">${message}</p>
+                    </div>
+                `;
+            }
+
+            document.body.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Animate out and remove
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        // Faculty Modal Functions
+        function openFacultyModal(facultyId) {
+            const modal = document.getElementById('facultyModal');
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeFacultyModal() {
+            const modal = document.getElementById('facultyModal');
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeLessonModal();
+                closeFacultyModal();
+            }
+        });
+
+        // Simulate real-time notifications
+        setTimeout(() => {
+            const badge = document.getElementById('notification-badge');
+            badge.classList.remove('hidden');
+            showToast('📝 New lesson plan submitted for review!', 'info');
+        }, 5000);
+
+        // Make faculty items clickable to open modal
+        document.querySelectorAll('.faculty-scroll > div > div').forEach(item => {
+            item.addEventListener('click', function() {
+                openFacultyModal();
+            });
+        });
+    </script>
+</body>
+</html>

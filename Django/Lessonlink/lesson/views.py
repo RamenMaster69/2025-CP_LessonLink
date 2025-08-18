@@ -8,8 +8,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage 
 
-
-
 def landing(request):
     return render(request, 'landing.html')
 
@@ -401,8 +399,11 @@ def task(request):
             user = None
     return render(request, 'task.html', {'user': user})
 
-def template(request):
-    return render(request, 'template.html')
+def Dep_Dash(request):
+    return render(request, 'Dep_Dash.html')
+
+def Dep_Faculty(request):
+    return render(request, 'Dep_Faculty.html')
 
 def schedule(request):
     return render(request, 'schedule.html')

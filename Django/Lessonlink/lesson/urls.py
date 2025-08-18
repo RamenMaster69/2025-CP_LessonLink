@@ -15,10 +15,11 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('lesson_planner/', views.lesson_planner, name='lesson_planner'),
     path('draft/', views.draft, name='draft'),
-    path('template/', views.template, name='template'),
+    path('dep_dash/', views.Dep_Dash, name='Dep_Dash'),
+    path('dep_faculty/', views.Dep_Faculty, name='Dep_Faculty'),
     path('task/', views.task, name='task'),
     path('schedule/', views.schedule, name='schedule'),
-    
+
 ]
 
 # This is needed for development to serve media files
