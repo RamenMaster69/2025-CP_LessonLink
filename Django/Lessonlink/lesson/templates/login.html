@@ -124,7 +124,7 @@
                     <div class="text-center">
                         <p class="text-sm text-gray-600">
                             Don't have a LessonLink account?
-                            <a href="#"
+                            <a href="{% url 'registration_1' %}"
                                 class="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
                                 Create account here
                             </a>
@@ -162,13 +162,11 @@
             document.getElementById('passwordError').classList.add('hidden');
             document.getElementById('loginError').classList.add('hidden');
             
-            // Get form values (even if user removes 'required' attribute)
+            // Get form values
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             
             let isValid = true;
-            
-            // JavaScript validation that can't be bypassed by removing HTML 'required'
             
             // Email validation
             if (!email || !validateEmail(email)) {
@@ -177,7 +175,7 @@
                 isValid = false;
             }
             
-            // Password validation (basic check for empty)
+            // Password validation
             if (!password) {
                 document.getElementById('passwordError').classList.remove('hidden');
                 if (isValid) document.getElementById('password').focus();
@@ -201,7 +199,7 @@
             return true;
         }
 
-        // Show login error if there's a server-side error (you can trigger this from Django)
+        // Show login error function
         function showLoginError(message) {
             document.getElementById('loginErrorText').textContent = message;
             document.getElementById('loginError').classList.remove('hidden');
