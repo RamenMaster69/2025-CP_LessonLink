@@ -64,6 +64,11 @@
             animation: scaleIn 0.2s ease-out;
         }
 
+        /* Session Warning Modal */
+        .session-modal {
+            backdrop-filter: blur(8px);
+        }
+
         /* Desktop schedule grid */
         @media (min-width: 768px) {
             .schedule-grid {
@@ -130,6 +135,27 @@
 </head>
 
 <body class="bg-gray-50 min-h-screen">
+    <!-- Session Warning Modal -->
+    <div id="session-warning-modal" class="fixed inset-0 bg-black bg-opacity-50 session-modal z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl transform transition-all">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Session Timeout Warning</h3>
+                <p class="text-gray-600 mb-6">You've been inactive for a while. Your session will expire in <span id="countdown" class="font-bold text-red-600">60</span> seconds.</p>
+                <div class="flex space-x-4">
+                    <button id="extend-session-btn" class="flex-1 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white px-6 py-3 rounded-lg font-semibold hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all">
+                        Stay Logged In
+                    </button>
+                    <button id="logout-now-btn" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-all">
+                        Logout Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Header -->
     <header class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-40">
         <div class="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
@@ -150,6 +176,12 @@
 
             <!-- Right side actions -->
             <div class="flex items-center space-x-1 md:space-x-4">
+                <!-- Session Timer Display -->
+                <div class="hidden md:flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-full">
+                    <i class="fas fa-clock text-gray-500 text-sm"></i>
+                    <span id="session-timer" class="text-sm text-gray-600">5:00</span>
+                </div>
+
                 <!-- Search - Hidden on small mobile -->
                 <div class="relative hidden lg:block">
                     <input type="text" placeholder="Search lessons..."
@@ -255,7 +287,7 @@
                                 <span>Settings</span>
                             </a>
                             <hr class="my-2">
-                            <a href="#"
+                            <a href="{% url 'logout' %}"
                                 class="flex items-center space-x-3 px-3 md:px-4 py-3 text-red-600 hover:bg-red-50 transition-colors text-sm md:text-base">
                                 <i class="fas fa-sign-out-alt w-4"></i>
                                 <span>Sign Out</span>
@@ -522,129 +554,284 @@
     </div>
 
     <script>
-        // Mobile menu toggle
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-
-        mobileMenuBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('-translate-x-full');
-            overlay.classList.toggle('hidden');
-        });
-
-        overlay.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
-        });
-
-        // Close sidebar on window resize to desktop size
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 768) {
-                sidebar.classList.remove('-translate-x-full');
-                overlay.classList.add('hidden');
-            } else {
-                sidebar.classList.add('-translate-x-full');
+        // Session Management System
+        class SessionManager {
+            constructor() {
+                this.sessionDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
+                this.warningTime = 60 * 1000; // 1 minute warning in milliseconds
+                this.lastActivity = Date.now();
+                this.sessionTimer = null;
+                this.warningTimer = null;
+                this.countdownTimer = null;
+                this.isWarningShown = false;
+                this.countdownSeconds = 60;
+                
+                this.init();
             }
-        });
 
-        // Dropdown toggles
-        const notificationBtn = document.getElementById('notification-btn');
-        const notificationDropdown = document.getElementById('notification-dropdown');
-        const profileBtn = document.getElementById('profile-btn');
-        const profileDropdown = document.getElementById('profile-dropdown');
-
-        notificationBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            notificationDropdown.classList.toggle('hidden');
-            profileDropdown.classList.add('hidden');
-            if (!notificationDropdown.classList.contains('hidden')) {
-                notificationDropdown.classList.add('dropdown-enter');
+            init() {
+                // Track user activity
+                this.trackActivity();
+                // Start session monitoring
+                this.startSessionMonitoring();
+                // Update timer display
+                this.updateTimerDisplay();
             }
-        });
 
-        profileBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            profileDropdown.classList.toggle('hidden');
-            notificationDropdown.classList.add('hidden');
-            if (!profileDropdown.classList.contains('hidden')) {
-                profileDropdown.classList.add('dropdown-enter');
+            trackActivity() {
+                const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+                
+                events.forEach(event => {
+                    document.addEventListener(event, () => {
+                        this.resetActivity();
+                    }, true);
+                });
             }
-        });
 
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
-                notificationDropdown.classList.add('hidden');
+            resetActivity() {
+                this.lastActivity = Date.now();
+                
+                // Hide warning modal if shown
+                if (this.isWarningShown) {
+                    this.hideWarningModal();
+                }
+                
+                // Reset timers
+                this.clearTimers();
+                this.startSessionMonitoring();
             }
-            if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
-                profileDropdown.classList.add('hidden');
+
+            startSessionMonitoring() {
+                // Set timer for warning (4 minutes)
+                this.warningTimer = setTimeout(() => {
+                    this.showWarningModal();
+                }, this.sessionDuration - this.warningTime);
+
+                // Set timer for automatic logout (5 minutes)
+                this.sessionTimer = setTimeout(() => {
+                    this.logout();
+                }, this.sessionDuration);
             }
-        });
 
-        // Add Class Modal
-        const addClassBtn = document.getElementById('add-class-btn');
-        const addClassModal = document.getElementById('add-class-modal');
-        const closeModal = document.getElementById('close-modal');
-        const cancelAdd = document.getElementById('cancel-add');
-
-        addClassBtn.addEventListener('click', () => {
-            addClassModal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Prevent background scroll
-        });
-
-        const closeModalFunction = () => {
-            addClassModal.classList.add('hidden');
-            document.body.style.overflow = 'auto'; // Restore scroll
-        };
-
-        closeModal.addEventListener('click', closeModalFunction);
-        cancelAdd.addEventListener('click', closeModalFunction);
-
-        addClassModal.addEventListener('click', (e) => {
-            if (e.target === addClassModal) {
-                closeModalFunction();
+            showWarningModal() {
+                this.isWarningShown = true;
+                this.countdownSeconds = 60;
+                
+                const modal = document.getElementById('session-warning-modal');
+                modal.classList.remove('hidden');
+                
+                // Start countdown
+                this.startCountdown();
             }
-        });
 
-        // Form submission
-        document.getElementById('add-class-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            // Here you would typically send the data to your backend
-            console.log('Adding new class...');
-            closeModalFunction();
+            startCountdown() {
+                const countdownElement = document.getElementById('countdown');
+                countdownElement.textContent = this.countdownSeconds;
+                
+                this.countdownTimer = setInterval(() => {
+                    this.countdownSeconds--;
+                    countdownElement.textContent = this.countdownSeconds;
+                    
+                    if (this.countdownSeconds <= 0) {
+                        clearInterval(this.countdownTimer);
+                        this.logout();
+                    }
+                }, 1000);
+                
+                // Setup button handlers
+                document.getElementById('extend-session-btn').addEventListener('click', () => {
+                    this.resetActivity();
+                });
+                
+                document.getElementById('logout-now-btn').addEventListener('click', () => {
+                    this.logout();
+                });
+            }
+
+            hideWarningModal() {
+                this.isWarningShown = false;
+                const modal = document.getElementById('session-warning-modal');
+                modal.classList.add('hidden');
+            }
+
+            clearTimers() {
+                if (this.sessionTimer) {
+                    clearTimeout(this.sessionTimer);
+                    this.sessionTimer = null;
+                }
+                if (this.warningTimer) {
+                    clearTimeout(this.warningTimer);
+                    this.warningTimer = null;
+                }
+                if (this.countdownTimer) {
+                    clearInterval(this.countdownTimer);
+                    this.countdownTimer = null;
+                }
+            }
+
+            updateTimerDisplay() {
+                const timerElement = document.getElementById('session-timer');
+                if (!timerElement) return;
+                
+                setInterval(() => {
+                    const remainingTime = Math.max(0, this.sessionDuration - (Date.now() - this.lastActivity));
+                    const minutes = Math.floor(remainingTime / 60000);
+                    const seconds = Math.floor((remainingTime % 60000) / 1000);
+                    
+                    timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+
+            logout() {
+                // Clear all timers
+                this.clearTimers();
+                
+                // Redirect to logout URL (Django's default logout view)
+                window.location.href = "{% url 'logout' %}";
+            }
+        }
+
+        // Initialize the session manager when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const sessionManager = new SessionManager();
             
-            // Show success message (you can customize this)
-            alert('Class added successfully!');
-        });
+            // Mobile menu functionality
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
 
-        // Add hover effects and interactions for class blocks
-        document.querySelectorAll('.class-block').forEach(block => {
-            block.addEventListener('click', () => {
-                // Handle class block click - could open edit modal
-                console.log('Class block clicked');
+            function toggleMobileMenu() {
+                sidebar.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('hidden');
+                document.body.classList.toggle('overflow-hidden');
+            }
+
+            mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+            
+            overlay.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
             });
-        });
 
-        // Handle escape key for modal
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                if (!addClassModal.classList.contains('hidden')) {
+            // Profile dropdown functionality
+            const profileBtn = document.getElementById('profile-btn');
+            const profileDropdown = document.getElementById('profile-dropdown');
+
+            profileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('hidden');
+                if (!profileDropdown.classList.contains('hidden')) {
+                    profileDropdown.classList.add('dropdown-enter');
+                    // Close notifications dropdown if open
+                    document.getElementById('notification-dropdown').classList.add('hidden');
+                }
+            });
+
+            // Notification dropdown functionality
+            const notificationBtn = document.getElementById('notification-btn');
+            const notificationDropdown = document.getElementById('notification-dropdown');
+            const notificationBadge = document.getElementById('notification-badge');
+
+            notificationBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notificationDropdown.classList.toggle('hidden');
+                if (!notificationDropdown.classList.contains('hidden')) {
+                    notificationDropdown.classList.add('dropdown-enter');
+                    // Hide notification badge when opened
+                    notificationBadge.classList.add('hidden');
+                    // Close profile dropdown if open
+                    profileDropdown.classList.add('hidden');
+                }
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+                    profileDropdown.classList.add('hidden');
+                }
+                if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+                    notificationDropdown.classList.add('hidden');
+                }
+            });
+
+            // Add Class Modal
+            const addClassBtn = document.getElementById('add-class-btn');
+            const addClassModal = document.getElementById('add-class-modal');
+            const closeModal = document.getElementById('close-modal');
+            const cancelAdd = document.getElementById('cancel-add');
+
+            addClassBtn.addEventListener('click', () => {
+                addClassModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Prevent background scroll
+            });
+
+            const closeModalFunction = () => {
+                addClassModal.classList.add('hidden');
+                document.body.style.overflow = 'auto'; // Restore scroll
+            };
+
+            closeModal.addEventListener('click', closeModalFunction);
+            cancelAdd.addEventListener('click', closeModalFunction);
+
+            addClassModal.addEventListener('click', (e) => {
+                if (e.target === addClassModal) {
                     closeModalFunction();
                 }
-                notificationDropdown.classList.add('hidden');
-                profileDropdown.classList.add('hidden');
-            }
-        });
+            });
 
-        // Prevent dropdown from closing when clicking inside
-        notificationDropdown.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
+            // Form submission
+            document.getElementById('add-class-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                // Here you would typically send the data to your backend
+                console.log('Adding new class...');
+                closeModalFunction();
+                
+                // Show success message (you can customize this)
+                alert('Class added successfully!');
+            });
 
-        profileDropdown.addEventListener('click', (e) => {
-            e.stopPropagation();
+            // Add hover effects and interactions for class blocks
+            document.querySelectorAll('.class-block').forEach(block => {
+                block.addEventListener('click', () => {
+                    // Handle class block click - could open edit modal
+                    console.log('Class block clicked');
+                });
+            });
+
+            // Handle escape key for modal
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (!addClassModal.classList.contains('hidden')) {
+                        closeModalFunction();
+                    }
+                    notificationDropdown.classList.add('hidden');
+                    profileDropdown.classList.add('hidden');
+                }
+            });
+
+            // Prevent dropdown from closing when clicking inside
+            notificationDropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
+            profileDropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768) {
+                    sidebar.classList.remove('-translate-x-full');
+                    overlay.classList.add('hidden');
+                    document.body.classList.remove('overflow-hidden');
+                } else {
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.add('hidden');
+                    document.body.classList.remove('overflow-hidden');
+                }
+            });
         });
     </script>
 </body>
-
 </html>
