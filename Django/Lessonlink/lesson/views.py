@@ -413,3 +413,6 @@ def Dep_Pending(request):
 
 def template(request):
     return render(request, 'template.html')
+
+def st_dash(request):
+    return render(request, 'st_dash.html')

@@ -73,7 +73,7 @@
                     <!-- Register Button -->
                     <button type="submit"
                         class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
-                        Create Educator Account
+                        Next
                     </button>
 
                     <!-- Divider -->
@@ -112,14 +112,14 @@
     <script>
         function updateRankOptions() {
             const role = document.getElementById('role').value;
-            const rankSelect = document.getElementById('rank');
-
-            // Clear existing options
-            rankSelect.innerHTML = '<option value="">Select Rank</option>';
+            const rankContainer = document.getElementById('rank').closest('.relative');
 
             if (role === 'student-teacher') {
-                // Enable the rank dropdown and add Student Teacher specific ranks
+                // Show the rank dropdown and add Student Teacher specific ranks
+                rankContainer.style.display = 'block';
+                const rankSelect = document.getElementById('rank');
                 rankSelect.disabled = false;
+                rankSelect.innerHTML = '<option value="">Select Rank</option>';
                 const studentTeacherRanks = [
                     { value: 'pre-service-teacher', text: 'Student Teacher (Pre-Service Teacher)' },
                     { value: 'practice-teacher', text: 'Practice Teacher' },
@@ -133,8 +133,11 @@
                     rankSelect.appendChild(option);
                 });
             } else if (role === 'teacher') {
-                // Enable the rank dropdown and add Teacher specific ranks
+                // Show the rank dropdown and add Teacher specific ranks
+                rankContainer.style.display = 'block';
+                const rankSelect = document.getElementById('rank');
                 rankSelect.disabled = false;
+                rankSelect.innerHTML = '<option value="">Select Rank</option>';
                 const teacherRanks = [
                     { value: 'teacher-i', text: 'Teacher I' },
                     { value: 'teacher-ii', text: 'Teacher II' },
@@ -148,25 +151,31 @@
                     rankSelect.appendChild(option);
                 });
             } else if (role === 'department-head') {
-                // Enable the rank dropdown and add Department Head specific ranks
-                rankSelect.disabled = false;
-                const departmentHeadRanks = [
-                    { value: 'master-teacher-i', text: 'Master Teacher I' },
-                    { value: 'master-teacher-ii', text: 'Master Teacher II' },
-                    { value: 'master-teacher-iii', text: 'Master Teacher III' },
-                    { value: 'master-teacher-iv', text: 'Master Teacher IV' }
-                ];
-
-                departmentHeadRanks.forEach(rank => {
-                    const option = document.createElement('option');
-                    option.value = rank.value;
-                    option.textContent = rank.text;
-                    rankSelect.appendChild(option);
-                });
+                // Hide the rank dropdown completely for Department Head
+                rankContainer.style.display = 'none';
+                
+                // Create a hidden input to submit department-head as the rank
+                let hiddenRankInput = document.getElementById('hidden-rank');
+                if (!hiddenRankInput) {
+                    hiddenRankInput = document.createElement('input');
+                    hiddenRankInput.type = 'hidden';
+                    hiddenRankInput.id = 'hidden-rank';
+                    hiddenRankInput.name = 'rank';
+                    document.querySelector('form').appendChild(hiddenRankInput);
+                }
+                hiddenRankInput.value = 'department-head';
             } else {
-                // Disable the rank dropdown if no role is selected
+                // Show but disable the rank dropdown if no role is selected
+                rankContainer.style.display = 'block';
+                const rankSelect = document.getElementById('rank');
                 rankSelect.disabled = true;
                 rankSelect.innerHTML = '<option value="">Select Role first</option>';
+                
+                // Remove hidden input if it exists
+                const hiddenRankInput = document.getElementById('hidden-rank');
+                if (hiddenRankInput) {
+                    hiddenRankInput.remove();
+                }
             }
         }
 
@@ -176,14 +185,24 @@
         function validateForm(event) {
             const role = document.getElementById('role').value;
             const rank = document.getElementById('rank').value;
+            const hiddenRank = document.getElementById('hidden-rank');
 
             // Check if required fields are selected
-            if (!role || !rank) {
-
-                alert('Please select both Role and Rank.');
+            if (!role) {
+                alert('Please select a Role.');
                 return false;
             }
 
+            // For department head, we don't need to check the visible rank dropdown
+            if (role === 'department-head') {
+                return true;
+            }
+
+            // For other roles, check if rank is selected
+            if (!rank) {
+                alert('Please select both Role and Rank.');
+                return false;
+            }
 
             return true;
         }

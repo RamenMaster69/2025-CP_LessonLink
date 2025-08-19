@@ -96,20 +96,7 @@
                         </div>
                     </div>
 
-                    <!-- Specialization Dropdown -->
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-graduation-cap text-gray-400"></i>
-                        </div>
-                        <select id="specialization" name="specialization"
-                            class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                            required disabled>
-                            <option value="">Select Department first</option>
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <i class="fas fa-chevron-down text-gray-400"></i>
-                        </div>
-                    </div>
+
 
                     <!-- Affiliation Section -->
                     <div class="space-y-4">
@@ -198,140 +185,10 @@
     </div>
 
     <script>
-        function updateSpecializationOptions() {
-            const department = document.getElementById('department').value;
-            const specializationSelect = document.getElementById('specialization');
-
-            // Clear existing options
-            specializationSelect.innerHTML = '<option value="">Select Specialization</option>';
-
-            if (department === 'english') {
-                specializationSelect.disabled = false;
-                const specializations = [
-                    { value: 'english-literature', text: 'English Literature' },
-                    { value: 'english-language', text: 'English Language' },
-                    { value: 'creative-writing', text: 'Creative Writing' },
-                    { value: 'journalism', text: 'Journalism' }
-                ];
-
-                specializations.forEach(spec => {
-                    const option = document.createElement('option');
-                    option.value = spec.value;
-                    option.textContent = spec.text;
-                    specializationSelect.appendChild(option);
-                });
-            } else if (department === 'filipino') {
-                specializationSelect.disabled = false;
-                const specializations = [
-                    { value: 'filipino-literature', text: 'Filipino Literature' },
-                    { value: 'filipino-language', text: 'Filipino Language' },
-                    { value: 'philippine-studies', text: 'Philippine Studies' }
-                ];
-
-                specializations.forEach(spec => {
-                    const option = document.createElement('option');
-                    option.value = spec.value;
-                    option.textContent = spec.text;
-                    specializationSelect.appendChild(option);
-                });
-            } else if (department === 'mathematics') {
-                specializationSelect.disabled = false;
-                const specializations = [
-                    { value: 'algebra', text: 'Algebra' },
-                    { value: 'geometry', text: 'Geometry' },
-                    { value: 'statistics', text: 'Statistics' },
-                    { value: 'calculus', text: 'Calculus' }
-                ];
-
-                specializations.forEach(spec => {
-                    const option = document.createElement('option');
-                    option.value = spec.value;
-                    option.textContent = spec.text;
-                    specializationSelect.appendChild(option);
-                });
-            } else if (department === 'science') {
-                specializationSelect.disabled = false;
-                const specializations = [
-                    { value: 'biology', text: 'Biology' },
-                    { value: 'chemistry', text: 'Chemistry' },
-                    { value: 'physics', text: 'Physics' },
-                    { value: 'earth-science', text: 'Earth Science' }
-                ];
-
-                specializations.forEach(spec => {
-                    const option = document.createElement('option');
-                    option.value = spec.value;
-                    option.textContent = spec.text;
-                    specializationSelect.appendChild(option);
-                });
-            } else if (department === 'araling-panlipunan') {
-                specializationSelect.disabled = false;
-                const specializations = [
-                    { value: 'history', text: 'History' },
-                    { value: 'geography', text: 'Geography' },
-                    { value: 'civics', text: 'Civics' },
-                    { value: 'economics', text: 'Economics' }
-                ];
-
-                specializations.forEach(spec => {
-                    const option = document.createElement('option');
-                    option.value = spec.value;
-                    option.textContent = spec.text;
-                    specializationSelect.appendChild(option);
-                });
-            } else if (department === 'tle') {
-                specializationSelect.disabled = false;
-                const specializations = [
-                    { value: 'home-economics', text: 'Home Economics' },
-                    { value: 'agricultural-arts', text: 'Agricultural Arts' },
-                    { value: 'industrial-arts', text: 'Industrial Arts' },
-                    { value: 'information-technology', text: 'Information Technology' }
-                ];
-
-                specializations.forEach(spec => {
-                    const option = document.createElement('option');
-                    option.value = spec.value;
-                    option.textContent = spec.text;
-                    specializationSelect.appendChild(option);
-                });
-            } else if (department === 'mapeh') {
-                specializationSelect.disabled = false;
-                const specializations = [
-                    { value: 'music', text: 'Music' },
-                    { value: 'arts', text: 'Arts' },
-                    { value: 'physical-education', text: 'Physical Education' },
-                    { value: 'health', text: 'Health' }
-                ];
-
-                specializations.forEach(spec => {
-                    const option = document.createElement('option');
-                    option.value = spec.value;
-                    option.textContent = spec.text;
-                    specializationSelect.appendChild(option);
-                });
-            } else if (department === 'values-education') {
-                specializationSelect.disabled = false;
-                const specializations = [
-                    { value: 'ethics', text: 'Ethics' },
-                    { value: 'moral-education', text: 'Moral Education' },
-                    { value: 'character-education', text: 'Character Education' },
-                    { value: 'religious-studies', text: 'Religious Studies' }
-                ];
-
-                specializations.forEach(spec => {
-                    const option = document.createElement('option');
-                    option.value = spec.value;
-                    option.textContent = spec.text;
-                    specializationSelect.appendChild(option);
-                });
-            } else {
-                specializationSelect.disabled = true;
-                specializationSelect.innerHTML = '<option value="">Select Department first</option>';
-            }
-        }
-
         // Add event listener to department dropdown
-        document.getElementById('department').addEventListener('change', updateSpecializationOptions);
+        document.getElementById('department').addEventListener('change', function() {
+            // Department change handler can be used for other purposes if needed
+        });
 
         function addAffiliationField() {
             const container = document.getElementById('affiliationContainer');
@@ -386,11 +243,10 @@
 
         function handleFormSubmission(event) {
             const department = document.getElementById('department').value;
-            const specialization = document.getElementById('specialization').value;
 
             // Client-side validation
-            if (!department || !specialization) {
-                alert('Please select both Department and Specialization.');
+            if (!department) {
+                alert('Please select a Department.');
                 return false;
             }
 
