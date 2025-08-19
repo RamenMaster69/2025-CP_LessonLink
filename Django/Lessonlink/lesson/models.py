@@ -32,21 +32,52 @@ class User(models.Model):
         """Check if the provided raw password matches the stored hashed password"""
         return check_password(raw_password, self.password)
 
-class task(models.Model):
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-    due_date = models.DateTimeField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks')
+DAY_CHOICES = [
+    ('monday', 'Monday'),
+    ('tuesday', 'Tuesday'),
+    ('wednesday', 'Wednesday'),
+    ('thursday', 'Thursday'),
+    ('friday', 'Friday'),
+]
+
+TIME_CHOICES = [
+    ('8:00 - 9:00 AM', '8:00 - 9:00 AM'),
+    ('9:00 - 10:00 AM', '9:00 - 10:00 AM'),
+    ('10:00 - 11:00 AM', '10:00 - 11:00 AM'),
+    ('11:00 - 12:00 PM', '11:00 - 12:00 PM'),
+    ('1:00 - 2:00 PM', '1:00 - 2:00 PM'),
+    ('2:00 - 3:00 PM', '2:00 - 3:00 PM'),
+    ('3:00 - 4:00 PM', '3:00 - 4:00 PM'),
+    ('4:00 - 5:00 PM', '4:00 - 5:00 PM'),
+]
+
+class ClassSchedule(models.Model):
+    subject = models.CharField(
+        max_length=100,
+        help_text="e.g. Mathematics, English, Science"
+    )
+    description = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Brief description of the class"
+    )
+    day = models.CharField(
+        max_length=10,
+        choices=DAY_CHOICES,
+        help_text="Day of the week for the class"
+    )
+    time = models.CharField(
+        max_length=20,
+        choices=TIME_CHOICES,
+        help_text="Time slot for the class"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.title
+        return f"{self.subject} - {self.get_day_display()} {self.time}"
 
-class schedule(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='schedules')
-    class_name = models.CharField(max_length=255)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
-    location = models.CharField(max_length=255)
-
-    def __str__(self):
-        return f"{self.class_name} - {self.user.first_name}"
+    class Meta:
+        verbose_name = "Class Schedule"
+        verbose_name_plural = "Class Schedules"
+        ordering = ['day', 'time']
