@@ -19,7 +19,8 @@ urlpatterns = [
     path('dep_faculty/', views.Dep_Faculty, name='Dep_Faculty'),
     path('task/', views.task, name='task'),
     path('schedule/', views.schedule, name='schedule'),
-
+    path('dep_pending', views.Dep_Pending, name='Dep_Pending'),
+    path('template/', views.template, name='template'),
 ]
 
 # This is needed for development to serve media files
