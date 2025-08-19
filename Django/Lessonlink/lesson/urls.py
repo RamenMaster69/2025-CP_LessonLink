@@ -22,7 +22,6 @@ urlpatterns = [
     path('dep_pending', views.Dep_Pending, name='Dep_Pending'),
     path('template/', views.template, name='template'),
 ]
-
 # This is needed for development to serve media files
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
