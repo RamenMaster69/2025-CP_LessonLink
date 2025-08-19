@@ -408,9 +408,6 @@ def Dep_Faculty(request):
 def schedule(request):
     return render(request, 'schedule.html')
 
-def faculty_draft(request):
-    return render(request, 'faculty_draft.html')
-
 def Dep_Pending(request):
     return render(request, 'Dep_Pending.html')
 
