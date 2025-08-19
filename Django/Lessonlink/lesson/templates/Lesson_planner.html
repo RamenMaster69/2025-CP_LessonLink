@@ -12,6 +12,9 @@
         .sidebar-transition {
             transition: transform 0.3s ease-in-out;
         }
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -47,9 +50,6 @@
             <!-- Create a Lesson Plan Header -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 space-y-4 sm:space-y-0">
                 <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Create a Lesson Plan</h2>
-                <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium w-fit">
-                    AI
-                </button>
             </div>
 
             <!-- Form Container -->
@@ -155,8 +155,8 @@
 
                     <!-- Action Button -->
                     <div class="mt-6 sm:mt-8">
-                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium text-sm">
-                            Generate Lesson Plan
+                        <button type="button" id="preview-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium text-sm">
+                            Preview Lesson Plan
                         </button>
                     </div>
                 </form>
@@ -338,6 +338,40 @@
         </div>
     </div>
 
+    <!-- Preview Modal -->
+    <div id="preview-modal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                <!-- Modal Header -->
+                <div class="gradient-bg text-white px-6 py-4 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold">Lesson Plan Preview</h3>
+                    <button id="close-preview" class="p-2 hover:bg-white/10 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Modal Content -->
+                <div class="overflow-y-auto max-h-[calc(90vh-120px)]">
+                    <div id="preview-content" class="p-6">
+                        <!-- Preview content will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- Modal Footer -->
+                <div class="border-t border-gray-200 px-6 py-4 flex justify-end space-x-3">
+                    <button id="close-preview-footer" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">
+                        Close
+                    </button>
+                    <button id="submit-from-preview" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium">
+                        Generate Lesson Plan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Mobile sidebar toggle functionality
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
@@ -380,6 +414,152 @@
             if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
                 e.preventDefault();
             }
+        });
+
+        // Preview Modal functionality
+        const previewBtn = document.getElementById('preview-btn');
+        const previewModal = document.getElementById('preview-modal');
+        const closePreview = document.getElementById('close-preview');
+        const closePreviewFooter = document.getElementById('close-preview-footer');
+        const submitFromPreview = document.getElementById('submit-from-preview');
+        const previewContent = document.getElementById('preview-content');
+
+        function getFormData() {
+            return {
+                subject: document.getElementById('subject').value,
+                gradeLevel: document.getElementById('grade-level').value,
+                quarter: document.getElementById('quarter').value,
+                duration: document.getElementById('duration-input').value,
+                population: document.getElementById('population').value,
+                learningObjectives: document.getElementById('learning-objectives').value,
+                subjectMatter: document.getElementById('subject-matter').value,
+                materialsNeeded: document.getElementById('materials-needed').value,
+                introduction: document.getElementById('introduction').value,
+                instruction: document.getElementById('instruction').value,
+                application: document.getElementById('application').value,
+                evaluation: document.getElementById('evaluation').value,
+                assessment: document.getElementById('assessment').value
+            };
+        }
+
+        function generatePreview(data) {
+            return `
+                <div class="space-y-6">
+                    <!-- Header -->
+                    <div class="text-center border-b border-gray-200 pb-4">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Lesson Plan</h3>
+                        <p class="text-gray-600">${data.subject} - ${data.gradeLevel}</p>
+                    </div>
+                    
+                    <!-- Basic Information -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="font-semibold text-gray-900 mb-3">Lesson Details</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <span class="text-sm font-medium text-gray-600 block">Subject</span>
+                                <span class="text-sm text-gray-900">${data.subject || 'Not specified'}</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600 block">Grade Level</span>
+                                <span class="text-sm text-gray-900">${data.gradeLevel || 'Not specified'}</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600 block">Quarter</span>
+                                <span class="text-sm text-gray-900">${data.quarter || 'Not specified'}</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600 block">Duration</span>
+                                <span class="text-sm text-gray-900">${data.duration ? data.duration + ' minutes' : 'Not specified'}</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600 block">Population</span>
+                                <span class="text-sm text-gray-900">${data.population ? data.population + ' students' : 'Not specified'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Learning Objectives -->
+                    <div>
+                        <h4 class="font-semibold text-gray-900 mb-3">Learning Objectives</h4>
+                        <div class="bg-white border border-gray-200 rounded-lg p-4">
+                            <p class="text-sm text-gray-700 leading-relaxed">${data.learningObjectives || 'No learning objectives specified'}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Subject Matter and Materials -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-3">Subject Matter</h4>
+                            <div class="bg-white border border-gray-200 rounded-lg p-4 h-full">
+                                <p class="text-sm text-gray-700 leading-relaxed">${data.subjectMatter || 'No subject matter specified'}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-3">Materials Needed</h4>
+                            <div class="bg-white border border-gray-200 rounded-lg p-4 h-full">
+                                <p class="text-sm text-gray-700 leading-relaxed">${data.materialsNeeded || 'No materials specified'}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Lesson Procedure -->
+                    <div>
+                        <h4 class="font-semibold text-gray-900 mb-3">Lesson Procedure</h4>
+                        <div class="space-y-3">
+                            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                                <h5 class="font-medium text-blue-900 mb-2">Introduction (5 minutes)</h5>
+                                <p class="text-sm text-blue-800 leading-relaxed">${data.introduction || 'No introduction content specified'}</p>
+                            </div>
+                            
+                            <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
+                                <h5 class="font-medium text-green-900 mb-2">Instruction (25 minutes)</h5>
+                                <p class="text-sm text-green-800 leading-relaxed">${data.instruction || 'No instruction content specified'}</p>
+                            </div>
+                            
+                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+                                <h5 class="font-medium text-yellow-900 mb-2">Application (20 minutes)</h5>
+                                <p class="text-sm text-yellow-800 leading-relaxed">${data.application || 'No application content specified'}</p>
+                            </div>
+                            
+                            <div class="bg-purple-50 border-l-4 border-purple-400 p-4 rounded-r-lg">
+                                <h5 class="font-medium text-purple-900 mb-2">Evaluation (5 minutes)</h5>
+                                <p class="text-sm text-purple-800 leading-relaxed">${data.evaluation || 'No evaluation content specified'}</p>
+                            </div>
+                            
+                            <div class="bg-pink-50 border-l-4 border-pink-400 p-4 rounded-r-lg">
+                                <h5 class="font-medium text-pink-900 mb-2">Assessment (5 minutes)</h5>
+                                <p class="text-sm text-pink-800 leading-relaxed">${data.assessment || 'No assessment content specified'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        previewBtn.addEventListener('click', () => {
+            const formData = getFormData();
+            previewContent.innerHTML = generatePreview(formData);
+            previewModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        });
+
+        function closePreviewModal() {
+            previewModal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        closePreview.addEventListener('click', closePreviewModal);
+        closePreviewFooter.addEventListener('click', closePreviewModal);
+        
+        previewModal.addEventListener('click', (e) => {
+            if (e.target === previewModal) {
+                closePreviewModal();
+            }
+        });
+
+        submitFromPreview.addEventListener('click', () => {
+            closePreviewModal();
+            document.getElementById('lesson-plan-form').dispatchEvent(new Event('submit'));
         });
 
         // Form submission handling
