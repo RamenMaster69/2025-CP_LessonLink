@@ -321,7 +321,6 @@
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
                     <i class="fas fa-file-alt text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Drafts</span>
-                    <span class="ml-auto bg-[#e0e9ff] text-[#11468F] text-xs px-2 py-1 rounded-full">5</span>
                 </a>
                 <a href="{% url 'task' %}"
                     class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff] text-sm md:text-base">
@@ -355,7 +354,7 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <!-- Schedule Header -->
                 <div class="flex items-center justify-between p-4 md:p-6 border-b border-gray-200">
-                    <h2 class="text-lg md:text-xl font-semibold text-gray-900">Class Schedule</h2>
+                    <h2 class="text-lg md:text-xl font-semibold text-gray-900">{{ user.first_name }} Schedule</h2>
                     <button id="add-class-btn"
                         class="flex items-center space-x-2 px-3 py-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm md:text-base">
                         <i class="fas fa-plus text-xs md:text-sm"></i>

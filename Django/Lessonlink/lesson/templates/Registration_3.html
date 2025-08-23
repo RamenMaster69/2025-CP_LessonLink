@@ -46,9 +46,9 @@
                             class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white"
                             required>
                             <option value="">Select Role</option>
-                            <option value="student-teacher">Student Teacher</option>
-                            <option value="teacher">Teacher</option>
-                            <option value="department-head">Department Head</option>
+                            <option value="Student teacher">Student Teacher</option>
+                            <option value="Teacher">Teacher</option>
+                            <option value="Department Head">Department Head</option>
                         </select>
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                             <i class="fas fa-chevron-down text-gray-400"></i>
@@ -114,16 +114,16 @@
             const role = document.getElementById('role').value;
             const rankContainer = document.getElementById('rank').closest('.relative');
 
-            if (role === 'student-teacher') {
+            if (role === 'Student Teacher') {
                 // Show the rank dropdown and add Student Teacher specific ranks
                 rankContainer.style.display = 'block';
                 const rankSelect = document.getElementById('rank');
                 rankSelect.disabled = false;
                 rankSelect.innerHTML = '<option value="">Select Rank</option>';
                 const studentTeacherRanks = [
-                    { value: 'pre-service-teacher', text: 'Student Teacher (Pre-Service Teacher)' },
-                    { value: 'practice-teacher', text: 'Practice Teacher' },
-                    { value: 'intern-student-teacher', text: 'Intern (Student Teacher)' }
+                    { value: 'Pre-Service-Teacher', text: 'Student Teacher (Pre-Service Teacher)' },
+                    { value: 'Practice-Teacher', text: 'Practice Teacher' },
+                    { value: 'Intern-Student-Teacher', text: 'Intern (Student Teacher)' }
                 ];
 
                 studentTeacherRanks.forEach(rank => {
@@ -132,16 +132,16 @@
                     option.textContent = rank.text;
                     rankSelect.appendChild(option);
                 });
-            } else if (role === 'teacher') {
+            } else if (role === 'Teacher') {
                 // Show the rank dropdown and add Teacher specific ranks
                 rankContainer.style.display = 'block';
                 const rankSelect = document.getElementById('rank');
                 rankSelect.disabled = false;
                 rankSelect.innerHTML = '<option value="">Select Rank</option>';
                 const teacherRanks = [
-                    { value: 'teacher-i', text: 'Teacher I' },
-                    { value: 'teacher-ii', text: 'Teacher II' },
-                    { value: 'teacher-iii', text: 'Teacher III' }
+                    { value: 'Teacher I', text: 'Teacher I' },
+                    { value: 'Teacher II', text: 'Teacher II' },
+                    { value: 'Teacher III', text: 'Teacher III' }
                 ];
 
                 teacherRanks.forEach(rank => {
@@ -150,7 +150,7 @@
                     option.textContent = rank.text;
                     rankSelect.appendChild(option);
                 });
-            } else if (role === 'department-head') {
+            } else if (role === 'Department Head') {
                 // Hide the rank dropdown completely for Department Head
                 rankContainer.style.display = 'none';
                 
