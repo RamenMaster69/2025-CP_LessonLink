@@ -2,11 +2,16 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
 from .models import User
+from .models import Schedule
+from .serializers import ScheduleSerializer
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage 
+from rest_framework import viewsets, permissions
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
 
 def landing(request):
     return render(request, 'landing.html')
@@ -406,7 +411,42 @@ def Dep_Faculty(request):
     return render(request, 'Dep_Faculty.html')
 
 def schedule(request):
-    return render(request, 'schedule.html')
+    # Check if user is logged in
+    user_id = request.session.get('user_id')
+    
+    if not user_id:
+        messages.error(request, "Please log in to access the schedule.")
+        return redirect('login')
+    
+    try:
+        user = User.objects.get(id=user_id)
+        return render(request, 'schedule/schedule.html', {'user': user})
+    except User.DoesNotExist:
+        messages.error(request, "User account not found. Please log in again.")
+        # Clear the invalid session
+        if 'user_id' in request.session:
+            del request.session['user_id']
+        return redirect('login')
+
+class ScheduleViewSet(viewsets.ModelViewSet):
+    serializer_class = ScheduleSerializer
+    # Remove the permission class for now
+    # permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        user_id = self.request.session.get('user_id')
+        if user_id:
+            return Schedule.objects.filter(user_id=user_id)
+        return Schedule.objects.none()
+    
+    def perform_create(self, serializer):
+        user_id = self.request.session.get('user_id')
+        if user_id:
+            try:
+                user = User.objects.get(id=user_id)
+                serializer.save(user=user)
+            except User.DoesNotExist:
+                pass
 
 def Dep_Pending(request):
     return render(request, 'Dep_Pending.html')

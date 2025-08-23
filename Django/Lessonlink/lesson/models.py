@@ -1,5 +1,7 @@
 from django.contrib.auth.hashers import make_password, check_password
 from django.db import models
+from django.contrib.auth.models import User
+
 
 class User(models.Model):
     email = models.EmailField(unique=True)
@@ -32,4 +34,34 @@ class User(models.Model):
         """Check if the provided raw password matches the stored hashed password"""
         return check_password(raw_password, self.password)
 
-
+class Schedule(models.Model):
+    DAY_CHOICES = [
+        ('monday', 'Monday'),
+        ('tuesday', 'Tuesday'),
+        ('wednesday', 'Wednesday'),
+        ('thursday', 'Thursday'),
+        ('friday', 'Friday'),
+    ]
+    
+    TIME_SLOTS = [
+        ('8:00 - 9:00 AM', '8:00 - 9:00 AM'),
+        ('9:00 - 10:00 AM', '9:00 - 10:00 AM'),
+        ('10:00 - 11:00 AM', '10:00 - 11:00 AM'),
+        ('11:00 - 12:00 PM', '11:00 - 12:00 PM'),
+        ('1:00 - 2:00 PM', '1:00 - 2:00 PM'),
+        ('2:00 - 3:00 PM', '2:00 - 3:00 PM'),
+        ('3:00 - 4:00 PM', '3:00 - 4:00 PM'),
+        ('4:00 - 5:00 PM', '4:00 - 5:00 PM'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    subject = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    day = models.CharField(max_length=10, choices=DAY_CHOICES)
+    time = models.CharField(max_length=20, choices=TIME_SLOTS)
+    
+    class Meta:
+        unique_together = ['user', 'day', 'time']
+    
+    def __str__(self):
+        return f"{self.subject} on {self.day} at {self.time}"
