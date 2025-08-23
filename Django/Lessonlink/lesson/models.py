@@ -4,6 +4,12 @@ from django.contrib.auth.models import User
 
 
 class User(models.Model):
+    ROLE = [
+        ('student_teacher', 'Student Teacher'),
+        ('teacher', 'Teacher'),
+        ('department_head', 'Department Head'),
+    ]
+    
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=128)
     
@@ -12,7 +18,7 @@ class User(models.Model):
     last_name = models.CharField(max_length=100)
     dob = models.DateField()
     
-    role = models.CharField(max_length=100)
+    role = models.CharField(max_length=100, choices=ROLE)
     rank = models.CharField(max_length=100)
     
     department = models.CharField(max_length=100)
