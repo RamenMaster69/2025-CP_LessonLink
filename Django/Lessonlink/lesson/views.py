@@ -80,7 +80,7 @@ def registration_1(request):
         return redirect('registration_2')
 
     # GET request - render empty form
-    return render(request, 'registration_1.html')
+    return render(request, 'registration/registration_1.html')
 
 def registration_2(request):
     # Check if user came from registration_1
@@ -114,13 +114,13 @@ def registration_2(request):
         messages.success(request, "Personal information saved successfully!")
         return redirect('registration_3')
 
-    return render(request, 'registration_2.html')
+    return render(request, 'registration/registration_2.html')
 
 def registration_3(request):
     # Check if user came from previous steps
     if not request.session.get('reg_email') or not request.session.get('reg_first_name'):
         messages.error(request, "Please complete the previous registration steps.")
-        return redirect('registration_1')
+        return redirect('registration_1')  # URL name, not template path
     
     if request.method == 'POST':
         role = request.POST.get('role')
@@ -128,7 +128,7 @@ def registration_3(request):
 
         if not role or not rank:
             messages.error(request, "Please select both role and rank.")
-            return render(request, 'registration_3.html', {
+            return render(request, 'registration/registration_3.html', {  # Template path
                 'role': role,
                 'rank': rank,
                 'error_message': "Please select both role and rank.",
@@ -140,15 +140,15 @@ def registration_3(request):
         request.session['reg_rank'] = rank
 
         messages.success(request, "Role and rank selected successfully!")
-        return redirect('registration_4')
+        return redirect('registration_4')  # URL name, not template path
 
-    return render(request, 'registration_3.html')
+    return render(request, 'registration/registration_3.html')  # Template path
 
 def registration_4(request):
     # Check if user came from previous steps
     if not request.session.get('reg_email') or not request.session.get('reg_role'):
         messages.error(request, "Please complete the previous registration steps.")
-        return redirect('registration_1')
+        return redirect('registration/registration_1')
     
     if request.method == "POST":
         department = request.POST.get("department")
@@ -157,7 +157,7 @@ def registration_4(request):
 
         if not department or not specialization:
             messages.error(request, "Please complete all required fields.")
-            return render(request, 'registration_4.html', {
+            return render(request, 'registration/registration_4.html', {
                 'department': department,
                 'specialization': specialization,
                 'affiliations': affiliations,
@@ -182,7 +182,7 @@ def registration_4(request):
             for key in list(request.session.keys()):
                 if key.startswith("reg_"):
                     del request.session[key]
-            return redirect('registration_1')
+            return redirect('registration/registration_1')
 
         try:
             # Final check for email existence (in case of race condition)
@@ -192,7 +192,7 @@ def registration_4(request):
                 for key in list(request.session.keys()):
                     if key.startswith("reg_"):
                         del request.session[key]
-                return redirect('registration_1')
+                return redirect('registration/registration_1')
 
             # Create the user
             user = User.objects.create(
@@ -228,7 +228,7 @@ def registration_4(request):
                 'show_error': True
             })
 
-    return render(request, 'registration_4.html')
+    return render(request, 'registration/registration_4.html')
 
 def login_view(request):
     # If user is already logged in, redirect to dashboard
