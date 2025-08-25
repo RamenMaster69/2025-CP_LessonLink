@@ -294,6 +294,9 @@ def dashboard(request):
             del request.session['user_id']
         return redirect('login')
 
+def lesson_plan(request):
+    return render(request, 'lesson_plan.html')
+
 def logout_view(request):
     """Logout user and clear session"""
     if 'user_id' in request.session:
@@ -456,3 +459,4 @@ def template(request):
 
 def st_dash(request):
     return render(request, 'st_dash.html')
+

@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import ScheduleViewSet, landing, registration_1, registration_2, registration_3
 from .views import registration_4, login_view, logout_view, dashboard, profile
-from .views import lesson_planner, draft, Dep_Dash, Dep_Faculty, task, schedule  # Add schedule here
+from .views import lesson_planner, lesson_plan, draft, Dep_Dash, Dep_Faculty, task, schedule  # Add schedule here
 from .views import Dep_Pending, template, st_dash
 from django.conf import settings
 from django.conf.urls.static import static
@@ -26,6 +26,7 @@ urlpatterns = [
     path('dashboard/', dashboard, name='dashboard'),
     path('profile/', profile, name='profile'),
     path('lesson_planner/', lesson_planner, name='lesson_planner'),
+    path('lesson_plan/', lesson_plan, name='lesson_plan'),  # Added alternative path
     path('draft/', draft, name='draft'),
     path('dep_dash/', Dep_Dash, name='Dep_Dash'),
     path('dep_faculty/', Dep_Faculty, name='Dep_Faculty'),
