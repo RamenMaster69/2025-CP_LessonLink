@@ -1,8 +1,7 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
-from .models import User
-from .models import Schedule
+from .models import User, Schedule, Task, TaskNotification
 from .serializers import ScheduleSerializer
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
@@ -12,6 +11,9 @@ from django.core.files.storage import default_storage
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+import json
+from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 def landing(request):
     return render(request, 'landing.html')
@@ -306,9 +308,27 @@ def dashboard(request):
     
     try:
         user = User.objects.get(id=user_id)
+        
+        # Get task statistics for dashboard
+        total_tasks = Task.objects.filter(user=user).count()
+        completed_tasks = Task.objects.filter(user=user, status='completed').count()
+        pending_tasks = total_tasks - completed_tasks
+        
+        # Get upcoming tasks (next 7 days)
+        upcoming_date = timezone.now().date() + timezone.timedelta(days=7)
+        upcoming_tasks = Task.objects.filter(
+            user=user, 
+            status='pending',
+            due_date__lte=upcoming_date
+        ).order_by('due_date')[:5]
+        
         return render(request, 'dashboard.html', {
             'user': user,
-            'full_name': f"{user.first_name} {user.middle_name} {user.last_name}".strip()
+            'full_name': f"{user.first_name} {user.middle_name} {user.last_name}".strip(),
+            'total_tasks': total_tasks,
+            'completed_tasks': completed_tasks,
+            'pending_tasks': pending_tasks,
+            'upcoming_tasks': upcoming_tasks
         })
     except User.DoesNotExist:
         messages.error(request, "User account not found. Please log in again.")
@@ -383,6 +403,7 @@ def profile(request):
         if 'user_id' in request.session:
             del request.session['user_id']
         return redirect('login')
+        
 def lesson_planner(request):
     # Check if user is logged in
     user_id = request.session.get('user_id')
@@ -422,13 +443,55 @@ def draft(request):
 
 def task(request):
     user_id = request.session.get('user_id')
-    user = None
-    if user_id:
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            user = None
-    return render(request, 'task.html', {'user': user})
+    
+    if not user_id:
+        messages.error(request, "Please log in to access tasks.")
+        return redirect('login')
+    
+    try:
+        user = User.objects.get(id=user_id)
+        tasks = Task.objects.filter(user=user)
+        
+        # Handle filtering
+        filter_type = request.GET.get('filter', 'all')
+        if filter_type == 'completed':
+            tasks = tasks.filter(status='completed')
+        elif filter_type == 'pending':
+            tasks = tasks.filter(status='pending')
+        elif filter_type in ['high', 'medium', 'low']:
+            tasks = tasks.filter(priority=filter_type)
+        
+        # Handle sorting
+        sort_by = request.GET.get('sort', 'due-date')
+        if sort_by == 'priority':
+            # Custom ordering for priority
+            priority_order = {'high': 0, 'medium': 1, 'low': 2}
+            tasks = sorted(tasks, key=lambda x: priority_order[x.priority])
+        elif sort_by == 'created':
+            tasks = tasks.order_by('-created_at')
+        elif sort_by == 'alphabetical':
+            tasks = tasks.order_by('title')
+        else:  # due-date (default)
+            # Show tasks with due date first, then tasks without due date
+            tasks = tasks.order_by('due_date', 'due_time')
+        
+        # Count completed tasks
+        completed_count = Task.objects.filter(user=user, status='completed').count()
+        total_count = Task.objects.filter(user=user).count()
+        
+        return render(request, 'task.html', {
+            'user': user,
+            'tasks': tasks,
+            'completed_count': completed_count,
+            'total_count': total_count,
+            'current_filter': filter_type,
+            'current_sort': sort_by
+        })
+    except User.DoesNotExist:
+        messages.error(request, "User account not found. Please log in again.")
+        if 'user_id' in request.session:
+            del request.session['user_id']
+        return redirect('login')
 
 def Dep_Dash(request):
     return render(request, 'Dep_Dash.html')
@@ -483,3 +546,167 @@ def template(request):
 def st_dash(request):
     return render(request, 'st_dash.html')
 
+# Task API Views
+@csrf_exempt
+@require_POST
+@login_required
+def add_task_api(request):
+    user_id = request.session.get('user_id')
+    
+    if not user_id:
+        return JsonResponse({'success': False, 'error': 'User not logged in'})
+    
+    try:
+        user = User.objects.get(id=user_id)
+        data = json.loads(request.body)
+        
+        # Create new task
+        task = Task(
+            user=user,
+            title=data.get('title'),
+            description=data.get('description', ''),
+            priority=data.get('priority', 'medium'),
+            due_date=data.get('due_date'),
+            due_time=data.get('due_time')
+        )
+        task.save()
+        
+        # Create notification
+        notification = TaskNotification(
+            user=user,
+            task=task,
+            notification_type='new',
+            message=f'New task created: {task.title}'
+        )
+        notification.save()
+        
+        return JsonResponse({
+            'success': True,
+            'task': {
+                'id': task.id,
+                'title': task.title,
+                'description': task.description,
+                'priority': task.priority,
+                'status': task.status,
+                'due_date': task.formatted_due_date(),
+                'display_due_date': task.display_due_date(),
+                'display_due_datetime': task.display_due_datetime(),
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@csrf_exempt
+@require_POST
+@login_required
+def update_task_status_api(request, task_id):
+    user_id = request.session.get('user_id')
+    
+    if not user_id:
+        return JsonResponse({'success': False, 'error': 'User not logged in'})
+    
+    try:
+        user = User.objects.get(id=user_id)
+        task = get_object_or_404(Task, id=task_id, user=user)
+        
+        data = json.loads(request.body)
+        new_status = data.get('status', 'pending')
+        
+        if new_status in ['pending', 'completed']:
+            task.status = new_status
+            task.save()
+            
+            # Create notification if task is completed
+            if new_status == 'completed':
+                notification = TaskNotification(
+                    user=user,
+                    task=task,
+                    notification_type='completed',
+                    message=f'Task completed: {task.title}'
+                )
+                notification.save()
+            
+            # Get updated counts
+            completed_count = Task.objects.filter(user=user, status='completed').count()
+            total_count = Task.objects.filter(user=user).count()
+            
+            return JsonResponse({
+                'success': True,
+                'completed_count': completed_count,
+                'total_count': total_count
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Invalid status'})
+            
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@csrf_exempt
+@require_POST
+@login_required
+def delete_task_api(request, task_id):
+    user_id = request.session.get('user_id')
+    
+    if not user_id:
+        return JsonResponse({'success': False, 'error': 'User not logged in'})
+    
+    try:
+        user = User.objects.get(id=user_id)
+        task = get_object_or_404(Task, id=task_id, user=user)
+        task.delete()
+        
+        # Get updated counts
+        completed_count = Task.objects.filter(user=user, status='completed').count()
+        total_count = Task.objects.filter(user=user).count()
+        
+        return JsonResponse({
+            'success': True,
+            'completed_count': completed_count,
+            'total_count': total_count
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+def get_notifications_api(request):
+    user_id = request.session.get('user_id')
+    
+    if not user_id:
+        return JsonResponse({'success': False, 'error': 'User not logged in'})
+    
+    try:
+        user = User.objects.get(id=user_id)
+        notifications = TaskNotification.objects.filter(user=user, is_read=False).order_by('-created_at')[:10]
+        
+        notification_data = []
+        for notification in notifications:
+            notification_data.append({
+                'id': notification.id,
+                'type': notification.notification_type,
+                'message': notification.message,
+                'created_at': notification.created_at.strftime('%Y-%m-%d %H:%M'),
+                'is_read': notification.is_read
+            })
+        
+        return JsonResponse({'notifications': notification_data})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@csrf_exempt
+@require_POST
+@login_required
+def mark_notification_read_api(request, notification_id):
+    user_id = request.session.get('user_id')
+    
+    if not user_id:
+        return JsonResponse({'success': False, 'error': 'User not logged in'})
+    
+    try:
+        user = User.objects.get(id=user_id)
+        notification = get_object_or_404(TaskNotification, id=notification_id, user=user)
+        notification.is_read = True
+        notification.save()
+        
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

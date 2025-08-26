@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LessonLink - Class Schedule</title>
+    <title>LessonLink - Tasks</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script>
@@ -69,64 +69,51 @@
             backdrop-filter: blur(8px);
         }
 
-        /* Desktop schedule grid */
-        @media (min-width: 768px) {
-            .schedule-grid {
-                display: grid;
-                grid-template-columns: repeat(6, 1fr);
-                gap: 1px;
-                background-color: #e5e7eb;
-            }
-
-            .schedule-cell {
-                background-color: white;
-                min-height: 400px;
-            }
+        /* Task item styling */
+        .task-item {
+            transition: all 0.2s ease;
+            border-left: 4px solid;
         }
 
-        /* Mobile schedule layout */
-        @media (max-width: 767px) {
-            .mobile-schedule .day-section {
-                margin-bottom: 1rem;
-                background: white;
-                border-radius: 0.75rem;
-                border: 1px solid #e5e7eb;
-                overflow: hidden;
-            }
-
-            .mobile-schedule .day-header {
-                padding: 1rem;
-                background: #f9fafb;
-                border-bottom: 1px solid #e5e7eb;
-                font-weight: 600;
-                text-align: center;
-            }
-
-            .mobile-schedule .day-content {
-                padding: 1rem;
-                min-height: 100px;
-            }
+        .task-item:hover {
+            background-color: #f9fafb;
         }
 
-        .class-block {
+        .task-checkbox:checked + .task-text {
+            text-decoration: line-through;
+            color: #9ca3af;
+        }
+
+        .priority-high {
+            border-left-color: #ef4444;
+        }
+
+        .priority-medium {
+            border-left-color: #f59e0b;
+        }
+
+        .priority-low {
+            border-left-color: #10b981;
+        }
+
+        .task-block {
             border-radius: 8px;
             padding: 12px;
             margin: 4px;
-            color: white;
             font-weight: 500;
             position: relative;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
-        .class-block:hover {
+        .task-block:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         /* Mobile optimizations */
         @media (max-width: 640px) {
-            .class-block {
+            .task-block {
                 padding: 10px;
                 margin: 2px 0;
             }
@@ -184,7 +171,7 @@
 
                 <!-- Search - Hidden on small mobile -->
                 <div class="relative hidden lg:block">
-                    <input type="text" placeholder="Search lessons..."
+                    <input type="text" placeholder="Search tasks..."
                         class="w-48 xl:w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
                     <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
@@ -200,7 +187,7 @@
                         class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                         <i class="fas fa-bell text-sm md:text-lg"></i>
                         <span id="notification-badge"
-                            class="absolute -top-1 -right-1 w-2 h-2 md:w-3 md:h-3 bg-red-500 rounded-full"></span>
+                            class="absolute -top-1 -right-1 w-2 h-2 md:w-3 md:h-3 bg-red-500 rounded-full hidden"></span>
                     </button>
 
                     <!-- Notifications Dropdown -->
@@ -213,36 +200,7 @@
                             </div>
                         </div>
                         <div class="max-h-64 md:max-h-96 overflow-y-auto">
-                            <div class="p-3 md:p-4 hover:bg-gray-50 border-b border-gray-100">
-                                <div class="flex items-start space-x-3">
-                                    <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                                    <div class="flex-1">
-                                        <p class="text-sm text-gray-900 font-medium">New lesson plan submitted</p>
-                                        <p class="text-xs text-gray-500 mt-1">Grade 3A English lesson ready for review</p>
-                                        <p class="text-xs text-gray-400 mt-1">2 minutes ago</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="p-3 md:p-4 hover:bg-gray-50 border-b border-gray-100">
-                                <div class="flex items-start space-x-3">
-                                    <div class="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                                    <div class="flex-1">
-                                        <p class="text-sm text-gray-900 font-medium">Class schedule updated</p>
-                                        <p class="text-xs text-gray-500 mt-1">Grade 2B math class moved to 11:30 AM</p>
-                                        <p class="text-xs text-gray-400 mt-1">1 hour ago</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="p-3 md:p-4 hover:bg-gray-50 border-b border-gray-100">
-                                <div class="flex items-start space-x-3">
-                                    <div class="w-2 h-2 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
-                                    <div class="flex-1">
-                                        <p class="text-sm text-gray-900 font-medium">Assignment reminder</p>
-                                        <p class="text-xs text-gray-500 mt-1">5 students haven't submitted their homework</p>
-                                        <p class="text-xs text-gray-400 mt-1">3 hours ago</p>
-                                    </div>
-                                </div>
-                            </div>
+                            <!-- Notifications will be loaded dynamically -->
                         </div>
                         <div class="p-3 md:p-4 border-t border-gray-100">
                             <button
@@ -267,11 +225,11 @@
                             <div class="flex items-center space-x-3">
                                 <div
                                     class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-                                    <span class="text-white font-bold text-sm md:text-lg">V</span>
+                                    <span class="text-white font-bold text-sm md:text-lg">{{ user.first_name|first }}</span>
                                 </div>
                                 <div>
-                                    <p class="font-semibold text-gray-900 text-sm md:text-base">Viktor Teacher</p>
-                                    <p class="text-xs md:text-sm text-gray-500">Elementary Teacher</p>
+                                    <p class="font-semibold text-gray-900 text-sm md:text-base">{{ user.first_name }} {{ user.last_name }}</p>
+                                    <p class="text-xs md:text-sm text-gray-500">{{ user.role|title }}</p>
                                 </div>
                             </div>
                         </div>
@@ -345,207 +303,159 @@
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <h1 class="text-xl md:text-2xl font-bold text-gray-900">{{ user.first_name }}'s Tasks</h1>
-                        <p class="text-gray-600 mt-1 text-sm md:text-base">Welcome to your Settings.</p>
+                        <p class="text-gray-600 mt-1 text-sm md:text-base">Manage your tasks and stay organized.</p>
+                    </div>
+                    <button id="add-task-btn"
+                        class="flex items-center space-x-2 px-3 py-2 md:px-4 md:py-2 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-colors text-sm md:text-base">
+                        <i class="fas fa-plus text-xs md:text-sm"></i>
+                        <span>Add Task</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Task Filters -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+                <div class="flex flex-wrap items-center gap-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-600">Filter:</span>
+                        <select id="filter-select" class="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="all" {% if current_filter == 'all' %}selected{% endif %}>All Tasks</option>
+                            <option value="completed" {% if current_filter == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="pending" {% if current_filter == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="high" {% if current_filter == 'high' %}selected{% endif %}>High Priority</option>
+                            <option value="medium" {% if current_filter == 'medium' %}selected{% endif %}>Medium Priority</option>
+                            <option value="low" {% if current_filter == 'low' %}selected{% endif %}>Low Priority</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-600">Sort by:</span>
+                        <select id="sort-select" class="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="due-date" {% if current_sort == 'due-date' %}selected{% endif %}>Due Date</option>
+                            <option value="priority" {% if current_sort == 'priority' %}selected{% endif %}>Priority</option>
+                            <option value="created" {% if current_sort == 'created' %}selected{% endif %}>Date Created</option>
+                            <option value="alphabetical" {% if current_sort == 'alphabetical' %}selected{% endif %}>Alphabetical</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center space-x-2 ml-auto">
+                        <span class="text-sm text-gray-600">View:</span>
+                        <div class="flex bg-gray-100 rounded-lg p-1">
+                            <button class="p-1 px-2 rounded-md bg-white shadow-sm text-gray-700 text-sm">
+                                <i class="fas fa-list"></i>
+                            </button>
+                            <button class="p-1 px-2 rounded-md text-gray-500 hover:text-gray-700 text-sm">
+                                <i class="fas fa-grip-horizontal"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Schedule Container -->
+            <!-- Tasks Container -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <!-- Schedule Header -->
+                <!-- Tasks Header -->
                 <div class="flex items-center justify-between p-4 md:p-6 border-b border-gray-200">
-                    <h2 class="text-lg md:text-xl font-semibold text-gray-900">{{ user.first_name }} Schedule</h2>
-                    <button id="add-class-btn"
-                        class="flex items-center space-x-2 px-3 py-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm md:text-base">
-                        <i class="fas fa-plus text-xs md:text-sm"></i>
-                        <span>Add Class</span>
-                    </button>
+                    <h2 class="text-lg md:text-xl font-semibold text-gray-900">My Tasks</h2>
+                    <span class="text-sm text-gray-500">{{ completed_count }} of {{ total_count }} completed</span>
                 </div>
 
-                <!-- Desktop Schedule View -->
-                <div class="hidden md:block">
-                    <!-- Days Header -->
-                    <div class="grid grid-cols-6 bg-gray-50 border-b border-gray-200">
-                        <div class="p-4 text-center font-medium text-gray-700 border-r border-gray-200 bg-blue-600 text-white">Mon</div>
-                        <div class="p-4 text-center font-medium text-gray-700 border-r border-gray-200 bg-gray-100">Tue</div>
-                        <div class="p-4 text-center font-medium text-gray-700 border-r border-gray-200 bg-gray-100">Wed</div>
-                        <div class="p-4 text-center font-medium text-gray-700 border-r border-gray-200 bg-gray-100">Thu</div>
-                        <div class="p-4 text-center font-medium text-gray-700 border-r border-gray-200 bg-gray-100">Fri</div>
-                        <div class="p-4 text-center font-medium text-gray-700 bg-gray-100">Sat</div>
-                    </div>
-
-                    <!-- Schedule Grid -->
-                    <div class="schedule-grid">
-                        <!-- Monday -->
-                        <div class="schedule-cell p-4">
-                            <div class="class-block bg-blue-600" style="margin-top: 20px; height: 80px;">
-                                <div class="text-sm font-medium">2:00-4:00PM</div>
-                                <div class="text-sm opacity-90">English</div>
-                                <div class="text-xs opacity-75">Literature</div>
+                <!-- Tasks List -->
+                <div class="divide-y divide-gray-200" id="tasks-container">
+                    {% for task in tasks %}
+                    <div class="task-item priority-{{ task.priority }} p-4 md:p-6 flex items-start" data-task-id="{{ task.id }}">
+                        <input type="checkbox" class="task-checkbox mt-1 h-5 w-5 text-blue-600 rounded focus:ring-blue-500" 
+                               data-task-id="{{ task.id }}" {% if task.status == 'completed' %}checked{% endif %}>
+                        <div class="ml-3 flex-1">
+                            <div class="flex items-center justify-between">
+                                <span class="task-text text-sm md:text-base font-medium text-gray-900 {% if task.status == 'completed' %}line-through text-gray-400{% endif %}">
+                                    {{ task.title }}
+                                </span>
+                                <span class="text-xs font-medium px-2 py-1 rounded-full 
+                                    {% if task.status == 'completed' %}text-green-600 bg-green-50
+                                    {% elif task.priority == 'high' %}text-red-600 bg-red-50
+                                    {% elif task.priority == 'medium' %}text-yellow-600 bg-yellow-50
+                                    {% else %}text-green-600 bg-green-50{% endif %}">
+                                    {% if task.status == 'completed' %}Completed
+                                    {% else %}{{ task.priority|title }} Priority{% endif %}
+                                </span>
+                            </div>
+                            {% if task.description %}
+                            <p class="text-sm text-gray-500 mt-1">{{ task.description }}</p>
+                            {% endif %}
+                            <div class="flex items-center mt-2 text-xs text-gray-500">
+                                <i class="far fa-calendar-alt mr-1"></i>
+                                <span>
+                                    {% if task.due_date %}
+                                        Due: {{ task.display_due_datetime }}
+                                    {% else %}
+                                        No due date
+                                    {% endif %}
+                                </span>
                             </div>
                         </div>
-
-                        <!-- Tuesday -->
-                        <div class="schedule-cell p-4 bg-gray-50">
-                            <div class="text-center text-gray-500 mt-20">
-                                <div class="text-sm">No</div>
-                                <div class="text-sm">classes</div>
-                                <div class="text-sm">scheduled</div>
-                            </div>
-                        </div>
-
-                        <!-- Wednesday -->
-                        <div class="schedule-cell p-4 bg-gray-50">
-                            <div class="text-center text-gray-500 mt-20">
-                                <div class="text-sm">No</div>
-                                <div class="text-sm">classes</div>
-                                <div class="text-sm">scheduled</div>
-                            </div>
-                        </div>
-
-                        <!-- Thursday -->
-                        <div class="schedule-cell p-4 bg-gray-50">
-                            <div class="text-center text-gray-500 mt-20">
-                                <div class="text-sm">No</div>
-                                <div class="text-sm">classes</div>
-                                <div class="text-sm">scheduled</div>
-                            </div>
-                        </div>
-
-                        <!-- Friday -->
-                        <div class="schedule-cell p-4 bg-gray-50">
-                            <div class="text-center text-gray-500 mt-20">
-                                <div class="text-sm">No</div>
-                                <div class="text-sm">classes</div>
-                                <div class="text-sm">scheduled</div>
-                            </div>
-                        </div>
-
-                        <!-- Saturday -->
-                        <div class="schedule-cell p-4 bg-gray-50">
-                            <div class="text-center text-gray-500 mt-20">
-                                <div class="text-sm">No</div>
-                                <div class="text-sm">classes</div>
-                                <div class="text-sm">scheduled</div>
-                            </div>
+                        <div class="flex space-x-2 ml-4">
+                            <button class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-pencil-alt text-sm"></i>
+                            </button>
+                            <button class="text-gray-400 hover:text-red-500 delete-task-btn" data-task-id="{{ task.id }}">
+                                <i class="fas fa-trash text-sm"></i>
+                            </button>
                         </div>
                     </div>
-                </div>
-
-                <!-- Mobile Schedule View -->
-                <div class="md:hidden mobile-schedule p-4">
-                    <!-- Monday -->
-                    <div class="day-section">
-                        <div class="day-header bg-blue-600 text-white">Monday</div>
-                        <div class="day-content">
-                            <div class="class-block bg-blue-600">
-                                <div class="text-sm font-medium">2:00-4:00PM</div>
-                                <div class="text-sm opacity-90">English</div>
-                                <div class="text-xs opacity-75">Literature</div>
-                            </div>
-                        </div>
+                    {% empty %}
+                    <div class="p-8 text-center">
+                        <i class="fas fa-tasks text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500">No tasks found. Create your first task to get started!</p>
                     </div>
-
-                    <!-- Tuesday -->
-                    <div class="day-section">
-                        <div class="day-header">Tuesday</div>
-                        <div class="day-content bg-gray-50">
-                            <div class="text-center text-gray-500 py-8">
-                                <div class="text-sm">No classes scheduled</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Wednesday -->
-                    <div class="day-section">
-                        <div class="day-header">Wednesday</div>
-                        <div class="day-content bg-gray-50">
-                            <div class="text-center text-gray-500 py-8">
-                                <div class="text-sm">No classes scheduled</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Thursday -->
-                    <div class="day-section">
-                        <div class="day-header">Thursday</div>
-                        <div class="day-content bg-gray-50">
-                            <div class="text-center text-gray-500 py-8">
-                                <div class="text-sm">No classes scheduled</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Friday -->
-                    <div class="day-section">
-                        <div class="day-header">Friday</div>
-                        <div class="day-content bg-gray-50">
-                            <div class="text-center text-gray-500 py-8">
-                                <div class="text-sm">No classes scheduled</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Saturday -->
-                    <div class="day-section">
-                        <div class="day-header">Saturday</div>
-                        <div class="day-content bg-gray-50">
-                            <div class="text-center text-gray-500 py-8">
-                                <div class="text-sm">No classes scheduled</div>
-                            </div>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Add Class Modal -->
-    <div id="add-class-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <!-- Add Task Modal -->
+    <div id="add-task-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl max-w-md w-full p-4 md:p-6 animate-scale-in max-h-screen overflow-y-auto">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-base md:text-lg font-semibold text-gray-900">Add New Class</h3>
-                <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+                <h3 class="text-base md:text-lg font-semibold text-gray-900">Add New Task</h3>
+                <button id="close-task-modal" class="text-gray-400 hover:text-gray-600">
                     <i class="fas fa-times text-lg"></i>
                 </button>
             </div>
             
-            <form id="add-class-form" class="space-y-4">
+            <form id="add-task-form" class="space-y-4">
+                {% csrf_token %}
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base" placeholder="e.g., Mathematics">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Task Title</label>
+                    <input type="text" name="title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base" placeholder="e.g., Grade math assignments" required>
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Topic</label>
-                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base" placeholder="e.g., Algebra">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea name="description" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base" rows="3" placeholder="Add details about this task..."></textarea>
                 </div>
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Day</label>
-                        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base">
-                            <option value="monday">Monday</option>
-                            <option value="tuesday">Tuesday</option>
-                            <option value="wednesday">Wednesday</option>
-                            <option value="thursday">Thursday</option>
-                            <option value="friday">Friday</option>
-                            <option value="saturday">Saturday</option>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                        <select name="priority" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base">
+                            <option value="low">Low Priority</option>
+                            <option value="medium" selected>Medium Priority</option>
+                            <option value="high">High Priority</option>
                         </select>
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
-                        <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base" placeholder="e.g., 10:00-11:30AM">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                        <input type="date" name="due_date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base">
                     </div>
                 </div>
                 
                 <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
-                    <button type="button" id="cancel-add" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm md:text-base">
+                    <button type="button" id="cancel-task" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm md:text-base">
                         Cancel
                     </button>
-                    <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm md:text-base">
-                        Add Class
+                    <button type="submit" class="flex-1 px-4 py-2 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-colors text-sm md:text-base">
+                        Add Task
                     </button>
                 </div>
             </form>
@@ -553,6 +463,22 @@
     </div>
 
     <script>
+        // CSRF token helper function
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
         // Session Management System
         class SessionManager {
             constructor() {
@@ -754,55 +680,228 @@
                 }
             });
 
-            // Add Class Modal
-            const addClassBtn = document.getElementById('add-class-btn');
-            const addClassModal = document.getElementById('add-class-modal');
-            const closeModal = document.getElementById('close-modal');
-            const cancelAdd = document.getElementById('cancel-add');
+            // Add Task Modal
+            const addTaskBtn = document.getElementById('add-task-btn');
+            const addTaskModal = document.getElementById('add-task-modal');
+            const closeTaskModal = document.getElementById('close-task-modal');
+            const cancelTask = document.getElementById('cancel-task');
 
-            addClassBtn.addEventListener('click', () => {
-                addClassModal.classList.remove('hidden');
+            addTaskBtn.addEventListener('click', () => {
+                addTaskModal.classList.remove('hidden');
                 document.body.style.overflow = 'hidden'; // Prevent background scroll
             });
 
-            const closeModalFunction = () => {
-                addClassModal.classList.add('hidden');
+            const closeTaskModalFunction = () => {
+                addTaskModal.classList.add('hidden');
                 document.body.style.overflow = 'auto'; // Restore scroll
             };
 
-            closeModal.addEventListener('click', closeModalFunction);
-            cancelAdd.addEventListener('click', closeModalFunction);
+            closeTaskModal.addEventListener('click', closeTaskModalFunction);
+            cancelTask.addEventListener('click', closeTaskModalFunction);
 
-            addClassModal.addEventListener('click', (e) => {
-                if (e.target === addClassModal) {
-                    closeModalFunction();
+            addTaskModal.addEventListener('click', (e) => {
+                if (e.target === addTaskModal) {
+                    closeTaskModalFunction();
                 }
             });
 
-            // Form submission
-            document.getElementById('add-class-form').addEventListener('submit', (e) => {
+            // Handle task form submission
+            document.getElementById('add-task-form').addEventListener('submit', (e) => {
                 e.preventDefault();
-                // Here you would typically send the data to your backend
-                console.log('Adding new class...');
-                closeModalFunction();
                 
-                // Show success message (you can customize this)
-                alert('Class added successfully!');
-            });
-
-            // Add hover effects and interactions for class blocks
-            document.querySelectorAll('.class-block').forEach(block => {
-                block.addEventListener('click', () => {
-                    // Handle class block click - could open edit modal
-                    console.log('Class block clicked');
+                const formData = {
+                    title: document.querySelector('input[name="title"]').value,
+                    description: document.querySelector('textarea[name="description"]').value,
+                    priority: document.querySelector('select[name="priority"]').value,
+                    due_date: document.querySelector('input[name="due_date"]').value,
+                };
+                
+                fetch("/api/tasks/add/", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Close modal and refresh page
+                        closeTaskModalFunction();
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
                 });
             });
+
+            // Handle task status updates
+            document.querySelectorAll('.task-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const taskId = this.dataset.taskId;
+                    const newStatus = this.checked ? 'completed' : 'pending';
+                    const taskText = this.parentElement.querySelector('.task-text');
+                    
+                    if (this.checked) {
+                        taskText.classList.add('line-through', 'text-gray-400');
+                    } else {
+                        taskText.classList.remove('line-through', 'text-gray-400');
+                    }
+                    
+                    fetch(`/api/tasks/update-status/${taskId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': getCookie('csrftoken'),
+                        },
+                        body: JSON.stringify({status: newStatus})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update the completed count
+                            document.querySelector('.tasks-header span').textContent = 
+                                `${data.completed_count} of ${data.total_count} completed`;
+                        } else {
+                            this.checked = !this.checked; // Revert checkbox if error
+                            if (this.checked) {
+                                taskText.classList.remove('line-through', 'text-gray-400');
+                            } else {
+                                taskText.classList.add('line-through', 'text-gray-400');
+                            }
+                            alert('Error updating task status');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.checked = !this.checked; // Revert checkbox if error
+                        if (this.checked) {
+                            taskText.classList.remove('line-through', 'text-gray-400');
+                        } else {
+                            taskText.classList.add('line-through', 'text-gray-400');
+                        }
+                    });
+                });
+            });
+            
+            // Handle task deletion
+            document.querySelectorAll('.delete-task-btn').forEach(deleteBtn => {
+                deleteBtn.addEventListener('click', function() {
+                    const taskId = this.dataset.taskId;
+                    const taskItem = this.closest('.task-item');
+                    
+                    if (confirm('Are you sure you want to delete this task?')) {
+                        fetch(`/api/tasks/delete/${taskId}/`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRFToken': getCookie('csrftoken'),
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Remove task from DOM
+                                taskItem.remove();
+                                // Update the completed count
+                                document.querySelector('.tasks-header span').textContent = 
+                                    `${data.completed_count} of ${data.total_count} completed`;
+                                    
+                                // If no tasks left, show empty state
+                                if (data.total_count === 0) {
+                                    document.getElementById('tasks-container').innerHTML = `
+                                        <div class="p-8 text-center">
+                                            <i class="fas fa-tasks text-4xl text-gray-300 mb-4"></i>
+                                            <p class="text-gray-500">No tasks found. Create your first task to get started!</p>
+                                        </div>
+                                    `;
+                                }
+                            } else {
+                                alert('Error deleting task');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred while deleting the task');
+                        });
+                    }
+                });
+            });
+
+            // Handle filter and sort changes
+            document.getElementById('filter-select').addEventListener('change', function() {
+                const filter = this.value;
+                const sort = document.getElementById('sort-select').value;
+                window.location.href = `?filter=${filter}&sort=${sort}`;
+            });
+
+            document.getElementById('sort-select').addEventListener('change', function() {
+                const filter = document.getElementById('filter-select').value;
+                const sort = this.value;
+                window.location.href = `?filter=${filter}&sort=${sort}`;
+            });
+
+            // Load notifications
+            function loadNotifications() {
+                fetch('/api/notifications/', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.notifications && data.notifications.length > 0) {
+                        // Update notification badge
+                        document.getElementById('notification-badge').classList.remove('hidden');
+                        
+                        // Update notification dropdown content
+                        const notificationDropdown = document.getElementById('notification-dropdown');
+                        const notificationList = notificationDropdown.querySelector('.max-h-64');
+                        
+                        // Clear existing notifications
+                        notificationList.innerHTML = '';
+                        
+                        // Add new notifications
+                        data.notifications.forEach(notification => {
+                            const notificationItem = document.createElement('div');
+                            notificationItem.className = 'p-3 md:p-4 hover:bg-gray-50 border-b border-gray-100';
+                            notificationItem.innerHTML = `
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-900 font-medium">${notification.message}</p>
+                                        <p class="text-xs text-gray-400 mt-1">${notification.created_at}</p>
+                                    </div>
+                                </div>
+                            `;
+                            notificationList.appendChild(notificationItem);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading notifications:', error);
+                });
+            }
+            
+            // Load notifications on page load
+            loadNotifications();
+            
+            // Set up notification polling (every 30 seconds)
+            setInterval(loadNotifications, 30000);
 
             // Handle escape key for modal
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
-                    if (!addClassModal.classList.contains('hidden')) {
-                        closeModalFunction();
+                    if (!addTaskModal.classList.contains('hidden')) {
+                        closeTaskModalFunction();
                     }
                     notificationDropdown.classList.add('hidden');
                     profileDropdown.classList.add('hidden');

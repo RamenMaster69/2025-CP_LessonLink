@@ -2,10 +2,13 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import ScheduleViewSet, landing, registration_1, registration_2, registration_3
 from .views import registration_4, login_view, logout_view, dashboard, profile
-from .views import lesson_planner, lesson_plan, draft, Dep_Dash, Dep_Faculty, task, schedule  # Add schedule here
+from .views import lesson_planner, lesson_plan, draft, Dep_Dash, Dep_Faculty, task, schedule
 from .views import Dep_Pending, template, st_dash
+# Import the new task API views
+from .views import add_task_api, update_task_status_api, delete_task_api, get_notifications_api, mark_notification_read_api
 from django.conf import settings
 from django.conf.urls.static import static
+
 
 # REST Framework router
 router = DefaultRouter()
@@ -14,6 +17,13 @@ router.register(r'schedules', ScheduleViewSet, basename='schedule')
 urlpatterns = [
     # REST API endpoints
     path('api/', include(router.urls)),
+    
+    # Task API endpoints
+    path('api/tasks/add/', add_task_api, name='add_task_api'),
+    path('api/tasks/update-status/<int:task_id>/', update_task_status_api, name='update_task_status_api'),
+    path('api/tasks/delete/<int:task_id>/', delete_task_api, name='delete_task_api'),
+    path('api/notifications/', get_notifications_api, name='get_notifications_api'),
+    path('api/notifications/mark-read/<int:notification_id>/', mark_notification_read_api, name='mark_notification_read_api'),
     
     # Regular Django views
     path('', landing, name='landing'),
@@ -26,12 +36,12 @@ urlpatterns = [
     path('dashboard/', dashboard, name='dashboard'),
     path('profile/', profile, name='profile'),
     path('lesson_planner/', lesson_planner, name='lesson_planner'),
-    path('lesson_plan/', lesson_plan, name='lesson_plan'),  # Added alternative path
+    path('lesson_plan/', lesson_plan, name='lesson_plan'),
     path('draft/', draft, name='draft'),
     path('dep_dash/', Dep_Dash, name='Dep_Dash'),
     path('dep_faculty/', Dep_Faculty, name='Dep_Faculty'),
     path('task/', task, name='task'),
-    path('schedule/', schedule, name='schedule'),  # Add this line
+    path('schedule/', schedule, name='schedule'),
     path('dep_pending/', Dep_Pending, name='Dep_Pending'),
     path('template/', template, name='template'),
     path('st_dash/', st_dash, name='st_dash'),
