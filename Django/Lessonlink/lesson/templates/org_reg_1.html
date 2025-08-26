@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Registration - LessonLink</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+        }
+        
+        .container-shadow {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08), 0 10px 25px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .input-field {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1.5px solid #e5e7eb;
+            background: #ffffff;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            background: #ffffff;
+        }
+        
+        .input-field:hover:not(:focus) {
+            border-color: #d1d5db;
+        }
+        
+        .section-card {
+            background: #ffffff;
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s ease;
+        }
+        
+        .section-card:hover {
+            border-color: #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-header {
+            border-bottom: 1px solid #f1f5f9;
+            background: linear-gradient(90deg, #f8fafc 0%, #ffffff 100%);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px -1px rgba(37, 99, 235, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            box-shadow: 0 4px 8px -2px rgba(37, 99, 235, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: #ffffff;
+            border: 1.5px solid #e5e7eb;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-secondary:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+        
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            background: #fafafa;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .upload-area:hover {
+            border-color: #2563eb;
+            background: #fafbff;
+        }
+        
+        .upload-area.active {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        .progress-indicator {
+            background: linear-gradient(90deg, #e5e7eb 0%, #e5e7eb 100%);
+            height: 3px;
+            border-radius: 1.5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+            height: 100%;
+            width: 20%;
+            border-radius: 1.5px;
+            transition: width 0.3s ease;
+        }
+        
+        .step-indicator {
+            background: #f1f5f9;
+            color: #64748b;
+            transition: all 0.3s ease;
+        }
+        
+        .step-indicator.active {
+            background: #2563eb;
+            color: #ffffff;
+        }
+        
+        .step-indicator.completed {
+            background: #10b981;
+            color: #ffffff;
+        }
+        
+        .field-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .field-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        
+        .field-required {
+            color: #dc2626;
+        }
+        
+        .field-help {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+        
+        .logo-area {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        }
+        
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, #e5e7eb 50%, transparent 100%);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="logo-area w-12 h-12 rounded-xl flex items-center justify-center">
+                        <i data-lucide="graduation-cap" class="w-7 h-7 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-semibold text-gray-900">LessonLink</h1>
+                        <p class="text-sm text-gray-500">AI-Augmented Lesson Planning Platform</p>
+                    </div>
+                </div>
+                <nav class="hidden md:flex items-center space-x-6">
+                    <a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Help Center</a>
+                    <a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Contact Support</a>
+                    <button class="btn-secondary px-4 py-2 rounded-lg text-sm font-medium">
+                        <i data-lucide="arrow-left" class="w-4 h-4 inline mr-2"></i>
+                        Back to Login
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-6 py-12">
+        <!-- Progress Section -->
+        <div class="mb-12">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-3">School Registration</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                    Register your educational institution to access LessonLink's comprehensive AI-powered lesson planning tools and resources.
+                </p>
+            </div>
+        </div>
+
+        <!-- Registration Form -->
+        <div class="container-shadow bg-white rounded-2xl overflow-hidden">
+            <form class="divide-y divide-gray-100">
+                <!-- Section 1: Basic Information -->
+                <section class="section-card">
+                    <div class="section-header px-8 py-6">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center mr-4">
+                                <i data-lucide="building-2" class="w-5 h-5 text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Basic School Information</h3>
+                                <p class="text-sm text-gray-600 mt-1">Essential details about your educational institution</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="px-8 py-8">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="lg:col-span-2 field-group">
+                                <label class="field-label">
+                                    Official School Name <span class="field-required">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    class="input-field w-full px-4 py-3.5 rounded-lg text-sm"
+                                    placeholder="Enter the complete official registered name of your institution"
+                                    required
+                                >
+                                <p class="field-help">Please enter the name exactly as it appears on official documents</p>
+                            </div>
+                            
+                            <div class="field-group">
+                                <label class="field-label">
+                                    School ID / DepEd Code <span class="field-required">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    class="input-field w-full px-4 py-3.5 rounded-lg text-sm"
+                                    placeholder="123456789012"
+                                    required
+                                >
+                                <p class="field-help">12-digit DepEd School ID or equivalent registration number</p>
+                            </div>
+                            
+                            <div class="field-group">
+                                <label class="field-label">
+                                    Institution Type <span class="field-required">*</span>
+                                </label>
+                                <select class="input-field w-full px-4 py-3.5 rounded-lg text-sm" required>
+                                    <option value="">Select institution type</option>
+                                    <option value="public_elementary">Public School</option>
+                                    <option value="private_elementary">Private School</option>
+                                </select>
+                            </div>
+                            
+                            <div class="field-group">
+                                <label class="field-label">Year Established</label>
+                                <input 
+                                    type="number" 
+                                    min="1800" 
+                                    max="2025" 
+                                    class="input-field w-full px-4 py-3.5 rounded-lg text-sm"
+                                    placeholder="1985"
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 2: Location & Contact -->
+                <section class="section-card">
+                    <div class="section-header px-8 py-6">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center mr-4">
+                                <i data-lucide="map-pin" class="w-5 h-5 text-green-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Location & Contact Information</h3>
+                                <p class="text-sm text-gray-600 mt-1">Physical address and communication details</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="px-8 py-8">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="lg:col-span-2 field-group">
+                                <label class="field-label">
+                                    Complete Address <span class="field-required">*</span>
+                                </label>
+                                <textarea 
+                                    rows="3" 
+                                    class="input-field w-full px-4 py-3.5 rounded-lg text-sm resize-none"
+                                    placeholder="Street Address, Barangay, City/Municipality"
+                                    required
+                                ></textarea>
+                            </div>
+                            
+                            <div class="field-group">
+                                <label class="field-label">
+                                    Province <span class="field-required">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    class="input-field w-full px-4 py-3.5 rounded-lg text-sm"
+                                    placeholder="Zamboanga del Sur"
+                                    required
+                                >
+                            </div>
+                            
+                            <div class="field-group">
+                                <label class="field-label">
+                                    Region <span class="field-required">*</span>
+                                </label>
+                                <select class="input-field w-full px-4 py-3.5 rounded-lg text-sm" required>
+                                    <option value="">Select region</option>
+                                    <option value="region9">Region IX - Zamboanga Peninsula</option>
+                                    <option value="region10">Region X - Northern Mindanao</option>
+                                    <option value="barmm">BARMM</option>
+                                </select>
+                            </div>
+                            
+                            <div class="field-group">
+                                <label class="field-label">Postal Code</label>
+                                <input 
+                                    type="text" 
+                                    class="input-field w-full px-4 py-3.5 rounded-lg text-sm"
+                                    placeholder="7000"
+                                >
+                            </div>
+                            
+                            <div class="field-group">
+                                <label class="field-label">
+                                    Primary Phone Number <span class="field-required">*</span>
+                                </label>
+                                <input 
+                                    type="tel" 
+                                    class="input-field w-full px-4 py-3.5 rounded-lg text-sm"
+                                    placeholder="+63 62 123 4567"
+                                    required
+                                >
+                            </div>
+                            
+                            <div class="field-group">
+                                <label class="field-label">
+                                    Official Email Address <span class="field-required">*</span>
+                                </label>
+                                <input 
+                                    type="email" 
+                                    class="input-field w-full px-4 py-3.5 rounded-lg text-sm"
+                                    placeholder="registrar@schoolname.edu.ph"
+                                    required
+                                >
+                                <p class="field-help">This will be used for official communications</p>
+                            </div>
+                            
+                            <div class="field-group">
+                                <label class="field-label">Website URL</label>
+                                <input 
+                                    type="url" 
+                                    class="input-field w-full px-4 py-3.5 rounded-lg text-sm"
+                                    placeholder="https://www.schoolname.edu.ph"
+                                >
+                            </div>
+                            
+                            <div class="field-group">
+                                <label class="field-label">Facebook Page</label>
+                                <input 
+                                    type="url" 
+                                    class="input-field w-full px-4 py-3.5 rounded-lg text-sm"
+                                    placeholder="https://facebook.com/schoolname"
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 3: Administrative Information -->
+                <section class="section-card">
+                    <div class="section-header px-8 py-6">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center mr-4">
+                                <i data-lucide="users" class="w-5 h-5 text-purple-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Administrative Personnel</h3>
+                                <p class="text-sm text-gray-600 mt-1">Key school officials and contact persons</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="px-8 py-8">
+                        <!-- School Head Information -->
+                        <div class="mb-8">
+                            <h4 class="text-base font-medium text-gray-900 mb-4 pb-2 border-b border-gray-100">School Head / Principal Information</h4>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div class="field-group">
+                                    <label class="field-label">
+                                        Full Name <span class="field-required">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="input-field w-full px-4 py-3.5 rounded-lg text-sm"
+                                        placeholder="Dr. Maria Santos"
+                                        required
+                                    >
+                                </div>
+                                
+                                <div class="field-group">
+                                    <label class="field-label">
+                                        Position/Designation <span class="field-required">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="input-field w-full px-4 py-3.5 rounded-lg text-sm"
+                                        placeholder="School Principal"
+                                        required
+                                    >
+                                </div>
+                                
+                                <div class="field-group">
+                                    <label class="field-label">Email Address</label>
+                                    <input 
+                                        type="email" 
+                                        class="input-field w-full px-4 py-3.5 rounded-lg text-sm"
+                                        placeholder="principal@schoolname.edu.ph"
+                                    >
+                                </div>
+                                
+                                <div class="field-group">
+                                    <label class="field-label">Contact Number</label>
+                                    <input 
+                                        type="tel" 
+                                        class="input-field w-full px-4 py-3.5 rounded-lg text-sm"
+                                        placeholder="+63 917 123 4567"
+                                    >
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="divider mb-8"></div>
+
+                        <!-- Authorized Contact Person -->
+                        <div>
+                            <h4 class="text-base font-medium text-gray-900 mb-4 pb-2 border-b border-gray-100">Authorized Contact Person for LessonLink</h4>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div class="field-group">
+                                    <label class="field-label">
+                                        Full Name <span class="field-required">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="input-field w-full px-4 py-3.5 rounded-lg text-sm"
+                                        placeholder="Juan Dela Cruz"
+                                        required
+                                    >
+                                </div>
+                                
+                                <div class="field-group">
+                                    <label class="field-label">
+                                        Position/Role <span class="field-required">*</span>
+                                    </label>
+                                    <select class="input-field w-full px-4 py-3.5 rounded-lg text-sm" required>
+                                        <option value="">Select position</option>
+                                        <option value="registrar">Registrar</option>
+                                        <option value="ict_coordinator">ICT Coordinator</option>
+                                        <option value="academic_coordinator">Academic Coordinator</option>
+                                        <option value="assistant_principal">Assistant Principal</option>
+                                        <option value="admin_staff">Administrative Staff</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="field-group">
+                                    <label class="field-label">
+                                        Email Address <span class="field-required">*</span>
+                                    </label>
+                                    <input 
+                                        type="email" 
+                                        class="input-field w-full px-4 py-3.5 rounded-lg text-sm"
+                                        placeholder="contact@schoolname.edu.ph"
+                                        required
+                                    >
+                                </div>
+                                
+                                <div class="field-group">
+                                    <label class="field-label">
+                                        Contact Number <span class="field-required">*</span>
+                                    </label>
+                                    <input 
+                                        type="tel" 
+                                        class="input-field w-full px-4 py-3.5 rounded-lg text-sm"
+                                        placeholder="+63 917 987 6543"
+                                        required
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 4: System Configuration -->
+                <section class="section-card">
+                    <div class="section-header px-8 py-6">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center mr-4">
+                                <i data-lucide="settings" class="w-5 h-5 text-orange-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">System Configuration</h3>
+                                <p class="text-sm text-gray-600 mt-1">Platform setup and organizational structure</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="px-8 py-8">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="field-group">
+                                <label class="field-label">
+                                    Number of Departments <span class="field-required">*</span>
+                                </label>
+                                <input 
+                                    type="number" 
+                                    min="1" 
+                                    max="50" 
+                                    class="input-field w-full px-4 py-3.5 rounded-lg text-sm"
+                                    placeholder="5"
+                                    required
+                                >
+                                <p class="field-help">Total number of academic departments in your institution</p>
+                            </div>
+                            
+
+                            
+
+                            
+                            <div class="field-group">
+                                <label class="field-label">
+                                    Preferred System Update Contact <span class="field-required">*</span>
+                                </label>
+                                <select class="input-field w-full px-4 py-3.5 rounded-lg text-sm" required>
+                                    <option value="">Select preferred contact</option>
+                                    <option value="ict_coordinator">ICT Coordinator</option>
+                                    <option value="registrar">Registrar</option>
+                                    <option value="admin_staff">Administrative Staff</option>
+                                    <option value="principal">Principal/School Head</option>
+                                    <option value="academic_coordinator">Academic Coordinator</option>
+                                </select>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 5: Verification Documents -->
+                <section class="section-card">
+                    <div class="section-header px-8 py-6">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center mr-4">
+                                <i data-lucide="shield-check" class="w-5 h-5 text-red-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Verification & Supporting Documents</h3>
+                                <p class="text-sm text-gray-600 mt-1">Upload official documents for account verification</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="px-8 py-8">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <!-- School Registration Certificate -->
+                            <div class="field-group">
+                                <label class="field-label">
+                                    School Registration Certificate <span class="field-required">*</span>
+                                </label>
+                                <div class="upload-area rounded-lg p-6 text-center cursor-pointer border-2 border-dashed border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50" onclick="document.getElementById('cert-file').click()">
+                                    <i data-lucide="file-text" class="w-12 h-12 text-gray-400 mx-auto mb-3"></i>
+                                    <h4 class="text-sm font-medium text-gray-900 mb-1">Upload School Certificate</h4>
+                                    <p class="text-xs text-gray-500 mb-3">DepEd Permit, SEC Certificate, or equivalent</p>
+                                    <div class="text-xs text-gray-400">
+                                        <span class="bg-gray-100 px-2 py-1 rounded">PDF</span>
+                                        <span class="bg-gray-100 px-2 py-1 rounded ml-1">JPG</span>
+                                        <span class="bg-gray-100 px-2 py-1 rounded ml-1">PNG</span>
+                                        <span class="text-gray-500 ml-2">Max 5MB</span>
+                                    </div>
+                                    <input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" id="cert-file" onchange="handleFileSelect(this, 'cert-upload')">
+                                </div>
+                            </div>
+                            
+                            <!-- MOA Document -->
+                            <div class="field-group">
+                                <label class="field-label">Memorandum of Agreement (Optional)</label>
+                                <div class="upload-area rounded-lg p-6 text-center cursor-pointer border-2 border-dashed border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50" onclick="document.getElementById('moa-file').click()">
+                                    <i data-lucide="file-text" class="w-12 h-12 text-gray-400 mx-auto mb-3"></i>
+                                    <h4 class="text-sm font-medium text-gray-900 mb-1">Upload MOA Document</h4>
+                                    <p class="text-xs text-gray-500 mb-3">Partnership agreement with universities</p>
+                                    <div class="text-xs text-gray-400">
+                                        <span class="bg-gray-100 px-2 py-1 rounded">PDF</span>
+                                        <span class="bg-gray-100 px-2 py-1 rounded ml-1">JPG</span>
+                                        <span class="bg-gray-100 px-2 py-1 rounded ml-1">PNG</span>
+                                        <span class="text-gray-500 ml-2">Max 5MB</span>
+                                    </div>
+                                    <input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" id="moa-file" onchange="handleFileSelect(this, 'moa-upload')">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8">
+                            <div class="field-group">
+                                <label class="field-label">Additional Information</label>
+                                <textarea 
+                                    rows="4" 
+                                    class="input-field w-full px-4 py-3.5 rounded-lg text-sm resize-none"
+                                    placeholder="Please provide any additional information about your institution that would help us verify your registration, such as accreditation details, special programs, or other relevant information..."
+                                ></textarea>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 p-6 bg-blue-50 rounded-xl border border-blue-200">
+                            <div class="flex items-start space-x-3">
+                                <i data-lucide="info" class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"></i>
+                                <div>
+                                    <h4 class="text-sm font-medium text-blue-900 mb-1">Verification Process</h4>
+                                    <p class="text-sm text-blue-700 leading-relaxed">
+                                        Your registration will be reviewed by our verification team within 3-5 business days. 
+                                        You will receive an email confirmation once your account is approved. For urgent requests, 
+                                        please contact our support team at support@lessonlink.edu.ph.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Terms and Privacy -->
+                <section class="section-card">
+                    <div class="px-8 py-8">
+                        <div class="space-y-4">
+                            <div class="flex items-start space-x-3">
+                                <input type="checkbox" id="terms" class="mt-1 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2" required>
+                                <label for="terms" class="text-sm text-gray-700 leading-relaxed">
+                                    I certify that all information provided is accurate and complete. I understand that false information may result in account suspension or termination.
+                                </label>
+                            </div>
+                            
+                            <div class="flex items-start space-x-3">
+                                <input type="checkbox" id="privacy" class="mt-1 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2" required>
+                                <label for="privacy" class="text-sm text-gray-700 leading-relaxed">
+                                    I agree to the LessonLink 
+                                    <a href="#" class="text-blue-600 hover:text-blue-800 underline">Terms of Service</a> and 
+                                    <a href="#" class="text-blue-600 hover:text-blue-800 underline">Privacy Policy</a>. 
+                                    I consent to the collection and processing of institutional data for platform administration and improvement purposes.
+                                </label>
+                            </div>
+                            
+                            <div class="flex items-start space-x-3">
+                                <input type="checkbox" id="communications" class="mt-1 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
+                                <label for="communications" class="text-sm text-gray-700 leading-relaxed">
+                                    I would like to receive updates about new features, educational resources, and important platform announcements via email.
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Form Actions -->
+                <div class="bg-gray-50 px-8 py-6">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i data-lucide="shield" class="w-4 h-4 mr-2"></i>
+                            Your information is secured with 256-bit SSL encryption
+                        </div>
+                        
+                        <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                            <button type="button" class="btn-secondary px-6 py-3 rounded-lg text-sm font-medium flex items-center justify-center">
+                                <i data-lucide="save" class="w-4 h-4 mr-2"></i>
+                                Save Draft
+                            </button>
+                            
+                            <button type="submit" class="btn-primary text-white px-8 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
+                                Submit Registration
+                                <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Help Section -->
+        <div class="mt-8 text-center">
+            <p class="text-sm text-gray-600 mb-4">Need assistance with your registration?</p>
+            <div class="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-6">
+                <a href="#" class="text-sm text-blue-600 hover:text-blue-800 flex items-center">
+                    <i data-lucide="mail" class="w-4 h-4 mr-2"></i>
+                    support@lessonlink.edu.ph
+                </a>
+                <a href="#" class="text-sm text-blue-600 hover:text-blue-800 flex items-center">
+                    <i data-lucide="phone" class="w-4 h-4 mr-2"></i>
+                    +63 62 123 4567
+                </a>
+                <a href="#" class="text-sm text-blue-600 hover:text-blue-800 flex items-center">
+                    <i data-lucide="help-circle" class="w-4 h-4 mr-2"></i>
+                    Help Center
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Simple file upload handler
+        function handleFileSelect(input, uploadAreaId) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('File size must be less than 5MB.', 'error');
+                input.value = '';
+                return;
+            }
+            
+            // Validate file type
+            const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+            if (!validTypes.includes(file.type)) {
+                showNotification('Please upload a PDF, JPG, or PNG file.', 'error');
+                input.value = '';
+                return;
+            }
+            
+            // Update the upload area appearance
+            const uploadArea = input.parentElement;
+            const icon = uploadArea.querySelector('[data-lucide]');
+            const title = uploadArea.querySelector('h4');
+            const subtitle = uploadArea.querySelector('p');
+            
+            // Change to success state
+            uploadArea.style.borderColor = '#10b981';
+            uploadArea.style.backgroundColor = '#f0fdf4';
+            
+            if (icon) {
+                icon.setAttribute('data-lucide', 'check-circle');
+                icon.className = 'w-12 h-12 text-green-500 mx-auto mb-3';
+            }
+            
+            if (title) {
+                title.textContent = file.name;
+                title.className = 'text-sm font-medium text-green-700 mb-1';
+            }
+            
+            if (subtitle) {
+                subtitle.textContent = `Uploaded successfully • ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+                subtitle.className = 'text-xs text-green-600 mb-3';
+            }
+            
+            // Update icons
+            lucide.createIcons();
+            
+            showNotification(`${file.name} uploaded successfully!`, 'success');
+        }
+        
+        // Add drag and drop functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadAreas = document.querySelectorAll('.upload-area');
+            
+            uploadAreas.forEach(area => {
+                const input = area.querySelector('input[type="file"]');
+                
+                area.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    area.style.borderColor = '#2563eb';
+                    area.style.backgroundColor = '#eff6ff';
+                });
+                
+                area.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!area.contains(e.relatedTarget)) {
+                        area.style.borderColor = '#d1d5db';
+                        area.style.backgroundColor = '#f9fafb';
+                    }
+                });
+                
+                area.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    area.style.borderColor = '#d1d5db';
+                    area.style.backgroundColor = '#f9fafb';
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        input.files = files;
+                        handleFileSelect(input);
+                    }
+                });
+            });
+        });
+        
+        // Form validation and submission
+        document.querySelector('form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Validate required fields
+            const requiredFields = document.querySelectorAll('input[required], select[required], textarea[required]');
+            let isValid = true;
+            let firstInvalidField = null;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.style.borderColor = '#dc2626';
+                    field.style.backgroundColor = '#fef2f2';
+                    if (!firstInvalidField) {
+                        firstInvalidField = field;
+                    }
+                } else {
+                    field.style.borderColor = '#e5e7eb';
+                    field.style.backgroundColor = '#ffffff';
+                }
+            });
+            
+            // Validate checkboxes
+            const termsCheckbox = document.getElementById('terms');
+            const privacyCheckbox = document.getElementById('privacy');
+            
+            if (!termsCheckbox.checked || !privacyCheckbox.checked) {
+                isValid = false;
+                showNotification('Please accept the required terms and conditions.', 'error');
+            }
+            
+            if (isValid) {
+                // Show loading state
+                const submitButton = document.querySelector('button[type="submit"]');
+                const originalContent = submitButton.innerHTML;
+                submitButton.innerHTML = '<i data-lucide="loader" class="w-4 h-4 mr-2 animate-spin"></i>Processing...';
+                submitButton.disabled = true;
+                
+                // Simulate form submission
+                setTimeout(() => {
+                    showNotification('Registration submitted successfully! You will receive a confirmation email shortly.', 'success');
+                    submitButton.innerHTML = originalContent;
+                    submitButton.disabled = false;
+                    lucide.createIcons();
+                }, 2000);
+            } else {
+                if (firstInvalidField) {
+                    firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalidField.focus();
+                }
+                showNotification('Please fill in all required fields correctly.', 'error');
+            }
+        });
+        
+        // Save draft functionality
+        document.querySelector('button[type="button"]').addEventListener('click', () => {
+            showNotification('Draft saved successfully!', 'info');
+        });
+        
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 
+                           type === 'error' ? 'bg-red-50 border-red-200 text-red-800' : 
+                           'bg-blue-50 border-blue-200 text-blue-800';
+            
+            notification.className = `fixed top-4 right-4 ${bgColor} border rounded-lg px-4 py-3 shadow-lg z-50 max-w-sm`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : 'info'}" class="w-4 h-4 mr-2 flex-shrink-0"></i>
+                    <p class="text-sm font-medium">${message}</p>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 flex-shrink-0">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+        
+        // Form auto-save functionality
+        let saveTimer;
+        const formInputs = document.querySelectorAll('input, select, textarea');
+        
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => {
+                clearTimeout(saveTimer);
+                saveTimer = setTimeout(() => {
+                    // Auto-save logic here
+                    console.log('Auto-saving form data...');
+                }, 5000);
+            });
+        });
+    </script>
+</body>
+</html>
