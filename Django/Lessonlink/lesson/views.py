@@ -145,11 +145,13 @@ def registration_3(request):
     return render(request, 'registration/registration_3.html')  # Template path
 
 def registration_4(request):
-    # Debug: Check what session data exists
+    
     
     # Check if user came from previous steps
     if not request.session.get('reg_email') or not request.session.get('reg_role'):
         messages.error(request, "Please complete the previous registration steps.")
+        
+        # Debug: Check what session data exists in cmd
         print("Session data:", dict(request.session))
         print("Has reg_email:", request.session.get('reg_email'))
         print("Has reg_role:", request.session.get('reg_role'))
