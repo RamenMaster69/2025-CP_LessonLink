@@ -117,18 +117,25 @@ def registration_2(request):
     return render(request, 'registration/registration_2.html')
 
 def registration_3(request):
+    # Debug: Show current session state
+    print(f"DEBUG - Session at start: {dict(request.session)}")
+    print(f"DEBUG - Has reg_email: {request.session.get('reg_email')}")
+    print(f"DEBUG - Has reg_first_name: {request.session.get('reg_first_name')}")
+    
     # Check if user came from previous steps
     if not request.session.get('reg_email') or not request.session.get('reg_first_name'):
         messages.error(request, "Please complete the previous registration steps.")
-        return redirect('registration_1')  # URL name, not template path
+        return redirect('registration_1')
     
     if request.method == 'POST':
         role = request.POST.get('role')
         rank = request.POST.get('rank')
+        
+        print(f"DEBUG - POST data - role: {role}, rank: {rank}")
 
         if not role or not rank:
             messages.error(request, "Please select both role and rank.")
-            return render(request, 'registration/registration_3.html', {  # Template path
+            return render(request, 'registration/registration_3.html', {
                 'role': role,
                 'rank': rank,
                 'error_message': "Please select both role and rank.",
@@ -138,19 +145,29 @@ def registration_3(request):
         # Store in session
         request.session['reg_role'] = role
         request.session['reg_rank'] = rank
+        request.session.modified = True
+        
+        # Debug: Verify session was set
+        print(f"DEBUG - Session after setting: {dict(request.session)}")
+        print(f"DEBUG - reg_role set to: {request.session.get('reg_role')}")
 
         messages.success(request, "Role and rank selected successfully!")
-        return redirect('registration_4')  # URL name, not template path
+        return redirect('registration_4')
 
-    return render(request, 'registration/registration_3.html')  # Template path
+    return render(request, 'registration/registration_3.html')
 
 def registration_4(request):
     
-    
+    # Debug: Check what session data exists
+    print(f"DEBUG registration_4 - Full session: {dict(request.session)}")
+    print(f"DEBUG registration_4 - reg_email: {request.session.get('reg_email')}")
+    print(f"DEBUG registration_4 - reg_role: {request.session.get('reg_role')}")
+    print(f"DEBUG registration_4 - reg_rank: {request.session.get('reg_rank')}")
+
     # Check if user came from previous steps
     if not request.session.get('reg_email') or not request.session.get('reg_role'):
         messages.error(request, "Please complete the previous registration steps.")
-        
+        return redirect('registration_1')
         # Debug: Check what session data exists in cmd
         print("Session data:", dict(request.session))
         print("Has reg_email:", request.session.get('reg_email'))
@@ -158,14 +175,14 @@ def registration_4(request):
     
     if request.method == "POST":
         department = request.POST.get("department")
-        specialization = request.POST.get("specialization")
+        # specialization = request.POST.get("specialization")
         affiliations = request.POST.getlist("affiliation[]")
 
-        if not department or not specialization:
+        if not department:
             messages.error(request, "Please complete all required fields.")
             return render(request, 'registration/registration_4.html', {
                 'department': department,
-                'specialization': specialization,
+                # 'specialization': specialization,
                 'affiliations': affiliations,
                 'error_message': "Please complete all required fields.",
                 'show_error': True
@@ -211,7 +228,7 @@ def registration_4(request):
                 role=role,
                 rank=rank,
                 department=department,
-                specialization=specialization,
+                # specialization=specialization,
                 affiliations=", ".join(affiliations) if affiliations else ""
             )
 
@@ -226,9 +243,9 @@ def registration_4(request):
 
         except Exception as e:
             messages.error(request, f"Registration failed: {str(e)}")
-            return render(request, 'registration_4.html', {
+            return render(request, 'registration/registration_4.html', {
                 'department': department,
-                'specialization': specialization,
+                # 'specialization': specialization,
                 'affiliations': affiliations,
                 'error_message': f"Registration failed: {str(e)}",
                 'show_error': True

@@ -22,7 +22,6 @@ class User(models.Model):
     rank = models.CharField(max_length=100)
     
     department = models.CharField(max_length=100)
-    # specialization = models.CharField(max_length=100)
     affiliations = models.TextField(blank=True, null=True)
 
     # image = models.ImageField(null=True, blank=True, upload_to='images/') # Image field for user profile picture

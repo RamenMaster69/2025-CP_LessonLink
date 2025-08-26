@@ -32,7 +32,7 @@
                     <p class="text-gray-600">Create your educator account and start planning smarter lessons</p>
                 </div>
 
-                <form class="space-y-6" action="{% url 'registration_4' %}" method="POST"
+                <form class="space-y-6" action="{% url 'registration_3' %}" method="POST"
     onsubmit="return validateForm(event)">
                     {% csrf_token %}
                     <!-- the rest of your form fields here -->
@@ -194,7 +194,7 @@
             }
 
             // For department head, we don't need to check the visible rank dropdown
-            if (role === 'department-head') {
+            if (role === 'Department Head') {
                 return true;
             }
 
