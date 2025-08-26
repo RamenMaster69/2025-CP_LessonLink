@@ -148,7 +148,7 @@ def registration_4(request):
     # Check if user came from previous steps
     if not request.session.get('reg_email') or not request.session.get('reg_role'):
         messages.error(request, "Please complete the previous registration steps.")
-        return redirect('registration/registration_1')
+        return redirect('registration_1')
     
     if request.method == "POST":
         department = request.POST.get("department")
