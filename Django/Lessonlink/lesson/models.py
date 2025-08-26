@@ -8,9 +8,9 @@ from datetime import datetime, date, time
 
 class User(models.Model):
     ROLE = [
-        ('student_teacher', 'Student Teacher'),
-        ('teacher', 'Teacher'),
-        ('department_head', 'Department Head'),
+        ('Student Teacher', 'Student Teacher'),
+        ('Teacher', 'Teacher'),
+        ('Department Head', 'Department Head'),
     ]
     
     email = models.EmailField(unique=True)

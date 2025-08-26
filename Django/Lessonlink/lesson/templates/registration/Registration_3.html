@@ -46,7 +46,7 @@
                             class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white"
                             required>
                             <option value="">Select Role</option>
-                            <option value="Student teacher">Student Teacher</option>
+                            <option value="Student Teacher">Student Teacher</option>
                             <option value="Teacher">Teacher</option>
                             <option value="Department Head">Department Head</option>
                         </select>
@@ -56,7 +56,7 @@
                     </div>
 
                     <!-- Rank Dropdown -->
-                    <div class="relative">
+                    <div class="relative" id="rank-container">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-star text-gray-400"></i>
                         </div>
@@ -112,14 +112,24 @@
     <script>
         function updateRankOptions() {
             const role = document.getElementById('role').value;
-            const rankContainer = document.getElementById('rank').closest('.relative');
+            const rankContainer = document.getElementById('rank-container');
+            const rankSelect = document.getElementById('rank');
 
             if (role === 'Student Teacher') {
                 // Show the rank dropdown and add Student Teacher specific ranks
                 rankContainer.style.display = 'block';
-                const rankSelect = document.getElementById('rank');
                 rankSelect.disabled = false;
-                rankSelect.innerHTML = '<option value="">Select Rank</option>';
+                
+                // Clear all existing options first
+                rankSelect.innerHTML = '';
+                
+                // Add default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select Rank';
+                rankSelect.appendChild(defaultOption);
+                
+                // Add Student Teacher ranks
                 const studentTeacherRanks = [
                     { value: 'Pre-Service-Teacher', text: 'Student Teacher (Pre-Service Teacher)' },
                     { value: 'Practice-Teacher', text: 'Practice Teacher' },
@@ -135,9 +145,18 @@
             } else if (role === 'Teacher') {
                 // Show the rank dropdown and add Teacher specific ranks
                 rankContainer.style.display = 'block';
-                const rankSelect = document.getElementById('rank');
                 rankSelect.disabled = false;
-                rankSelect.innerHTML = '<option value="">Select Rank</option>';
+                
+                // Clear all existing options first
+                rankSelect.innerHTML = '';
+                
+                // Add default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select Rank';
+                rankSelect.appendChild(defaultOption);
+                
+                // Add Teacher ranks
                 const teacherRanks = [
                     { value: 'Teacher I', text: 'Teacher I' },
                     { value: 'Teacher II', text: 'Teacher II' },
@@ -163,13 +182,18 @@
                     hiddenRankInput.name = 'rank';
                     document.querySelector('form').appendChild(hiddenRankInput);
                 }
-                hiddenRankInput.value = 'department-head';
+                hiddenRankInput.value = 'Department Head';
             } else {
                 // Show but disable the rank dropdown if no role is selected
                 rankContainer.style.display = 'block';
-                const rankSelect = document.getElementById('rank');
                 rankSelect.disabled = true;
-                rankSelect.innerHTML = '<option value="">Select Role first</option>';
+                
+                // Clear all options and add the disabled message
+                rankSelect.innerHTML = '';
+                const disabledOption = document.createElement('option');
+                disabledOption.value = '';
+                disabledOption.textContent = 'Select Role first';
+                rankSelect.appendChild(disabledOption);
                 
                 // Remove hidden input if it exists
                 const hiddenRankInput = document.getElementById('hidden-rank');
