@@ -251,6 +251,9 @@ def registration_4(request):
 
     return render(request, 'registration/registration_4.html')
 
+def registration_5(request):
+    return render(request, 'registration/registration_5.html')
+
 def login_view(request):
     # If user is already logged in, redirect to dashboard
     if request.session.get('user_id'):

@@ -1,9 +1,12 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ScheduleViewSet, landing, registration_1, registration_2, registration_3
-from .views import registration_4, login_view, logout_view, dashboard, profile
-from .views import lesson_planner, lesson_plan, draft, Dep_Dash, Dep_Faculty, task, schedule
-from .views import Dep_Pending, template, st_dash
+from .views import landing, template
+from .views import registration_1, registration_2, registration_3, registration_4, registration_5
+from .views import login_view, logout_view
+from .views import lesson_planner, lesson_plan
+from .views import dashboard, profile, ScheduleViewSet, draft, task, schedule
+from .views import Dep_Dash, Dep_Faculty, Dep_Pending
+from .views import st_dash
 # Import the new task API views
 from .views import add_task_api, update_task_status_api, delete_task_api, get_notifications_api, mark_notification_read_api
 from django.conf import settings
@@ -31,6 +34,7 @@ urlpatterns = [
     path('registration_2/', registration_2, name='registration_2'),
     path('registration_3/', registration_3, name='registration_3'),
     path('registration_4/', registration_4, name='registration_4'),
+    path('registration_5/', registration_5, name='registration_5'),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
     path('dashboard/', dashboard, name='dashboard'),
