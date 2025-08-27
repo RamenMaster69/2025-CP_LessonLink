@@ -123,6 +123,6 @@ LOGOUT_REDIRECT_URL = '/'  # This ensures logout redirects to landing page
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny', #Change from IsAuthenticated to AllowAny
     ]
 }
