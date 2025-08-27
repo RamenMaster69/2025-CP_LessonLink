@@ -107,10 +107,10 @@
                 </div>
                 <nav class="hidden md:flex items-center space-x-6">
                     <a href="#" class="text-sm text-gray-600 hover:text-gray-900">Support</a>
-                    <button onclick="goBackToLogin()" class="flex items-center px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                    <a href="{% url 'landing' %}"><button onclick="goBackToLogin()" class="flex items-center px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
                         <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
                         Back to Login
-                    </button>
+                    </button></a>
                 </nav>
             </div>
         </div>
@@ -542,11 +542,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <a href="#" class="flex items-center justify-center text-blue-600 hover:text-blue-800">
                         <i data-lucide="mail" class="w-4 h-4 mr-2"></i>
-                        support@lessonlink.edu.ph
+                        lessonlink69@gmail.com
                     </a>
                     <a href="#" class="flex items-center justify-center text-blue-600 hover:text-blue-800">
                         <i data-lucide="phone" class="w-4 h-4 mr-2"></i>
-                        +63 62 123 4567
+                        +63 953 866 7613
                     </a>
                     <a href="#" class="flex items-center justify-center text-blue-600 hover:text-blue-800">
                         <i data-lucide="help-circle" class="w-4 h-4 mr-2"></i>
@@ -640,11 +640,9 @@
         // Go back to login function
         function goBackToLogin() {
             if (confirm('Are you sure you want to go back? Any unsaved changes will be lost.')) {
-                showAlert('Redirecting to login page...', 'info');
-                // Simulate redirect - in real app, this would be: window.location.href = '/login';
-                setTimeout(() => {
-                    showAlert('In a real application, you would be redirected to the login page.', 'info');
-                }, 1500);
+                showAlert('Redirecting to landing page...', 'info');
+                // Redirect to Django landing page
+                window.location.href = "{% url 'landing' %}";
             }
         }
         
@@ -860,46 +858,6 @@
             showAlert('File removed successfully.', 'success');
         }
         
-        // Drag and drop functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const uploadZones = document.querySelectorAll('.upload-zone');
-            
-            uploadZones.forEach(zone => {
-                const input = zone.querySelector('input[type="file"]');
-                
-                zone.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                    if (!zone.classList.contains('uploaded')) {
-                        zone.classList.add('dragover');
-                    }
-                });
-                
-                zone.addEventListener('dragleave', function(e) {
-                    e.preventDefault();
-                    if (!zone.contains(e.relatedTarget)) {
-                        zone.classList.remove('dragover');
-                    }
-                });
-                
-                zone.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    zone.classList.remove('dragover');
-                    
-                    if (zone.classList.contains('uploaded')) {
-                        return; // Don't allow drop if file already uploaded
-                    }
-                    
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        input.files = files;
-                        const zoneId = zone.id.replace('-upload-zone', '');
-                        const docType = zoneId === 'cert' ? 'Certificate' : 'MOA';
-                        handleFileUpload(input, docType, zoneId);
-                    }
-                });
-            });
-        });
-        
         // Alert system
         function showAlert(message, type) {
             const alertDiv = document.createElement('div');
@@ -956,15 +914,45 @@
                     }
                 });
             });
+            
+            // Initialize drag and drop functionality
+            const uploadZones = document.querySelectorAll('.upload-zone');
+            
+            uploadZones.forEach(zone => {
+                const input = zone.querySelector('input[type="file"]');
+                
+                zone.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    if (!zone.classList.contains('uploaded')) {
+                        zone.classList.add('dragover');
+                    }
+                });
+                
+                zone.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    if (!zone.contains(e.relatedTarget)) {
+                        zone.classList.remove('dragover');
+                    }
+                });
+                
+                zone.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    zone.classList.remove('dragover');
+                    
+                    if (zone.classList.contains('uploaded')) {
+                        return; // Don't allow drop if file already uploaded
+                    }
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        input.files = files;
+                        const zoneId = zone.id.replace('-upload-zone', '');
+                        const docType = zoneId === 'cert' ? 'Certificate' : 'MOA';
+                        handleFileUpload(input, docType, zoneId);
+                    }
+                });
+            });
         });
-        
-        // Remove the old save draft event listener since we now have onclick
-        document.querySelector('button[type="button"]').addEventListener('click', function() {
-            showAlert('Draft saved to local storage.', 'success');
-        });
-        
-        // Remove the old form submission handler since we now use onclick
-        document.querySelector('form').addEventListener('submit', function(e) { ... });
     </script>
 </body>
 </html>

@@ -73,6 +73,24 @@
                     onsubmit="return handleFormSubmission(event)">
                     {% csrf_token %}
 
+                    <!-- School Dropdown -->
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-school text-gray-400"></i>
+                        </div>
+                        <select id="school" name="school"
+                            class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white"
+                            required>
+                            <option value="">Select School</option>
+                            <option value="Western Mindanao State University">Western Mindanao State University</option>
+                            <option value="Don Pablo National Highschool">Don Pablo National Highschool</option>
+                            <option value="Zamboanga National Highschool West">Zamboanga National Highschool West</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <i class="fas fa-chevron-down text-gray-400"></i>
+                        </div>
+                    </div>
+
                     <!-- Department Dropdown -->
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

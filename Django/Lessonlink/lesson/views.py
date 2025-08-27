@@ -18,6 +18,9 @@ from django.views.decorators.http import require_POST
 def landing(request):
     return render(request, 'landing.html')
 
+def org_reg_1(request):
+    return render(request, 'org_reg/org_reg_1.html')
+
 @csrf_exempt
 def registration_1(request):
     if request.method == 'POST':

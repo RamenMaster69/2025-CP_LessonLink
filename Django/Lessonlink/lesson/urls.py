@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import landing, template
-from .views import registration_1, registration_2, registration_3, registration_4, registration_5
+from .views import registration_1, registration_2, registration_3, registration_4, org_reg_1
 from .views import login_view, logout_view
 from .views import lesson_planner, lesson_plan
 from .views import dashboard, profile, ScheduleViewSet, draft, task, schedule
@@ -34,7 +34,7 @@ urlpatterns = [
     path('registration_2/', registration_2, name='registration_2'),
     path('registration_3/', registration_3, name='registration_3'),
     path('registration_4/', registration_4, name='registration_4'),
-    path('registration_5/', registration_5, name='registration_5'),
+    path('org_reg_1/', org_reg_1, name='org_reg_1'),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
     path('dashboard/', dashboard, name='dashboard'),
