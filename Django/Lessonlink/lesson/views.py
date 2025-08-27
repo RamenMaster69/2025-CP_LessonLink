@@ -177,14 +177,12 @@ def registration_4(request):
     
     if request.method == "POST":
         department = request.POST.get("department")
-        # specialization = request.POST.get("specialization")
         affiliations = request.POST.getlist("affiliation[]")
 
         if not department:
             messages.error(request, "Please complete all required fields.")
             return render(request, 'registration/registration_4.html', {
                 'department': department,
-                # 'specialization': specialization,
                 'affiliations': affiliations,
                 'error_message': "Please complete all required fields.",
                 'show_error': True
@@ -230,7 +228,6 @@ def registration_4(request):
                 role=role,
                 rank=rank,
                 department=department,
-                # specialization=specialization,
                 affiliations=", ".join(affiliations) if affiliations else ""
             )
 
@@ -247,7 +244,6 @@ def registration_4(request):
             messages.error(request, f"Registration failed: {str(e)}")
             return render(request, 'registration/registration_4.html', {
                 'department': department,
-                # 'specialization': specialization,
                 'affiliations': affiliations,
                 'error_message': f"Registration failed: {str(e)}",
                 'show_error': True
