@@ -501,10 +501,6 @@
                         </div>
                         
                         <div class="flex space-x-4">
-                            <button type="button" onclick="saveDraft()" class="px-6 py-3 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
-                                Save Draft
-                            </button>
-                            
                             <button type="submit" onclick="submitRegistration(event)" class="px-8 py-3 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center transition-colors">
                                 Submit Registration
                                 <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
@@ -623,47 +619,6 @@
                 showAlert('Redirecting to landing page...', 'info');
                 // Redirect to Django landing page
                 window.location.href = "{% url 'landing' %}";
-            }
-        }
-        
-        // Save draft function
-        function saveDraft() {
-            const formData = new FormData(document.querySelector('form'));
-            const draftData = {};
-            
-            // Collect form data
-            for (let [key, value] of formData.entries()) {
-                draftData[key] = value;
-            }
-            
-            // Add timestamp
-            draftData.savedAt = new Date().toISOString();
-            draftData.draftId = 'draft_' + Date.now();
-            
-            try {
-                // In a real application, this would save to a backend
-                // For demo purposes, we'll simulate saving
-                const draftButton = event.target;
-                const originalText = draftButton.innerHTML;
-                
-                draftButton.innerHTML = '<i data-lucide="loader" class="w-4 h-4 mr-2 animate-spin"></i>Saving...';
-                draftButton.disabled = true;
-                
-                setTimeout(() => {
-                    draftButton.innerHTML = '<i data-lucide="check" class="w-4 h-4 mr-2"></i>Draft Saved';
-                    lucide.createIcons();
-                    
-                    setTimeout(() => {
-                        draftButton.innerHTML = originalText;
-                        draftButton.disabled = false;
-                        lucide.createIcons();
-                    }, 2000);
-                    
-                    showAlert('Draft saved successfully! You can continue later.', 'success');
-                }, 1500);
-                
-            } catch (error) {
-                showAlert('Failed to save draft. Please try again.', 'error');
             }
         }
         
