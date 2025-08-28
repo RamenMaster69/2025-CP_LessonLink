@@ -62,6 +62,90 @@
         .dropdown-enter {
             animation: scaleIn 0.2s ease-out;
         }
+
+        /* Print Styles */
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            
+            body * {
+                visibility: hidden;
+            }
+            
+            #printable-section,
+            #printable-section * {
+                visibility: visible;
+            }
+            
+            #printable-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white;
+            }
+            
+            .print-header {
+                text-align: center;
+                margin-bottom: 20px;
+                border-bottom: 2px solid #000;
+                padding-bottom: 15px;
+            }
+            
+            .print-header h1 {
+                font-size: 24px;
+                font-weight: bold;
+                margin: 0 0 5px 0;
+                color: #000;
+            }
+            
+            .print-header h2 {
+                font-size: 18px;
+                margin: 5px 0;
+                color: #666;
+            }
+            
+            .print-header p {
+                margin: 5px 0;
+                color: #333;
+            }
+            
+            .print-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+                font-size: 12px;
+            }
+            
+            .print-table th,
+            .print-table td {
+                border: 1px solid #000;
+                padding: 8px 6px;
+                text-align: left;
+                vertical-align: top;
+            }
+            
+            .print-table th {
+                background-color: #f0f0f0 !important;
+                font-weight: bold;
+                color: #000;
+            }
+            
+            .print-footer {
+                margin-top: 30px;
+                text-align: center;
+                font-size: 11px;
+                border-top: 1px solid #000;
+                padding-top: 10px;
+                color: #666;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 
@@ -191,17 +275,17 @@
                 </button>
 
                 <!-- Navigation Items -->
-                <a href="{% url 'Dep_Dash' %}"
+                <a href="#"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="{% url 'Dep_Pending' %}"
+                <a href="#"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-clock text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Pending Reviews</span>
                 </a>
-                <a href="{% url 'Dep_Faculty' %}"
+                <a href="#"
                     class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
                     <i class="fas fa-users text-lg w-5"></i>
                     <span class="font-medium">Faculty</span>
@@ -248,7 +332,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
 
             <!-- Faculty Table -->
@@ -258,9 +341,9 @@
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <h2 class="text-lg font-semibold text-gray-900 mb-4 sm:mb-0">Faculty Members</h2>
                         <div class="flex items-center space-x-3">
-                            <button class="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                                <i class="fas fa-download"></i>
-                                <span>Export</span>
+                            <button id="print-btn" class="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-print"></i>
+                                <span>Print</span>
                             </button>
                         </div>
                     </div>
@@ -268,7 +351,7 @@
 
                 <!-- Table Content -->
                 <div class="overflow-x-auto">
-                    <table class="w-full">
+                    <table class="w-full" id="faculty-table">
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
@@ -276,14 +359,14 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pending Reviews</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider no-print">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
-                                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center no-print">
                                             <span class="text-blue-600 font-semibold">SR</span>
                                         </div>
                                         <div class="ml-3">
@@ -302,7 +385,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">2 pending</span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
                                     <button class="text-gray-400 hover:text-gray-600">
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
@@ -312,7 +395,7 @@
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
-                                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center no-print">
                                             <span class="text-purple-600 font-semibold">CR</span>
                                         </div>
                                         <div class="ml-3">
@@ -331,7 +414,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">1 pending</span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
                                     <button class="text-gray-400 hover:text-gray-600">
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
@@ -341,7 +424,7 @@
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
-                                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center no-print">
                                             <span class="text-green-600 font-semibold">MS</span>
                                         </div>
                                         <div class="ml-3">
@@ -360,7 +443,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">3 pending</span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
                                     <button class="text-gray-400 hover:text-gray-600">
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
@@ -370,7 +453,7 @@
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
-                                        <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                                        <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center no-print">
                                             <span class="text-yellow-600 font-semibold">JD</span>
                                         </div>
                                         <div class="ml-3">
@@ -389,7 +472,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">0 pending</span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
                                     <button class="text-gray-400 hover:text-gray-600">
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
@@ -399,7 +482,7 @@
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
-                                        <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center">
+                                        <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center no-print">
                                             <span class="text-pink-600 font-semibold">AP</span>
                                         </div>
                                         <div class="ml-3">
@@ -418,7 +501,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">1 pending</span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
                                     <button class="text-gray-400 hover:text-gray-600">
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
@@ -427,12 +510,41 @@
                         </tbody>
                     </table>
                 </div>
-
             </div>
         </main>
 
         <!-- Overlay for mobile -->
         <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden"></div>
+    </div>
+
+    <!-- Hidden printable section -->
+    <div id="printable-section" style="display: none;">
+        <div class="print-header">
+            <h1>LessonLink - Faculty Management</h1>
+            <h2>Western Mindanao State University</h2>
+            <p>Faculty List Report</p>
+        </div>
+        
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                    <th>Last Active</th>
+                    <th>Pending Reviews</th>
+                </tr>
+            </thead>
+            <tbody id="print-table-body">
+                <!-- Content will be populated by JavaScript -->
+            </tbody>
+        </table>
+        
+        <div class="print-footer">
+            <p>Generated on: <span id="print-date"></span></p>
+            <p>Report generated by: Viktor Greg Lim, Department Head</p>
+        </div>
     </div>
 
     <script>
@@ -496,6 +608,84 @@
             }
         });
 
+        // Print functionality
+        const printBtn = document.getElementById('print-btn');
+        const printableSection = document.getElementById('printable-section');
+        const printTableBody = document.getElementById('print-table-body');
+        const printDate = document.getElementById('print-date');
+
+        printBtn.addEventListener('click', () => {
+            // Clear previous content
+            printTableBody.innerHTML = '';
+            
+            // Get current date and time
+            const now = new Date();
+            const dateOptions = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            printDate.textContent = now.toLocaleDateString('en-US', dateOptions);
+            
+            // Extract data from the main table
+            const mainTable = document.getElementById('faculty-table');
+            const rows = mainTable.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length > 0) {
+                    // Extract faculty name and email
+                    const nameCell = cells[0];
+                    const nameElement = nameCell.querySelector('.text-gray-900');
+                    const emailElement = nameCell.querySelector('.text-gray-500');
+                    
+                    const name = nameElement ? nameElement.textContent.trim() : '';
+                    const email = emailElement ? emailElement.textContent.trim() : '';
+                    
+                    // Extract department (remove background styling for print)
+                    const deptSpan = cells[1].querySelector('span');
+                    const department = deptSpan ? deptSpan.textContent.trim() : '';
+                    
+                    // Extract status (remove background styling for print)
+                    const statusSpan = cells[2].querySelector('span');
+                    const status = statusSpan ? statusSpan.textContent.trim() : '';
+                    
+                    // Extract last active
+                    const lastActive = cells[3] ? cells[3].textContent.trim() : '';
+                    
+                    // Extract pending reviews (remove background styling for print)
+                    const pendingSpan = cells[4].querySelector('span');
+                    const pendingReviews = pendingSpan ? pendingSpan.textContent.trim() : '';
+                    
+                    // Create print table row
+                    const printRow = document.createElement('tr');
+                    printRow.innerHTML = `
+                        <td>${name}</td>
+                        <td>${email}</td>
+                        <td>${department}</td>
+                        <td>${status}</td>
+                        <td>${lastActive}</td>
+                        <td>${pendingReviews}</td>
+                    `;
+                    printTableBody.appendChild(printRow);
+                }
+            });
+            
+            // Show the printable section and trigger print
+            printableSection.style.display = 'block';
+            
+            // Use setTimeout to ensure the content is rendered before printing
+            setTimeout(() => {
+                window.print();
+                // Hide the printable section after print dialog closes/completes
+                setTimeout(() => {
+                    printableSection.style.display = 'none';
+                }, 100);
+            }, 100);
+        });
+
         // Handle window resize
         window.addEventListener('resize', () => {
             if (window.innerWidth >= 768) {
@@ -527,6 +717,21 @@
         setTimeout(() => {
             notificationBadge.classList.remove('hidden');
         }, 2000);
+
+        // Handle print events
+        window.addEventListener('beforeprint', () => {
+            // Ensure printable section is visible before printing
+            if (printableSection.style.display === 'none') {
+                printableSection.style.display = 'block';
+            }
+        });
+
+        window.addEventListener('afterprint', () => {
+            // Hide printable section after printing
+            setTimeout(() => {
+                printableSection.style.display = 'none';
+            }, 100);
+        });
     </script>
 </body>
 </html>
