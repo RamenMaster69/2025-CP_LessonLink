@@ -211,11 +211,17 @@
                     </div>
                 </div>
 
+                
                 <!-- Profile -->
                 <div class="relative">
                     <button id="profile-btn"
-                        class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
-                        <i class="fas fa-user text-gray-500 text-xs md:text-sm"></i>
+                        class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                        {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
+                            class="w-full h-full object-cover">
+                        {% else %}
+                        <i class="fas fa-user text-gray-500"></i>
+                        {% endif %}
                     </button>
 
                     <!-- Profile Dropdown -->
@@ -224,8 +230,13 @@
                         <div class="p-3 md:p-4 border-b border-gray-100">
                             <div class="flex items-center space-x-3">
                                 <div
-                                    class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-                                    <span class="text-white font-bold text-sm md:text-lg">{{ user.first_name|first }}</span>
+                                    class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                                    {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
+                                        class="w-full h-full object-cover">
+                                    {% else %}
+                                    <i class="fas fa-user text-white text-lg"></i>
+                                    {% endif %}
                                 </div>
                                 <div>
                                     <p class="font-semibold text-gray-900 text-sm md:text-base">{{ user.first_name }} {{ user.last_name }}</p>

@@ -12,8 +12,99 @@ from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 import json
+import os
+import time
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from django.conf import settings
+from django.core.files.base import ContentFile
+from PIL import Image
+import uuid
+from io import BytesIO
+
+@login_required
+@csrf_exempt
+def upload_profile_picture(request):
+    if request.method == 'POST' and request.FILES.get('profile_picture'):
+        profile_picture = request.FILES['profile_picture']
+        
+        # Validate file type
+        allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
+        if profile_picture.content_type not in allowed_types:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Invalid file type. Please upload JPG, PNG, or GIF.'
+            })
+        
+        # Validate file size (max 5MB)
+        if profile_picture.size > 5 * 1024 * 1024:
+            return JsonResponse({
+                'success': False, 
+                'message': 'File too large. Please upload an image smaller than 5MB.'
+            })
+        
+        try:
+            # Get the user (using your session-based approach)
+            user_id = request.session.get('user_id')
+            if not user_id:
+                return JsonResponse({'success': False, 'message': 'User not logged in'})
+            
+            user = User.objects.get(id=user_id)
+            
+            # Delete old profile picture if exists
+            if user.profile_picture:
+                try:
+                    if default_storage.exists(user.profile_picture.name):
+                        default_storage.delete(user.profile_picture.name)
+                except:
+                    pass  # Continue even if deletion fails
+            
+            # Process and resize image using PIL
+            image = Image.open(profile_picture)
+            
+            # Convert to RGB if necessary (for PNG with transparency)
+            if image.mode in ('RGBA', 'LA', 'P'):
+                background = Image.new('RGB', image.size, (255, 255, 255))
+                if image.mode == 'P':
+                    image = image.convert('RGBA')
+                background.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
+                image = background
+            
+            # Resize image to max 500x500 while maintaining aspect ratio
+            max_size = (500, 500)
+            image.thumbnail(max_size, Image.Resampling.LANCZOS)
+            
+            # Generate unique filename
+            file_extension = profile_picture.name.split('.')[-1].lower()
+            filename = f"profile_pictures/user_{user.id}_{uuid.uuid4().hex}.{file_extension}"
+            
+            # Save processed image to BytesIO
+            output = BytesIO()
+            image.save(output, format='JPEG', quality=90, optimize=True)
+            output.seek(0)
+            
+            # Save to storage
+            path = default_storage.save(filename, ContentFile(output.read()))
+            
+            # Update user's profile picture
+            user.profile_picture = path
+            user.save()
+            
+            # Return the URL for the image
+            image_url = default_storage.url(path)
+            return JsonResponse({
+                'success': True, 
+                'image_url': image_url,
+                'message': 'Profile picture uploaded successfully!'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False, 
+                'message': f'Error processing image: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request'})
 
 def landing(request):
     return render(request, 'landing.html')
@@ -355,8 +446,6 @@ def logout_view(request):
     messages.success(request, "You have been logged out successfully.")
     return redirect('landing')
 
-from django.core.files.storage import default_storage  # Make sure this import exists
-
 def profile(request):
     # Check if user is logged in
     user_id = request.session.get('user_id')
@@ -368,31 +457,29 @@ def profile(request):
         user = User.objects.get(id=user_id)
         
         if request.method == 'POST':
-            # Handle profile picture upload
-            if 'profile_picture' in request.FILES:
-                # Delete old profile picture if exists
-                if user.profile_picture:
-                    default_storage.delete(user.profile_picture.path)
-                user.profile_picture = request.FILES['profile_picture']
-            
-            # Update all fields - ensure you're getting ALL fields from the form
+            # Update all fields from the form
             user.first_name = request.POST.get('first_name', user.first_name)
             user.middle_name = request.POST.get('middle_name', user.middle_name)
             user.last_name = request.POST.get('last_name', user.last_name)
-            user.dob = request.POST.get('dob', user.dob)
             user.role = request.POST.get('role', user.role)
             user.rank = request.POST.get('rank', user.rank)
             user.department = request.POST.get('department', user.department)
-            user.specialization = request.POST.get('specialization', user.specialization)
             user.affiliations = request.POST.get('affiliations', user.affiliations)
+            
+            # Handle birth date
+            dob = request.POST.get('dob')
+            if dob:
+                user.dob = dob
+            
+            # Note: Profile picture is already handled by the AJAX upload function
+            # No need to handle it here since upload_profile_picture already saves it
             
             try:
                 user.save()
                 messages.success(request, "Profile updated successfully!")
-                return redirect('profile')  # CRITICAL: Add this redirect
+                return redirect('profile')
             except Exception as e:
                 messages.error(request, f"Error updating profile: {str(e)}")
-                # Stay on same page to show errors
         
         # GET request - show profile
         return render(request, 'profile.html', {
@@ -405,6 +492,7 @@ def profile(request):
         if 'user_id' in request.session:
             del request.session['user_id']
         return redirect('login')
+
         
 def lesson_planner(request):
     # Check if user is logged in
@@ -551,7 +639,6 @@ def st_dash(request):
 # Task API Views
 @csrf_exempt
 @require_POST
-@login_required
 def add_task_api(request):
     user_id = request.session.get('user_id')
     
@@ -600,7 +687,6 @@ def add_task_api(request):
 
 @csrf_exempt
 @require_POST
-@login_required
 def update_task_status_api(request, task_id):
     user_id = request.session.get('user_id')
     
@@ -645,7 +731,6 @@ def update_task_status_api(request, task_id):
 
 @csrf_exempt
 @require_POST
-@login_required
 def delete_task_api(request, task_id):
     user_id = request.session.get('user_id')
     
@@ -669,7 +754,6 @@ def delete_task_api(request, task_id):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
-@login_required
 def get_notifications_api(request):
     user_id = request.session.get('user_id')
     
@@ -696,7 +780,6 @@ def get_notifications_api(request):
 
 @csrf_exempt
 @require_POST
-@login_required
 def mark_notification_read_api(request, notification_id):
     user_id = request.session.get('user_id')
     

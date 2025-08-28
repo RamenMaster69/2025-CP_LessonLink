@@ -11,6 +11,9 @@ from .views import st_dash
 from .views import add_task_api, update_task_status_api, delete_task_api, get_notifications_api, mark_notification_read_api
 from django.conf import settings
 from django.conf.urls.static import static
+from . import views
+
+
 
 
 # REST Framework router
@@ -49,6 +52,7 @@ urlpatterns = [
     path('dep_pending/', Dep_Pending, name='Dep_Pending'),
     path('template/', template, name='template'),
     path('st_dash/', st_dash, name='st_dash'),
+    path('upload-profile-picture/', views.upload_profile_picture, name='upload_profile_picture'),
 ]
 
 if settings.DEBUG:

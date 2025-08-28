@@ -26,6 +26,14 @@ class User(models.Model):
     
     department = models.CharField(max_length=100)
     affiliations = models.TextField(blank=True, null=True)
+    
+    # Add this field for profile pictures
+    profile_picture = models.ImageField(
+        upload_to='profile_pictures/', 
+        null=True, 
+        blank=True,
+        help_text="Profile picture for the user"
+    )
 
     def __str__(self):
         return self.email
@@ -40,6 +48,7 @@ class User(models.Model):
         """Check if the provided raw password matches the stored hashed password"""
         return check_password(raw_password, self.password)
 
+# Your other models remain the same...
 class Schedule(models.Model):
     DAY_CHOICES = [
         ('monday', 'Monday'),

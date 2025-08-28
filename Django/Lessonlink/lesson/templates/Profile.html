@@ -63,6 +63,22 @@
         .session-modal {
             backdrop-filter: blur(8px);
         }
+        
+        /* Loading spinner for upload */
+        .upload-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 
@@ -128,8 +144,13 @@
                     <!-- Profile -->
                     <div class="relative">
                         <button id="profile-btn"
-                            class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-                            <i class="fas fa-user text-gray-600"></i>
+                            class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                            {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
+                                class="w-full h-full object-cover">
+                            {% else %}
+                            <i class="fas fa-user text-gray-500"></i>
+                            {% endif %}
                         </button>
                     </div>
                 </div>
@@ -173,9 +194,9 @@
                                 class="w-32 h-32 rounded-full overflow-hidden border-4 border-white/20 shadow-lg bg-white/10 flex items-center justify-center">
                                 {% if user.profile_picture %}
                                 <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
-                                    class="w-full h-full object-cover">
+                                    class="w-full h-full object-cover" id="profile-preview">
                                 {% else %}
-                                <i class="fas fa-user text-5xl text-white/50"></i>
+                                <i class="fas fa-user text-5xl text-white/50" id="profile-icon"></i>
                                 {% endif %}
                             </div>
                             <!-- Camera icon for upload -->
@@ -184,6 +205,7 @@
                                 <i class="fas fa-camera text-sm"></i>
                             </button>
                             <input type="file" id="profile-picture-input" accept="image/*" class="hidden">
+                            <div class="upload-spinner absolute bottom-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center hidden"></div>
                         </div>
                     </div>
 
@@ -230,7 +252,7 @@
                     </div>
 
                     <!-- Form -->
-                    <form method="post" class="space-y-6" enctype="multipart/form-data">
+                    <form method="post" class="space-y-6" enctype="multipart/form-data" id="profile-form">
                         {% csrf_token %}
 
                         <!-- First Name -->
@@ -399,19 +421,24 @@
                 this.countdownSeconds = 60;
                 
                 const modal = document.getElementById('session-warning-modal');
-                modal.classList.remove('hidden');
-                
-                // Start countdown
-                this.startCountdown();
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    // Start countdown
+                    this.startCountdown();
+                }
             }
 
             startCountdown() {
                 const countdownElement = document.getElementById('countdown');
-                countdownElement.textContent = this.countdownSeconds;
+                if (countdownElement) {
+                    countdownElement.textContent = this.countdownSeconds;
+                }
                 
                 this.countdownTimer = setInterval(() => {
                     this.countdownSeconds--;
-                    countdownElement.textContent = this.countdownSeconds;
+                    if (countdownElement) {
+                        countdownElement.textContent = this.countdownSeconds;
+                    }
                     
                     if (this.countdownSeconds <= 0) {
                         clearInterval(this.countdownTimer);
@@ -419,20 +446,31 @@
                     }
                 }, 1000);
                 
-                // Setup button handlers
-                document.getElementById('extend-session-btn').addEventListener('click', () => {
-                    this.resetActivity();
-                });
+                // Setup button handlers (only add listeners once)
+                const extendBtn = document.getElementById('extend-session-btn');
+                const logoutBtn = document.getElementById('logout-now-btn');
                 
-                document.getElementById('logout-now-btn').addEventListener('click', () => {
-                    this.logout();
-                });
+                if (extendBtn && !extendBtn.hasAttribute('data-listener')) {
+                    extendBtn.setAttribute('data-listener', 'true');
+                    extendBtn.addEventListener('click', () => {
+                        this.resetActivity();
+                    });
+                }
+                
+                if (logoutBtn && !logoutBtn.hasAttribute('data-listener')) {
+                    logoutBtn.setAttribute('data-listener', 'true');
+                    logoutBtn.addEventListener('click', () => {
+                        this.logout();
+                    });
+                }
             }
 
             hideWarningModal() {
                 this.isWarningShown = false;
                 const modal = document.getElementById('session-warning-modal');
-                modal.classList.add('hidden');
+                if (modal) {
+                    modal.classList.add('hidden');
+                }
             }
 
             clearTimers() {
@@ -454,29 +492,37 @@
                 const timerElement = document.getElementById('session-timer');
                 if (!timerElement) return;
                 
-                setInterval(() => {
+                const updateTimer = () => {
                     const remainingTime = Math.max(0, this.sessionDuration - (Date.now() - this.lastActivity));
                     const minutes = Math.floor(remainingTime / 60000);
                     const seconds = Math.floor((remainingTime % 60000) / 1000);
                     
                     timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                }, 1000);
+                };
+                
+                // Update immediately
+                updateTimer();
+                
+                // Update every second
+                setInterval(updateTimer, 1000);
             }
 
             logout() {
                 // Clear all timers
                 this.clearTimers();
                 
-                // Redirect to logout URL (Django's default logout view)
-                window.location.href = "{% url 'logout' %}";
+                // Get the logout URL - you'll need to replace this with your actual logout URL
+                // Since we can't use Django template tags in this context, use a hardcoded path
+                window.location.href = "/logout/";
             }
         }
 
-        // Initialize the session manager when DOM is loaded
+        // Initialize everything when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
+            // Initialize session manager
             const sessionManager = new SessionManager();
             
-            // Edit functionality
+            // Get all necessary elements
             const editBtn = document.getElementById('edit-btn');
             const saveSection = document.getElementById('save-section');
             const cancelBtn = document.getElementById('cancel-btn');
@@ -484,87 +530,219 @@
             const uploadBtn = document.getElementById('upload-profile-pic');
             const profilePicInput = document.getElementById('profile-picture-input');
             const profilePicField = document.getElementById('profile_picture');
+            const profileForm = document.getElementById('profile-form');
+            const spinner = document.querySelector('.upload-spinner');
 
             let originalValues = {};
+            let isEditMode = false;
 
             // Store original values
             inputs.forEach(input => {
                 originalValues[input.name] = input.value;
             });
 
-            editBtn.addEventListener('click', () => {
-                // Enable all inputs except email (usually shouldn't be changed)
-                inputs.forEach(input => {
-                    if (input.name !== 'email') {
-                        input.removeAttribute('readonly');
-                        input.classList.remove('bg-gray-50');
-                        input.classList.add('bg-white');
+            // Edit button functionality
+            if (editBtn) {
+                editBtn.addEventListener('click', () => {
+                    isEditMode = true;
+                    
+                    // Enable all inputs except email
+                    inputs.forEach(input => {
+                        if (input.name !== 'email') {
+                            input.removeAttribute('readonly');
+                            input.classList.remove('bg-gray-50');
+                            input.classList.add('bg-white');
+                        }
+                    });
+
+                    // Show save section and hide edit button
+                    if (saveSection) saveSection.classList.remove('hidden');
+                    editBtn.classList.add('hidden');
+
+                    // Show profile picture upload button
+                    if (uploadBtn) uploadBtn.style.display = 'flex';
+                });
+            }
+
+            // Cancel button functionality
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    isEditMode = false;
+                    
+                    // Restore original values and make inputs readonly again
+                    inputs.forEach(input => {
+                        input.value = originalValues[input.name] || '';
+                        input.setAttribute('readonly', true);
+                        input.classList.add('bg-gray-50');
+                        input.classList.remove('bg-white');
+                    });
+
+                    // Hide save section and show edit button
+                    if (saveSection) saveSection.classList.add('hidden');
+                    if (editBtn) editBtn.classList.remove('hidden');
+
+                    // Hide profile picture upload button
+                    if (uploadBtn) uploadBtn.style.display = 'none';
+                    
+                    // Reset profile picture field
+                    if (profilePicField) profilePicField.value = '';
+                    
+                    // Restore original profile image if it exists
+                    const profilePreview = document.getElementById('profile-preview');
+                    if (profilePreview && profilePreview.dataset.originalSrc) {
+                        profilePreview.src = profilePreview.dataset.originalSrc;
                     }
                 });
+            }
 
-                // Show save section and hide edit button
-                saveSection.classList.remove('hidden');
-                editBtn.classList.add('hidden');
-
-                // Enable profile picture upload
-                uploadBtn.style.display = 'flex';
-            });
-
-            cancelBtn.addEventListener('click', () => {
-                // Restore original values and make inputs readonly again
-                inputs.forEach(input => {
-                    input.value = originalValues[input.name] || '';
-                    input.setAttribute('readonly', true);
-                    input.classList.add('bg-gray-50');
-                    input.classList.remove('bg-white');
+            // Profile picture upload button click
+            if (uploadBtn) {
+                uploadBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (profilePicInput) {
+                        profilePicInput.click();
+                    }
                 });
+            }
 
-                // Hide save section and show edit button
-                saveSection.classList.add('hidden');
-                editBtn.classList.remove('hidden');
+            // Profile picture input change handler
+            if (profilePicInput) {
+                profilePicInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
 
-                // Hide profile picture upload button
-                uploadBtn.style.display = 'none';
-            });
-
-            // Profile picture upload functionality
-            uploadBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                profilePicInput.click();
-            });
-
-            profilePicInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    // Here you would typically upload the file to your server
-                    // For now, we'll just store the filename
-                    profilePicField.value = file.name;
-
-                    // Preview the image
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const profileImg = document.querySelector('.w-32.h-32.rounded-full img');
-                        if (profileImg) {
-                            profileImg.src = event.target.result;
-                        } else {
-                            // Replace the icon with the image
-                            const icon = document.querySelector('.w-32.h-32.rounded-full .fa-user');
-                            if (icon) {
-                                icon.remove();
-                                const img = document.createElement('img');
-                                img.src = event.target.result;
-                                img.className = 'w-full h-full object-cover';
-                                document.querySelector('.w-32.h-32.rounded-full').appendChild(img);
-                            }
+                    // Validate file type
+                    if (!file.type.match('image.*')) {
+                        alert('Please select an image file (jpg, png, gif, etc.)');
+                        return;
+                    }
+                    
+                    // Validate file size (max 5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Please select an image smaller than 5MB');
+                        return;
+                    }
+                    
+                    // Show loading spinner
+                    if (uploadBtn) uploadBtn.style.display = 'none';
+                    if (spinner) spinner.classList.remove('hidden');
+                    
+                    // Create FormData to send the file
+                    const formData = new FormData();
+                    formData.append('profile_picture', file);
+                    
+                    // Get CSRF token from the form
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                    if (csrfToken) {
+                        formData.append('csrfmiddlewaretoken', csrfToken.value);
+                    }
+                    
+                    // Send AJAX request to upload the image
+                    fetch('/upload-profile-picture/', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
                         }
-                    };
-                    reader.readAsDataURL(file);
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            // Update the hidden field with the image URL
+                            if (profilePicField) {
+                                profilePicField.value = data.image_url;
+                            }
+                            
+                            // Update the profile image preview
+                            updateProfileImage(data.image_url);
+                            
+                            // Show success message
+                            console.log('Profile picture uploaded successfully!');
+                        } else {
+                            alert('Error uploading image: ' + (data.message || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error uploading image. Please try again.');
+                    })
+                    .finally(() => {
+                        // Hide spinner and show upload button again
+                        if (spinner) spinner.classList.add('hidden');
+                        if (uploadBtn) uploadBtn.style.display = 'flex';
+                    });
+                });
+            }
+
+            // Function to update profile image display
+            function updateProfileImage(imageUrl) {
+                const profileContainer = document.querySelector('.w-32.h-32.rounded-full.overflow-hidden');
+                const profilePreview = document.getElementById('profile-preview');
+                const profileIcon = document.getElementById('profile-icon');
+                
+                if (profileContainer) {
+                    if (profilePreview) {
+                        // Store original source for cancel functionality
+                        if (!profilePreview.dataset.originalSrc) {
+                            profilePreview.dataset.originalSrc = profilePreview.src;
+                        }
+                        profilePreview.src = imageUrl;
+                    } else if (profileIcon) {
+                        // Replace the icon with the image
+                        profileIcon.remove();
+                        const img = document.createElement('img');
+                        img.src = imageUrl;
+                        img.className = 'w-full h-full object-cover';
+                        img.id = 'profile-preview';
+                        profileContainer.appendChild(img);
+                    } else {
+                        // Create new image element
+                        profileContainer.innerHTML = '';
+                        const img = document.createElement('img');
+                        img.src = imageUrl;
+                        img.className = 'w-full h-full object-cover';
+                        img.id = 'profile-preview';
+                        profileContainer.appendChild(img);
+                    }
                 }
-            });
+            }
 
             // Initialize - hide upload button when not in edit mode
-            uploadBtn.style.display = 'none';
+            if (uploadBtn) {
+                uploadBtn.style.display = 'none';
+            }
+
+            // Handle form submission
+            if (profileForm) {
+                profileForm.addEventListener('submit', (e) => {
+                    // Let the form submit normally
+                    console.log('Form submitted');
+                });
+            }
+
+            // Handle notification button
+            const notificationBtn = document.getElementById('notification-btn');
+            if (notificationBtn) {
+                notificationBtn.addEventListener('click', () => {
+                    // Add notification functionality here if needed
+                    console.log('Notifications clicked');
+                });
+            }
+
+            // Handle profile button
+            const profileBtn = document.getElementById('profile-btn');
+            if (profileBtn) {
+                profileBtn.addEventListener('click', () => {
+                    // Add profile dropdown functionality here if needed
+                    console.log('Profile button clicked');
+                });
+            }
         });
-    </script>
+</script>
 </body>
 </html>
