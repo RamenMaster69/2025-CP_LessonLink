@@ -106,7 +106,6 @@
                     </div>
                 </div>
                 <nav class="hidden md:flex items-center space-x-6">
-                    <a href="#" class="text-sm text-gray-600 hover:text-gray-900">Support</a>
                     <a href="{% url 'landing' %}"><button onclick="goBackToLogin()" class="flex items-center px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
                         <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
                         Back to Login
@@ -600,15 +599,6 @@
             currentActiveSection = sectionNumber;
             
             console.log(`Active section: ${sectionNumber}`); // Debug log
-        }
-        
-        // Go back to login function
-        function goBackToLogin() {
-            if (confirm('Are you sure you want to go back? Any unsaved changes will be lost.')) {
-                showAlert('Redirecting to landing page...', 'info');
-                // Redirect to Django landing page
-                window.location.href = "{% url 'landing' %}";
-            }
         }
         
         // Submit registration function
