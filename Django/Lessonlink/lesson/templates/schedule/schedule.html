@@ -14,7 +14,9 @@ tailwind.config = {
             animation: {
                 'fade-in': 'fadeIn 0.3s ease-in-out',
                 'slide-in': 'slideIn 0.3s ease-out',
-                'scale-in': 'scaleIn 0.2s ease-out'
+                'scale-in': 'scaleIn 0.2s ease-out',
+                'bounce-in': 'bounceIn 0.4s ease-out',
+                'slide-up': 'slideUp 0.3s ease-out'
             }
         }
     }
@@ -52,6 +54,35 @@ tailwind.config = {
     to {
         opacity: 1;
         transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3) translateY(-50px);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
@@ -163,6 +194,20 @@ tailwind.config = {
         border-radius: 0;
     }
 }
+
+/* Custom Pop-up Styles */
+.popup-modal {
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.popup-content {
+    animation: bounceIn 0.4s ease-out;
+}
+
+.notification-toast {
+    animation: slideUp 0.3s ease-out;
+}
 </style>
 </head>
 
@@ -263,12 +308,7 @@ tailwind.config = {
         <div class="relative">
             <button id="profile-btn"
                 class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
-                {% if user.profile_picture %}
-                <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
-                    class="w-full h-full object-cover">
-                {% else %}
                 <i class="fas fa-user text-gray-500"></i>
-                {% endif %}
             </button>
 
             <!-- Profile Dropdown -->
@@ -278,21 +318,16 @@ tailwind.config = {
                     <div class="flex items-center space-x-3">
                         <div
                             class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-                            {% if user.profile_picture %}
-                            <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
-                                class="w-full h-full object-cover">
-                            {% else %}
                             <i class="fas fa-user text-white text-lg"></i>
-                            {% endif %}
                         </div>
                         <div>
-                            <p class="font-semibold text-gray-900">{{ user.first_name }} {{ user.middle_name }} {{user.last_name}}</p>
-                            <p class="text-sm text-gray-500">{{ user.role }}</p>
+                            <p class="font-semibold text-gray-900">John Doe</p>
+                            <p class="text-sm text-gray-500">Teacher</p>
                         </div>
                     </div>
                 </div>
                 <div class="py-2">
-                    <a href="{% url 'profile' %}"
+                    <a href="#"
                         class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
                         <i class="fas fa-user w-4"></i>
                         <span>My Profile</span>
@@ -303,7 +338,7 @@ tailwind.config = {
                         <span>Settings</span>
                     </a>
                     <hr class="my-2">
-                    <a href="{% url 'logout' %}"
+                    <a href="#"
                         class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
                         <i class="fas fa-sign-out-alt w-4"></i>
                         <span>Sign Out</span>
@@ -321,24 +356,24 @@ tailwind.config = {
     class="w-64 bg-white shadow-lg fixed top-16 bottom-0 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-40 overflow-y-auto">
     <nav class="p-4 pt-8 space-y-2">
         <!-- Create Lesson Button -->
-        <a href="{% url 'lesson_planner' %}"><button
+        <button
             class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
             <i class="fas fa-plus text-lg"></i>
             <span class="font-medium">Create Lesson</span>
-        </button></a>
+        </button>
 
         <!-- Navigation Items -->
-        <a href="{% url 'dashboard' %}"
+        <a href="#"
             class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
             <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
             <span>Dashboard</span>
         </a>
-        <a href="{% url 'draft' %}"
+        <a href="#"
             class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
             <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
             <span>Drafts</span>
         </a>
-        <a href="{% url 'task' %}"
+        <a href="#"
             class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
             <i class="fas fa-tasks text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
             <span>Tasks</span>
@@ -539,9 +574,198 @@ tailwind.config = {
 </div>
 </div>
 
+<!-- Custom Confirmation Modal -->
+<div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[9999] hidden flex items-center justify-center p-4 popup-modal">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full popup-content">
+        <div class="p-6 text-center">
+            <div class="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Remove Class</h3>
+            <p class="text-gray-600 mb-6">Are you sure you want to remove this class from your schedule?</p>
+            
+            <div class="flex space-x-3">
+                <button id="confirm-cancel" 
+                    class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+                    Cancel
+                </button>
+                <button id="confirm-delete" 
+                    class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
+                    Remove
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div id="error-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[9999] hidden flex items-center justify-center p-4 popup-modal">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full popup-content">
+        <div class="p-6 text-center">
+            <div class="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-times-circle text-red-600 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Error</h3>
+            <p id="error-message" class="text-gray-600 mb-6">Something went wrong. Please try again.</p>
+            
+            <button id="error-ok" 
+                class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
+                OK
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div id="success-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[9999] hidden flex items-center justify-center p-4 popup-modal">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full popup-content">
+        <div class="p-6 text-center">
+            <div class="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Success!</h3>
+            <p id="success-message" class="text-gray-600 mb-6">Class has been added successfully.</p>
+            
+            <button id="success-ok" 
+                class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                OK
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Validation Modal -->
+<div id="validation-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[9999] hidden flex items-center justify-center p-4 popup-modal">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full popup-content">
+        <div class="p-6 text-center">
+            <div class="w-16 h-16 mx-auto mb-4 bg-yellow-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-exclamation-circle text-yellow-600 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Validation Error</h3>
+            <p id="validation-message" class="text-gray-600 mb-6">Please fill in all required fields.</p>
+            
+            <button id="validation-ok" 
+                class="w-full px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-medium">
+                OK
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notifications Container -->
+<div id="toast-container" class="fixed top-20 right-4 z-[9998] space-y-2"></div>
+
 <script>
 // Store schedule data
 let scheduleData = {};
+
+// Modal and notification functions
+function showConfirmation(message, onConfirm) {
+    const modal = document.getElementById('confirmation-modal');
+    const confirmBtn = document.getElementById('confirm-delete');
+    const cancelBtn = document.getElementById('confirm-cancel');
+    
+    // Update message if provided
+    if (message) {
+        modal.querySelector('p').textContent = message;
+    }
+    
+    modal.classList.remove('hidden');
+    
+    // Remove existing event listeners
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    const newCancelBtn = cancelBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+    
+    // Add new event listeners
+    newConfirmBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        onConfirm();
+    });
+    
+    newCancelBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+}
+
+function showError(message) {
+    const modal = document.getElementById('error-modal');
+    const errorMessage = document.getElementById('error-message');
+    const okBtn = document.getElementById('error-ok');
+    
+    errorMessage.textContent = message;
+    modal.classList.remove('hidden');
+    
+    okBtn.onclick = () => {
+        modal.classList.add('hidden');
+    };
+}
+
+function showSuccess(message) {
+    const modal = document.getElementById('success-modal');
+    const successMessage = document.getElementById('success-message');
+    const okBtn = document.getElementById('success-ok');
+    
+    successMessage.textContent = message;
+    modal.classList.remove('hidden');
+    
+    okBtn.onclick = () => {
+        modal.classList.add('hidden');
+    };
+}
+
+function showValidation(message) {
+    const modal = document.getElementById('validation-modal');
+    const validationMessage = document.getElementById('validation-message');
+    const okBtn = document.getElementById('validation-ok');
+    
+    validationMessage.textContent = message;
+    modal.classList.remove('hidden');
+    
+    okBtn.onclick = () => {
+        modal.classList.add('hidden');
+    };
+}
+
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    
+    const icons = {
+        success: 'fas fa-check-circle text-green-600',
+        error: 'fas fa-times-circle text-red-600',
+        warning: 'fas fa-exclamation-triangle text-yellow-600',
+        info: 'fas fa-info-circle text-blue-600'
+    };
+    
+    const colors = {
+        success: 'bg-green-50 border-green-200',
+        error: 'bg-red-50 border-red-200',
+        warning: 'bg-yellow-50 border-yellow-200',
+        info: 'bg-blue-50 border-blue-200'
+    };
+    
+    toast.className = `notification-toast flex items-center p-4 mb-2 ${colors[type]} border rounded-lg shadow-lg max-w-sm`;
+    toast.innerHTML = `
+        <i class="${icons[type]} mr-3"></i>
+        <span class="text-sm font-medium text-gray-800">${message}</span>
+        <button class="ml-auto text-gray-400 hover:text-gray-600" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-10px)';
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, 5000);
+}
 
 // DOM elements
 const mobileMenuBtn = document.getElementById('mobile-menu-btn');
@@ -694,10 +918,10 @@ function updateMobileDayView(day) {
     document.querySelectorAll('.mobile-time-slot .schedule-item').forEach(item => {
         item.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (confirm('Remove this class?')) {
-                const slot = item.closest('.mobile-time-slot');
-                const classId = item.dataset.id;
-                
+            const slot = item.closest('.mobile-time-slot');
+            const classId = item.dataset.id;
+            
+            showConfirmation('Are you sure you want to remove this class from your schedule?', () => {
                 // Send delete request to server
                 fetch(`/api/schedules/${classId}/`, {
                     method: 'DELETE',
@@ -711,15 +935,16 @@ function updateMobileDayView(day) {
                         delete scheduleData[classKey];
                         updateScheduleDisplay();
                         updateMobileDayView(slot.dataset.day);
+                        showToast('Class removed successfully', 'error');
                     } else {
-                        alert('Error deleting class');
+                        showError('Error deleting class. Please try again.');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Error deleting class');
+                    showError('Error deleting class. Please try again.');
                 });
-            }
+            });
         });
     });
 }
@@ -745,22 +970,28 @@ function getCSRFToken() {
 addClassForm.addEventListener('submit', (e) => {
     e.preventDefault();
     
-    const subject = document.getElementById('subject-input').value;
-    const description = document.getElementById('description-input').value;
+    const subject = document.getElementById('subject-input').value.trim();
+    const description = document.getElementById('description-input').value.trim();
     const day = document.getElementById('day-selector').value;
     const time = document.getElementById('time-selector').value;
 
     if (!subject || !day || !time) {
-        alert('Please fill in all required fields');
+        showValidation('Please fill in all required fields (Subject, Day, and Time).');
         return;
     }
 
     // Check if slot is already occupied
     const classKey = `${day}-${time}`;
     if (scheduleData[classKey]) {
-        alert('This time slot is already occupied');
+        showError('This time slot is already occupied. Please choose a different time.');
         return;
     }
+
+    // Simulate API call with loading state
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Adding...';
+    submitBtn.disabled = true;
 
     // Send data to server
     fetch('/api/schedules/', {
@@ -793,10 +1024,24 @@ addClassForm.addEventListener('submit', (e) => {
         // Close modal and reset form
         addClassModal.classList.add('hidden');
         addClassForm.reset();
+        
+        // Reset button
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        
+        // Show success notification
+        showSuccess(`${subject} class has been added to your ${day} schedule.`);
+        showToast(`${subject} added successfully`, 'success');
+        
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error adding class');
+        
+        // Reset button
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        
+        showError('Error adding class. Please try again.');
     });
 });
 
@@ -819,7 +1064,8 @@ function updateScheduleDisplay() {
             // Add click handler to edit/remove
             scheduleItem.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (confirm('Remove this class?')) {
+                
+                showConfirmation(`Are you sure you want to remove "${classData.subject}" from your schedule?`, () => {
                     // Send delete request to server
                     fetch(`/api/schedules/${classData.id}/`, {
                         method: 'DELETE',
@@ -838,15 +1084,17 @@ function updateScheduleDisplay() {
                             if (activeDay === classData.day) {
                                 updateMobileDayView(classData.day);
                             }
+                            
+                            showToast('Class removed successfully', 'error');
                         } else {
-                            alert('Error deleting class');
+                            showError('Error deleting class. Please try again.');
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        alert('Error deleting class');
+                        showError('Error deleting class. Please try again.');
                     });
-                }
+                });
             });
 
             slot.appendChild(scheduleItem);
@@ -854,8 +1102,9 @@ function updateScheduleDisplay() {
     });
 }
 
-// Load schedule data on page load
+// Initialize with empty schedule and load from database
 document.addEventListener('DOMContentLoaded', function() {
+    // Load existing schedule data from server
     fetch('/api/schedules/')
         .then(response => response.json())
         .then(data => {
@@ -866,19 +1115,46 @@ document.addEventListener('DOMContentLoaded', function() {
             updateScheduleDisplay();
             updateMobileDayView('monday');
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error('Error loading schedule:', error);
+            showError('Error loading schedule data. Please refresh the page.');
+        });
 });
 
 // Add click handlers to empty time slots
-document.querySelectorAll('.time-slot[data-day]').forEach(slot => {
-    slot.addEventListener('click', () => {
-        if (!slot.querySelector('.schedule-item')) {
-            // Pre-fill the modal with the clicked slot's data
-            document.getElementById('day-selector').value = slot.dataset.day;
-            document.getElementById('time-selector').value = slot.dataset.time;
-            addClassModal.classList.remove('hidden');
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.time-slot[data-day]').forEach(slot => {
+        slot.addEventListener('click', () => {
+            if (!slot.querySelector('.schedule-item')) {
+                // Pre-fill the modal with the clicked slot's data
+                document.getElementById('day-selector').value = slot.dataset.day;
+                document.getElementById('time-selector').value = slot.dataset.time;
+                addClassModal.classList.remove('hidden');
+            }
+        });
+    });
+});
+
+// Close modals when clicking outside
+document.addEventListener('click', (e) => {
+    const modals = ['confirmation-modal', 'error-modal', 'success-modal', 'validation-modal'];
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (e.target === modal) {
+            modal.classList.add('hidden');
         }
     });
+});
+
+// ESC key to close modals
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const modals = ['confirmation-modal', 'error-modal', 'success-modal', 'validation-modal', 'add-class-modal'];
+        modals.forEach(modalId => {
+            document.getElementById(modalId).classList.add('hidden');
+        });
+        addClassForm.reset();
+    }
 });
 </script>
 </body>
