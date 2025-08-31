@@ -356,29 +356,29 @@ tailwind.config = {
     class="w-64 bg-white shadow-lg fixed top-16 bottom-0 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-40 overflow-y-auto">
     <nav class="p-4 pt-8 space-y-2">
         <!-- Create Lesson Button -->
-        <button
+        <a href="{% url 'lesson_planner' %}"><button
             class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
             <i class="fas fa-plus text-lg"></i>
             <span class="font-medium">Create Lesson</span>
-        </button>
+        </button></a>
 
         <!-- Navigation Items -->
-        <a href="#"
+        <a href="{% url 'dashboard' %}"
             class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
             <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
             <span>Dashboard</span>
         </a>
-        <a href="#"
+        <a href="{% url 'draft' %}"
             class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
             <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
             <span>Drafts</span>
         </a>
-        <a href="#"
+        <a href="{% url 'task' %}"
             class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
             <i class="fas fa-tasks text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
             <span>Tasks</span>
         </a>
-        <a href="#"
+        <a href=""
             class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
             <i class="fas fa-calendar-alt text-lg w-5"></i>
             <span class="font-medium">Schedule</span>
