@@ -19,6 +19,49 @@
         .success-border {
             border-color: #10b981;
         }
+        
+        /* Fixed message container styles */
+        .message-container {
+            position: relative;
+            z-index: 10;
+            max-width: 100%;
+            word-wrap: break-word;
+        }
+        
+        /* Smooth animations for feedback messages */
+        .feedback-message {
+            transition: all 0.3s ease-in-out;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .feedback-message.hidden {
+            opacity: 0;
+            transform: translateY(-10px);
+            max-height: 0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        /* Password strength indicator */
+        .password-strength {
+            height: 4px;
+            background-color: #e5e7eb;
+            border-radius: 2px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .password-strength-bar {
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .strength-weak { background-color: #ef4444; width: 25%; }
+        .strength-fair { background-color: #f59e0b; width: 50%; }
+        .strength-good { background-color: #3b82f6; width: 75%; }
+        .strength-strong { background-color: #10b981; width: 100%; }
     </style>
 </head>
 
@@ -38,26 +81,30 @@
                     <p class="text-gray-600">Create your educator account and start planning smarter lessons</p>
                 </div>
 
-                <!-- Display Django Messages -->
+                <!-- Display Django Messages - Fixed Container -->
                 {% if messages %}
-                    {% for message in messages %}
-                        <div class="mb-4 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 border border-red-300 text-red-700{% elif message.tags == 'success' %}bg-green-100 border border-green-300 text-green-700{% else %}bg-blue-100 border border-blue-300 text-blue-700{% endif %}">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    {% if message.tags == 'error' %}
-                                        <i class="fas fa-exclamation-circle"></i>
-                                    {% elif message.tags == 'success' %}
-                                        <i class="fas fa-check-circle"></i>
-                                    {% else %}
-                                        <i class="fas fa-info-circle"></i>
-                                    {% endif %}
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm">{{ message }}</p>
+                    <div class="message-container mb-6 space-y-3">
+                        {% for message in messages %}
+                            <div class="p-4 rounded-lg shadow-sm {% if message.tags == 'error' %}bg-red-50 border border-red-200 text-red-800{% elif message.tags == 'success' %}bg-green-50 border border-green-200 text-green-800{% elif message.tags == 'warning' %}bg-yellow-50 border border-yellow-200 text-yellow-800{% else %}bg-blue-50 border border-blue-200 text-blue-800{% endif %}">
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0 mt-0.5">
+                                        {% if message.tags == 'error' %}
+                                            <i class="fas fa-exclamation-circle text-red-500"></i>
+                                        {% elif message.tags == 'success' %}
+                                            <i class="fas fa-check-circle text-green-500"></i>
+                                        {% elif message.tags == 'warning' %}
+                                            <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                                        {% else %}
+                                            <i class="fas fa-info-circle text-blue-500"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ml-3 flex-1">
+                                        <p class="text-sm leading-5">{{ message }}</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    {% endfor %}
+                        {% endfor %}
+                    </div>
                 {% endif %}
 
                 <form class="space-y-6" method="POST" action="{% url 'registration_1' %}" onsubmit="return validateForm(event)">
@@ -73,7 +120,7 @@
                             placeholder="Email Address" required>
                         
                         <!-- Real-time email validation feedback -->
-                        <div id="emailFeedback" class="hidden text-sm mt-2 flex items-center">
+                        <div id="emailFeedback" class="feedback-message hidden text-sm mt-2 flex items-center">
                             <i class="fas fa-circle-notch fa-spin mr-2" id="emailSpinner" style="display: none;"></i>
                             <i class="fas fa-exclamation-circle mr-2 text-red-500" id="emailErrorIcon" style="display: none;"></i>
                             <i class="fas fa-check-circle mr-2 text-green-500" id="emailSuccessIcon" style="display: none;"></i>
@@ -81,16 +128,16 @@
                         </div>
                         
                         <!-- Client-side email validation error -->
-                        <div id="emailError" class="hidden text-red-500 text-sm mt-2 flex items-center">
+                        <div id="emailError" class="feedback-message hidden text-red-500 text-sm mt-2 flex items-center">
                             <i class="fas fa-exclamation-circle mr-2"></i>
-                            Please enter a valid email address
+                            <span>Please enter a valid email address</span>
                         </div>
                         
                         <!-- Django validation error -->
                         {% if show_error and email_exists %}
                         <div class="text-red-500 text-sm mt-2 flex items-center">
                             <i class="fas fa-exclamation-circle mr-2"></i>
-                            {{ error_message }} <a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-500 ml-1">Sign in here</a>
+                            <span>{{ error_message }} <a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-500 ml-1 underline">Sign in here</a></span>
                         </div>
                         {% endif %}
                     </div>
@@ -104,80 +151,93 @@
                             class="input-focus block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                             placeholder="Password (min 8 characters)" required>
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                            <button type="button" class="text-gray-400 hover:text-gray-600"
+                            <button type="button" class="text-gray-400 hover:text-gray-600 focus:outline-none"
                                 onclick="togglePassword('password')">
                                 <i class="fas fa-eye" id="togglePassword"></i>
                             </button>
                         </div>
-                        <div id="passwordError" class="hidden text-red-500 text-sm mt-2 flex items-center">
+                        
+                        <!-- Password strength indicator -->
+                        <div class="password-strength mt-2" id="passwordStrength" style="display: none;">
+                            <div class="password-strength-bar" id="passwordStrengthBar"></div>
+                        </div>
+                        
+                        <!-- Password requirements -->
+                        <div id="passwordRequirements" class="feedback-message hidden text-sm mt-2 space-y-1">
+                            <div class="flex items-center text-gray-500" id="lengthReq">
+                                <i class="fas fa-circle mr-2 text-xs"></i>
+                                <span>At least 8 characters</span>
+                            </div>
+                        </div>
+                        
+                        <div id="passwordError" class="feedback-message hidden text-red-500 text-sm mt-2 flex items-center">
                             <i class="fas fa-exclamation-circle mr-2"></i>
-                            Password must be at least 8 characters long
+                            <span>Password must be at least 8 characters long</span>
                         </div>
                         
                         <!-- Django password mismatch error -->
                         {% if show_error and password_mismatch %}
                         <div class="text-red-500 text-sm mt-2 flex items-center">
                             <i class="fas fa-exclamation-circle mr-2"></i>
-                            {{ error_message }}
+                            <span>{{ error_message }}</span>
                         </div>
                         {% endif %}
                     </div>
 
                     <!-- Confirm Password -->
-                    <div>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-lock text-gray-400"></i>
-                            </div>
-                            <input type="password" id="confirmPassword" name="confirmPassword"
-                                class="input-focus block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                placeholder="Confirm Password" required>
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                <button type="button" class="text-gray-400 hover:text-gray-600"
-                                    onclick="togglePassword('confirmPassword')">
-                                    <i class="fas fa-eye" id="toggleConfirmPassword"></i>
-                                </button>
-                            </div>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-gray-400"></i>
                         </div>
+                        <input type="password" id="confirmPassword" name="confirmPassword"
+                            class="input-focus block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                            placeholder="Confirm Password" required>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <button type="button" class="text-gray-400 hover:text-gray-600 focus:outline-none"
+                                onclick="togglePassword('confirmPassword')">
+                                <i class="fas fa-eye" id="toggleConfirmPassword"></i>
+                            </button>
+                        </div>
+                        
                         <!-- Password Match Error Message -->
-                        <div id="passwordMatchError" class="hidden text-red-500 text-sm mt-2 flex items-center">
+                        <div id="passwordMatchError" class="feedback-message hidden text-red-500 text-sm mt-2 flex items-center">
                             <i class="fas fa-exclamation-circle mr-2"></i>
-                            Passwords do not match
+                            <span>Passwords do not match</span>
                         </div>
                         
                         <!-- Real-time password match feedback -->
-                        <div id="passwordMatchFeedback" class="hidden text-sm mt-2 flex items-center">
+                        <div id="passwordMatchFeedback" class="feedback-message hidden text-sm mt-2 flex items-center">
                             <i class="fas fa-check-circle mr-2 text-green-500"></i>
                             <span class="text-green-600">Passwords match!</span>
                         </div>
                     </div>
 
                     <!-- Math CAPTCHA -->
-                    <div class="bg-gray-100 p-4 rounded-lg">
-                        <div class="flex items-center justify-between">
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <div class="flex items-center justify-between mb-3">
                             <div>
                                 <p class="text-sm font-medium text-gray-700">Security Check</p>
                                 <p class="text-sm text-gray-600">Solve this simple math problem</p>
                             </div>
-                            <div id="mathQuestion" class="text-lg font-bold"></div>
+                            <div id="mathQuestion" class="text-lg font-bold text-gray-800 bg-white px-3 py-1 rounded border"></div>
                         </div>
                         <input type="text" id="mathAnswer" name="mathAnswer"
-                            class="mt-2 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                             placeholder="Your answer" required>
-                        <div id="mathError" class="hidden text-red-500 text-sm mt-2 flex items-center">
+                        <div id="mathError" class="feedback-message hidden text-red-500 text-sm mt-2 flex items-center">
                             <i class="fas fa-exclamation-circle mr-2"></i>
-                            Incorrect answer, please try again
+                            <span>Incorrect answer, please try again</span>
                         </div>
                     </div>
 
                     <!-- Terms Checkbox -->
-                    <div class="flex items-center">
+                    <div class="flex items-start">
                         <input id="terms" name="terms" type="checkbox"
-                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" required>
-                        <label for="terms" class="ml-3 block text-sm text-gray-700">
-                            I agree to the <a href="#" class="text-blue-600 hover:text-blue-500 font-medium">Terms of
+                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1" required>
+                        <label for="terms" class="ml-3 block text-sm text-gray-700 leading-5">
+                            I agree to the <a href="#" class="text-blue-600 hover:text-blue-500 font-medium underline">Terms of
                                 Service</a> and <a href="#"
-                                class="text-blue-600 hover:text-blue-500 font-medium">Privacy Policy</a>
+                                class="text-blue-600 hover:text-blue-500 font-medium underline">Privacy Policy</a>
                         </label>
                     </div>
 
@@ -202,7 +262,8 @@
                     <div class="w-full">
                         <button type="button"
                             class="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
-                            <i class="fab fa-google text-red-500 text-lg"></i>
+                            <i class="fab fa-google text-red-500 text-lg mr-2"></i>
+                            <span>Continue with Google</span>
                         </button>
                     </div>
 
@@ -211,7 +272,7 @@
                         <p class="text-sm text-gray-600">
                             Already have a LessonLink account?
                             <a href="{% url 'login' %}"
-                                class="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
+                                class="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200 underline">
                                 Sign in here
                             </a>
                         </p>
@@ -234,10 +295,82 @@
             document.getElementById('mathQuestion').textContent = `${num1} + ${num2} = ?`;
         }
         
+        // Password strength checker
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            if (password.length >= 8) strength++;
+            if (password.match(/[a-z]/)) strength++;
+            if (password.match(/[A-Z]/)) strength++;
+            if (password.match(/[0-9]/)) strength++;
+            if (password.match(/[^a-zA-Z0-9]/)) strength++;
+            
+            return strength;
+        }
+        
+        function updatePasswordStrength(password) {
+            const strengthIndicator = document.getElementById('passwordStrength');
+            const strengthBar = document.getElementById('passwordStrengthBar');
+            const requirements = document.getElementById('passwordRequirements');
+            const lengthReq = document.getElementById('lengthReq');
+            
+            if (password.length > 0) {
+                strengthIndicator.style.display = 'block';
+                requirements.classList.remove('hidden');
+                
+                // Update length requirement
+                if (password.length >= 8) {
+                    lengthReq.classList.remove('text-gray-500');
+                    lengthReq.classList.add('text-green-600');
+                    lengthReq.querySelector('i').className = 'fas fa-check mr-2 text-xs';
+                } else {
+                    lengthReq.classList.remove('text-green-600');
+                    lengthReq.classList.add('text-gray-500');
+                    lengthReq.querySelector('i').className = 'fas fa-circle mr-2 text-xs';
+                }
+                
+                // Update strength bar
+                const strength = checkPasswordStrength(password);
+                strengthBar.className = 'password-strength-bar';
+                
+                if (strength < 2) {
+                    strengthBar.classList.add('strength-weak');
+                } else if (strength < 3) {
+                    strengthBar.classList.add('strength-fair');
+                } else if (strength < 4) {
+                    strengthBar.classList.add('strength-good');
+                } else {
+                    strengthBar.classList.add('strength-strong');
+                }
+            } else {
+                strengthIndicator.style.display = 'none';
+                requirements.classList.add('hidden');
+            }
+        }
+        
+        function showFeedback(elementId, show = true) {
+            const element = document.getElementById(elementId);
+            if (show) {
+                element.classList.remove('hidden');
+            } else {
+                element.classList.add('hidden');
+            }
+        }
+        
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             generateMathCaptcha();
             updateSubmitButton();
+            
+            // Password input handler
+            document.getElementById('password').addEventListener('input', function() {
+                const password = this.value;
+                updatePasswordStrength(password);
+                validatePasswordMatch();
+                updateSubmitButton();
+            });
+            
+            // Confirm password input handler
+            document.getElementById('confirmPassword').addEventListener('input', validatePasswordMatch);
             
             // Real-time email validation via AJAX
             document.getElementById('email').addEventListener('blur', async function() {
@@ -249,17 +382,17 @@
                 const successIcon = document.getElementById('emailSuccessIcon');
                 
                 // Reset feedback
-                feedback.classList.add('hidden');
+                showFeedback('emailFeedback', false);
                 this.classList.remove('error-border', 'success-border');
                 
                 // Only check if email is valid format
                 if (email && validateEmail(email)) {
                     // Show loading
-                    feedback.classList.remove('hidden');
+                    showFeedback('emailFeedback', true);
                     spinner.style.display = 'inline';
                     errorIcon.style.display = 'none';
                     successIcon.style.display = 'none';
-                    feedbackText.textContent = 'Checking email...';
+                    feedbackText.textContent = 'Checking email availability...';
                     feedbackText.className = 'text-gray-600';
                     
                     try {
@@ -306,32 +439,36 @@
                 }
             });
             
-            // Real-time password confirmation check
-            document.getElementById('confirmPassword').addEventListener('input', function() {
-                const password = document.getElementById('password').value;
-                const confirmPassword = this.value;
-                const feedback = document.getElementById('passwordMatchFeedback');
-                
-                if (confirmPassword && password === confirmPassword) {
-                    feedback.classList.remove('hidden');
-                    this.classList.remove('error-border');
-                    this.classList.add('success-border');
-                } else {
-                    feedback.classList.add('hidden');
-                    if (confirmPassword) {
-                        this.classList.add('error-border');
-                        this.classList.remove('success-border');
-                    } else {
-                        this.classList.remove('error-border', 'success-border');
-                    }
-                }
-                updateSubmitButton();
-            });
-            
             // Update submit button on input changes
-            document.getElementById('password').addEventListener('input', updateSubmitButton);
             document.getElementById('terms').addEventListener('change', updateSubmitButton);
         });
+        
+        function validatePasswordMatch() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const confirmInput = document.getElementById('confirmPassword');
+            const matchError = document.getElementById('passwordMatchError');
+            const matchFeedback = document.getElementById('passwordMatchFeedback');
+            
+            // Reset states
+            showFeedback('passwordMatchError', false);
+            showFeedback('passwordMatchFeedback', false);
+            confirmInput.classList.remove('error-border', 'success-border');
+            
+            if (confirmPassword.length > 0) {
+                if (password === confirmPassword) {
+                    // Passwords match
+                    showFeedback('passwordMatchFeedback', true);
+                    confirmInput.classList.add('success-border');
+                } else {
+                    // Passwords don't match
+                    showFeedback('passwordMatchError', true);
+                    confirmInput.classList.add('error-border');
+                }
+            }
+            
+            updateSubmitButton();
+        }
 
         function updateSubmitButton() {
             const email = document.getElementById('email').value.trim();
@@ -340,8 +477,11 @@
             const terms = document.getElementById('terms').checked;
             const submitBtn = document.getElementById('submitBtn');
             
-            const isValid = emailValid && password.length >= 8 && 
-                          confirmPassword && password === confirmPassword && terms;
+            const isValid = emailValid && 
+                          password.length >= 8 && 
+                          confirmPassword.length > 0 && 
+                          password === confirmPassword && 
+                          terms;
             
             submitBtn.disabled = !isValid;
         }
@@ -374,10 +514,10 @@
 
         function validateForm(event) {
             // Reset all error messages
-            document.getElementById('emailError').classList.add('hidden');
-            document.getElementById('passwordError').classList.add('hidden');
-            document.getElementById('passwordMatchError').classList.add('hidden');
-            document.getElementById('mathError').classList.add('hidden');
+            showFeedback('emailError', false);
+            showFeedback('passwordError', false);
+            showFeedback('passwordMatchError', false);
+            showFeedback('mathError', false);
             
             // Get form values
             const email = document.getElementById('email').value.trim();
@@ -390,28 +530,28 @@
             
             // Email validation
             if (!email || !validateEmail(email)) {
-                document.getElementById('emailError').classList.remove('hidden');
+                showFeedback('emailError', true);
                 document.getElementById('email').focus();
                 isValid = false;
             }
             
             // Password validation (minimum 8 characters)
             if (!password || password.length < 8) {
-                document.getElementById('passwordError').classList.remove('hidden');
+                showFeedback('passwordError', true);
                 if (isValid) document.getElementById('password').focus();
                 isValid = false;
             }
             
             // Confirm password validation
             if (!confirmPassword || password !== confirmPassword) {
-                document.getElementById('passwordMatchError').classList.remove('hidden');
+                showFeedback('passwordMatchError', true);
                 if (isValid) document.getElementById('confirmPassword').focus();
                 isValid = false;
             }
             
             // Math CAPTCHA validation
             if (isNaN(mathAnswer) || mathAnswer !== mathResult) {
-                document.getElementById('mathError').classList.remove('hidden');
+                showFeedback('mathError', true);
                 generateMathCaptcha(); // Generate new question
                 document.getElementById('mathAnswer').value = '';
                 if (isValid) document.getElementById('mathAnswer').focus();

@@ -13,6 +13,9 @@
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
+        .error-border {
+            border-color: #ef4444;
+        }
     </style>
 </head>
 
@@ -32,6 +35,30 @@
                     <p class="text-gray-600">Sign in to your LessonLink educator account</p>
                 </div>
 
+                <!-- Display Django Messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="mb-4 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 border border-red-300 text-red-700{% elif message.tags == 'success' %}bg-green-100 border border-green-300 text-green-700{% elif message.tags == 'warning' %}bg-yellow-100 border border-yellow-300 text-yellow-700{% else %}bg-blue-100 border border-blue-300 text-blue-700{% endif %}">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    {% if message.tags == 'error' %}
+                                        <i class="fas fa-exclamation-circle"></i>
+                                    {% elif message.tags == 'success' %}
+                                        <i class="fas fa-check-circle"></i>
+                                    {% elif message.tags == 'warning' %}
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    {% else %}
+                                        <i class="fas fa-info-circle"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm">{{ message }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
                 <form class="space-y-6" method="POST" action="{% url 'login' %}"
                     onsubmit="return validateForm(event)">
                     {% csrf_token %}
@@ -41,13 +68,23 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-envelope text-gray-400"></i>
                         </div>
-                        <input type="email" id="email" name="email"
-                            class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        <input type="email" id="email" name="email" value="{{ email|default:'' }}"
+                            class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 {% if email_error %}error-border{% endif %}"
                             placeholder="Email Address" required autocomplete="email">
+                        
+                        <!-- Client-side email validation error -->
                         <div id="emailError" class="hidden text-red-500 text-sm mt-2 flex items-center">
                             <i class="fas fa-exclamation-circle mr-2"></i>
-                            Please enter a valid email address
+                            <span id="emailErrorText">Please enter a valid email address</span>
                         </div>
+                        
+                        <!-- Django validation error for email -->
+                        {% if show_error and email_error %}
+                        <div class="text-red-500 text-sm mt-2 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-2"></i>
+                            {{ email_error_message }}
+                        </div>
+                        {% endif %}
                     </div>
 
                     <!-- Password -->
@@ -56,7 +93,7 @@
                             <i class="fas fa-lock text-gray-400"></i>
                         </div>
                         <input type="password" id="password" name="password"
-                            class="input-focus block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                            class="input-focus block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 {% if password_error %}error-border{% endif %}"
                             placeholder="Password" required autocomplete="current-password">
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                             <button type="button" class="text-gray-400 hover:text-gray-600"
@@ -64,10 +101,20 @@
                                 <i class="fas fa-eye" id="togglePassword"></i>
                             </button>
                         </div>
+                        
+                        <!-- Client-side password validation error -->
                         <div id="passwordError" class="hidden text-red-500 text-sm mt-2 flex items-center">
                             <i class="fas fa-exclamation-circle mr-2"></i>
-                            Please enter your password
+                            <span id="passwordErrorText">Please enter your password</span>
                         </div>
+                        
+                        <!-- Django validation error for password -->
+                        {% if show_error and password_error %}
+                        <div class="text-red-500 text-sm mt-2 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-2"></i>
+                            {{ password_error_message }}
+                        </div>
+                        {% endif %}
                     </div>
 
                     <!-- Remember Me & Forgot Password -->
@@ -93,13 +140,15 @@
                         <i id="loadingSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
                     </button>
 
-                    <!-- Error Message (for server-side errors) -->
-                    <div id="loginError" class="hidden bg-red-50 border border-red-200 rounded-lg p-3">
+                    <!-- Account Status Messages (for specific account issues) -->
+                    {% if show_error and account_status_error %}
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                         <div class="flex items-center">
-                            <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
-                            <span class="text-red-700 text-sm" id="loginErrorText">Invalid email or password</span>
+                            <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                            <span class="text-yellow-700 text-sm">{{ account_status_message }}</span>
                         </div>
                     </div>
+                    {% endif %}
 
                     <!-- Divider -->
                     <div class="relative my-6">
@@ -156,11 +205,32 @@
             return re.test(email);
         }
 
+        function showError(elementId, message, inputField = null) {
+            const errorElement = document.getElementById(elementId);
+            const textElement = document.getElementById(elementId + 'Text');
+            
+            if (textElement) {
+                textElement.textContent = message;
+            }
+            errorElement.classList.remove('hidden');
+            
+            if (inputField) {
+                inputField.classList.add('error-border');
+                inputField.focus();
+            }
+        }
+
+        function hideError(elementId, inputField = null) {
+            document.getElementById(elementId).classList.add('hidden');
+            if (inputField) {
+                inputField.classList.remove('error-border');
+            }
+        }
+
         function validateForm(event) {
             // Reset all error messages
-            document.getElementById('emailError').classList.add('hidden');
-            document.getElementById('passwordError').classList.add('hidden');
-            document.getElementById('loginError').classList.add('hidden');
+            hideError('emailError', document.getElementById('email'));
+            hideError('passwordError', document.getElementById('password'));
             
             // Get form values
             const email = document.getElementById('email').value.trim();
@@ -169,15 +239,17 @@
             let isValid = true;
             
             // Email validation
-            if (!email || !validateEmail(email)) {
-                document.getElementById('emailError').classList.remove('hidden');
-                document.getElementById('email').focus();
+            if (!email) {
+                showError('emailError', 'Email address is required', document.getElementById('email'));
+                isValid = false;
+            } else if (!validateEmail(email)) {
+                showError('emailError', 'Please enter a valid email address', document.getElementById('email'));
                 isValid = false;
             }
             
             // Password validation
             if (!password) {
-                document.getElementById('passwordError').classList.remove('hidden');
+                showError('passwordError', 'Password is required', document.getElementById('password'));
                 if (isValid) document.getElementById('password').focus();
                 isValid = false;
             }
@@ -199,46 +271,33 @@
             return true;
         }
 
-        // Show login error function
-        function showLoginError(message) {
-            document.getElementById('loginErrorText').textContent = message;
-            document.getElementById('loginError').classList.remove('hidden');
-            
-            // Reset button state
-            const submitBtn = document.getElementById('loginBtn');
-            const buttonText = document.getElementById('buttonText');
-            const spinner = document.getElementById('loadingSpinner');
-            
-            submitBtn.disabled = false;
-            buttonText.textContent = 'Sign In';
-            spinner.classList.add('hidden');
-        }
-
         // Real-time email validation
         document.getElementById('email').addEventListener('blur', function() {
             const email = this.value.trim();
-            const errorDiv = document.getElementById('emailError');
             
             if (email && !validateEmail(email)) {
-                errorDiv.classList.remove('hidden');
-                this.classList.add('border-red-500');
-            } else {
-                errorDiv.classList.add('hidden');
-                this.classList.remove('border-red-500');
+                showError('emailError', 'Please enter a valid email address', this);
+            } else if (email) {
+                hideError('emailError', this);
             }
         });
 
         // Clear errors when user starts typing
         document.getElementById('email').addEventListener('input', function() {
-            document.getElementById('emailError').classList.add('hidden');
-            document.getElementById('loginError').classList.add('hidden');
-            this.classList.remove('border-red-500');
+            hideError('emailError', this);
         });
 
         document.getElementById('password').addEventListener('input', function() {
-            document.getElementById('passwordError').classList.add('hidden');
-            document.getElementById('loginError').classList.add('hidden');
-            this.classList.remove('border-red-500');
+            hideError('passwordError', this);
+        });
+
+        // Auto-focus on error fields if they exist on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if email_error %}
+                document.getElementById('email').focus();
+            {% elif password_error %}
+                document.getElementById('password').focus();
+            {% endif %}
         });
     </script>
 </body>
