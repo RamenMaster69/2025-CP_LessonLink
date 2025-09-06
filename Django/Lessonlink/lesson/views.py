@@ -630,11 +630,17 @@ class ScheduleViewSet(viewsets.ModelViewSet):
 def Dep_Pending(request):
     return render(request, 'Dep_Pending.html')
 
-def template(request):
-    return render(request, 'template.html')
+def dep_template(request):
+    return render(request, 'dep_template.html')
+
+def teach_template(request):
+    return render(request, 'teach_template.html')
 
 def st_dash(request):
     return render(request, 'st_dash.html')
+
+def calendar(request):
+    return render(request, 'calendar.html')
 
 # Task API Views
 @csrf_exempt

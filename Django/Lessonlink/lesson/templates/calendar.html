@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar of Activities - LessonLink</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-in-out',
+                        'slide-in': 'slideIn 0.3s ease-out',
+                        'scale-in': 'scaleIn 0.2s ease-out',
+                        'pulse-soft': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .sidebar-transition {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .calendar-cell {
+            min-height: 120px;
+            transition: all 0.2s ease;
+        }
+
+        .calendar-cell:hover {
+            background-color: rgb(248, 250, 252);
+        }
+
+        .activity-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        .activity-priority-high {
+            background-color: #ef4444;
+        }
+
+        .activity-priority-medium {
+            background-color: #f59e0b;
+        }
+
+        .activity-priority-low {
+            background-color: #10b981;
+        }
+
+        .activity-type-meeting {
+            background-color: #8b5cf6;
+        }
+
+        .activity-type-deadline {
+            background-color: #ef4444;
+        }
+
+        .activity-type-event {
+            background-color: #06b6d4;
+        }
+
+        .activity-type-training {
+            background-color: #84cc16;
+        }
+
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .today-highlight {
+            background-color: #e0f2fe;
+            border: 2px solid #0284c7;
+        }
+
+        .other-month {
+            opacity: 0.5;
+        }
+
+        .activity-item {
+            transition: all 0.2s ease;
+        }
+
+        .activity-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header - Fixed at top -->
+    <header class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-40">
+        <div class="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
+            <!-- Mobile menu button -->
+            <button id="mobile-menu-btn"
+                class="md:hidden p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
+                <i class="fas fa-bars text-lg"></i>
+            </button>
+
+            <!-- Logo -->
+            <div class="flex items-center space-x-3 flex-1 md:flex-none">
+                <div class="w-10 h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
+                <div class="hidden sm:block">
+                    <h1 class="text-xl font-bold text-gray-900">LessonLink</h1>
+                    <p class="text-sm text-gray-500 hidden lg:block">Western Mindanao State University</p>
+                </div>
+            </div>
+
+            <!-- Right side actions -->
+            <div class="flex items-center space-x-2 md:space-x-4">
+                <!-- Search -->
+                <div class="relative hidden md:block">
+                    <input type="text" placeholder="Search activities..."
+                        class="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                    <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+
+                <!-- Profile -->
+                <div class="relative">
+                    <button id="profile-btn"
+                        class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                        <i class="fas fa-user text-gray-500"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex pt-16">
+        <!-- Sidebar - Fixed and sticky -->
+        <aside id="sidebar"
+            class="w-64 bg-white shadow-lg h-screen fixed top-20 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
+            <nav class="p-4 space-y-2">
+                <!-- Create Lesson Button -->
+                <button
+                    class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
+                    <i class="fas fa-plus text-lg"></i>
+                    <span class="font-medium">Create Lesson</span>
+                </button>
+
+                <!-- Navigation Items -->
+                <a href="{% url 'dashboard' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'draft' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Drafts</span>
+                </a>
+                <a href="{% url 'task' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-tasks text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Tasks</span>
+                </a>
+                <a href="{% url 'schedule' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-calendar-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Schedule</span>
+                </a>
+                <a href="{% url 'calendar' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                    <i class="fas fa-calendar-alt text-lg w-5"></i>
+                    <span class="font-medium">Calendar</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Overlay for mobile -->
+        <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-full md:ml-64">
+            <!-- Page Header -->
+            <div class="mb-8">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div class="mb-4 md:mb-0">
+                        <h2 class="text-3xl font-bold text-gray-900">Calendar of Activities</h2>
+                        <p class="text-gray-600 mt-1">View activities and events scheduled by the Department Head</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <!-- View Toggle -->
+                        <div class="flex bg-gray-100 rounded-lg p-1">
+                            <button id="month-view-btn" class="px-4 py-2 bg-white text-[#11468F] rounded-md shadow-sm font-medium transition-all">
+                                Month
+                            </button>
+                            <button id="list-view-btn" class="px-4 py-2 text-gray-600 rounded-md font-medium hover:bg-white transition-all">
+                                List
+                            </button>
+                        </div>
+                        
+                        <!-- Export Button -->
+                        <button class="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-download text-gray-600"></i>
+                            <span class="text-gray-700">Export</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Controls -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+                <div class="flex items-center justify-between p-6">
+                    <div class="flex items-center space-x-4">
+                        <button id="prev-month" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                            <i class="fas fa-chevron-left text-gray-600"></i>
+                        </button>
+                        <h3 id="current-month-year" class="text-xl font-bold text-gray-900">December 2024</h3>
+                        <button id="next-month" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                            <i class="fas fa-chevron-right text-gray-600"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- Today Button -->
+                        <button id="today-btn" class="px-4 py-2 text-[#11468F] border border-[#11468F] rounded-lg hover:bg-[#f0f5ff] transition-colors">
+                            Today
+                        </button>
+                        
+                        <!-- Filter Dropdown -->
+                        <div class="relative">
+                            <button id="filter-btn" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                                <i class="fas fa-filter text-gray-600"></i>
+                                <span class="text-gray-700">Filter</span>
+                                <i class="fas fa-chevron-down text-gray-500 text-sm"></i>
+                            </button>
+                            
+                            <!-- Filter Dropdown Menu -->
+                            <div id="filter-dropdown" class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
+                                <div class="p-4">
+                                    <h4 class="font-semibold text-gray-900 mb-3">Filter by Type</h4>
+                                    <div class="space-y-2">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" class="activity-filter" data-type="meeting" checked class="rounded border-gray-300 text-[#11468F] focus:ring-[#11468F]">
+                                            <span class="activity-dot activity-type-meeting ml-2"></span>
+                                            <span class="text-sm text-gray-700">Meetings</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" class="activity-filter" data-type="deadline" checked class="rounded border-gray-300 text-[#11468F] focus:ring-[#11468F]">
+                                            <span class="activity-dot activity-type-deadline ml-2"></span>
+                                            <span class="text-sm text-gray-700">Deadlines</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" class="activity-filter" data-type="event" checked class="rounded border-gray-300 text-[#11468F] focus:ring-[#11468F]">
+                                            <span class="activity-dot activity-type-event ml-2"></span>
+                                            <span class="text-sm text-gray-700">Events</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" class="activity-filter" data-type="training" checked class="rounded border-gray-300 text-[#11468F] focus:ring-[#11468F]">
+                                            <span class="activity-dot activity-type-training ml-2"></span>
+                                            <span class="text-sm text-gray-700">Training</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+                <h4 class="font-semibold text-gray-900 mb-3">Legend</h4>
+                <div class="flex flex-wrap gap-6">
+                    <div class="flex items-center">
+                        <span class="activity-dot activity-type-meeting"></span>
+                        <span class="text-sm text-gray-700">Meetings</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="activity-dot activity-type-deadline"></span>
+                        <span class="text-sm text-gray-700">Deadlines</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="activity-dot activity-type-event"></span>
+                        <span class="text-sm text-gray-700">Events</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="activity-dot activity-type-training"></span>
+                        <span class="text-sm text-gray-700">Training</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div id="calendar-view" class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <!-- Calendar Header -->
+                <div class="grid grid-cols-7 border-b border-gray-200">
+                    <div class="p-4 text-center font-semibold text-gray-700 bg-gray-50">Sun</div>
+                    <div class="p-4 text-center font-semibold text-gray-700 bg-gray-50">Mon</div>
+                    <div class="p-4 text-center font-semibold text-gray-700 bg-gray-50">Tue</div>
+                    <div class="p-4 text-center font-semibold text-gray-700 bg-gray-50">Wed</div>
+                    <div class="p-4 text-center font-semibold text-gray-700 bg-gray-50">Thu</div>
+                    <div class="p-4 text-center font-semibold text-gray-700 bg-gray-50">Fri</div>
+                    <div class="p-4 text-center font-semibold text-gray-700 bg-gray-50">Sat</div>
+                </div>
+
+                <!-- Calendar Body -->
+                <div id="calendar-body" class="grid grid-cols-7">
+                    <!-- Calendar cells will be generated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- List View (Hidden by default) -->
+            <div id="list-view" class="hidden">
+                <div class="space-y-4">
+                    <!-- Upcoming Activities -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Upcoming Activities</h3>
+                        <div id="upcoming-activities" class="space-y-3">
+                            <!-- Activities will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Activity Detail Modal -->
+    <div id="activity-modal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl transform transition-all max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-start space-x-3">
+                        <div id="modal-activity-dot" class="activity-dot mt-2"></div>
+                        <div>
+                            <h3 id="modal-activity-title" class="text-xl font-bold text-gray-900"></h3>
+                            <p id="modal-activity-type" class="text-sm text-gray-500 mt-1"></p>
+                        </div>
+                    </div>
+                    <button id="close-modal" class="text-gray-400 hover:text-gray-600 p-1">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-calendar text-gray-400 w-5"></i>
+                        <span id="modal-activity-date" class="text-gray-700"></span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-clock text-gray-400 w-5"></i>
+                        <span id="modal-activity-time" class="text-gray-700"></span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-map-marker-alt text-gray-400 w-5"></i>
+                        <span id="modal-activity-location" class="text-gray-700"></span>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <i class="fas fa-align-left text-gray-400 w-5 mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-2">Description</h4>
+                            <p id="modal-activity-description" class="text-gray-700 leading-relaxed"></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-user text-gray-400 w-5"></i>
+                        <div>
+                            <span class="text-gray-700">Added by: </span>
+                            <span id="modal-activity-author" class="font-medium text-gray-900"></span>
+                        </div>
+                    </div>
+                    <div id="modal-activity-priority-section" class="flex items-center space-x-3">
+                        <i class="fas fa-flag text-gray-400 w-5"></i>
+                        <div>
+                            <span class="text-gray-700">Priority: </span>
+                            <span id="modal-activity-priority" class="px-2 py-1 rounded-full text-xs font-medium"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex space-x-3 mt-6 pt-6 border-t border-gray-200">
+                    <button class="flex-1 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white px-4 py-2 rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all">
+                        <i class="fas fa-calendar-plus mr-2"></i>
+                        Add to My Calendar
+                    </button>
+                    <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-share text-gray-600"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample activities data (this would come from your backend)
+        const activitiesData = [
+            {
+                id: 1,
+                title: "Faculty Meeting",
+                type: "meeting",
+                date: "2024-12-15",
+                time: "09:00",
+                location: "Conference Room A",
+                description: "Monthly faculty meeting to discuss curriculum updates and departmental announcements.",
+                author: "Dr. Maria Santos",
+                priority: "high"
+            },
+            {
+                id: 2,
+                title: "Lesson Plan Submission Deadline",
+                type: "deadline",
+                date: "2024-12-18",
+                time: "17:00",
+                location: "Online Submission",
+                description: "Final deadline for submitting lesson plans for the upcoming semester.",
+                author: "Prof. Juan Cruz",
+                priority: "high"
+            },
+            {
+                id: 3,
+                title: "Christmas Faculty Party",
+                type: "event",
+                date: "2024-12-20",
+                time: "18:00",
+                location: "University Hall",
+                description: "Annual Christmas celebration for all faculty members and staff.",
+                author: "Dr. Maria Santos",
+                priority: "medium"
+            },
+            {
+                id: 4,
+                title: "Teaching Methodology Workshop",
+                type: "training",
+                date: "2024-12-22",
+                time: "14:00",
+                location: "Training Center",
+                description: "Professional development workshop on modern teaching methodologies and digital tools.",
+                author: "Prof. Anna Lee",
+                priority: "medium"
+            },
+            {
+                id: 5,
+                title: "Department Budget Review",
+                type: "meeting",
+                date: "2024-12-28",
+                time: "10:00",
+                location: "Conference Room B",
+                description: "Review of department budget allocation for the next fiscal year.",
+                author: "Dr. Maria Santos",
+                priority: "high"
+            },
+            {
+                id: 6,
+                title: "New Year Planning Session",
+                type: "meeting",
+                date: "2025-01-03",
+                time: "09:30",
+                location: "Main Conference Room",
+                description: "Strategic planning session for the new academic year goals and objectives.",
+                author: "Prof. Juan Cruz",
+                priority: "medium"
+            }
+        ];
+
+        class Calendar {
+            constructor() {
+                this.currentDate = new Date();
+                this.selectedDate = null;
+                this.viewMode = 'month';
+                this.activeFilters = new Set(['meeting', 'deadline', 'event', 'training']);
+                
+                this.init();
+            }
+
+            init() {
+                this.renderCalendar();
+                this.renderListView();
+                this.setupEventListeners();
+                this.updateCurrentMonthYear();
+            }
+
+            setupEventListeners() {
+                // Navigation
+                document.getElementById('prev-month').addEventListener('click', () => {
+                    this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+                    this.renderCalendar();
+                    this.updateCurrentMonthYear();
+                });
+
+                document.getElementById('next-month').addEventListener('click', () => {
+                    this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+                    this.renderCalendar();
+                    this.updateCurrentMonthYear();
+                });
+
+                document.getElementById('today-btn').addEventListener('click', () => {
+                    this.currentDate = new Date();
+                    this.renderCalendar();
+                    this.updateCurrentMonthYear();
+                });
+
+                // View toggle
+                document.getElementById('month-view-btn').addEventListener('click', () => {
+                    this.setViewMode('month');
+                });
+
+                document.getElementById('list-view-btn').addEventListener('click', () => {
+                    this.setViewMode('list');
+                });
+
+                // Filter dropdown
+                document.getElementById('filter-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.getElementById('filter-dropdown').classList.toggle('hidden');
+                });
+
+                // Filter checkboxes
+                document.querySelectorAll('.activity-filter').forEach(checkbox => {
+                    checkbox.addEventListener('change', (e) => {
+                        const type = e.target.dataset.type;
+                        if (e.target.checked) {
+                            this.activeFilters.add(type);
+                        } else {
+                            this.activeFilters.delete(type);
+                        }
+                        this.renderCalendar();
+                        this.renderListView();
+                    });
+                });
+
+                // Modal
+                document.getElementById('close-modal').addEventListener('click', () => {
+                    this.closeModal();
+                });
+
+                document.getElementById('activity-modal').addEventListener('click', (e) => {
+                    if (e.target.id === 'activity-modal') {
+                        this.closeModal();
+                    }
+                });
+
+                // Profile dropdown
+                document.getElementById('profile-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.getElementById('profile-dropdown').classList.toggle('hidden');
+                });
+
+                // Close dropdowns when clicking outside
+                document.addEventListener('click', () => {
+                    document.getElementById('filter-dropdown').classList.add('hidden');
+                    document.getElementById('profile-dropdown').classList.add('hidden');
+                });
+
+                // Prevent dropdowns from closing when clicking inside them
+                document.getElementById('filter-dropdown').addEventListener('click', (e) => e.stopPropagation());
+                document.getElementById('profile-dropdown').addEventListener('click', (e) => e.stopPropagation());
+
+                // Mobile menu
+                document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+                    document.getElementById('sidebar').classList.toggle('-translate-x-full');
+                    document.getElementById('overlay').classList.toggle('hidden');
+                });
+
+                document.getElementById('overlay').addEventListener('click', () => {
+                    document.getElementById('sidebar').classList.add('-translate-x-full');
+                    document.getElementById('overlay').classList.add('hidden');
+                });
+            }
+
+            setViewMode(mode) {
+                this.viewMode = mode;
+                
+                // Update button styles
+                if (mode === 'month') {
+                    document.getElementById('month-view-btn').className = 'px-4 py-2 bg-white text-[#11468F] rounded-md shadow-sm font-medium transition-all';
+                    document.getElementById('list-view-btn').className = 'px-4 py-2 text-gray-600 rounded-md font-medium hover:bg-white transition-all';
+                    
+                    document.getElementById('calendar-view').classList.remove('hidden');
+                    document.getElementById('list-view').classList.add('hidden');
+                } else {
+                    document.getElementById('list-view-btn').className = 'px-4 py-2 bg-white text-[#11468F] rounded-md shadow-sm font-medium transition-all';
+                    document.getElementById('month-view-btn').className = 'px-4 py-2 text-gray-600 rounded-md font-medium hover:bg-white transition-all';
+                    
+                    document.getElementById('calendar-view').classList.add('hidden');
+                    document.getElementById('list-view').classList.remove('hidden');
+                }
+            }
+
+            renderCalendar() {
+                const calendarBody = document.getElementById('calendar-body');
+                calendarBody.innerHTML = '';
+
+                const year = this.currentDate.getFullYear();
+                const month = this.currentDate.getMonth();
+                
+                // Get first day of month and number of days
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+                const startDate = new Date(firstDay);
+                startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+                // Generate 42 days (6 weeks)
+                for (let i = 0; i < 42; i++) {
+                    const date = new Date(startDate);
+                    date.setDate(startDate.getDate() + i);
+                    
+                    const cell = this.createCalendarCell(date, month);
+                    calendarBody.appendChild(cell);
+                }
+            }
+
+            createCalendarCell(date, currentMonth) {
+                const cell = document.createElement('div');
+                const dayActivities = this.getActivitiesForDate(date);
+                const isToday = this.isToday(date);
+                const isCurrentMonth = date.getMonth() === currentMonth;
+                
+                cell.className = `calendar-cell border-r border-b border-gray-200 p-3 ${isToday ? 'today-highlight' : ''} ${!isCurrentMonth ? 'other-month' : ''}`;
+                
+                const dateNumber = document.createElement('div');
+                dateNumber.className = `text-sm font-medium mb-2 ${isToday ? 'text-[#11468F]' : isCurrentMonth ? 'text-gray-900' : 'text-gray-400'}`;
+                dateNumber.textContent = date.getDate();
+                
+                cell.appendChild(dateNumber);
+
+                // Add activities
+                const activitiesContainer = document.createElement('div');
+                activitiesContainer.className = 'space-y-1';
+                
+                dayActivities.forEach(activity => {
+                    if (this.activeFilters.has(activity.type)) {
+                        const activityElement = this.createActivityElement(activity, true);
+                        activitiesContainer.appendChild(activityElement);
+                    }
+                });
+
+                cell.appendChild(activitiesContainer);
+                return cell;
+            }
+
+            createActivityElement(activity, isCompact = false) {
+                const activityElement = document.createElement('div');
+                
+                if (isCompact) {
+                    // Compact view for calendar cells
+                    activityElement.className = `activity-item text-xs p-2 rounded cursor-pointer hover:shadow-sm transition-all ${this.getActivityBgColor(activity.type)}`;
+                    activityElement.innerHTML = `
+                        <div class="flex items-center">
+                            <span class="activity-dot activity-type-${activity.type}"></span>
+                            <span class="text-white font-medium truncate">${activity.title}</span>
+                        </div>
+                        <div class="text-xs opacity-90 mt-1">${activity.time}</div>
+                    `;
+                } else {
+                    // Full view for list mode
+                    activityElement.className = 'activity-item bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md cursor-pointer transition-all';
+                    activityElement.innerHTML = `
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start space-x-3 flex-1">
+                                <span class="activity-dot activity-type-${activity.type} mt-2"></span>
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-gray-900 mb-1">${activity.title}</h4>
+                                    <p class="text-sm text-gray-600 mb-2">${activity.description}</p>
+                                    <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                        <span><i class="fas fa-calendar mr-1"></i>${this.formatDate(activity.date)}</span>
+                                        <span><i class="fas fa-clock mr-1"></i>${activity.time}</span>
+                                        <span><i class="fas fa-map-marker-alt mr-1"></i>${activity.location}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end">
+                                <span class="px-2 py-1 rounded-full text-xs font-medium ${this.getPriorityColor(activity.priority)}">${activity.priority.toUpperCase()}</span>
+                                <span class="text-xs text-gray-500 mt-2">by ${activity.author}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                activityElement.addEventListener('click', () => {
+                    this.showActivityModal(activity);
+                });
+
+                return activityElement;
+            }
+
+            getActivityBgColor(type) {
+                const colors = {
+                    meeting: 'bg-purple-500 hover:bg-purple-600',
+                    deadline: 'bg-red-500 hover:bg-red-600',
+                    event: 'bg-cyan-500 hover:bg-cyan-600',
+                    training: 'bg-lime-500 hover:bg-lime-600'
+                };
+                return colors[type] || 'bg-gray-500 hover:bg-gray-600';
+            }
+
+            getPriorityColor(priority) {
+                const colors = {
+                    high: 'bg-red-100 text-red-800',
+                    medium: 'bg-yellow-100 text-yellow-800',
+                    low: 'bg-green-100 text-green-800'
+                };
+                return colors[priority] || 'bg-gray-100 text-gray-800';
+            }
+
+            getActivitiesForDate(date) {
+                const dateString = this.formatDateForComparison(date);
+                return activitiesData.filter(activity => activity.date === dateString);
+            }
+
+            isToday(date) {
+                const today = new Date();
+                return date.toDateString() === today.toDateString();
+            }
+
+            formatDateForComparison(date) {
+                return date.toISOString().split('T')[0];
+            }
+
+            formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+
+            updateCurrentMonthYear() {
+                const monthYear = this.currentDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long'
+                });
+                document.getElementById('current-month-year').textContent = monthYear;
+            }
+
+            renderListView() {
+                const container = document.getElementById('upcoming-activities');
+                container.innerHTML = '';
+
+                // Get upcoming activities (next 30 days)
+                const today = new Date();
+                const thirtyDaysFromNow = new Date();
+                thirtyDaysFromNow.setDate(today.getDate() + 30);
+
+                const upcomingActivities = activitiesData
+                    .filter(activity => {
+                        const activityDate = new Date(activity.date);
+                        return activityDate >= today && activityDate <= thirtyDaysFromNow && this.activeFilters.has(activity.type);
+                    })
+                    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                if (upcomingActivities.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-8">
+                            <i class="fas fa-calendar-times text-4xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500">No upcoming activities found.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                upcomingActivities.forEach(activity => {
+                    const activityElement = this.createActivityElement(activity, false);
+                    container.appendChild(activityElement);
+                });
+            }
+
+            showActivityModal(activity) {
+                // Populate modal content
+                document.getElementById('modal-activity-title').textContent = activity.title;
+                document.getElementById('modal-activity-type').textContent = activity.type.charAt(0).toUpperCase() + activity.type.slice(1);
+                document.getElementById('modal-activity-date').textContent = this.formatDate(activity.date);
+                document.getElementById('modal-activity-time').textContent = activity.time;
+                document.getElementById('modal-activity-location').textContent = activity.location;
+                document.getElementById('modal-activity-description').textContent = activity.description;
+                document.getElementById('modal-activity-author').textContent = activity.author;
+
+                // Set activity dot color
+                const modalDot = document.getElementById('modal-activity-dot');
+                modalDot.className = `activity-dot activity-type-${activity.type}`;
+
+                // Set priority
+                const priorityElement = document.getElementById('modal-activity-priority');
+                priorityElement.textContent = activity.priority.toUpperCase();
+                priorityElement.className = `px-2 py-1 rounded-full text-xs font-medium ${this.getPriorityColor(activity.priority)}`;
+
+                // Show modal
+                document.getElementById('activity-modal').classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+
+            closeModal() {
+                document.getElementById('activity-modal').classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // Initialize calendar when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new Calendar();
+
+            // Profile dropdown functionality - separate from Calendar class to avoid conflicts
+            const profileBtn = document.getElementById('profile-btn');
+            const profileDropdown = document.getElementById('profile-dropdown');
+
+            profileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('hidden');
+            });
+
+            // Close profile dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+                    profileDropdown.classList.add('hidden');
+                }
+            });
+
+            // Prevent profile dropdown from closing when clicking inside it
+            profileDropdown.addEventListener('click', (e) => e.stopPropagation());
+        });
+
+        // Add some sample notification functionality
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-24 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-white transform translate-x-full transition-transform duration-300 ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 
+                type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <i class="fas ${
+                        type === 'success' ? 'fa-check-circle' : 
+                        type === 'error' ? 'fa-exclamation-circle' : 
+                        type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'
+                    }"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Add event listeners for additional functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            // Export functionality
+            const exportBtn = document.querySelector('button:has(.fa-download)');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    showNotification('Calendar export feature will be implemented with backend integration.', 'info');
+                });
+            }
+
+            // Add to calendar functionality
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('button:has(.fa-calendar-plus)')) {
+                    showNotification('Activity added to your personal calendar!', 'success');
+                }
+            });
+
+            // Search functionality
+            const searchInput = document.querySelector('input[placeholder="Search activities..."]');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase();
+                    // This would filter activities based on search term
+                    // Implementation will be added with backend integration
+                    console.log('Searching for:', searchTerm);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

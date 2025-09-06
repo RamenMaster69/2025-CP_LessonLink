@@ -112,7 +112,7 @@
 
             <!-- Right side actions -->
             <div class="flex items-center space-x-2 md:space-x-4">
-                <!-- Session Timer Display -->
+                <!-- Session Timer Display (Debug - remove in production) -->
                 <div class="hidden md:flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-full">
                     <i class="fas fa-clock text-gray-500 text-sm"></i>
                     <span id="session-timer" class="text-sm text-gray-600">5:00</span>
@@ -191,7 +191,6 @@
                     </div>
                 </div>
 
-                
                 <!-- Profile -->
                 <div class="relative">
                     <button id="profile-btn"
@@ -251,8 +250,8 @@
     <div class="flex pt-16">
         <!-- Sidebar - Fixed and sticky -->
         <aside id="sidebar"
-            class="w-64 bg-white shadow-lg h-[calc(100vh-4rem)] fixed top-16 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
-            <nav class="p-4 pt-8 space-y-2">
+            class="w-64 bg-white shadow-lg h-screen fixed top-20 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
+            <nav class="p-4 space-y-2">
                 <!-- Create Lesson Button (Updated) -->
                 <a href="{% url 'lesson_planner' %}"><button
                         class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
@@ -261,15 +260,16 @@
                     </button></a>
 
                 <!-- Navigation Items (Updated) -->
-                <a href="{% url 'dashboard' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                    <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                    <span>Dashboard</span>
+                <a href="#"
+                    class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                    <i class="fas fa-home text-lg w-5"></i>
+                    <span class="font-medium">Dashboard</span>
                 </a>
                 <a href="{% url 'draft' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
-                    <i class="fas fa-file-alt text-lg w-5"></i>
-                    <span class="font-medium">Drafts</span>
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Drafts</span>
+                    <!-- <span class="ml-auto bg-[#e0e9ff] text-[#11468F] text-xs px-2 py-1 rounded-full">5</span> -->
                 </a>
                 <a href="{% url 'task' %}"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
@@ -281,11 +281,6 @@
                     <i class="fas fa-calendar-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Schedule</span>
                 </a>
-                <a href="{% url 'calendar' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
-                    <i class="fas fa-calendar-alt text-lg w-5"></i>
-                    <span class="font-medium">Calendar</span>
-                </a>
             </nav>
         </aside>
 
@@ -293,124 +288,8 @@
         <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
 
         <!-- Main Content -->
-        <main class="flex-1 md:ml-64 bg-gray-50">
-            <div class="p-4 md:p-6 lg:p-8">
-                <!-- Page Header -->
-                <div class="mb-6">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Drafts</h1>
-                    <p class="text-gray-600">Manage your lesson plan drafts and continue where you left off</p>
-                </div>
-
-                <!-- Drafts Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                    <!-- Draft Card 1 -->
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden card-hover">
-                        <div class="h-32 bg-gradient-to-br from-blue-100 to-purple-100 relative">
-                            <div class="absolute top-3 right-3">
-                                <button class="p-2 bg-white/80 rounded-full hover:bg-white transition-colors">
-                                    <i class="fas fa-ellipsis-h text-gray-600"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="p-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    Finished
-                                </span>
-                                <span class="text-xs text-gray-500">2 days ago</span>
-                            </div>
-                            <h3 class="font-semibold text-gray-900 mb-1">Grade 1 - English</h3>
-                            <p class="text-sm text-gray-600 mb-3">Introduction to Reading Comprehension</p>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-2">
-                                    <i class="fas fa-clock text-xs text-gray-400"></i>
-                                    <span class="text-xs text-gray-500">45 min</span>
-                                </div>
-                                <button class="text-[#11468F] hover:text-[#0d3a7a] transition-colors">
-                                    <i class="fas fa-arrow-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Draft Card 2 -->
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden card-hover">
-                        <div class="h-32 bg-gradient-to-br from-green-100 to-blue-100 relative">
-                            <div class="absolute top-3 right-3">
-                                <button class="p-2 bg-white/80 rounded-full hover:bg-white transition-colors">
-                                    <i class="fas fa-ellipsis-h text-gray-600"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="p-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                    Draft
-                                </span>
-                                <span class="text-xs text-gray-500">1 day ago</span>
-                            </div>
-                            <h3 class="font-semibold text-gray-900 mb-1">Grade 2 - Araling Panlipunan</h3>
-                            <p class="text-sm text-gray-600 mb-3">Our Community Helpers</p>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-2">
-                                    <i class="fas fa-clock text-xs text-gray-400"></i>
-                                    <span class="text-xs text-gray-500">30 min</span>
-                                </div>
-                                <button class="text-[#11468F] hover:text-[#0d3a7a] transition-colors">
-                                    <i class="fas fa-arrow-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Draft Card 3 -->
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden card-hover">
-                        <div class="h-32 bg-gradient-to-br from-purple-100 to-pink-100 relative">
-                            <div class="absolute top-3 right-3">
-                                <button class="p-2 bg-white/80 rounded-full hover:bg-white transition-colors">
-                                    <i class="fas fa-ellipsis-h text-gray-600"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="p-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                    Draft
-                                </span>
-                                <span class="text-xs text-gray-500">3 hours ago</span>
-                            </div>
-                            <h3 class="font-semibold text-gray-900 mb-1">Grade 1 - English</h3>
-                            <p class="text-sm text-gray-600 mb-3">Basic Phonics and Letter Recognition</p>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-2">
-                                    <i class="fas fa-clock text-xs text-gray-400"></i>
-                                    <span class="text-xs text-gray-500">40 min</span>
-                                </div>
-                                <button class="text-[#11468F] hover:text-[#0d3a7a] transition-colors">
-                                    <i class="fas fa-arrow-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Empty State (Hidden when there are drafts) -->
-                <div class="hidden text-center py-12">
-                    <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-file-alt text-3xl text-gray-400"></i>
-                    </div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No drafts yet</h3>
-                    <p class="text-gray-600 mb-6">Start creating your first lesson plan to see your drafts here.</p>
-                    <button class="bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white px-6 py-3 rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all">
-                        Create Your First Lesson
-                    </button>
-                </div>
-
-                <!-- Load More Button -->
-                <div class="mt-8 text-center">
-                    <p class="text-gray-500 text-sm mb-4">Nothing follows...</p>
-                </div>
-            </div>
+        <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-full md:ml-64">
+            
         </main>
     </div>
 
@@ -556,78 +435,49 @@
         document.addEventListener('DOMContentLoaded', () => {
             const sessionManager = new SessionManager();
             
-            // Mobile menu functionality
+            // Mobile menu toggle
             const mobileMenuBtn = document.getElementById('mobile-menu-btn');
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('overlay');
-
-            function toggleMobileMenu() {
+            
+            mobileMenuBtn.addEventListener('click', () => {
                 sidebar.classList.toggle('-translate-x-full');
                 overlay.classList.toggle('hidden');
-                document.body.classList.toggle('overflow-hidden');
-            }
-
-            mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+            });
             
             overlay.addEventListener('click', () => {
                 sidebar.classList.add('-translate-x-full');
                 overlay.classList.add('hidden');
-                document.body.classList.remove('overflow-hidden');
             });
-
-            // Profile dropdown functionality
-            const profileBtn = document.getElementById('profile-btn');
-            const profileDropdown = document.getElementById('profile-dropdown');
-
-            profileBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                profileDropdown.classList.toggle('hidden');
-                if (!profileDropdown.classList.contains('hidden')) {
-                    profileDropdown.classList.add('dropdown-enter');
-                    // Close notifications dropdown if open
-                    document.getElementById('notification-dropdown').classList.add('hidden');
-                }
-            });
-
-            // Notification dropdown functionality
+            
+            // Notification dropdown toggle
             const notificationBtn = document.getElementById('notification-btn');
             const notificationDropdown = document.getElementById('notification-dropdown');
-            const notificationBadge = document.getElementById('notification-badge');
-
+            
             notificationBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 notificationDropdown.classList.toggle('hidden');
-                if (!notificationDropdown.classList.contains('hidden')) {
-                    notificationDropdown.classList.add('dropdown-enter');
-                    // Hide notification badge when opened
-                    notificationBadge.classList.add('hidden');
-                    // Close profile dropdown if open
-                    profileDropdown.classList.add('hidden');
-                }
+                document.getElementById('notification-badge').classList.add('hidden');
             });
-
+            
+            // Profile dropdown toggle
+            const profileBtn = document.getElementById('profile-btn');
+            const profileDropdown = document.getElementById('profile-dropdown');
+            
+            profileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('hidden');
+            });
+            
             // Close dropdowns when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
-                    profileDropdown.classList.add('hidden');
-                }
-                if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
-                    notificationDropdown.classList.add('hidden');
-                }
+            document.addEventListener('click', () => {
+                notificationDropdown.classList.add('hidden');
+                profileDropdown.classList.add('hidden');
             });
-
-            // Handle window resize
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 768) {
-                    sidebar.classList.remove('-translate-x-full');
-                    overlay.classList.add('hidden');
-                    document.body.classList.remove('overflow-hidden');
-                } else {
-                    sidebar.classList.add('-translate-x-full');
-                    overlay.classList.add('hidden');
-                    document.body.classList.remove('overflow-hidden');
-                }
-            });
+            
+            // Prevent dropdowns from closing when clicking inside them
+            notificationDropdown.addEventListener('click', (e) => e.stopPropagation());
+            profileDropdown.addEventListener('click', (e) => e.stopPropagation());
         });
     </script>
 </body>
