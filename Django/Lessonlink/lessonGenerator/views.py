@@ -17,9 +17,9 @@ except Exception as e:
     model = None
 
 # Make sure this index function exists
-def index(request):
+def lesson_ai(request):
     """Render the main page with the lesson plan form"""
-    return render(request, 'lessonGenerator/index.html')
+    return render(request, 'lessonGenerator/lesson_ai.html')
 
 @csrf_exempt
 @require_http_methods(["POST"])
