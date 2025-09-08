@@ -29,6 +29,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'lesson',
+    'lessonGenerator',
+
 ]
 
 MIDDLEWARE = [
@@ -130,3 +132,5 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny', #Change from IsAuthenticated to AllowAny
     ]
 }
+
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyCVu9MK5Hx9HgJ_mbjTwQR7zM1SQKvJchA')

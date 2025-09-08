@@ -1,0 +1,23 @@
+{% extends "lesson_generator/base.html" %}
+{% load markdown_filter %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Your Generated Lesson Plan</h2>
+        <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+            Create Another
+        </a>
+    </div>
+    
+    <div class="prose max-w-none">
+        {{ lesson_plan|markdown }}
+    </div>
+    
+    <div class="mt-8 flex justify-center">
+        <button onclick="window.print()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-medium">
+            Print Lesson Plan
+        </button>
+    </div>
+</div>
+{% endblock %}
