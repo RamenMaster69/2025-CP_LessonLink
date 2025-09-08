@@ -253,22 +253,17 @@ def registration_3(request):
     return render(request, 'registration/registration_3.html')
 
 def registration_4(request):
-    
-    # Debug: Check what session data exists
+    # Debug logs
     print(f"DEBUG registration_4 - Full session: {dict(request.session)}")
     print(f"DEBUG registration_4 - reg_email: {request.session.get('reg_email')}")
     print(f"DEBUG registration_4 - reg_role: {request.session.get('reg_role')}")
     print(f"DEBUG registration_4 - reg_rank: {request.session.get('reg_rank')}")
 
-    # Check if user came from previous steps
+    # Ensure previous steps are complete
     if not request.session.get('reg_email') or not request.session.get('reg_role'):
         messages.error(request, "Please complete the previous registration steps.")
         return redirect('registration_1')
-        # Debug: Check what session data exists in cmd
-        print("Session data:", dict(request.session))
-        print("Has reg_email:", request.session.get('reg_email'))
-        print("Has reg_role:", request.session.get('reg_role'))
-    
+
     if request.method == "POST":
         department = request.POST.get("department")
         affiliations = request.POST.getlist("affiliation[]")
@@ -282,7 +277,7 @@ def registration_4(request):
                 'show_error': True
             })
 
-        # Get all session data
+        # Collect session data
         email = request.session.get('reg_email')
         raw_password = request.session.get('reg_password')
         first_name = request.session.get('reg_first_name')
@@ -292,26 +287,24 @@ def registration_4(request):
         role = request.session.get('reg_role')
         rank = request.session.get('reg_rank')
 
-        # Double-check session data integrity
+        # Check integrity
         if not email or not raw_password:
             messages.error(request, "Session expired. Please restart registration.")
-            # Clear any partial session data
             for key in list(request.session.keys()):
                 if key.startswith("reg_"):
                     del request.session[key]
-            return redirect('registration/registration_1')
+            return redirect('registration_1')
 
         try:
-            # Final check for email existence (in case of race condition)
+            # Prevent duplicate registration
             if User.objects.filter(email=email).exists():
                 messages.error(request, "This email was registered by someone else. Please use a different email.")
-                # Clear session and restart
                 for key in list(request.session.keys()):
                     if key.startswith("reg_"):
                         del request.session[key]
-                return redirect('registration/registration_1')
+                return redirect('registration_1')
 
-            # Create the user
+            # Create user
             user = User.objects.create(
                 email=email,
                 password=make_password(raw_password),
@@ -325,14 +318,22 @@ def registration_4(request):
                 affiliations=", ".join(affiliations) if affiliations else ""
             )
 
-            # Clear all registration session data
+            # Clear reg_* session data
             for key in list(request.session.keys()):
                 if key.startswith("reg_"):
                     del request.session[key]
 
-            # Success message and redirect to login
-            messages.success(request, f"Account created successfully for {email}! Please log in with your credentials.")
-            return redirect('login')
+            # ✅ Auto-login new user
+            request.session['user_id'] = user.id
+            messages.success(request, f"Account created successfully for {email}!")
+
+            # ✅ Redirect by role
+            if user.role == "Student Teacher":
+                return redirect('st_dash')
+            elif user.role == "Department Head":
+                return redirect('Dep_Dash')
+            else:
+                return redirect('dashboard')
 
         except Exception as e:
             messages.error(request, f"Registration failed: {str(e)}")
@@ -345,14 +346,26 @@ def registration_4(request):
 
     return render(request, 'registration/registration_4.html')
 
+
+
 def registration_5(request):
     return render(request, 'registration/registration_5.html')
 
 def login_view(request):
-    # If user is already logged in, redirect to dashboard
+    # If user is already logged in, redirect based on role
     if request.session.get('user_id'):
-        return redirect('dashboard')
-        
+        try:
+            user = User.objects.get(id=request.session['user_id'])
+            if user.role == "Student Teacher":
+                return redirect('st_dash')
+            elif user.role == "Department Head":
+                return redirect('Dep_Dash')
+            else:
+                return redirect('dashboard')
+        except User.DoesNotExist:
+            del request.session['user_id']
+            return redirect('login')
+
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
@@ -371,7 +384,15 @@ def login_view(request):
             if user.check_password(password):
                 request.session['user_id'] = user.id
                 messages.success(request, f"Welcome back, {user.first_name}!")
-                return redirect('dashboard')
+
+                # 🔑 Redirect based on role
+                if user.role == "Student Teacher":
+                    return redirect('st_dash')
+                elif user.role == "Department Head":
+                    return redirect('Dep_Dash')
+                else:
+                    return redirect('dashboard')
+
             else:
                 messages.error(request, "Invalid password. Please try again.")
                 return render(request, 'login.html', {
@@ -390,6 +411,7 @@ def login_view(request):
             })
 
     return render(request, 'login.html')
+
 
 def dashboard(request):
     # Check if user is logged in
@@ -584,7 +606,19 @@ def task(request):
         return redirect('login')
 
 def Dep_Dash(request):
-    return render(request, 'Dep_Dash.html')
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return redirect('login')
+
+    try:
+        user = User.objects.get(id=user_id)
+        if user.role != "Department Head":
+            messages.error(request, "You are not allowed to access this page.")
+            return redirect('login')
+        return render(request, 'Dep_Dash.html', {'user': user})
+    except User.DoesNotExist:
+        return redirect('login')
+
 
 def Dep_Faculty(request):
     return render(request, 'Dep_Faculty.html')
@@ -637,7 +671,20 @@ def teach_template(request):
     return render(request, 'teach_template.html')
 
 def st_dash(request):
-    return render(request, 'st_dash.html')
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return redirect('login')
+
+    try:
+        user = User.objects.get(id=user_id)
+        if user.role != "Student Teacher":
+            messages.error(request, "You are not allowed to access this page.")
+            return redirect('login')
+        return render(request, 'st_dash.html', {'user': user})
+    except User.DoesNotExist:
+        return redirect('login')
+
+
 
 def calendar(request):
     return render(request, 'calendar.html')
@@ -801,3 +848,4 @@ def mark_notification_read_api(request, notification_id):
         return JsonResponse({'success': True})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+

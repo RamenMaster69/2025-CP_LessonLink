@@ -176,11 +176,12 @@
                                 <span>Settings</span>
                             </a>
                             <hr class="my-2">
-                            <a href="#" id="logout-btn"
+                            <a href="{% url 'logout' %}" id="logout-btn"
                                 class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
-                                <i class="fas fa-sign-out-alt w-4"></i>
-                                <span>Logout</span>
+                                    <i class="fas fa-sign-out-alt w-4"></i>
+                                    <span>Logout</span>
                             </a>
+
                         </div>
                     </div>
                 </div>

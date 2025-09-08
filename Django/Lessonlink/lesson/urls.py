@@ -8,13 +8,13 @@ from .views import dashboard, profile, ScheduleViewSet, draft, task, schedule
 from .views import Dep_Dash, Dep_Faculty, Dep_Pending
 from .views import st_dash
 # Import the new task API views
-from .views import add_task_api, update_task_status_api, delete_task_api, get_notifications_api, mark_notification_read_api
+from .views import (
+    add_task_api, update_task_status_api, delete_task_api,
+    get_notifications_api, mark_notification_read_api
+)
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
-
-
-
 
 # REST Framework router
 router = DefaultRouter()
