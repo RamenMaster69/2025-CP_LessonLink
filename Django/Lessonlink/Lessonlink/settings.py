@@ -48,7 +48,7 @@ ROOT_URLCONF = 'Lessonlink.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [BASE_DIR / 'templates'],  # <-- directory, not file
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -59,6 +59,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'Lessonlink.wsgi.application'
 

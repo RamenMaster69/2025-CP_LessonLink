@@ -7,6 +7,7 @@ from .views import lesson_planner, lesson_plan
 from .views import dashboard, profile, ScheduleViewSet, draft, task, schedule
 from .views import Dep_Dash, Dep_Faculty, Dep_Pending
 from .views import st_dash
+
 # Import the new task API views
 from .views import (
     add_task_api, update_task_status_api, delete_task_api,
@@ -38,6 +39,7 @@ urlpatterns = [
     path('registration_3/', registration_3, name='registration_3'),
     path('registration_4/', registration_4, name='registration_4'),
     path('org_reg_1/', org_reg_1, name='org_reg_1'),
+    # path('school_registration/', school_registration, name='school_registration'),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
     path('dashboard/', dashboard, name='dashboard'),
@@ -54,7 +56,9 @@ urlpatterns = [
     path('teach_template/', teach_template, name='teach_template'),
     path('calendar/', calendar, name='calendar'),
     path('st_dash/', st_dash, name='st_dash'),
-    path('upload-profile-picture/', views.upload_profile_picture, name='upload_profile_picture'),
+
+
+    # path('upload-profile-picture/', upload_profile_picture, name='upload_profile_picture'),
 ]
 
 if settings.DEBUG:

@@ -1,8 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
-from .models import User, Schedule, Task, TaskNotification
-from .serializers import ScheduleSerializer
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
@@ -11,19 +9,186 @@ from django.core.files.storage import default_storage
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-import json
-import os
-import time
-from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.conf import settings
 from django.core.files.base import ContentFile
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+import json
+import os
+import time
+import logging
 from PIL import Image
 import uuid
 from io import BytesIO
 
+from .models import User, Schedule, Task, TaskNotification, SchoolRegistration
+from .serializers import ScheduleSerializer
+
+logger = logging.getLogger(__name__)
+
+# School Registration Views
 @login_required
-@csrf_exempt
+def org_reg_1(request):
+    """Handle school registration form - both GET and POST"""
+    
+    if request.method == 'GET':
+        # Display the form
+        return render(request, 'org_reg/org_reg_1.html')
+    
+    elif request.method == 'POST':
+        try:
+            # Extract form data
+            form_data = {
+                'school_name': request.POST.get('school_name', '').strip(),
+                'school_id': request.POST.get('school_id', '').strip(),
+                'year_established': request.POST.get('year_established'),
+                'address': request.POST.get('address', '').strip(),
+                'province': request.POST.get('province', '').strip(),
+                'region': request.POST.get('region', '').strip(),
+                'phone_number': request.POST.get('phone_number', '').strip(),
+                'email': request.POST.get('email', '').strip(),
+                'website': request.POST.get('website', '').strip(),
+                'facebook_page': request.POST.get('facebook_page', '').strip(),
+                'contact_person': request.POST.get('contact_person', '').strip(),
+                'position': request.POST.get('position', '').strip(),
+                'contact_email': request.POST.get('contact_email', '').strip(),
+                'contact_phone': request.POST.get('contact_phone', '').strip(),
+                'accuracy': request.POST.get('accuracy') == 'on',
+                'terms': request.POST.get('terms') == 'on',
+                'communications': request.POST.get('communications') == 'on',
+            }
+            
+            # Handle year_established - convert to int if provided
+            if form_data['year_established']:
+                try:
+                    form_data['year_established'] = int(form_data['year_established'])
+                except (ValueError, TypeError):
+                    form_data['year_established'] = None
+            else:
+                form_data['year_established'] = None
+            
+            # Validate required fields
+            required_fields = [
+                'school_name', 'school_id', 'address', 'province', 'region',
+                'phone_number', 'email', 'contact_person', 'position',
+                'contact_email', 'contact_phone'
+            ]
+            
+            missing_fields = []
+            for field in required_fields:
+                if not form_data[field]:
+                    missing_fields.append(field.replace('_', ' ').title())
+            
+            if missing_fields:
+                messages.error(request, f"Please complete the following required fields: {', '.join(missing_fields)}")
+                return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
+            
+            # Validate required checkboxes
+            if not form_data['accuracy']:
+                messages.error(request, "You must certify the accuracy of the information provided.")
+                return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
+            
+            if not form_data['terms']:
+                messages.error(request, "You must agree to the Terms of Service and Privacy Policy.")
+                return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
+            
+            # Check if school_id already exists
+            if SchoolRegistration.objects.filter(school_id=form_data['school_id']).exists():
+                messages.error(request, f"A school with ID '{form_data['school_id']}' is already registered.")
+                return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
+            
+            # Create the school registration record
+            school_registration = SchoolRegistration.objects.create(
+                school_name=form_data['school_name'],
+                school_id=form_data['school_id'],
+                year_established=form_data['year_established'],
+                address=form_data['address'],
+                province=form_data['province'],
+                region=form_data['region'],
+                phone_number=form_data['phone_number'],
+                email=form_data['email'],
+                website=form_data['website'] if form_data['website'] else None,
+                facebook_page=form_data['facebook_page'] if form_data['facebook_page'] else None,
+                contact_person=form_data['contact_person'],
+                position=form_data['position'],
+                contact_email=form_data['contact_email'],
+                contact_phone=form_data['contact_phone'],
+                accuracy=form_data['accuracy'],
+                terms=form_data['terms'],
+                communications=form_data['communications'],
+                status='pending'
+            )
+            
+            # Handle file upload if present
+            if request.FILES.get('certificate_file'):
+                school_registration.certificate_file = request.FILES['certificate_file']
+                school_registration.save()
+            
+            # Log the successful registration
+            logger.info(f"New school registration: {school_registration.school_name} ({school_registration.school_id})")
+            
+            # Success message
+            messages.success(
+                request, 
+                f"Registration submitted successfully! "
+                f"Your application for {school_registration.school_name} has been received. "
+                f"You will be contacted at {school_registration.contact_email} once your registration is reviewed."
+            )
+            
+            # Create success context
+            context = {
+                'school_registration': school_registration,
+                'success': True
+            }
+            
+            return redirect('landing')
+            
+        except ValidationError as e:
+            # Handle model validation errors
+            error_messages = []
+            if hasattr(e, 'message_dict'):
+                for field, errors in e.message_dict.items():
+                    for error in errors:
+                        error_messages.append(f"{field.replace('_', ' ').title()}: {error}")
+            else:
+                error_messages.append(str(e))
+            
+            for error in error_messages:
+                messages.error(request, error)
+            
+            return render(request, 'org_reg/org_reg_1.html', {'form_data': request.POST})
+        
+        except Exception as e:
+            # Handle unexpected errors
+            logger.error(f"Error processing school registration: {str(e)}")
+            messages.error(request, "An unexpected error occurred. Please try again or contact support.")
+            return render(request, 'org_reg/org_reg_1.html', {'form_data': request.POST})
+
+
+# AJAX endpoint for real-time school ID validation
+def validate_school_id_ajax(request):
+    """AJAX endpoint to validate school ID availability"""
+    school_id = request.POST.get('school_id', '').strip()
+    
+    if not school_id:
+        return JsonResponse({'valid': False, 'message': 'School ID is required'})
+    
+    exists = SchoolRegistration.objects.filter(school_id=school_id).exists()
+    
+    if exists:
+        return JsonResponse({
+            'valid': False, 
+            'message': 'This School ID is already registered'
+        })
+    
+    return JsonResponse({
+        'valid': True, 
+        'message': 'School ID is available'
+    })
+
+
+# User Registration and Authentication Views
 def upload_profile_picture(request):
     if request.method == 'POST' and request.FILES.get('profile_picture'):
         profile_picture = request.FILES['profile_picture']
@@ -108,9 +273,6 @@ def upload_profile_picture(request):
 
 def landing(request):
     return render(request, 'landing.html')
-
-def org_reg_1(request):
-    return render(request, 'org_reg/org_reg_1.html')
 
 @csrf_exempt
 def registration_1(request):
@@ -345,8 +507,6 @@ def registration_4(request):
             })
 
     return render(request, 'registration/registration_4.html')
-
-
 
 def registration_5(request):
     return render(request, 'registration/registration_5.html')
@@ -849,3 +1009,42 @@ def mark_notification_read_api(request, notification_id):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
+
+# Optional: Add some utility views for admin management
+def admin_school_registrations(request):
+    """Admin view to manage school registrations"""
+    registrations = SchoolRegistration.objects.all().order_by('-created_at')
+    
+    # Filter by status if requested
+    status_filter = request.GET.get('status')
+    if status_filter:
+        registrations = registrations.filter(status=status_filter)
+    
+    context = {
+        'registrations': registrations,
+        'status_filter': status_filter,
+        'status_choices': SchoolRegistration.STATUS_CHOICES,
+    }
+    
+    return render(request, 'admin/school_registrations.html', context)
+
+
+def admin_approve_registration(request, registration_id):
+    """Admin view to approve/reject registrations"""
+    if request.method == 'POST':
+        try:
+            registration = SchoolRegistration.objects.get(id=registration_id)
+            action = request.POST.get('action')
+            
+            if action == 'approve':
+                registration.approve_registration()
+                messages.success(request, f"Registration for {registration.school_name} approved!")
+            elif action == 'reject':
+                reason = request.POST.get('reason', '')
+                registration.reject_registration(reason=reason)
+                messages.success(request, f"Registration for {registration.school_name} rejected.")
+            
+        except SchoolRegistration.DoesNotExist:
+            messages.error(request, "Registration not found.")
+    
+    return redirect('admin_school_registrations')

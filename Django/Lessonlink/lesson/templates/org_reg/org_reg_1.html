@@ -131,254 +131,307 @@
 
         <!-- Registration Form -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-            <form class="divide-y divide-gray-200">
+            <form method="POST" action="{% url 'org_reg_1' %}" class="divide-y divide-gray-200">
+             {% csrf_token %}
                 <!-- Section 1: Institution Details -->
-                <section class="form-section p-8" data-section="1" id="section-1">
-                    <div class="flex items-start space-x-4 mb-8">
-                        <div class="section-number" data-section-num="1">1</div>
-                        <div>
-                            <h2 class="text-xl font-semibold text-gray-900 mb-2">Institution Details</h2>
-                            <p class="text-gray-600">Basic information about your educational institution</p>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Official School Name <span class="text-red-500">*</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                                placeholder="Enter complete official name"
-                                required
-                            >
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                School ID / DepEd Code <span class="text-red-500">*</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                                placeholder="12-digit registration code"
-                                required
-                            >
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Year Established</label>
-                            <input 
-                                type="number" 
-                                min="1800" 
-                                max="2025" 
-                                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                                placeholder="1985"
-                            >
-                        </div>
-                        
-                    </div>
-                </section>
+<section class="form-section p-8" data-section="1" id="section-1">
+    <div class="flex items-start space-x-4 mb-8">
+        <div class="section-number" data-section-num="1">1</div>
+        <div>
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Institution Details</h2>
+            <p class="text-gray-600">Basic information about your educational institution</p>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Official School Name <span class="text-red-500">*</span>
+            </label>
+            <input 
+                type="text" 
+                name="school_name"
+                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                placeholder="Enter complete official name"
+                required
+            >
+        </div>
+        
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                School ID / DepEd Code <span class="text-red-500">*</span>
+            </label>
+            <input 
+                type="text" 
+                name="school_id"
+                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                placeholder="12-digit registration code"
+                required
+            >
+        </div>
+        
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Year Established</label>
+            <input 
+                type="number" 
+                name="year_established"
+                min="1800" 
+                max="2025" 
+                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                placeholder="1985"
+            >
+        </div>
+    </div>
+</section>
+
 
                 <!-- Section 2: Contact Information -->
-                <section class="form-section p-8" data-section="2" id="section-2">
-                    <div class="flex items-start space-x-4 mb-8">
-                        <div class="section-number" data-section-num="2">2</div>
-                        <div>
-                            <h2 class="text-xl font-semibold text-gray-900 mb-2">Contact Information</h2>
-                            <p class="text-gray-600">Primary contact details and address</p>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Complete Address <span class="text-red-500">*</span>
-                            </label>
-                            <textarea 
-                                rows="3" 
-                                class="input-field w-full px-4 py-3 rounded-md text-sm resize-none"
-                                placeholder="Street, Barangay, City/Municipality"
-                                required
-                            ></textarea>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Province <span class="text-red-500">*</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                                placeholder="Province name"
-                                required
-                            >
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Region <span class="text-red-500">*</span>
-                            </label>
-                            <select class="input-field w-full px-4 py-3 rounded-md text-sm" required>
-                                <option value="">Select region</option>
-                                <option value="region9">Region IX - Zamboanga Peninsula</option>
-                                <option value="barmm">BARMM</option>
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Phone Number <span class="text-red-500">*</span>
-                            </label>
-                            <input 
-                                type="tel" 
-                                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                                placeholder="+63 XX XXXX XXXX"
-                                required
-                            >
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Email Address <span class="text-red-500">*</span>
-                            </label>
-                            <input 
-                                type="email" 
-                                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                                placeholder="admin@school.edu.ph"
-                                required
-                            >
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Website</label>
-                            <input 
-                                type="url" 
-                                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                                placeholder="https://www.school.edu.ph"
-                            >
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Facebook Page</label>
-                            <input 
-                                type="url" 
-                                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                                placeholder="https://facebook.com/schoolname"
-                            >
-                        </div>
-                    </div>
-                </section>
+<section class="form-section p-8" data-section="2" id="section-2">
+    <div class="flex items-start space-x-4 mb-8">
+        <div class="section-number" data-section-num="2">2</div>
+        <div>
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Contact Information</h2>
+            <p class="text-gray-600">Primary contact details and address</p>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Address -->
+        <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Complete Address <span class="text-red-500">*</span>
+            </label>
+            <textarea 
+                name="address"
+                rows="3" 
+                class="input-field w-full px-4 py-3 rounded-md text-sm resize-none"
+                placeholder="Street, Barangay, City/Municipality"
+                required
+            ></textarea>
+        </div>
+        
+        <!-- Province -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Province <span class="text-red-500">*</span>
+            </label>
+            <input 
+                type="text" 
+                name="province"
+                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                placeholder="Province name"
+                required
+            >
+        </div>
+        
+        <!-- Region -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Region <span class="text-red-500">*</span>
+            </label>
+            <select 
+                name="region"
+                class="input-field w-full px-4 py-3 rounded-md text-sm" 
+                required
+            >
+                <option value="">Select region</option>
+                <option value="Region IX - Zamboanga Peninsula">Region IX - Zamboanga Peninsula</option>
+                <option value="BARMM">BARMM</option>
+            </select>
+        </div>
+        
+        <!-- Phone -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Phone Number <span class="text-red-500">*</span>
+            </label>
+            <input 
+                type="tel" 
+                name="phone_number"
+                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                placeholder="+63 XX XXXX XXXX"
+                required
+            >
+        </div>
+        
+        <!-- Email -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Email Address <span class="text-red-500">*</span>
+            </label>
+            <input 
+                type="email" 
+                name="email"
+                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                placeholder="admin@school.edu.ph"
+                required
+            >
+        </div>
+        
+        <!-- Website -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Website</label>
+            <input 
+                type="url" 
+                name="website"
+                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                placeholder="https://www.school.edu.ph"
+            >
+        </div>
+        
+        <!-- Facebook -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Facebook Page</label>
+            <input 
+                type="url" 
+                name="facebook_page"
+                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                placeholder="https://facebook.com/schoolname"
+            >
+        </div>
+    </div>
+</section>
+
 
                 <!-- Section 3: Administrative Contact -->
-                <section class="form-section p-8" data-section="3" id="section-3">
-                    <div class="flex items-start space-x-4 mb-8">
-                        <div class="section-number" data-section-num="3">3</div>
-                        <div>
-                            <h2 class="text-xl font-semibold text-gray-900 mb-2">Administrative Contact</h2>
-                            <p class="text-gray-600">Primary contact person for system administration</p>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Contact Person Name <span class="text-red-500">*</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                                placeholder="Full name"
-                                required
-                            >
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Position/Title <span class="text-red-500">*</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                                placeholder="Principal, Registrar, etc."
-                                required
-                            >
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Contact Email <span class="text-red-500">*</span>
-                            </label>
-                            <input 
-                                type="email" 
-                                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                                placeholder="contact@school.edu.ph"
-                                required
-                            >
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Contact Phone <span class="text-red-500">*</span>
-                            </label>
-                            <input 
-                                type="tel" 
-                                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                                placeholder="+63 XXX XXX XXXX"
-                                required
-                            >
-                        </div>
-                    </div>
-                </section>
+<section class="form-section p-8" data-section="3" id="section-3">
+    <div class="flex items-start space-x-4 mb-8">
+        <div class="section-number" data-section-num="3">3</div>
+        <div>
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Administrative Contact</h2>
+            <p class="text-gray-600">Primary contact person for system administration</p>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Contact Person -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Contact Person Name <span class="text-red-500">*</span>
+            </label>
+            <input 
+                type="text" 
+                name="contact_person"
+                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                placeholder="Full name"
+                required
+            >
+        </div>
+        
+        <!-- Position -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Position/Title <span class="text-red-500">*</span>
+            </label>
+            <input 
+                type="text" 
+                name="position"
+                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                placeholder="Principal, Registrar, etc."
+                required
+            >
+        </div>
+        
+        <!-- Contact Email -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Contact Email <span class="text-red-500">*</span>
+            </label>
+            <input 
+                type="email" 
+                name="contact_email"
+                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                placeholder="contact@school.edu.ph"
+                required
+            >
+        </div>
+        
+        <!-- Contact Phone -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Contact Phone <span class="text-red-500">*</span>
+            </label>
+            <input 
+                type="tel" 
+                name="contact_phone"
+                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                placeholder="+63 XXX XXX XXXX"
+                required
+            >
+        </div>
+    </div>
+</section>
+
 
                 <!-- Terms and Conditions -->
-                <section class="p-8">
-                    <div class="space-y-4">
-                        <div class="flex items-start space-x-3">
-                            <input type="checkbox" id="accuracy" class="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" required>
-                            <label for="accuracy" class="text-sm text-gray-700">
-                                I certify that all information provided is accurate and complete. I understand that false information may result in account suspension.
-                            </label>
-                        </div>
-                        
-                        <div class="flex items-start space-x-3">
-                            <input type="checkbox" id="terms" class="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" required>
-                            <label for="terms" class="text-sm text-gray-700">
-                                I agree to the 
-                                <a href="#" class="text-blue-600 underline hover:text-blue-800">Terms of Service</a> and 
-                                <a href="#" class="text-blue-600 underline hover:text-blue-800">Privacy Policy</a>. 
-                                I consent to data processing for platform administration purposes.
-                            </label>
-                        </div>
-                        
-                        <div class="flex items-start space-x-3">
-                            <input type="checkbox" id="communications" class="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                            <label for="communications" class="text-sm text-gray-700">
-                                I would like to receive updates about platform features and educational resources via email.
-                            </label>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Form Actions -->
-                <div class="bg-gray-50 px-8 py-6 rounded-b-lg">
-                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-                        <div class="flex items-center text-sm text-gray-600">
-                            <i data-lucide="shield" class="w-4 h-4 mr-2"></i>
-                            SSL-encrypted secure submission
-                        </div>
-                        
-                        <div class="flex space-x-4">
-                            <button type="submit" onclick="submitRegistration(event)" class="px-8 py-3 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center transition-colors">
-                                Submit Registration
-                                <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </form>
+<section class="p-8">
+    <div class="space-y-4">
+        <!-- Accuracy Certification -->
+        <div class="flex items-start space-x-3">
+            <input 
+                type="checkbox" 
+                id="accuracy" 
+                name="accuracy" 
+                class="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" 
+                required
+            >
+            <label for="accuracy" class="text-sm text-gray-700">
+                I certify that all information provided is accurate and complete. I understand that false information may result in account suspension.
+            </label>
         </div>
+        
+        <!-- Terms of Service -->
+        <div class="flex items-start space-x-3">
+            <input 
+                type="checkbox" 
+                id="terms" 
+                name="terms" 
+                class="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" 
+                required
+            >
+            <label for="terms" class="text-sm text-gray-700">
+                I agree to the 
+                <a href="#" class="text-blue-600 underline hover:text-blue-800">Terms of Service</a> and 
+                <a href="#" class="text-blue-600 underline hover:text-blue-800">Privacy Policy</a>. 
+                I consent to data processing for platform administration purposes.
+            </label>
+        </div>
+        
+        <!-- Optional Updates -->
+        <div class="flex items-start space-x-3">
+            <input 
+                type="checkbox" 
+                id="communications" 
+                name="communications"
+                class="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            >
+            <label for="communications" class="text-sm text-gray-700">
+                I would like to receive updates about platform features and educational resources via email.
+            </label>
+        </div>
+    </div>
+</section>
+
+<!-- Form Actions -->
+<div class="bg-gray-50 px-8 py-6 rounded-b-lg">
+    <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+        <div class="flex items-center text-sm text-gray-600">
+            <i data-lucide="shield" class="w-4 h-4 mr-2"></i>
+            SSL-encrypted secure submission
+        </div>
+        
+        <div class="flex space-x-4">
+            <button 
+                type="submit"
+                class="px-8 py-3 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center transition-colors"
+            >
+                Submit Registration
+                <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+            </button>
+
+        </div>
+    </div>
+</div>
 
         <!-- Support Information -->
         <div class="mt-8 text-center">
@@ -484,174 +537,100 @@
         
         // Submit registration function
         function submitRegistration(event) {
-            event.preventDefault();
-            
-            // Basic validation
-            const requiredFields = document.querySelectorAll('input[required], select[required], textarea[required]');
-            let isValid = true;
-            let firstInvalidField = null;
-            const invalidFields = [];
-            
-            // Check required fields
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    isValid = false;
-                    field.style.borderColor = '#dc2626';
-                    field.style.backgroundColor = '#fef2f2';
-                    invalidFields.push(field);
-                    if (!firstInvalidField) {
-                        firstInvalidField = field;
-                    }
-                } else {
-                    field.style.borderColor = '#d1d5db';
-                    field.style.backgroundColor = '#ffffff';
-                }
+    event.preventDefault(); // Stop default submission for validation
+
+    // Basic validation
+    const requiredFields = document.querySelectorAll('input[required], select[required], textarea[required]');
+    let isValid = true;
+    let firstInvalidField = null;
+    const invalidFields = [];
+
+    // Check required fields
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            isValid = false;
+            field.style.borderColor = '#dc2626';
+            field.style.backgroundColor = '#fef2f2';
+            invalidFields.push(field);
+            if (!firstInvalidField) firstInvalidField = field;
+        } else {
+            field.style.borderColor = '#d1d5db';
+            field.style.backgroundColor = '#ffffff';
+        }
+    });
+
+    // Check required checkboxes
+    const requiredCheckboxes = ['accuracy', 'terms'];
+    requiredCheckboxes.forEach(id => {
+        const checkbox = document.getElementById(id);
+        if (!checkbox.checked) isValid = false;
+    });
+
+    if (isValid) {
+        const form = event.target.form || event.target; // Get the form element
+        const submitBtn = event.target;
+
+        // Show loading state
+        submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 mr-2 animate-spin"></i>Processing...';
+        submitBtn.disabled = true;
+        lucide.createIcons();
+
+        // Optional: short delay to show loading spinner
+        setTimeout(() => {
+            // Actually submit the form to Django
+            form.submit();
+        }, 500); // 0.5s delay so user sees the spinner
+
+    } else {
+        // Focus on first invalid field
+        if (firstInvalidField) {
+            firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => firstInvalidField.focus(), 500);
+        }
+
+        // Show error messages
+        if (!document.getElementById('accuracy').checked || !document.getElementById('terms').checked) {
+            showAlert('Please accept all required terms and conditions.', 'error');
+        } else {
+            showAlert(`Please complete all required fields. ${invalidFields.length} field(s) need attention.`, 'error');
+        }
+
+        // Clear field highlighting after 3 seconds
+        setTimeout(() => {
+            invalidFields.forEach(field => {
+                field.style.borderColor = '#d1d5db';
+                field.style.backgroundColor = '#ffffff';
             });
-            
-            // Check required checkboxes
-            const requiredCheckboxes = ['accuracy', 'terms'];
-            requiredCheckboxes.forEach(id => {
-                const checkbox = document.getElementById(id);
-                if (!checkbox.checked) {
-                    isValid = false;
-                }
-            });
-            
-            // Check if certificate file is uploaded (required)
-            const certFile = document.getElementById('cert-file');
-            if (!certFile.files || certFile.files.length === 0) {
-                isValid = false;
-                showAlert('Please upload the School Registration Certificate.', 'error');
-            }
-            
-            if (isValid) {
-                const submitBtn = event.target;
-                const originalContent = submitBtn.innerHTML;
-                
-                // Show loading state
-                submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 mr-2 animate-spin"></i>Processing...';
-                submitBtn.disabled = true;
-                lucide.createIcons();
-                
-                // Simulate form submission process
-                setTimeout(() => {
-                    // Simulate success
-                    showAlert('Registration submitted successfully! You will receive confirmation within 3-5 business days.', 'success');
-                    
-                    // Update button to show success
-                    submitBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4 mr-2"></i>Submitted Successfully';
-                    submitBtn.style.backgroundColor = '#059669';
-                    lucide.createIcons();
-                    
-                    // Show success message with next steps
-                    setTimeout(() => {
-                        const successDiv = document.createElement('div');
-                        successDiv.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-                        successDiv.innerHTML = `
-                            <div class="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
-                                <i data-lucide="check-circle" class="w-16 h-16 text-green-500 mx-auto mb-4"></i>
-                                <h3 class="text-xl font-semibold mb-4">Registration Submitted!</h3>
-                                <p class="text-gray-600 mb-6">Thank you for submitting your school registration. Our team will review your application and contact you within 3-5 business days.</p>
-                                <p class="text-sm text-gray-500 mb-6">Reference ID: REG-${Date.now()}</p>
-                                <button onclick="this.parentElement.parentElement.remove()" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                                    Close
-                                </button>
-                            </div>
-                        `;
-                        document.body.appendChild(successDiv);
-                        lucide.createIcons();
-                    }, 2000);
-                    
-                }, 3000);
-            } else {
-                // Focus on first invalid field
-                if (firstInvalidField) {
-                    firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    setTimeout(() => {
-                        firstInvalidField.focus();
-                    }, 500);
-                }
-                
-                // Show appropriate error message
-                if (!document.getElementById('accuracy').checked || !document.getElementById('terms').checked) {
-                    showAlert('Please accept all required terms and conditions.', 'error');
-                } else {
-                    showAlert(`Please complete all required fields. ${invalidFields.length} field(s) need attention.`, 'error');
-                }
-                
-                // Clear field highlighting after 3 seconds
-                setTimeout(() => {
-                    invalidFields.forEach(field => {
-                        field.style.borderColor = '#d1d5db';
-                        field.style.backgroundColor = '#ffffff';
-                    });
-                }, 3000);
-            }
-        }
-        
-        // File upload handler
-        function handleFileUpload(input, docType, zoneId) {
-            const file = input.files[0];
-            if (!file) return;
-            
-            // Validate file size (5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                showAlert('File size must be less than 5MB.', 'error');
-                input.value = '';
-                return;
-            }
-            
-            // Validate file type
-            const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-            if (!validTypes.includes(file.type)) {
-                showAlert('Please upload a PDF, JPG, or PNG file.', 'error');
-                input.value = '';
-                return;
-            }
-            
-            // Update upload area
-            const uploadZone = document.getElementById(zoneId + '-upload-zone');
-            const defaultView = uploadZone.querySelector('.upload-default');
-            const fileInfoView = uploadZone.querySelector('.file-info');
-            const fileName = fileInfoView.querySelector('.file-name');
-            const fileDetails = fileInfoView.querySelector('.file-details');
-            
-            // Hide default view and show file info
-            defaultView.style.display = 'none';
-            fileInfoView.classList.add('show');
-            
-            // Update content
-            fileName.textContent = file.name;
-            fileDetails.textContent = `${docType} uploaded • ${(file.size / 1024 / 1024).toFixed(2)} MB`;
-            
-            // Update zone appearance
-            uploadZone.classList.add('uploaded');
-            
-            // Re-initialize Lucide icons
-            lucide.createIcons();
-            
-            showAlert(`${docType} uploaded successfully!`, 'success');
-        }
-        
-        // Remove file function
-        function removeFile(zoneId) {
-            const uploadZone = document.getElementById(zoneId + '-upload-zone');
-            const defaultView = uploadZone.querySelector('.upload-default');
-            const fileInfoView = uploadZone.querySelector('.file-info');
-            const input = uploadZone.querySelector('input[type="file"]');
-            
-            // Reset input
-            input.value = '';
-            
-            // Show default view and hide file info
-            defaultView.style.display = 'block';
-            fileInfoView.classList.remove('show');
-            
-            // Reset zone appearance
-            uploadZone.classList.remove('uploaded');
-            
-            showAlert('File removed successfully.', 'success');
-        }
+        }, 3000);
+    }
+}
+
+// Example alert function (keep your existing one)
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    const bgColor = type === 'success' ? 'bg-green-50 border-green-200 text-green-800' :
+                    type === 'error' ? 'bg-red-50 border-red-200 text-red-800' :
+                    'bg-blue-50 border-blue-200 text-blue-800';
+
+    alertDiv.className = `fixed top-4 right-4 ${bgColor} border rounded-lg px-4 py-3 shadow-lg z-50 max-w-md`;
+    alertDiv.innerHTML = `
+        <div class="flex items-center">
+            <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-4 h-4 mr-2"></i>
+            <p class="text-sm font-medium">${message}</p>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-3">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+    `;
+    document.body.appendChild(alertDiv);
+    lucide.createIcons();
+
+    setTimeout(() => {
+        if (alertDiv.parentElement) alertDiv.remove();
+    }, 5000);
+}
+                       
+       
         
         // Alert system
         function showAlert(message, type) {
