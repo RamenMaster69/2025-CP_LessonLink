@@ -849,6 +849,9 @@ def st_dash(request):
 def calendar(request):
     return render(request, 'calendar.html')
 
+def admin_calendar(request):
+    return render(request, 'admin_calendar.html')
+
 # Task API Views
 @csrf_exempt
 @require_POST
