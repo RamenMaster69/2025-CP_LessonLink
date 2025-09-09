@@ -28,7 +28,7 @@ from .serializers import ScheduleSerializer
 logger = logging.getLogger(__name__)
 
 # School Registration Views
-@login_required
+
 def org_reg_1(request):
     """Handle school registration form - both GET and POST"""
     
@@ -426,15 +426,22 @@ def registration_4(request):
         messages.error(request, "Please complete the previous registration steps.")
         return redirect('registration_1')
 
+    # Get approved schools for the dropdown
+    approved_schools = SchoolRegistration.objects.filter(status='approved').order_by('school_name')
+
     if request.method == "POST":
         department = request.POST.get("department")
+        school = request.POST.get("school")  # Get selected school
         affiliations = request.POST.getlist("affiliation[]")
 
-        if not department:
+        # Validation for required fields
+        if not department or not school:
             messages.error(request, "Please complete all required fields.")
             return render(request, 'registration/registration_4.html', {
                 'department': department,
+                'school': school,
                 'affiliations': affiliations,
+                'schools': approved_schools,
                 'error_message': "Please complete all required fields.",
                 'show_error': True
             })
@@ -466,7 +473,7 @@ def registration_4(request):
                         del request.session[key]
                 return redirect('registration_1')
 
-            # Create user
+            # Create user with school field
             user = User.objects.create(
                 email=email,
                 password=make_password(raw_password),
@@ -477,6 +484,7 @@ def registration_4(request):
                 role=role,
                 rank=rank,
                 department=department,
+                school=school,
                 affiliations=", ".join(affiliations) if affiliations else ""
             )
 
@@ -485,11 +493,11 @@ def registration_4(request):
                 if key.startswith("reg_"):
                     del request.session[key]
 
-            # ✅ Auto-login new user
+            # Auto-login new user
             request.session['user_id'] = user.id
             messages.success(request, f"Account created successfully for {email}!")
 
-            # ✅ Redirect by role
+            # Redirect by role
             if user.role == "Student Teacher":
                 return redirect('st_dash')
             elif user.role == "Department Head":
@@ -501,13 +509,18 @@ def registration_4(request):
             messages.error(request, f"Registration failed: {str(e)}")
             return render(request, 'registration/registration_4.html', {
                 'department': department,
+                'school': school,
                 'affiliations': affiliations,
+                'schools': approved_schools,
                 'error_message': f"Registration failed: {str(e)}",
                 'show_error': True
             })
 
-    return render(request, 'registration/registration_4.html')
-
+    # ✅ Handle GET request: just render the form
+    return render(request, 'registration/registration_4.html', {
+        'schools': approved_schools
+    })
+    
 def registration_5(request):
     return render(request, 'registration/registration_5.html')
 
