@@ -105,6 +105,9 @@
                 <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                     Create Another
                 </a>
+                <button onclick="saveAsDraft()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium shadow-lg transition-colors">
+                    Save as Draft
+                </button>
                 <button onclick="printPage()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium shadow-lg transition-colors">
                     Print Lesson Plan
                 </button>
@@ -270,6 +273,22 @@
     </div>
 
     <script>
+        // Function to get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
         // Set current date
         document.getElementById('current-date').textContent = new Date().toLocaleDateString();
 
@@ -287,6 +306,146 @@
                 window.location.href = '/';
             }
         }
-    </script>
+    // Save as draft function
+    function saveAsDraft() {
+        // Extract the lesson plan content
+        const lessonPlanContent = document.querySelector('.lesson-content').innerHTML;
+        const lessonPlanText = document.querySelector('.lesson-content').innerText;
+        
+        // Parse metadata from the content
+        const metadata = parseMetadata(lessonPlanText);
+        const procedureSections = parseProcedureSections(lessonPlanText);
+        
+        // Send AJAX request to save as draft
+        fetch('/save-lesson-plan/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify({
+                title: 'Lesson Plan - ' + new Date().toLocaleDateString(),
+                subject: metadata.subject,
+                grade_level: metadata.gradeLevel,
+                quarter: metadata.quarter,
+                duration: metadata.duration,
+                population: metadata.population,
+                learning_objectives: metadata.learningObjectives,
+                subject_matter: metadata.subjectMatter,
+                materials_needed: metadata.materialsNeeded,
+                introduction: procedureSections.introduction.content,
+                instruction: procedureSections.instruction.content,
+                application: procedureSections.application.content,
+                evaluation: procedureSections.evaluation.content,
+                assessment: procedureSections.assessment.content,
+                generated_content: lessonPlanContent,
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Lesson plan saved as draft successfully!');
+                if (data.draft_id) {
+                    window.location.href = `/drafts/${data.draft_id}/edit/`;
+                }
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while saving the draft.');
+        });
+    }
+
+    function parseMetadata(text) {
+        const metadata = {
+            subject: "",
+            gradeLevel: "",
+            quarter: "",
+            duration: "",
+            population: "",
+            learningObjectives: "",
+            subjectMatter: "",
+            materialsNeeded: ""
+        };
+        
+        const lines = text.split('\n');
+        let currentSection = "";
+        
+        for (const line of lines) {
+            const trimmedLine = line.trim();
+            
+            if (trimmedLine.includes('Subject:')) {
+                metadata.subject = trimmedLine.split('Subject:')[1]?.trim() || '';
+            } else if (trimmedLine.includes('Grade Level:')) {
+                metadata.gradeLevel = trimmedLine.split('Grade Level:')[1]?.trim() || '';
+            } else if (trimmedLine.includes('Quarter:')) {
+                metadata.quarter = trimmedLine.split('Quarter:')[1]?.trim() || '';
+            } else if (trimmedLine.includes('Duration:')) {
+                metadata.duration = parseInt(trimmedLine.split('Duration:')[1]?.replace('minutes', '').trim()) || 0;
+            } else if (trimmedLine.includes('Class Size:')) {
+                metadata.population = parseInt(trimmedLine.split('Class Size:')[1]?.replace('students', '').trim()) || 0;
+            } else if (trimmedLine === 'Learning Objectives') {
+                currentSection = 'objectives';
+            } else if (trimmedLine === 'Subject Matter') {
+                currentSection = 'subjectMatter';
+            } else if (trimmedLine === 'Materials Needed') {
+                currentSection = 'materials';
+            } else if (currentSection === 'objectives' && trimmedLine.startsWith('*')) {
+                metadata.learningObjectives += trimmedLine.replace('*', '').trim() + '\n';
+            } else if (currentSection === 'subjectMatter' && trimmedLine && !trimmedLine.includes('**') && !trimmedLine.startsWith('###')) {
+                metadata.subjectMatter += trimmedLine + '\n';
+            } else if (currentSection === 'materials' && trimmedLine.startsWith('*')) {
+                metadata.materialsNeeded += trimmedLine.replace('*', '').trim() + '\n';
+            }
+        }
+        
+        return metadata;
+    }
+
+    function parseProcedureSections(text) {
+        const sections = {
+            introduction: { time: '', content: '' },
+            instruction: { time: '', content: '' },
+            application: { time: '', content: '' },
+            evaluation: { time: '', content: '' },
+            assessment: { time: '', content: '' }
+        };
+        
+        const lines = text.split('\n');
+        let currentSection = '';
+        
+        for (const line of lines) {
+            const trimmedLine = line.trim();
+            
+            if (trimmedLine.includes('A. Introduction')) {
+                currentSection = 'introduction';
+                const timeMatch = trimmedLine.match(/\(([^)]+)\)/);
+                if (timeMatch) sections.introduction.time = timeMatch[1];
+            } else if (trimmedLine.includes('B. Instruction/Direct Teaching')) {
+                currentSection = 'instruction';
+                const timeMatch = trimmedLine.match(/\(([^)]+)\)/);
+                if (timeMatch) sections.instruction.time = timeMatch[1];
+            } else if (trimmedLine.includes('C. Guided Practice/Application')) {
+                currentSection = 'application';
+                const timeMatch = trimmedLine.match(/\(([^)]+)\)/);
+                if (timeMatch) sections.application.time = timeMatch[1];
+            } else if (trimmedLine.includes('D. Independent Practice/Evaluation')) {
+                currentSection = 'evaluation';
+                const timeMatch = trimmedLine.match(/\(([^)]+)\)/);
+                if (timeMatch) sections.evaluation.time = timeMatch[1];
+            } else if (trimmedLine.includes('E. Assessment')) {
+                currentSection = 'assessment';
+                const timeMatch = trimmedLine.match(/\(([^)]+)\)/);
+                if (timeMatch) sections.assessment.time = timeMatch[1];
+            } else if (currentSection && trimmedLine && !trimmedLine.startsWith('###') && !trimmedLine.startsWith('##')) {
+                sections[currentSection].content += trimmedLine + '\n';
+            }
+        }
+        
+        return sections;
+    }
+</script>
 </body>
 </html>

@@ -1,3 +1,166 @@
+# models.py
+import re  # ✅ Added this
 from django.db import models
+from django.contrib.auth.models import User
 
-# Create your models here.
+
+class LessonPlan(models.Model):
+    DRAFT = 'draft'
+    FINAL = 'final'
+    STATUS_CHOICES = [
+        (DRAFT, 'Draft'),
+        (FINAL, 'Final'),
+    ]
+
+    title = models.CharField(max_length=200)
+    subject = models.CharField(max_length=100)
+    grade_level = models.CharField(max_length=50)
+    quarter = models.CharField(max_length=50, blank=True)
+    duration = models.IntegerField()  # in minutes
+    population = models.IntegerField()  # number of students
+    learning_objectives = models.TextField()
+    subject_matter = models.TextField()
+    materials_needed = models.TextField()
+    introduction = models.TextField()
+    instruction = models.TextField()
+    application = models.TextField()
+    evaluation = models.TextField()
+    assessment = models.TextField()
+    generated_content = models.TextField()  # AI-generated content
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=DRAFT)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.subject} - {self.grade_level} - {self.title}"
+
+    def parse_generated_content(self):
+        """Parse the AI-generated content into sections and subsections"""
+        sections = {}
+        content = self.generated_content
+
+        # Define patterns for each main section
+        patterns = {
+            'metadata': r'## Metadata\s*\n(.*?)(?=##|$)',
+            'learning_objectives': r'## Learning Objectives\s*\n(.*?)(?=##|$)',
+            'subject_matter': r'## Subject Matter\s*\n(.*?)(?=##|$)',
+            'materials_needed': r'## Materials Needed\s*\n(.*?)(?=##|$)',
+            'lesson_procedure': r'## Lesson Procedure\s*\n(.*?)(?=##|$)',
+            'differentiation': r'## Differentiation\s*\n(.*?)(?=##|$)',
+        }
+
+        for section, pattern in patterns.items():
+            match = re.search(pattern, content, re.DOTALL | re.IGNORECASE)
+            if match:
+                sections[section] = match.group(1).strip()
+            else:
+                sections[section] = ""
+
+        # Parse Lesson Procedure subsections
+        lesson_procedure = sections.get('lesson_procedure', '')
+        procedure_subsections = {
+            'introduction': r'### A\. Introduction\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
+            'instruction': r'### B\. Instruction/Direct Teaching\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
+            'application': r'### C\. Guided Practice/Application\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
+            'evaluation': r'### D\. Independent Practice/Evaluation\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
+            'assessment': r'### E\. Assessment\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
+        }
+
+        procedure_data = {}
+        for subsection, pattern in procedure_subsections.items():
+            match = re.search(pattern, lesson_procedure, re.DOTALL | re.IGNORECASE)
+            if match:
+                procedure_data[subsection] = {
+                    'time': match.group(1).strip(),
+                    'content': match.group(2).strip()
+                }
+            else:
+                procedure_data[subsection] = {'time': '', 'content': ''}
+
+        sections['procedure_subsections'] = procedure_data
+
+        # Parse Metadata fields
+        metadata = sections.get('metadata', '')
+        metadata_patterns = {
+            'subject': r'\*\*Subject:\*\*\s*([^\n]+)',
+            'grade_level': r'\*\*Grade Level:\*\*\s*([^\n]+)',
+            'quarter': r'\*\*Quarter:\*\*\s*([^\n]+)',
+            'duration': r'\*\*Duration:\*\*\s*([^\n]+)',
+            'class_size': r'\*\*Class Size:\*\*\s*([^\n]+)',
+        }
+
+        metadata_data = {}
+        for field, pattern in metadata_patterns.items():
+            match = re.search(pattern, metadata, re.IGNORECASE)
+            if match:
+                metadata_data[field] = match.group(1).strip()
+            else:
+                metadata_data[field] = ""
+
+        sections['metadata_fields'] = metadata_data
+
+        # Parse Learning Objectives as list items
+        objectives = sections.get('learning_objectives', '')
+        objectives_list = re.findall(r'\*\s*(.*?)(?=\n\*|\n\n|$)', objectives, re.DOTALL)
+        sections['learning_objectives_list'] = [obj.strip() for obj in objectives_list if obj.strip()]
+
+        # Parse Materials Needed as list items
+        materials = sections.get('materials_needed', '')
+        materials_list = re.findall(r'\*\s*(.*?)(?=\n\*|\n\n|$)', materials, re.DOTALL)
+        sections['materials_list'] = [mat.strip() for mat in materials_list if mat.strip()]
+
+        # Parse Differentiation subsections
+        differentiation = sections.get('differentiation', '')
+        diff_subsections = {
+            'support': r'\*\*Support for Struggling Learners:\*\*\s*(.*?)(?=\*\*|$)',
+            'extension': r'\*\*Extension for Advanced Learners:\*\*\s*(.*?)(?=\*\*|$)',
+        }
+
+        diff_data = {}
+        for subsection, pattern in diff_subsections.items():
+            match = re.search(pattern, differentiation, re.DOTALL | re.IGNORECASE)
+            if match:
+                items = re.findall(r'\*\s*(.*?)(?=\n\*|\n\n|$)', match.group(1), re.DOTALL)
+                diff_data[subsection] = [item.strip() for item in items if item.strip()]
+            else:
+                diff_data[subsection] = []
+
+        sections['differentiation_subsections'] = diff_data
+
+        return sections
+
+    def update_from_parsed_content(self):
+        """Update model fields from parsed content"""
+        parsed = self.parse_generated_content()
+
+        # Update metadata fields if they exist in parsed content
+        metadata = parsed.get('metadata_fields', {})
+        if metadata:
+            self.subject = metadata.get('subject', self.subject)
+            self.grade_level = metadata.get('grade_level', self.grade_level)
+            self.quarter = metadata.get('quarter', self.quarter)
+
+            # Extract duration value (remove "minutes" if present)
+            duration_str = metadata.get('duration', '')
+            if duration_str:
+                try:
+                    self.duration = int(''.join(filter(str.isdigit, duration_str)))
+                except (ValueError, TypeError):
+                    pass
+
+            # Extract population value
+            population_str = metadata.get('class_size', '')
+            if population_str:
+                try:
+                    self.population = int(''.join(filter(str.isdigit, population_str)))
+                except (ValueError, TypeError):
+                    pass
+
+        # Update procedure subsections if they exist
+        procedure_subsections = parsed.get('procedure_subsections', {})
+        if procedure_subsections:
+            # Map these to your existing fields or create new ones if needed
+            pass
+
+        return parsed

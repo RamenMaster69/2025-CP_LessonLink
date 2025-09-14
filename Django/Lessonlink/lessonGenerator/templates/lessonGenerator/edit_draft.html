@@ -1,0 +1,176 @@
+<!-- edit_draft.html -->
+{% extends 'lessonGenerator/base.html' %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Edit Lesson Plan Draft: {{ draft.title }}</h2>
+    
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <!-- Basic Information -->
+        <div class="border-b border-gray-200 pb-4">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Basic Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                    <input type="text" id="title" name="title" value="{{ draft.title }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                </div>
+                <div>
+                    <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                    <input type="text" id="subject" name="subject" value="{{ draft.subject }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                </div>
+                <div>
+                    <label for="grade_level" class="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
+                    <input type="text" id="grade_level" name="grade_level" value="{{ draft.grade_level }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                </div>
+                <div>
+                    <label for="quarter" class="block text-sm font-medium text-gray-700 mb-2">Quarter</label>
+                    <input type="text" id="quarter" name="quarter" value="{{ draft.quarter }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label for="duration" class="block text-sm font-medium text-gray-700 mb-2">Duration (minutes)</label>
+                    <input type="number" id="duration" name="duration" value="{{ draft.duration }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                </div>
+                <div>
+                    <label for="population" class="block text-sm font-medium text-gray-700 mb-2">Class Size</label>
+                    <input type="number" id="population" name="population" value="{{ draft.population }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Learning Objectives -->
+        <div class="border-b border-gray-200 pb-4">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Learning Objectives</h3>
+            <textarea id="learning_objectives" name="learning_objectives" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-32 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.learning_objectives }}</textarea>
+        </div>
+        
+        <!-- Subject Matter -->
+        <div class="border-b border-gray-200 pb-4">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Subject Matter</h3>
+            <textarea id="subject_matter" name="subject_matter" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-32 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.subject_matter }}</textarea>
+        </div>
+        
+        <!-- Materials Needed -->
+        <div class="border-b border-gray-200 pb-4">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Materials Needed</h3>
+            <textarea id="materials_needed" name="materials_needed" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-32 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.materials_needed }}</textarea>
+        </div>
+        
+        <!-- Lesson Procedure -->
+        <div class="border-b border-gray-200 pb-4">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Lesson Procedure</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <h4 class="font-medium text-gray-700 mb-2">Introduction</h4>
+                    <textarea id="introduction" name="introduction" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.introduction }}</textarea>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-gray-700 mb-2">Instruction/Direct Teaching</h4>
+                    <textarea id="instruction" name="instruction" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.instruction }}</textarea>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-gray-700 mb-2">Guided Practice/Application</h4>
+                    <textarea id="application" name="application" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.application }}</textarea>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-gray-700 mb-2">Independent Practice/Evaluation</h4>
+                    <textarea id="evaluation" name="evaluation" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.evaluation }}</textarea>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-gray-700 mb-2">Assessment</h4>
+                    <textarea id="assessment" name="assessment" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.assessment }}</textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Generated Content (for reference) -->
+        <div class="border-b border-gray-200 pb-4">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">AI-Generated Content (Read-only Reference)</h3>
+            <div class="bg-gray-100 p-4 rounded-lg overflow-auto max-h-64">
+                <pre class="whitespace-pre-wrap text-sm text-gray-700">{{ draft.generated_content }}</pre>
+            </div>
+        </div>
+        
+        <div class="flex space-x-4">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium">
+                Update Draft
+            </button>
+            <a href="{% url 'draft_list' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium">
+                Cancel
+            </a>
+            <button type="button" onclick="regenerateContent()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium">
+                Regenerate AI Content
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function regenerateContent() {
+    if (confirm('This will regenerate the AI content based on your current inputs. Continue?')) {
+        // Gather form data and send to regeneration endpoint
+        const formData = {
+            subject: document.getElementById('subject').value,
+            grade_level: document.getElementById('grade_level').value,
+            quarter: document.getElementById('quarter').value,
+            duration: document.getElementById('duration').value,
+            population: document.getElementById('population').value,
+            learning_objectives: document.getElementById('learning_objectives').value,
+            subject_matter: document.getElementById('subject_matter').value,
+            materials_needed: document.getElementById('materials_needed').value,
+            introduction: document.getElementById('introduction').value,
+            instruction: document.getElementById('instruction').value,
+            application: document.getElementById('application').value,
+            evaluation: document.getElementById('evaluation').value,
+            assessment: document.getElementById('assessment').value,
+        };
+        
+        // Send request to regenerate endpoint
+        fetch('/regenerate-lesson-content/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the generated content display
+                document.querySelector('pre').textContent = data.generated_content;
+                alert('Content regenerated successfully!');
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while regenerating content.');
+        });
+    }
+}
+
+// Function to get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
