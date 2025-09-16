@@ -41,13 +41,13 @@ class SchoolRegistrationAdmin(admin.ModelAdmin):
         'school_name', 'school_id', 'year_established', 'address', 'province', 'region',
         'phone_number', 'email', 'website', 'facebook_page',
         'contact_person', 'position', 'contact_email', 'contact_phone',
-        'accuracy', 'terms', 'communications', 'status', 'created_at', 'certificate_file'
+        'accuracy', 'terms', 'communications', 'status', 'created_at'
     )
     search_fields = (
         'school_name', 'school_id', 'email', 'contact_person', 'address', 'province', 'region'
     )
     list_filter = ('status', 'province', 'region', 'accuracy', 'terms', 'communications')
-    readonly_fields = ('created_at', 'updated_at', 'certificate_file')
+    readonly_fields = ('created_at', 'updated_at')
 
     fieldsets = (
         ('School Information', {
@@ -60,6 +60,6 @@ class SchoolRegistrationAdmin(admin.ModelAdmin):
             'fields': ('accuracy', 'terms', 'communications')
         }),
         ('Status & Timestamps', {
-            'fields': ('status', 'created_at', 'updated_at', 'certificate_file')
+            'fields': ('status', 'created_at', 'updated_at')
         }),
     )

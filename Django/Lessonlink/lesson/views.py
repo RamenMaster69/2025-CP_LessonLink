@@ -1,10 +1,10 @@
+# views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth.hashers import make_password
-from django.http import JsonResponse
-from django.contrib.auth import get_user_model
-from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import default_storage 
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
@@ -121,9 +121,9 @@ def org_reg_1(request):
             )
             
             # Handle file upload if present
-            if request.FILES.get('certificate_file'):
-                school_registration.certificate_file = request.FILES['certificate_file']
-                school_registration.save()
+            # if request.FILES.get('certificate_file'):
+            #     school_registration.certificate_file = request.FILES['certificate_file']
+            #     school_registration.save()
             
             # Log the successful registration
             logger.info(f"New school registration: {school_registration.school_name} ({school_registration.school_id})")
@@ -189,6 +189,7 @@ def validate_school_id_ajax(request):
 
 
 # User Registration and Authentication Views
+@login_required
 def upload_profile_picture(request):
     if request.method == 'POST' and request.FILES.get('profile_picture'):
         profile_picture = request.FILES['profile_picture']
@@ -209,12 +210,7 @@ def upload_profile_picture(request):
             })
         
         try:
-            # Get the user (using your session-based approach)
-            user_id = request.session.get('user_id')
-            if not user_id:
-                return JsonResponse({'success': False, 'message': 'User not logged in'})
-            
-            user = User.objects.get(id=user_id)
+            user = request.user
             
             # Delete old profile picture if exists
             if user.profile_picture:
@@ -417,10 +413,7 @@ def registration_3(request):
 def registration_4(request):
     # Debug logs
     print(f"DEBUG registration_4 - Full session: {dict(request.session)}")
-    print(f"DEBUG registration_4 - reg_email: {request.session.get('reg_email')}")
-    print(f"DEBUG registration_4 - reg_role: {request.session.get('reg_role')}")
-    print(f"DEBUG registration_4 - reg_rank: {request.session.get('reg_rank')}")
-
+    
     # Ensure previous steps are complete
     if not request.session.get('reg_email') or not request.session.get('reg_role'):
         messages.error(request, "Please complete the previous registration steps.")
@@ -429,17 +422,33 @@ def registration_4(request):
     # Get approved schools for the dropdown
     approved_schools = SchoolRegistration.objects.filter(status='approved').order_by('school_name')
 
+    if not approved_schools.exists():
+        messages.warning(request, "No schools have been approved yet. Please contact an administrator.")
+    
+    # Debug info - check if we're getting any schools
+    print(f"DEBUG - Approved schools count: {approved_schools.count()}")
+    for school in approved_schools:
+        print(f"DEBUG - School: {school.school_name} (ID: {school.id})")
+
     if request.method == "POST":
         department = request.POST.get("department")
-        school = request.POST.get("school")  # Get selected school
+        school_id = request.POST.get("school")  # Get selected school ID
         affiliations = request.POST.getlist("affiliation[]")
+        
+        # Get the school object
+        try:
+            school = SchoolRegistration.objects.get(id=school_id)
+            school_name = school.school_name
+        except (SchoolRegistration.DoesNotExist, ValueError):
+            school_name = ""
+            messages.error(request, "Please select a valid school.")
 
         # Validation for required fields
-        if not department or not school:
+        if not department or not school_name:
             messages.error(request, "Please complete all required fields.")
             return render(request, 'registration/registration_4.html', {
                 'department': department,
-                'school': school,
+                'school': school_id,
                 'affiliations': affiliations,
                 'schools': approved_schools,
                 'error_message': "Please complete all required fields.",
@@ -473,18 +482,18 @@ def registration_4(request):
                         del request.session[key]
                 return redirect('registration_1')
 
-            # Create user with school field
-            user = User.objects.create(
+            # Create user with Django's built-in User model
+            user = User.objects.create_user(
                 email=email,
-                password=make_password(raw_password),
+                password=raw_password,  # Django handles hashing automatically
                 first_name=first_name,
-                middle_name=middle_name,
                 last_name=last_name,
+                middle_name=middle_name,
                 dob=dob,
                 role=role,
                 rank=rank,
                 department=department,
-                school=school,
+                school=school_name,  # Store the school name
                 affiliations=", ".join(affiliations) if affiliations else ""
             )
 
@@ -493,8 +502,8 @@ def registration_4(request):
                 if key.startswith("reg_"):
                     del request.session[key]
 
-            # Auto-login new user
-            request.session['user_id'] = user.id
+            # Auto-login new user using Django's login function
+            login(request, user)
             messages.success(request, f"Account created successfully for {email}!")
 
             # Redirect by role
@@ -509,14 +518,14 @@ def registration_4(request):
             messages.error(request, f"Registration failed: {str(e)}")
             return render(request, 'registration/registration_4.html', {
                 'department': department,
-                'school': school,
+                'school': school_id,
                 'affiliations': affiliations,
                 'schools': approved_schools,
                 'error_message': f"Registration failed: {str(e)}",
                 'show_error': True
             })
 
-    # ✅ Handle GET request: just render the form
+    # Handle GET request: just render the form
     return render(request, 'registration/registration_4.html', {
         'schools': approved_schools
     })
@@ -526,18 +535,13 @@ def registration_5(request):
 
 def login_view(request):
     # If user is already logged in, redirect based on role
-    if request.session.get('user_id'):
-        try:
-            user = User.objects.get(id=request.session['user_id'])
-            if user.role == "Student Teacher":
-                return redirect('st_dash')
-            elif user.role == "Department Head":
-                return redirect('Dep_Dash')
-            else:
-                return redirect('dashboard')
-        except User.DoesNotExist:
-            del request.session['user_id']
-            return redirect('login')
+    if request.user.is_authenticated:
+        if request.user.role == "Student Teacher":
+            return redirect('st_dash')
+        elif request.user.role == "Department Head":
+            return redirect('Dep_Dash')
+        else:
+            return redirect('dashboard')
 
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -552,21 +556,25 @@ def login_view(request):
                 'show_error': True
             })
 
-        try:
-            user = User.objects.get(email=email)
-            if user.check_password(password):
-                request.session['user_id'] = user.id
-                messages.success(request, f"Welcome back, {user.first_name}!")
+        # Use Django's built-in authenticate function
+        user = authenticate(request, username=email, password=password)
+        
+        if user is not None:
+            # User authentication successful
+            login(request, user)
+            messages.success(request, f"Welcome back, {user.first_name}!")
 
-                # 🔑 Redirect based on role
-                if user.role == "Student Teacher":
-                    return redirect('st_dash')
-                elif user.role == "Department Head":
-                    return redirect('Dep_Dash')
-                else:
-                    return redirect('dashboard')
-
+            # Redirect based on role
+            if user.role == "Student Teacher":
+                return redirect('st_dash')
+            elif user.role == "Department Head":
+                return redirect('Dep_Dash')
             else:
+                return redirect('dashboard')
+        else:
+            # Check if user exists to give specific error message
+            try:
+                existing_user = User.objects.get(email=email)
                 messages.error(request, "Invalid password. Please try again.")
                 return render(request, 'login.html', {
                     'email': email,
@@ -574,265 +582,165 @@ def login_view(request):
                     'invalid_password': True,
                     'show_error': True
                 })
-        except User.DoesNotExist:
-            messages.error(request, "No account found with this email. Please register first.")
-            return render(request, 'login.html', {
-                'email': email,
-                'error_message': "No account found with this email. Please register first.",
-                'email_not_found': True,
-                'show_error': True
-            })
+            except User.DoesNotExist:
+                messages.error(request, "No account found with this email. Please register first.")
+                return render(request, 'login.html', {
+                    'email': email,
+                    'error_message': "No account found with this email. Please register first.",
+                    'email_not_found': True,
+                    'show_error': True
+                })
 
     return render(request, 'login.html')
 
-
+@login_required
 def dashboard(request):
-    # Check if user is logged in
-    user_id = request.session.get('user_id')
+    user = request.user
     
-    if not user_id:
-        messages.error(request, "Please log in to access the dashboard.")
-        return redirect('login')
+    # Get task statistics for dashboard
+    total_tasks = Task.objects.filter(user=user).count()
+    completed_tasks = Task.objects.filter(user=user, status='completed').count()
+    pending_tasks = total_tasks - completed_tasks
     
-    try:
-        user = User.objects.get(id=user_id)
-        
-        # Get task statistics for dashboard
-        total_tasks = Task.objects.filter(user=user).count()
-        completed_tasks = Task.objects.filter(user=user, status='completed').count()
-        pending_tasks = total_tasks - completed_tasks
-        
-        # Get upcoming tasks (next 7 days)
-        upcoming_date = timezone.now().date() + timezone.timedelta(days=7)
-        upcoming_tasks = Task.objects.filter(
-            user=user, 
-            status='pending',
-            due_date__lte=upcoming_date
-        ).order_by('due_date')[:5]
-        
-        return render(request, 'dashboard.html', {
-            'user': user,
-            'full_name': f"{user.first_name} {user.middle_name} {user.last_name}".strip(),
-            'total_tasks': total_tasks,
-            'completed_tasks': completed_tasks,
-            'pending_tasks': pending_tasks,
-            'upcoming_tasks': upcoming_tasks
-        })
-    except User.DoesNotExist:
-        messages.error(request, "User account not found. Please log in again.")
-        # Clear the invalid session
-        if 'user_id' in request.session:
-            del request.session['user_id']
-        return redirect('login')
+    # Get upcoming tasks (next 7 days)
+    upcoming_date = timezone.now().date() + timezone.timedelta(days=7)
+    upcoming_tasks = Task.objects.filter(
+        user=user, 
+        status='pending',
+        due_date__lte=upcoming_date
+    ).order_by('due_date')[:5]
+    
+    return render(request, 'dashboard.html', {
+        'user': user,
+        'full_name': user.full_name,
+        'total_tasks': total_tasks,
+        'completed_tasks': completed_tasks,
+        'pending_tasks': pending_tasks,
+        'upcoming_tasks': upcoming_tasks
+    })
 
 def lesson_plan(request):
     return render(request, 'lesson_plan.html')
 
 def logout_view(request):
-    """Logout user and clear session"""
-    if 'user_id' in request.session:
-        del request.session['user_id']
-    
+    """Logout user using Django's built-in logout"""
     # Clear any remaining registration data
     for key in list(request.session.keys()):
         if key.startswith("reg_"):
             del request.session[key]
     
+    logout(request)  # Django's built-in logout function
     messages.success(request, "You have been logged out successfully.")
     return redirect('landing')
 
+@login_required
 def profile(request):
-    # Check if user is logged in
-    user_id = request.session.get('user_id')
-    if not user_id:
-        messages.error(request, "Please log in to view your profile.")
-        return redirect('login')
+    user = request.user
     
-    try:
-        user = User.objects.get(id=user_id)
+    if request.method == 'POST':
+        # Update all fields from the form
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.middle_name = request.POST.get('middle_name', user.middle_name)
+        user.last_name = request.POST.get('last_name', user.last_name)
+        user.role = request.POST.get('role', user.role)
+        user.rank = request.POST.get('rank', user.rank)
+        user.department = request.POST.get('department', user.department)
+        user.affiliations = request.POST.get('affiliations', user.affiliations)
         
-        if request.method == 'POST':
-            # Update all fields from the form
-            user.first_name = request.POST.get('first_name', user.first_name)
-            user.middle_name = request.POST.get('middle_name', user.middle_name)
-            user.last_name = request.POST.get('last_name', user.last_name)
-            user.role = request.POST.get('role', user.role)
-            user.rank = request.POST.get('rank', user.rank)
-            user.department = request.POST.get('department', user.department)
-            user.affiliations = request.POST.get('affiliations', user.affiliations)
-            
-            # Handle birth date
-            dob = request.POST.get('dob')
-            if dob:
-                user.dob = dob
-            
-            # Note: Profile picture is already handled by the AJAX upload function
-            # No need to handle it here since upload_profile_picture already saves it
-            
-            try:
-                user.save()
-                messages.success(request, "Profile updated successfully!")
-                return redirect('profile')
-            except Exception as e:
-                messages.error(request, f"Error updating profile: {str(e)}")
+        # Handle birth date
+        dob = request.POST.get('dob')
+        if dob:
+            user.dob = dob
         
-        # GET request - show profile
-        return render(request, 'profile.html', {
-            'user': user,
-            'full_name': f"{user.first_name} {user.middle_name} {user.last_name}".strip()
-        })
+        try:
+            user.save()
+            messages.success(request, "Profile updated successfully!")
+            return redirect('profile')
+        except Exception as e:
+            messages.error(request, f"Error updating profile: {str(e)}")
     
-    except User.DoesNotExist:
-        messages.error(request, "User account not found. Please log in again.")
-        if 'user_id' in request.session:
-            del request.session['user_id']
-        return redirect('login')
+    # GET request - show profile
+    return render(request, 'profile.html', {
+        'user': user,
+        'full_name': user.full_name
+    })
 
-        
+@login_required      
 def lesson_planner(request):
-    # Check if user is logged in
-    user_id = request.session.get('user_id')
-    
-    if not user_id:
-        messages.error(request, "Please log in to access the lesson planner.")
-        return redirect('login')
-    
-    try:
-        user = User.objects.get(id=user_id)
-        return render(request, 'lesson_planner.html', {'user': user})
-    except User.DoesNotExist:
-        messages.error(request, "User account not found. Please log in again.")
-        # Clear the invalid session
-        if 'user_id' in request.session:
-            del request.session['user_id']
-        return redirect('login')
+    user = request.user
+    return render(request, 'lesson_planner.html', {'user': user})
 
+@login_required
 def draft(request):
-    # Check if user is logged in
-    user_id = request.session.get('user_id')
-    
-    if not user_id:
-        messages.error(request, "Please log in to access drafts.")
-        return redirect('login')
-    
-    try:
-        user = User.objects.get(id=user_id)
-        return render(request, 'draft.html', {'user': user})
-    except User.DoesNotExist:
-        messages.error(request, "User account not found. Please log in again.")
-        # Clear the invalid session
-        if 'user_id' in request.session:
-            del request.session['user_id']
-        return redirect('login')
-    return render(request, 'draft.html')
+    user = request.user
+    return render(request, 'draft.html', {'user': user})
 
+@login_required
 def task(request):
-    user_id = request.session.get('user_id')
+    user = request.user
+    tasks = Task.objects.filter(user=user)
     
-    if not user_id:
-        messages.error(request, "Please log in to access tasks.")
-        return redirect('login')
+    # Handle filtering
+    filter_type = request.GET.get('filter', 'all')
+    if filter_type == 'completed':
+        tasks = tasks.filter(status='completed')
+    elif filter_type == 'pending':
+        tasks = tasks.filter(status='pending')
+    elif filter_type in ['high', 'medium', 'low']:
+        tasks = tasks.filter(priority=filter_type)
     
-    try:
-        user = User.objects.get(id=user_id)
-        tasks = Task.objects.filter(user=user)
-        
-        # Handle filtering
-        filter_type = request.GET.get('filter', 'all')
-        if filter_type == 'completed':
-            tasks = tasks.filter(status='completed')
-        elif filter_type == 'pending':
-            tasks = tasks.filter(status='pending')
-        elif filter_type in ['high', 'medium', 'low']:
-            tasks = tasks.filter(priority=filter_type)
-        
-        # Handle sorting
-        sort_by = request.GET.get('sort', 'due-date')
-        if sort_by == 'priority':
-            # Custom ordering for priority
-            priority_order = {'high': 0, 'medium': 1, 'low': 2}
-            tasks = sorted(tasks, key=lambda x: priority_order[x.priority])
-        elif sort_by == 'created':
-            tasks = tasks.order_by('-created_at')
-        elif sort_by == 'alphabetical':
-            tasks = tasks.order_by('title')
-        else:  # due-date (default)
-            # Show tasks with due date first, then tasks without due date
-            tasks = tasks.order_by('due_date', 'due_time')
-        
-        # Count completed tasks
-        completed_count = Task.objects.filter(user=user, status='completed').count()
-        total_count = Task.objects.filter(user=user).count()
-        
-        return render(request, 'task.html', {
-            'user': user,
-            'tasks': tasks,
-            'completed_count': completed_count,
-            'total_count': total_count,
-            'current_filter': filter_type,
-            'current_sort': sort_by
-        })
-    except User.DoesNotExist:
-        messages.error(request, "User account not found. Please log in again.")
-        if 'user_id' in request.session:
-            del request.session['user_id']
-        return redirect('login')
+    # Handle sorting
+    sort_by = request.GET.get('sort', 'due-date')
+    if sort_by == 'priority':
+        # Custom ordering for priority
+        priority_order = {'high': 0, 'medium': 1, 'low': 2}
+        tasks = sorted(tasks, key=lambda x: priority_order[x.priority])
+    elif sort_by == 'created':
+        tasks = tasks.order_by('-created_at')
+    elif sort_by == 'alphabetical':
+        tasks = tasks.order_by('title')
+    else:  # due-date (default)
+        # Show tasks with due date first, then tasks without due date
+        tasks = tasks.order_by('due_date', 'due_time')
+    
+    # Count completed tasks
+    completed_count = Task.objects.filter(user=user, status='completed').count()
+    total_count = Task.objects.filter(user=user).count()
+    
+    return render(request, 'task.html', {
+        'user': user,
+        'tasks': tasks,
+        'completed_count': completed_count,
+        'total_count': total_count,
+        'current_filter': filter_type,
+        'current_sort': sort_by
+    })
 
+@login_required
 def Dep_Dash(request):
-    user_id = request.session.get('user_id')
-    if not user_id:
+    user = request.user
+    if user.role != "Department Head":
+        messages.error(request, "You are not allowed to access this page.")
         return redirect('login')
-
-    try:
-        user = User.objects.get(id=user_id)
-        if user.role != "Department Head":
-            messages.error(request, "You are not allowed to access this page.")
-            return redirect('login')
-        return render(request, 'Dep_Dash.html', {'user': user})
-    except User.DoesNotExist:
-        return redirect('login')
-
+    return render(request, 'Dep_Dash.html', {'user': user})
 
 def Dep_Faculty(request):
     return render(request, 'Dep_Faculty.html')
 
+@login_required
 def schedule(request):
-    # Check if user is logged in
-    user_id = request.session.get('user_id')
-    
-    if not user_id:
-        messages.error(request, "Please log in to access the schedule.")
-        return redirect('login')
-    
-    try:
-        user = User.objects.get(id=user_id)
-        return render(request, 'schedule/schedule.html', {'user': user})
-    except User.DoesNotExist:
-        messages.error(request, "User account not found. Please log in again.")
-        # Clear the invalid session
-        if 'user_id' in request.session:
-            del request.session['user_id']
-        return redirect('login')
+    user = request.user
+    return render(request, 'schedule/schedule.html', {'user': user})
 
 class ScheduleViewSet(viewsets.ModelViewSet):
     serializer_class = ScheduleSerializer
-    # Remove the permission class for now
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        user_id = self.request.session.get('user_id')
-        if user_id:
-            return Schedule.objects.filter(user_id=user_id)
-        return Schedule.objects.none()
+        return Schedule.objects.filter(user=self.request.user)
     
     def perform_create(self, serializer):
-        user_id = self.request.session.get('user_id')
-        if user_id:
-            try:
-                user = User.objects.get(id=user_id)
-                serializer.save(user=user)
-            except User.DoesNotExist:
-                pass
+        serializer.save(user=self.request.user)
 
 def Dep_Pending(request):
     return render(request, 'Dep_Pending.html')
@@ -843,21 +751,13 @@ def dep_template(request):
 def teach_template(request):
     return render(request, 'teach_template.html')
 
+@login_required
 def st_dash(request):
-    user_id = request.session.get('user_id')
-    if not user_id:
+    user = request.user
+    if user.role != "Student Teacher":
+        messages.error(request, "You are not allowed to access this page.")
         return redirect('login')
-
-    try:
-        user = User.objects.get(id=user_id)
-        if user.role != "Student Teacher":
-            messages.error(request, "You are not allowed to access this page.")
-            return redirect('login')
-        return render(request, 'st_dash.html', {'user': user})
-    except User.DoesNotExist:
-        return redirect('login')
-
-
+    return render(request, 'st_dash.html', {'user': user})
 
 def calendar(request):
     return render(request, 'calendar.html')
@@ -868,14 +768,11 @@ def admin_calendar(request):
 # Task API Views
 @csrf_exempt
 @require_POST
+@login_required
 def add_task_api(request):
-    user_id = request.session.get('user_id')
-    
-    if not user_id:
-        return JsonResponse({'success': False, 'error': 'User not logged in'})
+    user = request.user
     
     try:
-        user = User.objects.get(id=user_id)
         data = json.loads(request.body)
         
         # Create new task
@@ -916,14 +813,11 @@ def add_task_api(request):
 
 @csrf_exempt
 @require_POST
+@login_required
 def update_task_status_api(request, task_id):
-    user_id = request.session.get('user_id')
-    
-    if not user_id:
-        return JsonResponse({'success': False, 'error': 'User not logged in'})
+    user = request.user
     
     try:
-        user = User.objects.get(id=user_id)
         task = get_object_or_404(Task, id=task_id, user=user)
         
         data = json.loads(request.body)
@@ -960,14 +854,11 @@ def update_task_status_api(request, task_id):
 
 @csrf_exempt
 @require_POST
+@login_required
 def delete_task_api(request, task_id):
-    user_id = request.session.get('user_id')
-    
-    if not user_id:
-        return JsonResponse({'success': False, 'error': 'User not logged in'})
+    user = request.user
     
     try:
-        user = User.objects.get(id=user_id)
         task = get_object_or_404(Task, id=task_id, user=user)
         task.delete()
         
@@ -983,14 +874,11 @@ def delete_task_api(request, task_id):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
+@login_required
 def get_notifications_api(request):
-    user_id = request.session.get('user_id')
-    
-    if not user_id:
-        return JsonResponse({'success': False, 'error': 'User not logged in'})
+    user = request.user
     
     try:
-        user = User.objects.get(id=user_id)
         notifications = TaskNotification.objects.filter(user=user, is_read=False).order_by('-created_at')[:10]
         
         notification_data = []
@@ -1009,14 +897,11 @@ def get_notifications_api(request):
 
 @csrf_exempt
 @require_POST
+@login_required
 def mark_notification_read_api(request, notification_id):
-    user_id = request.session.get('user_id')
-    
-    if not user_id:
-        return JsonResponse({'success': False, 'error': 'User not logged in'})
+    user = request.user
     
     try:
-        user = User.objects.get(id=user_id)
         notification = get_object_or_404(TaskNotification, id=notification_id, user=user)
         notification.is_read = True
         notification.save()
@@ -1024,7 +909,6 @@ def mark_notification_read_api(request, notification_id):
         return JsonResponse({'success': True})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
-
 
 # Optional: Add some utility views for admin management
 def admin_school_registrations(request):
@@ -1043,7 +927,6 @@ def admin_school_registrations(request):
     }
     
     return render(request, 'admin/school_registrations.html', context)
-
 
 def admin_approve_registration(request, registration_id):
     """Admin view to approve/reject registrations"""

@@ -1,56 +1,99 @@
-from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.conf import settings
 from django.db import models
-from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from django.core.validators import RegexValidator, EmailValidator
 from datetime import datetime, date, time
 
 
-class User(models.Model):
-    ROLE = [
+class CustomUserManager(BaseUserManager):
+    """Custom user manager that uses email instead of username"""
+    
+    def create_user(self, email, password=None, **extra_fields):
+        """Create and return a regular user with an email and password"""
+        if not email:
+            raise ValueError('The Email field must be set')
+        
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+    
+    def create_superuser(self, email, password=None, **extra_fields):
+        """Create and return a superuser with an email and password"""
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+        
+        # Set default values for required fields if not provided
+        extra_fields.setdefault('first_name', 'Admin')
+        extra_fields.setdefault('last_name', 'User')
+        extra_fields.setdefault('role', 'Department Head')
+        extra_fields.setdefault('rank', 'Administrator')
+        extra_fields.setdefault('department', 'Administration')
+        
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+        
+        return self.create_user(email, password, **extra_fields)
+
+
+class User(AbstractUser):
+    """Extended User model using Django's built-in authentication"""
+    
+    ROLE_CHOICES = [
         ('Student Teacher', 'Student Teacher'),
         ('Teacher', 'Teacher'),
         ('Department Head', 'Department Head'),
     ]
     
-    school = models.CharField(max_length=255, blank=True, null=True)  
+    # Remove username field requirement (use email instead)
+    username = None
     email = models.EmailField(unique=True)
-    password = models.CharField(max_length=128)
     
-    first_name = models.CharField(max_length=100)
+    # Custom fields
     middle_name = models.CharField(max_length=100, blank=True, null=True)
-    last_name = models.CharField(max_length=100)
-    dob = models.DateField()
+    dob = models.DateField(null=True, blank=True)
     
-    role = models.CharField(max_length=100, choices=ROLE)
+    role = models.CharField(max_length=100, choices=ROLE_CHOICES)
     rank = models.CharField(max_length=100)
     
     department = models.CharField(max_length=100)
+    school = models.CharField(max_length=255, blank=True, null=True)  
     affiliations = models.TextField(blank=True, null=True)
     
-    # Add this field for profile pictures
+    # Profile picture
     profile_picture = models.ImageField(
         upload_to='profile_pictures/', 
         null=True, 
         blank=True,
         help_text="Profile picture for the user"
     )
-
+    
+    # Set email as the username field
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'role', 'rank', 'department']
+    
+    # Use the custom manager
+    objects = CustomUserManager()
+    
     def __str__(self):
         return self.email
-
-    def save(self, *args, **kwargs):
-        # Hash password if it's not already hashed
-        if not self.password.startswith('pbkdf2_sha256$'):
-            self.password = make_password(self.password)
-        super().save(*args, **kwargs)
     
-    def check_password(self, raw_password):
-        """Check if the provided raw password matches the stored hashed password"""
-        return check_password(raw_password, self.password)
+    @property
+    def full_name(self):
+        """Return full name with middle name if available"""
+        parts = [self.first_name]
+        if self.middle_name:
+            parts.append(self.middle_name)
+        parts.append(self.last_name)
+        return ' '.join(parts).strip()
 
 
+# Rest of your models remain the same...
 class Schedule(models.Model):
     DAY_CHOICES = [
         ('monday', 'Monday'),
@@ -307,15 +350,6 @@ class SchoolRegistration(models.Model):
         help_text="Phone number of the contact person"
     )
     
-    # File uploads (optional)
-    certificate_file = models.FileField(
-        upload_to="school_certificates/",
-        blank=True,
-        null=True,
-        verbose_name="School Certificate",
-        help_text="Upload school registration certificate or similar document"
-    )
-    
     # Agreement fields
     accuracy = models.BooleanField(
         default=False,
@@ -393,15 +427,14 @@ class SchoolRegistration(models.Model):
     def clean(self):
         """Custom validation"""
         from django.core.exceptions import ValidationError
+        from django.utils import timezone
         
-        # Validate required agreements
         if not self.accuracy:
             raise ValidationError({'accuracy': 'You must certify the accuracy of information provided.'})
         
         if not self.terms:
             raise ValidationError({'terms': 'You must agree to the Terms of Service and Privacy Policy.'})
         
-        # Validate year established
         if self.year_established:
             current_year = timezone.now().year
             if self.year_established > current_year:
@@ -426,16 +459,16 @@ class SchoolRegistration(models.Model):
         return self.status == 'rejected'
     
     def approve_registration(self, processed_by_user=None):
-        """Approve the school registration"""
         self.status = 'approved'
+        from django.utils import timezone
         self.processed_at = timezone.now()
         if processed_by_user:
             self.processed_by = processed_by_user
         self.save()
     
     def reject_registration(self, processed_by_user=None, reason=None):
-        """Reject the school registration"""
         self.status = 'rejected'
+        from django.utils import timezone
         self.processed_at = timezone.now()
         if processed_by_user:
             self.processed_by = processed_by_user
@@ -444,8 +477,8 @@ class SchoolRegistration(models.Model):
         self.save()
     
     def request_additional_info(self, processed_by_user=None, notes=None):
-        """Request additional information"""
         self.status = 'needs_info'
+        from django.utils import timezone
         self.processed_at = timezone.now()
         if processed_by_user:
             self.processed_by = processed_by_user

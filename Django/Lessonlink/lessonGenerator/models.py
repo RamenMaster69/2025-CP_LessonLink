@@ -1,7 +1,7 @@
 # models.py
 import re  # ✅ Added this
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings  # ✅ Changed from django.contrib.auth.models import User
 
 
 class LessonPlan(models.Model):
@@ -28,7 +28,7 @@ class LessonPlan(models.Model):
     assessment = models.TextField()
     generated_content = models.TextField()  # AI-generated content
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=DRAFT)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # ✅ Changed from User to settings.AUTH_USER_MODEL
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -79,13 +79,15 @@
                             <i class="fas fa-school text-gray-400"></i>
                         </div>
                         <select id="school" name="school"
-        class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white"
-        required>
-    <option value="">Select School</option>
-    {% for school in schools %}
-        <option value="{{ school.school_name }}">{{ school.school_name }}</option>
-    {% endfor %}
-</select>
+                            class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white"
+                            required>
+                            <option value="">Select School</option>
+                            {% for school in schools %}
+                                <option value="{{ school.id }}">{{ school.school_name }}</option>
+                            {% empty %}
+                                <option value="" disabled>No approved schools available. Please contact administrator.</option>
+                            {% endfor %}
+                        </select>
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                             <i class="fas fa-chevron-down text-gray-400"></i>
                         </div>
@@ -261,10 +263,16 @@
 
         function handleFormSubmission(event) {
             const department = document.getElementById('department').value;
+            const school = document.getElementById('school').value;
 
             // Client-side validation
             if (!department) {
                 alert('Please select a Department.');
+                return false;
+            }
+            
+            if (!school) {
+                alert('Please select a School.');
                 return false;
             }
 

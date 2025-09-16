@@ -1,0 +1,719 @@
+INFO 2025-09-16 13:05:09,938 autoreload 18464 19344 Watching for file changes with StatReloader
+INFO 2025-09-16 13:07:05,540 autoreload 18464 19344 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\models.py changed, reloading.
+INFO 2025-09-16 13:07:06,500 autoreload 15500 15564 Watching for file changes with StatReloader
+INFO 2025-09-16 13:10:22,173 autoreload 15500 15564 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lessonGenerator\models.py changed, reloading.
+INFO 2025-09-16 13:10:23,321 autoreload 6344 7276 Watching for file changes with StatReloader
+INFO 2025-09-16 13:10:33,322 basehttp 6344 6788 "GET / HTTP/1.1" 200 20287
+INFO 2025-09-16 13:10:34,826 basehttp 6344 6788 "GET /login/ HTTP/1.1" 200 12801
+INFO 2025-09-16 13:10:34,872 basehttp 6344 6788 "GET /static/img/Screenshot%202025-07-16%20024301.png HTTP/1.1" 200 340934
+INFO 2025-09-16 13:10:37,470 basehttp 6344 6788 "GET /login/ HTTP/1.1" 200 12094
+ERROR 2025-09-16 13:10:42,799 log 6344 6788 Internal Server Error: /login/
+Traceback (most recent call last):
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such column: lesson_user.last_login
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py", line 546, in login_view
+    user = authenticate(request, username=email, password=password)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\views\decorators\debug.py", line 75, in sensitive_variables_wrapper
+    return func(*func_args, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\contrib\auth\__init__.py", line 79, in authenticate
+    user = backend.authenticate(request, **credentials)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\contrib\auth\backends.py", line 42, in authenticate
+    user = UserModel._default_manager.get_by_natural_key(username)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\contrib\auth\base_user.py", line 37, in get_by_natural_key
+    return self.get(**{self.model.USERNAME_FIELD: username})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 645, in get
+    num = len(clone)
+          ^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 382, in __len__
+    self._fetch_all()
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 1928, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\sql\compiler.py", line 1574, in execute_sql
+    cursor.execute(sql, params)
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such column: lesson_user.last_login
+ERROR 2025-09-16 13:10:42,806 basehttp 6344 6788 "POST /login/ HTTP/1.1" 500 169973
+ERROR 2025-09-16 13:10:52,309 log 6344 6788 Internal Server Error: /login/
+Traceback (most recent call last):
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such column: lesson_user.last_login
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py", line 546, in login_view
+    user = authenticate(request, username=email, password=password)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\views\decorators\debug.py", line 75, in sensitive_variables_wrapper
+    return func(*func_args, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\contrib\auth\__init__.py", line 79, in authenticate
+    user = backend.authenticate(request, **credentials)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\contrib\auth\backends.py", line 42, in authenticate
+    user = UserModel._default_manager.get_by_natural_key(username)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\contrib\auth\base_user.py", line 37, in get_by_natural_key
+    return self.get(**{self.model.USERNAME_FIELD: username})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 645, in get
+    num = len(clone)
+          ^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 382, in __len__
+    self._fetch_all()
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 1928, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\sql\compiler.py", line 1574, in execute_sql
+    cursor.execute(sql, params)
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such column: lesson_user.last_login
+ERROR 2025-09-16 13:10:52,312 basehttp 6344 6788 "POST /login/ HTTP/1.1" 500 169973
+INFO 2025-09-16 13:15:19,956 autoreload 6344 7276 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lessonGenerator\models.py changed, reloading.
+INFO 2025-09-16 13:15:20,877 autoreload 2872 5116 Watching for file changes with StatReloader
+ERROR 2025-09-16 13:15:25,863 log 2872 4144 Internal Server Error: /login/
+Traceback (most recent call last):
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such column: lesson_user.last_login
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py", line 546, in login_view
+    user = authenticate(request, username=email, password=password)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\views\decorators\debug.py", line 75, in sensitive_variables_wrapper
+    return func(*func_args, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\contrib\auth\__init__.py", line 79, in authenticate
+    user = backend.authenticate(request, **credentials)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\contrib\auth\backends.py", line 42, in authenticate
+    user = UserModel._default_manager.get_by_natural_key(username)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\contrib\auth\base_user.py", line 37, in get_by_natural_key
+    return self.get(**{self.model.USERNAME_FIELD: username})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 645, in get
+    num = len(clone)
+          ^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 382, in __len__
+    self._fetch_all()
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 1928, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\sql\compiler.py", line 1574, in execute_sql
+    cursor.execute(sql, params)
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such column: lesson_user.last_login
+ERROR 2025-09-16 13:15:25,869 basehttp 2872 4144 "POST /login/ HTTP/1.1" 500 169973
+ERROR 2025-09-16 13:15:33,869 log 2872 4144 Internal Server Error: /login/
+Traceback (most recent call last):
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such column: lesson_user.last_login
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py", line 546, in login_view
+    user = authenticate(request, username=email, password=password)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\views\decorators\debug.py", line 75, in sensitive_variables_wrapper
+    return func(*func_args, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\contrib\auth\__init__.py", line 79, in authenticate
+    user = backend.authenticate(request, **credentials)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\contrib\auth\backends.py", line 42, in authenticate
+    user = UserModel._default_manager.get_by_natural_key(username)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\contrib\auth\base_user.py", line 37, in get_by_natural_key
+    return self.get(**{self.model.USERNAME_FIELD: username})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 645, in get
+    num = len(clone)
+          ^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 382, in __len__
+    self._fetch_all()
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 1928, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\sql\compiler.py", line 1574, in execute_sql
+    cursor.execute(sql, params)
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such column: lesson_user.last_login
+ERROR 2025-09-16 13:15:33,872 basehttp 2872 4144 "POST /login/ HTTP/1.1" 500 169973
+INFO 2025-09-16 13:19:32,673 autoreload 19052 7564 Watching for file changes with StatReloader
+INFO 2025-09-16 13:19:41,084 basehttp 19052 13384 "GET /login/ HTTP/1.1" 200 12094
+INFO 2025-09-16 13:19:43,113 basehttp 19052 13384 "GET /registration_1/ HTTP/1.1" 200 26939
+ERROR 2025-09-16 13:19:45,717 log 19052 13384 Internal Server Error: /registration_1/
+Traceback (most recent call last):
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: lesson_user
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py", line 279, in registration_1
+    exists = User.objects.filter(email=email).exists()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 1288, in exists
+    return self.query.has_results(using=self.db)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\sql\query.py", line 660, in has_results
+    return compiler.has_results()
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\sql\compiler.py", line 1542, in has_results
+    return bool(self.execute_sql(SINGLE))
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\sql\compiler.py", line 1574, in execute_sql
+    cursor.execute(sql, params)
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such table: lesson_user
+ERROR 2025-09-16 13:19:45,723 basehttp 19052 13384 "POST /registration_1/ HTTP/1.1" 500 137975
+ERROR 2025-09-16 13:19:57,514 log 19052 13384 Internal Server Error: /registration_1/
+Traceback (most recent call last):
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: lesson_user
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py", line 279, in registration_1
+    exists = User.objects.filter(email=email).exists()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 1288, in exists
+    return self.query.has_results(using=self.db)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\sql\query.py", line 660, in has_results
+    return compiler.has_results()
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\sql\compiler.py", line 1542, in has_results
+    return bool(self.execute_sql(SINGLE))
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\sql\compiler.py", line 1574, in execute_sql
+    cursor.execute(sql, params)
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such table: lesson_user
+ERROR 2025-09-16 13:19:57,516 basehttp 19052 13384 "POST /registration_1/ HTTP/1.1" 500 137975
+INFO 2025-09-16 13:19:58,236 basehttp 19052 13384 "GET /registration_1/ HTTP/1.1" 200 26939
+ERROR 2025-09-16 13:20:00,166 log 19052 13384 Internal Server Error: /registration_1/
+Traceback (most recent call last):
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: lesson_user
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py", line 279, in registration_1
+    exists = User.objects.filter(email=email).exists()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 1288, in exists
+    return self.query.has_results(using=self.db)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\sql\query.py", line 660, in has_results
+    return compiler.has_results()
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\sql\compiler.py", line 1542, in has_results
+    return bool(self.execute_sql(SINGLE))
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\sql\compiler.py", line 1574, in execute_sql
+    cursor.execute(sql, params)
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such table: lesson_user
+ERROR 2025-09-16 13:20:00,168 basehttp 19052 13384 "POST /registration_1/ HTTP/1.1" 500 137975
+INFO 2025-09-16 13:20:16,471 basehttp 19052 13384 "GET /registration_1/ HTTP/1.1" 200 26939
+INFO 2025-09-16 13:20:19,374 basehttp 19052 13384 "POST /registration_1/ HTTP/1.1" 200 113
+INFO 2025-09-16 13:20:29,262 basehttp 19052 13384 "GET /registration_1/ HTTP/1.1" 200 26939
+ERROR 2025-09-16 13:20:32,033 log 19052 13384 Internal Server Error: /registration_1/
+Traceback (most recent call last):
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: lesson_user
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py", line 279, in registration_1
+    exists = User.objects.filter(email=email).exists()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\query.py", line 1288, in exists
+    return self.query.has_results(using=self.db)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\sql\query.py", line 660, in has_results
+    return compiler.has_results()
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\sql\compiler.py", line 1542, in has_results
+    return bool(self.execute_sql(SINGLE))
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\models\sql\compiler.py", line 1574, in execute_sql
+    cursor.execute(sql, params)
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Viktor Greg Lim\AppData\Roaming\Python\Python312\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such table: lesson_user
+ERROR 2025-09-16 13:20:32,036 basehttp 19052 13384 "POST /registration_1/ HTTP/1.1" 500 137975
+INFO 2025-09-16 13:21:02,719 basehttp 19052 13384 "GET / HTTP/1.1" 200 20287
+INFO 2025-09-16 13:21:16,082 autoreload 19120 13120 Watching for file changes with StatReloader
+INFO 2025-09-16 13:21:22,464 basehttp 19120 18384 "GET / HTTP/1.1" 200 20287
+INFO 2025-09-16 13:21:23,062 basehttp 19120 18384 "GET / HTTP/1.1" 200 20287
+INFO 2025-09-16 13:23:15,288 autoreload 2364 2800 Watching for file changes with StatReloader
+INFO 2025-09-16 13:23:19,446 basehttp 2364 11460 "GET / HTTP/1.1" 200 20287
+INFO 2025-09-16 13:23:21,579 basehttp 2364 11460 "GET /admin HTTP/1.1" 301 0
+INFO 2025-09-16 13:23:21,596 basehttp 2364 12092 "GET /admin/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:23:21,731 basehttp 2364 12092 "GET /admin/login/?next=/admin/ HTTP/1.1" 200 4161
+INFO 2025-09-16 13:23:21,792 basehttp 2364 12092 "GET /static/admin/css/base.css HTTP/1.1" 200 22092
+INFO 2025-09-16 13:23:21,797 basehttp 2364 6324 "GET /static/admin/css/dark_mode.css HTTP/1.1" 200 2804
+INFO 2025-09-16 13:23:21,806 basehttp 2364 2668 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 200 2810
+INFO 2025-09-16 13:23:21,808 basehttp 2364 15772 "GET /static/admin/css/login.css HTTP/1.1" 200 951
+INFO 2025-09-16 13:23:21,818 basehttp 2364 19160 "GET /static/admin/css/responsive.css HTTP/1.1" 200 17972
+INFO 2025-09-16 13:23:21,818 basehttp 2364 8548 "GET /static/admin/js/theme.js HTTP/1.1" 200 1653
+INFO 2025-09-16 13:23:21,873 basehttp 2364 19160 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 200 3063
+INFO 2025-09-16 13:23:27,219 basehttp 2364 19160 "POST /admin/login/?next=/admin/ HTTP/1.1" 200 4319
+INFO 2025-09-16 13:23:34,621 basehttp 2364 19160 "POST /admin/login/?next=/admin/ HTTP/1.1" 200 4319
+INFO 2025-09-16 13:23:37,788 basehttp 2364 19160 "GET /admin/login/?next=/admin/ HTTP/1.1" 200 4161
+INFO 2025-09-16 13:23:40,095 basehttp 2364 19160 "GET / HTTP/1.1" 200 20287
+INFO 2025-09-16 13:30:34,091 autoreload 3344 5312 Watching for file changes with StatReloader
+INFO 2025-09-16 13:31:46,559 autoreload 15836 14396 Watching for file changes with StatReloader
+INFO 2025-09-16 13:31:50,489 basehttp 15836 9816 "GET / HTTP/1.1" 200 20287
+INFO 2025-09-16 13:31:52,843 basehttp 15836 9816 "GET /login/ HTTP/1.1" 200 12094
+INFO 2025-09-16 13:32:06,357 basehttp 15836 9816 "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:32:06,374 basehttp 15836 9816 "GET /dashboard/ HTTP/1.1" 200 34340
+INFO 2025-09-16 13:32:20,828 basehttp 15836 9816 "GET / HTTP/1.1" 200 20287
+INFO 2025-09-16 13:32:21,594 basehttp 15836 9816 "GET /admin/ HTTP/1.1" 200 8088
+INFO 2025-09-16 13:32:21,676 basehttp 15836 9816 "GET /static/admin/css/dashboard.css HTTP/1.1" 200 441
+INFO 2025-09-16 13:32:21,705 basehttp 15836 6764 "GET /static/admin/img/icon-addlink.svg HTTP/1.1" 200 331
+INFO 2025-09-16 13:32:21,706 basehttp 15836 9816 "GET /static/admin/img/icon-yes.svg HTTP/1.1" 200 436
+INFO 2025-09-16 13:32:21,707 basehttp 15836 11936 "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 200 380
+INFO 2025-09-16 13:32:24,048 basehttp 15836 11936 "POST /admin/logout/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:32:24,053 basehttp 15836 11936 "GET / HTTP/1.1" 200 20287
+INFO 2025-09-16 13:32:27,610 basehttp 15836 11936 "GET /admin/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:32:27,630 basehttp 15836 11936 "GET /admin/login/?next=/admin/ HTTP/1.1" 200 4161
+INFO 2025-09-16 13:32:38,141 basehttp 15836 11936 "POST /admin/login/?next=/admin/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:32:38,158 basehttp 15836 11936 "GET /admin/ HTTP/1.1" 200 7961
+INFO 2025-09-16 13:33:40,754 basehttp 15836 11936 "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:33:40,759 basehttp 15836 11936 "GET / HTTP/1.1" 200 20287
+INFO 2025-09-16 13:33:41,806 basehttp 15836 11936 "GET /registration_1/ HTTP/1.1" 200 27863
+INFO 2025-09-16 13:33:44,519 basehttp 15836 11936 "POST /registration_1/ HTTP/1.1" 200 51
+INFO 2025-09-16 13:34:00,698 basehttp 15836 11936 "POST /registration_1/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:34:00,744 basehttp 15836 11936 "GET /registration_2/ HTTP/1.1" 200 7967
+INFO 2025-09-16 13:34:14,694 basehttp 15836 11936 "POST /registration_2/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:34:14,708 basehttp 15836 11936 "GET /registration_3/ HTTP/1.1" 200 11389
+INFO 2025-09-16 13:34:18,074 basehttp 15836 11936 "POST /registration_3/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:34:18,089 basehttp 15836 11936 "GET /registration_4/ HTTP/1.1" 200 13953
+INFO 2025-09-16 13:34:35,776 basehttp 15836 11936 "GET /org_reg_1/ HTTP/1.1" 200 27760
+INFO 2025-09-16 13:34:38,568 basehttp 15836 11936 "GET /admin/lesson/user/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:34:38,579 basehttp 15836 11936 "GET /admin/login/?next=/admin/lesson/user/ HTTP/1.1" 200 4502
+INFO 2025-09-16 13:34:46,417 basehttp 15836 11936 "POST /admin/login/?next=/admin/lesson/user/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:34:46,559 basehttp 15836 11936 "GET /admin/lesson/user/ HTTP/1.1" 200 12111
+INFO 2025-09-16 13:34:46,614 basehttp 15836 11936 "GET /static/admin/css/changelists.css HTTP/1.1" 200 6878
+INFO 2025-09-16 13:34:46,648 basehttp 15836 9816 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-09-16 13:34:46,673 basehttp 15836 11936 "GET /static/admin/js/actions.js HTTP/1.1" 200 8076
+INFO 2025-09-16 13:34:46,687 basehttp 15836 5164 "GET /static/admin/js/admin/RelatedObjectLookups.js HTTP/1.1" 200 9097
+INFO 2025-09-16 13:34:46,694 basehttp 15836 9816 "GET /static/admin/js/urlify.js HTTP/1.1" 200 7887
+INFO 2025-09-16 13:34:46,703 basehttp 15836 12388 "GET /static/admin/js/jquery.init.js HTTP/1.1" 200 347
+INFO 2025-09-16 13:34:46,705 basehttp 15836 6320 "GET /static/admin/js/core.js HTTP/1.1" 200 6208
+INFO 2025-09-16 13:34:46,714 basehttp 15836 11936 "GET /static/admin/js/prepopulate.js HTTP/1.1" 200 1531
+INFO 2025-09-16 13:34:46,717 basehttp 15836 9816 "GET /static/admin/img/search.svg HTTP/1.1" 200 458
+INFO 2025-09-16 13:34:46,747 basehttp 15836 6764 "GET /static/admin/js/vendor/jquery/jquery.js HTTP/1.1" 200 285314
+INFO 2025-09-16 13:34:46,785 basehttp 15836 6764 "GET /static/admin/js/filters.js HTTP/1.1" 200 978
+INFO 2025-09-16 13:34:46,852 basehttp 15836 5164 "GET /static/admin/js/vendor/xregexp/xregexp.js HTTP/1.1" 200 325171
+INFO 2025-09-16 13:34:46,889 basehttp 15836 5164 "GET /static/admin/img/tooltag-add.svg HTTP/1.1" 200 331
+INFO 2025-09-16 13:34:46,892 basehttp 15836 6764 "GET /static/admin/img/icon-viewlink.svg HTTP/1.1" 200 581
+INFO 2025-09-16 13:34:50,075 basehttp 15836 6764 "GET /admin/lesson/user/ HTTP/1.1" 200 12111
+INFO 2025-09-16 13:34:50,111 basehttp 15836 6764 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-09-16 13:34:52,632 basehttp 15836 6764 "GET /admin/lesson/schoolregistration/ HTTP/1.1" 200 13024
+INFO 2025-09-16 13:34:52,674 basehttp 15836 6764 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-09-16 13:34:53,771 basehttp 15836 6764 "GET /admin/lesson/user/ HTTP/1.1" 200 12111
+INFO 2025-09-16 13:34:53,815 basehttp 15836 6764 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+WARNING 2025-09-16 13:36:52,041 log 15836 6764 Forbidden (CSRF token from POST incorrect.): /org_reg_1/
+WARNING 2025-09-16 13:36:52,041 basehttp 15836 6764 "POST /org_reg_1/ HTTP/1.1" 403 2503
+INFO 2025-09-16 13:41:29,698 autoreload 15836 14396 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\Lessonlink\settings.py changed, reloading.
+INFO 2025-09-16 13:41:30,624 autoreload 10380 4640 Watching for file changes with StatReloader
+INFO 2025-09-16 13:42:11,758 autoreload 10380 4640 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\Lessonlink\settings.py changed, reloading.
+INFO 2025-09-16 13:42:12,678 autoreload 13128 11592 Watching for file changes with StatReloader
+INFO 2025-09-16 13:42:26,007 autoreload 13128 11592 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\Lessonlink\settings.py changed, reloading.
+INFO 2025-09-16 13:42:27,143 autoreload 13724 12996 Watching for file changes with StatReloader
+WARNING 2025-09-16 13:43:33,899 log 13724 4268 Forbidden (CSRF token from POST incorrect.): /org_reg_1/
+WARNING 2025-09-16 13:43:33,900 basehttp 13724 4268 "POST /org_reg_1/ HTTP/1.1" 403 2503
+INFO 2025-09-16 13:43:34,981 basehttp 13724 4268 "GET /org_reg_1/ HTTP/1.1" 200 27751
+INFO 2025-09-16 13:43:57,142 basehttp 13724 4268 "GET /org_reg_1/ HTTP/1.1" 200 27751
+INFO 2025-09-16 13:47:49,302 basehttp 13724 4268 "GET /org_reg_1/ HTTP/1.1" 200 27692
+INFO 2025-09-16 13:47:53,735 basehttp 13724 4268 "GET /org_reg_1/ HTTP/1.1" 200 27692
+INFO 2025-09-16 13:48:23,210 views 13724 4268 New school registration: Don Pablo Lorenzo Memorial High School (111111111111)
+INFO 2025-09-16 13:48:23,212 basehttp 13724 4268 "POST /org_reg_1/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:48:23,221 basehttp 13724 4268 "GET / HTTP/1.1" 200 20287
+INFO 2025-09-16 13:48:27,365 basehttp 13724 4268 "GET /admin/lesson/user/ HTTP/1.1" 200 12417
+INFO 2025-09-16 13:48:27,402 basehttp 13724 4268 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-09-16 13:48:29,280 basehttp 13724 4268 "GET /admin/lesson/schoolregistration/ HTTP/1.1" 200 18817
+INFO 2025-09-16 13:48:29,328 basehttp 13724 4268 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-09-16 13:48:29,377 basehttp 13724 4268 "GET /static/admin/img/sorting-icons.svg HTTP/1.1" 200 1097
+INFO 2025-09-16 13:48:47,413 basehttp 13724 4268 "GET /registration_1/ HTTP/1.1" 200 26939
+INFO 2025-09-16 13:48:49,559 basehttp 13724 4268 "POST /registration_1/ HTTP/1.1" 200 51
+INFO 2025-09-16 13:48:57,831 basehttp 13724 4268 "POST /registration_1/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:48:57,842 basehttp 13724 4268 "GET /registration_2/ HTTP/1.1" 200 7967
+INFO 2025-09-16 13:49:07,027 basehttp 13724 4268 "POST /registration_2/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:49:07,042 basehttp 13724 4268 "GET /registration_3/ HTTP/1.1" 200 11389
+INFO 2025-09-16 13:49:10,010 basehttp 13724 4268 "POST /registration_3/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:49:10,025 basehttp 13724 4268 "GET /registration_4/ HTTP/1.1" 200 13953
+INFO 2025-09-16 13:54:39,357 basehttp 13724 896 "GET /registration_4/ HTTP/1.1" 200 14191
+INFO 2025-09-16 13:54:43,749 basehttp 13724 896 "GET /registration_4/ HTTP/1.1" 200 14191
+INFO 2025-09-16 13:55:11,538 basehttp 13724 896 "GET /registration_1/ HTTP/1.1" 200 29430
+INFO 2025-09-16 13:55:13,356 basehttp 13724 896 "GET /registration_1/ HTTP/1.1" 200 26939
+INFO 2025-09-16 13:55:15,066 basehttp 13724 896 "POST /registration_1/ HTTP/1.1" 200 51
+INFO 2025-09-16 13:55:23,391 basehttp 13724 896 "POST /registration_1/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:55:23,403 basehttp 13724 896 "GET /registration_2/ HTTP/1.1" 200 7967
+INFO 2025-09-16 13:55:32,901 basehttp 13724 896 "POST /registration_2/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:55:32,916 basehttp 13724 896 "GET /registration_3/ HTTP/1.1" 200 11389
+INFO 2025-09-16 13:55:37,578 basehttp 13724 896 "POST /registration_3/ HTTP/1.1" 302 0
+INFO 2025-09-16 13:55:37,593 basehttp 13724 896 "GET /registration_4/ HTTP/1.1" 200 14191
+INFO 2025-09-16 13:57:03,395 autoreload 13724 12996 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py changed, reloading.
+INFO 2025-09-16 13:57:04,384 autoreload 13632 2960 Watching for file changes with StatReloader
+INFO 2025-09-16 13:57:07,074 basehttp 13632 16048 "GET /registration_4/ HTTP/1.1" 200 14191
+INFO 2025-09-16 13:57:08,933 basehttp 13632 16048 "GET /registration_4/ HTTP/1.1" 200 14191
+INFO 2025-09-16 13:58:32,703 autoreload 4268 13172 Watching for file changes with StatReloader
+INFO 2025-09-16 13:58:36,521 basehttp 4268 18732 "GET /registration_4/ HTTP/1.1" 200 14191
+INFO 2025-09-16 14:01:45,340 autoreload 864 15224 Watching for file changes with StatReloader
+INFO 2025-09-16 14:01:49,476 basehttp 864 17432 "GET /registration_4/ HTTP/1.1" 200 14191
+INFO 2025-09-16 14:11:00,515 autoreload 864 15224 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py changed, reloading.
+INFO 2025-09-16 14:11:01,514 autoreload 18568 2184 Watching for file changes with StatReloader
+INFO 2025-09-16 14:11:07,861 basehttp 18568 12036 "GET /registration_4/ HTTP/1.1" 200 14682
+INFO 2025-09-16 14:11:14,152 basehttp 18568 12036 "GET /registration_4/ HTTP/1.1" 200 14682
+INFO 2025-09-16 14:16:27,257 autoreload 18568 2184 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py changed, reloading.
+INFO 2025-09-16 14:16:28,303 autoreload 16460 18924 Watching for file changes with StatReloader
+INFO 2025-09-16 14:16:33,899 basehttp 16460 11532 "GET /registration_4/ HTTP/1.1" 200 14393
+INFO 2025-09-16 14:31:30,321 autoreload 14128 11024 Watching for file changes with StatReloader
+INFO 2025-09-16 14:31:33,951 basehttp 14128 18312 "GET /registration_4/ HTTP/1.1" 200 14393
+INFO 2025-09-16 14:31:36,595 basehttp 14128 18312 "GET /registration_4/ HTTP/1.1" 200 14393
+INFO 2025-09-16 14:32:21,946 basehttp 14128 18312 "GET /registration_4/ HTTP/1.1" 200 14042
+INFO 2025-09-16 14:32:32,348 basehttp 14128 18312 "GET /registration_4/ HTTP/1.1" 200 14393
+INFO 2025-09-16 14:34:54,735 basehttp 14128 18312 "GET / HTTP/1.1" 200 20287
+INFO 2025-09-16 14:34:55,848 basehttp 14128 18312 "GET /org_reg_1/ HTTP/1.1" 200 27692
+INFO 2025-09-16 14:36:09,350 basehttp 14128 18312 "GET /admin/lesson/schoolregistration/?o=20.-19 HTTP/1.1" 200 20100
+INFO 2025-09-16 14:36:09,407 basehttp 14128 18312 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-09-16 14:36:09,444 basehttp 14128 18312 "GET /static/admin/img/sorting-icons.svg HTTP/1.1" 200 1097
+INFO 2025-09-16 14:37:10,412 autoreload 14128 11024 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\models.py changed, reloading.
+INFO 2025-09-16 14:37:11,560 autoreload 13020 6240 Watching for file changes with StatReloader
+INFO 2025-09-16 14:37:50,425 autoreload 19776 15764 Watching for file changes with StatReloader
+INFO 2025-09-16 14:38:14,090 basehttp 19776 19996 "GET /registration_1/ HTTP/1.1" 200 26939
+INFO 2025-09-16 14:38:15,897 basehttp 19776 19996 "POST /registration_1/ HTTP/1.1" 200 51
+INFO 2025-09-16 14:38:28,010 basehttp 19776 19996 "POST /registration_1/ HTTP/1.1" 302 0
+INFO 2025-09-16 14:38:28,025 basehttp 19776 19996 "GET /registration_2/ HTTP/1.1" 200 7967
+INFO 2025-09-16 14:38:35,039 basehttp 19776 19996 "POST /registration_2/ HTTP/1.1" 302 0
+INFO 2025-09-16 14:38:35,054 basehttp 19776 19996 "GET /registration_3/ HTTP/1.1" 200 11389
+INFO 2025-09-16 14:38:38,011 basehttp 19776 19996 "POST /registration_3/ HTTP/1.1" 302 0
+INFO 2025-09-16 14:38:38,034 basehttp 19776 19996 "GET /registration_4/ HTTP/1.1" 200 14393
+INFO 2025-09-16 14:39:32,876 autoreload 19776 15764 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py changed, reloading.
+INFO 2025-09-16 14:39:33,743 autoreload 15000 20304 Watching for file changes with StatReloader
+INFO 2025-09-16 14:39:39,284 basehttp 15000 11192 "GET /registration_4/ HTTP/1.1" 200 14393
+INFO 2025-09-16 14:42:52,384 autoreload 15000 20304 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py changed, reloading.
+INFO 2025-09-16 14:42:53,498 autoreload 18064 16328 Watching for file changes with StatReloader
+INFO 2025-09-16 14:46:09,261 autoreload 18064 16328 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\models.py changed, reloading.
+INFO 2025-09-16 14:46:10,151 autoreload 1776 12096 Watching for file changes with StatReloader
+INFO 2025-09-16 14:48:03,104 autoreload 1776 12096 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\models.py changed, reloading.
+INFO 2025-09-16 14:48:03,993 autoreload 16292 3848 Watching for file changes with StatReloader
+INFO 2025-09-16 14:49:36,614 autoreload 20144 19388 Watching for file changes with StatReloader
+INFO 2025-09-16 14:51:42,479 autoreload 20144 19388 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\models.py changed, reloading.
+INFO 2025-09-16 14:51:43,445 autoreload 13296 12272 Watching for file changes with StatReloader
+INFO 2025-09-16 14:53:54,262 autoreload 1740 20052 Watching for file changes with StatReloader
+INFO 2025-09-16 14:53:58,755 basehttp 1740 11004 "GET /registration_4/ HTTP/1.1" 200 14393
+INFO 2025-09-16 14:54:01,121 basehttp 1740 11004 "GET /admin/lesson/schoolregistration/?o=20.-19 HTTP/1.1" 200 19526
+INFO 2025-09-16 14:54:01,167 basehttp 1740 11004 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-09-16 14:54:06,381 basehttp 1740 11004 "GET /registration_4/ HTTP/1.1" 200 14393
+INFO 2025-09-16 15:11:21,471 autoreload 1740 20052 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py changed, reloading.
+INFO 2025-09-16 15:11:22,432 autoreload 19844 14684 Watching for file changes with StatReloader
+INFO 2025-09-16 15:11:27,786 basehttp 19844 19784 "GET /registration_4/ HTTP/1.1" 200 14393
+INFO 2025-09-16 15:13:14,020 basehttp 19844 19784 "GET /registration_4/ HTTP/1.1" 200 14393
+INFO 2025-09-16 15:14:25,017 autoreload 19844 14684 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py changed, reloading.
+INFO 2025-09-16 15:14:26,105 autoreload 19904 13024 Watching for file changes with StatReloader
+INFO 2025-09-16 15:14:44,417 autoreload 19904 13024 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py changed, reloading.
+INFO 2025-09-16 15:14:45,327 autoreload 8356 18464 Watching for file changes with StatReloader
+INFO 2025-09-16 15:14:50,887 basehttp 8356 16996 "GET /registration_4/ HTTP/1.1" 200 14393
+INFO 2025-09-16 15:14:52,911 basehttp 8356 16996 "GET /registration_4/ HTTP/1.1" 200 14393
+INFO 2025-09-16 15:15:35,699 autoreload 8356 18464 C:\Users\Viktor Greg Lim\OneDrive\Documents\GitHub\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py changed, reloading.
+INFO 2025-09-16 15:15:36,593 autoreload 19940 19724 Watching for file changes with StatReloader
+INFO 2025-09-16 15:15:57,393 basehttp 19940 7564 "GET /registration_4/ HTTP/1.1" 200 14424
+INFO 2025-09-16 15:15:59,007 basehttp 19940 7564 "GET /registration_4/ HTTP/1.1" 200 14424
+INFO 2025-09-16 15:17:52,571 basehttp 19940 7564 "GET / HTTP/1.1" 200 20287
+INFO 2025-09-16 15:17:53,856 basehttp 19940 7564 "GET /login/ HTTP/1.1" 302 0
+INFO 2025-09-16 15:17:53,868 basehttp 19940 7564 "GET /dashboard/ HTTP/1.1" 200 34340
+INFO 2025-09-16 15:17:55,910 basehttp 19940 7564 "GET /lesson_planner/ HTTP/1.1" 200 34913
+INFO 2025-09-16 15:18:53,801 basehttp 19940 7564 "POST /generate-lesson-plan/ HTTP/1.1" 200 4239
+INFO 2025-09-16 15:18:53,947 basehttp 19940 7564 "GET /lesson-plan-result/?plan=%23%20Lesson%20Plan%3A%20Introduction%20to%20Vowels%0A%0A%23%23%20Metadata%0A-%20**Subject%3A**%20English%0A-%20**Grade%20Level%3A**%20Kindergarten%0A-%20**Quarter%3A**%201st%20Quarter%0A-%20**Duration%3A**%2060%20minutes%0A-%20**Class%20Size%3A**%2025%20students%0A%0A%23%23%20Learning%20Objectives%0A*%20Students%20will%20be%20able%20to%20identify%20and%20pronounce%20the%20five%20main%20vowels%20(A%2C%20E%2C%20I%2C%20O%2C%20U)%20in%20isolation.%0A*%20Students%20will%20be%20able%20to%20identify%20the%20five%20main%20vowels%20(A%2C%20E%2C%20I%2C%20O%2C%20U)%20in%20simple%20words.%0A*%20Students%20will%20be%20able%20to%20participate%20actively%20in%20whole-class%20and%20small-group%20activities%20related%20to%20vowel%20sounds.%0A%0A%0A%23%23%20Subject%20Matter%0A**Topic%3A**%20Introduction%20to%20Vowel%20Sounds%20(A%2C%20E%2C%20I%2C%20O%2C%20U)%0A**Key%20Concepts%3A**%20Vowels%20are%20sounds%20made%20without%20closing%20off%20the%20airflow%20in%20the%20mouth.%20%20Each%20vowel%20makes%20a%20distinct%20sound.%20Vowels%20are%20building%20blocks%20of%20words.%0A**Vocabulary%3A**%20Vowel%2C%20A%2C%20E%2C%20I%2C%20O%2C%20U%2C%20sound%2C%20word%2C%20pronounce.%0A%0A%23%23%20Materials%20Needed%0A*%20Picture%20books%20featuring%20words%20with%20A%2C%20E%2C%20I%2C%20O%2C%20U%20(e.g.%2C%20%20*The%20Cat%20in%20the%20Hat*%2C%20%20simple%20alphabet%20books)%0A*%20Large%20alphabet%20chart%20with%20clear%20vowel%20pronunciation%20guides%0A*%20Flashcards%20with%20pictures%20and%20the%20corresponding%20words%20(e.g.%2C%20apple%2C%20elephant%2C%20igloo%2C%20octopus%2C%20umbrella)%0A*%20Markers%2FCrayons%0A*%20Construction%20paper%20or%20large%20sheets%20of%20paper%20for%20group%20activities%0A*%20Optional%3A%20puppets%20or%20other%20manipulatives%20to%20make%20learning%20more%20engaging%0A%0A%23%23%20Lesson%20Procedure%0A%0A%23%23%23%20A.%20Introduction%20(10%20minutes)%0ABegin%20by%20engaging%20students%20with%20a%20fun%20song%20about%20vowels%20or%20a%20short%2C%20interactive%20rhyme%20focusing%20on%20sounds.%20For%20example%2C%20%E2%80%9CWhat%20sounds%20do%20you%20hear%20when%20you%20say%20your%20name%3F%E2%80%9D%20Write%20the%20letters%20of%20the%20alphabet%20on%20the%20board%2C%20circling%20the%20vowels%20in%20a%20different%20color.%20Briefly%20introduce%20the%20concept%20that%20these%20letters%20make%20sounds%2C%20and%20these%20special%20sounds%20are%20called%20vowels.%20%20Ask%20students%20if%20they%20can%20guess%20what%20some%20of%20these%20sounds%20are%20before%20proceeding.%0A%0A%23%23%23%20B.%20Instruction%2FDirect%20Teaching%20(15%20minutes)%0ADisplay%20the%20large%20alphabet%20chart%20focusing%20on%20the%20five%20main%20vowels%20(A%2C%20E%2C%20I%2C%20O%2C%20U).%20%20Clearly%20pronounce%20each%20vowel%2C%20exaggerating%20the%20mouth%20movements%20to%20help%20students%20visualize%20the%20sound%20production.%20Model%20each%20vowel%20sound%20multiple%20times%2C%20having%20students%20repeat%20after%20you.%20Use%20simple%20words%20to%20illustrate%20each%20vowel%20sound%2C%20such%20as%3A%20A%20(apple)%2C%20E%20(egg)%2C%20I%20(igloo)%2C%20O%20(octopus)%2C%20U%20(umbrella).%20Write%20these%20words%20on%20the%20board%20and%20have%20students%20repeat%20them.%20Check%20for%20understanding%20by%20asking%20individual%20students%20to%20pronounce%20each%20vowel.%0A%0A%23%23%23%20C.%20Guided%20Practice%2FApplication%20(20%20minutes)%0ADivide%20students%20into%20small%20groups%20(4-5%20students).%20Provide%20each%20group%20with%20a%20set%20of%20flashcards%20featuring%20pictures%20and%20words%20with%20A%2C%20E%2C%20I%2C%20O%2C%20U.%20%20Have%20students%20take%20turns%20identifying%20the%20vowel%20in%20each%20word%20and%20pronouncing%20it.%20Encourage%20peer%20teaching%20and%20collaboration.%20%20Circulate%20the%20classroom%20to%20provide%20support%20and%20check%20for%20understanding.%20After%20the%20small%20group%20activity%2C%20play%20a%20game%20with%20whole%20class%20such%20as%20%22I%20Spy%22%20using%20words%20starting%20with%20vowels%2C%20making%20sure%20all%20students%20have%20the%20opportunity%20to%20participate.%0A%0A%23%23%23%20D.%20Independent%20Practice%2FEvaluation%20(10%20minutes)%0AEach%20student%20will%20color%20a%20worksheet%20with%20pictures%20of%20different%20objects%2C%20and%20write%20the%20corresponding%20vowels%20they%20hear%20in%20each%20word%20next%20to%20the%20image.%20%20Provide%20differentiated%20worksheets%20with%20varied%20levels%20of%20complexity.%0A%0A%23%23%23%20E.%20Assessment%20(5%20minutes)%0AUse%20an%20informal%20assessment%20through%20observation%20throughout%20the%20lesson%2C%20specifically%20looking%20at%20student%20participation%20during%20group%20activities%20and%20individual%20practice.%20%20Observe%20if%20students%20can%20correctly%20identify%20and%20pronounce%20the%20vowels.%20A%20quick%20exit%20ticket%20can%20consist%20of%20a%20few%20words%20written%20on%20the%20board%20to%20be%20pronounced%20by%20each%20student.%20%20Observe%20and%20note%20if%20students%20can%20successfully%20pronounce%20the%20words.%0A%0A%23%23%20Differentiation%0A*%20%20%20**Support%20for%20Struggling%20Learners%3A**%20Provide%20one-on-one%20support%20during%20guided%20practice.%20Use%20simplified%20picture%20cards%20and%20provide%20hand-over-hand%20assistance%20in%20tracing%20the%20vowel%20letters.%20Offer%20visual%20cues%20for%20mouth%20movements%20(pictures%20or%20videos).%0A*%20%20%20**Extension%20for%20Advanced%20Learners%3A**%20Challenge%20students%20to%20find%20other%20words%20with%20A%2C%20E%2C%20I%2C%20O%2C%20U%20and%20write%20them%20down.%20Encourage%20them%20to%20create%20their%20own%20simple%20sentences%20using%20words%20that%20contain%20the%20vowels.%20%20Have%20them%20draw%20pictures%20to%20match%20their%20sentences.%0A HTTP/1.1" 200 20367
+INFO 2025-09-16 15:18:56,408 basehttp 19940 7564 "POST /save-lesson-plan/ HTTP/1.1" 200 87
+INFO 2025-09-16 15:19:03,857 basehttp 19940 7564 "GET /drafts/1/edit/ HTTP/1.1" 200 16285
