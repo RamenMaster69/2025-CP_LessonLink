@@ -724,8 +724,38 @@ def Dep_Dash(request):
         return redirect('login')
     return render(request, 'Dep_Dash.html', {'user': user})
 
+@login_required
 def Dep_Faculty(request):
-    return render(request, 'Dep_Faculty.html')
+    user = request.user
+
+    # Only allow Department Head
+    if user.role != "Department Head":
+        messages.error(request, "You are not allowed to access this page.")
+        return redirect("dashboard")
+
+    # Get all teachers and student teachers in the same department
+    faculty_members = User.objects.filter(
+        department=user.department,
+        role__in=["Teacher", "Student Teacher"]
+    ).order_by("role", "last_name")
+
+    # Stats
+    total_faculty = faculty_members.count()
+    active_teachers = faculty_members.filter(role="Teacher").count()  # if you have a status field, add .filter(status="Active")
+    student_teachers = faculty_members.filter(role="Student Teacher").count()
+    pending_reviews = 0  # placeholder until you add LessonPlan or similar model
+
+    return render(request, "Dep_Faculty.html", {
+        "user": user,
+        "faculty_members": faculty_members,
+        "department": user.department,
+        "total_faculty": total_faculty,
+        "active_teachers": active_teachers,
+        "student_teachers": student_teachers,
+        "pending_reviews": pending_reviews,
+    })
+
+
 
 @login_required
 def schedule(request):

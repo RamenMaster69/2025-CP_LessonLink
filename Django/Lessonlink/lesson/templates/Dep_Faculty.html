@@ -11,10 +11,10 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    animation: {
-                        'fade-in': 'fadeIn 0.3s ease-in-out',
-                        'slide-in': 'slideIn 0.3s ease-out',
-                        'scale-in': 'scaleIn 0.2s ease-out'
+                    colors: {
+                        primary: '#11468F',
+                        secondary: '#9E5EFF',
+                        accent: '#3b82f6'
                     }
                 }
             }
@@ -26,7 +26,6 @@
                 opacity: 0;
                 transform: translateY(-10px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -37,7 +36,6 @@
             from {
                 transform: translateX(-100%);
             }
-
             to {
                 transform: translateX(0);
             }
@@ -48,7 +46,6 @@
                 opacity: 0;
                 transform: scale(0.9) translateY(-10px);
             }
-
             to {
                 opacity: 1;
                 transform: scale(1) translateY(0);
@@ -61,6 +58,10 @@
 
         .dropdown-enter {
             animation: scaleIn 0.2s ease-out;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
         }
 
         /* Print Styles */
@@ -161,7 +162,7 @@
 
             <!-- Logo -->
             <div class="flex items-center space-x-3 flex-1 md:flex-none">
-                <div class="w-10 h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
+                <div class="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-full shadow-md"></div>
                 <div class="hidden sm:block">
                     <h1 class="text-xl font-bold text-gray-900">LessonLink</h1>
                     <p class="text-sm text-gray-500 hidden lg:block">Western Mindanao State University</p>
@@ -172,7 +173,7 @@
             <div class="flex items-center space-x-2 md:space-x-4">
                 <!-- Search -->
                 <div class="relative hidden md:block">
-                    <input type="text" placeholder="Search lessons..."
+                    <input type="text" placeholder="Search faculty..."
                         class="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
                     <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
@@ -234,7 +235,7 @@
                                 </div>
                                 <div>
                                     <p class="font-semibold text-gray-900">Viktor Greg Lim</p>
-                                    <p class="text-sm text-gray-500">Department Head</p>
+                                    <p class="text-sm text-gray-500">Department Head - English</p>
                                 </div>
                             </div>
                         </div>
@@ -269,7 +270,7 @@
             <nav class="p-4 space-y-2">
                 <!-- Quick Actions Button -->
                 <button
-                    class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
+                    class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
                     <i class="fas fa-clipboard-check text-lg"></i>
                     <span class="font-medium">Review Queue</span>
                 </button>
@@ -277,16 +278,16 @@
                 <!-- Navigation Items -->
                 <a href="{% url 'Dep_Dash' %}"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                    <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <i class="fas fa-home text-lg w-5 group-hover:text-primary transition-colors"></i>
                     <span>Dashboard</span>
                 </a>
                 <a href="{% url 'Dep_Pending' %}"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                    <i class="fas fa-clock text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <i class="fas fa-clock text-lg w-5 group-hover:text-primary transition-colors"></i>
                     <span>Pending Reviews</span>
                 </a>
                 <a href="#"
-                    class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                    class="flex items-center space-x-3 px-4 py-3 text-primary bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
                     <i class="fas fa-users text-lg w-5"></i>
                     <span class="font-medium">Faculty</span>
                 </a>
@@ -298,13 +299,19 @@
             <!-- Page Header -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 mb-2">Faculty Management</h1>
-                    <p class="text-gray-600">View and manage faculty members in your department</p>
+                    <h1 class="text-2xl font-bold text-gray-900 mb-2">English Department Faculty</h1>
+                    <p class="text-gray-600">View and manage English department faculty members</p>
                 </div>
-                <button class="mt-4 sm:mt-0 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
-                    <i class="fas fa-plus"></i>
-                    <span>Add Faculty</span>
-                </button>
+                <div class="flex space-x-3 mt-4 sm:mt-0">
+                    <button class="bg-white text-gray-700 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors flex items-center space-x-2">
+                        <i class="fas fa-filter"></i>
+                        <span>Filter</span>
+                    </button>
+                    <button class="bg-accent text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Faculty</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Stats Cards -->
@@ -313,7 +320,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-600 text-sm font-medium">Total Faculty</p>
-                            <p class="text-3xl font-bold text-gray-900">24</p>
+                            <p class="text-3xl font-bold text-gray-900">8</p>
                         </div>
                         <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                             <i class="fas fa-users text-blue-600 text-xl"></i>
@@ -332,6 +339,30 @@
                         </div>
                     </div>
                 </div>
+                
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm font-medium">Active Teachers</p>
+                            <p class="text-3xl font-bold text-gray-900">5</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-chalkboard-teacher text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm font-medium">Student Teachers</p>
+                            <p class="text-3xl font-bold text-gray-900">3</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-user-graduate text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Faculty Table -->
@@ -339,7 +370,7 @@
                 <!-- Table Header -->
                 <div class="px-6 py-4 border-b border-gray-200">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-4 sm:mb-0">Faculty Members</h2>
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4 sm:mb-0">English Department Members</h2>
                         <div class="flex items-center space-x-3">
                             <button id="print-btn" class="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                                 <i class="fas fa-print"></i>
@@ -355,7 +386,7 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pending Reviews</th>
@@ -363,151 +394,70 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center no-print">
-                                            <span class="text-blue-600 font-semibold">SR</span>
-                                        </div>
-                                        <div class="ml-3">
-                                            <p class="text-sm font-medium text-gray-900">Dr. Sarah Rodriguez</p>
-                                            <p class="text-sm text-gray-500">sarah.rodriguez@wmsu.edu</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">English</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Today, 10:45 AM</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">2 pending</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
-                                    <button class="text-gray-400 hover:text-gray-600">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                </td>
-                            </tr>
+    {% for member in faculty_members %}
+    <tr class="hover:bg-gray-50 fade-in">
+        <!-- Avatar + Name -->
+        <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center no-print">
+                    <span class="text-blue-600 font-semibold">
+                        {{ member.first_name|first }}{{ member.last_name|first }}
+                    </span>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-900">
+                        {{ member.first_name }} {{ member.last_name }}
+                    </p>
+                    <p class="text-sm text-gray-500">{{ member.email }}</p>
+                </div>
+            </div>
+        </td>
 
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center no-print">
-                                            <span class="text-purple-600 font-semibold">CR</span>
-                                        </div>
-                                        <div class="ml-3">
-                                            <p class="text-sm font-medium text-gray-900">Mr. Carlos Rivera</p>
-                                            <p class="text-sm text-gray-500">carlos.rivera@wmsu.edu</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">Mathematics</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Today, 9:30 AM</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">1 pending</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
-                                    <button class="text-gray-400 hover:text-gray-600">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                </td>
-                            </tr>
+        <!-- Role -->
+        <td class="px-6 py-4 whitespace-nowrap">
+            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                {% if member.role == 'Teacher' %} bg-purple-100 text-purple-800 
+                {% elif member.role == 'Student Teacher' %} bg-pink-100 text-pink-800 
+                {% else %} bg-blue-100 text-blue-800 {% endif %}">
+                {{ member.role }}
+            </span>
+        </td>
 
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center no-print">
-                                            <span class="text-green-600 font-semibold">MS</span>
-                                        </div>
-                                        <div class="ml-3">
-                                            <p class="text-sm font-medium text-gray-900">Ms. Maria Santos</p>
-                                            <p class="text-sm text-gray-500">maria.santos@wmsu.edu</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Science</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Away</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Yesterday, 3:15 PM</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">3 pending</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
-                                    <button class="text-gray-400 hover:text-gray-600">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                </td>
-                            </tr>
+        <!-- Status (you can change to real data if you track status) -->
+        <td class="px-6 py-4 whitespace-nowrap">
+            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                Active
+            </span>
+        </td>
 
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center no-print">
-                                            <span class="text-yellow-600 font-semibold">JD</span>
-                                        </div>
-                                        <div class="ml-3">
-                                            <p class="text-sm font-medium text-gray-900">Dr. James Dela Cruz</p>
-                                            <p class="text-sm text-gray-500">james.delacruz@wmsu.edu</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">History</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Offline</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2 days ago</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">0 pending</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
-                                    <button class="text-gray-400 hover:text-gray-600">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                </td>
-                            </tr>
+        <!-- Last seen (dummy placeholder, replace if you track last_login) -->
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ member.last_login|default:"N/A" }}
+        </td>
 
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center no-print">
-                                            <span class="text-pink-600 font-semibold">AP</span>
-                                        </div>
-                                        <div class="ml-3">
-                                            <p class="text-sm font-medium text-gray-900">Ms. Anna Perez</p>
-                                            <p class="text-sm text-gray-500">anna.perez@wmsu.edu</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-pink-100 text-pink-800">Filipino</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Today, 11:20 AM</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">1 pending</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
-                                    <button class="text-gray-400 hover:text-gray-600">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
+        <!-- Pending requests (dummy placeholder, change if you track requests) -->
+        <td class="px-6 py-4 whitespace-nowrap">
+            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                0 pending
+            </span>
+        </td>
+
+        <!-- Actions -->
+        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
+            <button class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+            No faculty members found in your department.
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
+
                     </table>
                 </div>
             </div>
@@ -522,7 +472,7 @@
         <div class="print-header">
             <h1>LessonLink - Faculty Management</h1>
             <h2>Western Mindanao State University</h2>
-            <p>Faculty List Report</p>
+            <p>English Department Faculty Report</p>
         </div>
         
         <table class="print-table">
@@ -530,7 +480,7 @@
                 <tr>
                     <th>Name</th>
                     <th>Email</th>
-                    <th>Department</th>
+                    <th>Role</th>
                     <th>Status</th>
                     <th>Last Active</th>
                     <th>Pending Reviews</th>
@@ -543,7 +493,7 @@
         
         <div class="print-footer">
             <p>Generated on: <span id="print-date"></span></p>
-            <p>Report generated by: Viktor Greg Lim, Department Head</p>
+            <p>Report generated by: Viktor Greg Lim, English Department Head</p>
         </div>
     </div>
 
@@ -644,18 +594,18 @@
                     const name = nameElement ? nameElement.textContent.trim() : '';
                     const email = emailElement ? emailElement.textContent.trim() : '';
                     
-                    // Extract department (remove background styling for print)
-                    const deptSpan = cells[1].querySelector('span');
-                    const department = deptSpan ? deptSpan.textContent.trim() : '';
+                    // Extract role
+                    const roleSpan = cells[1].querySelector('span');
+                    const role = roleSpan ? roleSpan.textContent.trim() : '';
                     
-                    // Extract status (remove background styling for print)
+                    // Extract status
                     const statusSpan = cells[2].querySelector('span');
                     const status = statusSpan ? statusSpan.textContent.trim() : '';
                     
                     // Extract last active
                     const lastActive = cells[3] ? cells[3].textContent.trim() : '';
                     
-                    // Extract pending reviews (remove background styling for print)
+                    // Extract pending reviews
                     const pendingSpan = cells[4].querySelector('span');
                     const pendingReviews = pendingSpan ? pendingSpan.textContent.trim() : '';
                     
@@ -664,7 +614,7 @@
                     printRow.innerHTML = `
                         <td>${name}</td>
                         <td>${email}</td>
-                        <td>${department}</td>
+                        <td>${role}</td>
                         <td>${status}</td>
                         <td>${lastActive}</td>
                         <td>${pendingReviews}</td>
@@ -701,7 +651,7 @@
 
         // Add smooth animations on load
         document.addEventListener('DOMContentLoaded', () => {
-            const elements = document.querySelectorAll('.animate-fade-in');
+            const elements = document.querySelectorAll('.fade-in');
             elements.forEach((el, index) => {
                 el.style.opacity = '0';
                 el.style.transform = 'translateY(20px)';
