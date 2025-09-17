@@ -1,12 +1,42 @@
 from django.contrib import admin
-from .models import User, Schedule, Task, SchoolRegistration  # Import SchoolRegistration
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from .models import User, Schedule, Task, SchoolRegistration
 
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('email', 'first_name', 'last_name', 'role', 'department')
-    search_fields = ('email', 'first_name', 'last_name', 'role')
-    list_filter = ('role', 'department')
+class UserAdmin(BaseUserAdmin):
+    model = User
+    list_display = ("email", "first_name", "last_name", "role", "department", "school", "is_staff")
+    list_filter = ("role", "department", "school", "is_staff", "is_active")
+    search_fields = ("email", "first_name", "last_name")
+    ordering = ("email",)
+
+    fieldsets = (
+        (None, {"fields": ("email", "password")}),
+        ("Personal info", {"fields": ("first_name", "middle_name", "last_name", "dob", "profile_picture")}),
+        ("School info", {"fields": ("role", "rank", "department", "school", "affiliations")}),
+        ("Permissions", {"fields": ("is_staff", "is_active", "is_superuser", "groups", "user_permissions")}),
+        ("Important dates", {"fields": ("last_login", "date_joined")}),
+    )
+
+    add_fieldsets = (
+        (None, {
+            "classes": ("wide",),
+            "fields": (
+                "email",
+                "first_name",
+                "last_name",
+                "role",
+                "rank",
+                "department",
+                "school",
+                "password1",
+                "password2",
+                "is_staff",
+                "is_active",
+            )}
+        ),
+    )
 
 
 @admin.register(Schedule)

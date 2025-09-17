@@ -42,50 +42,51 @@ class CustomUserManager(BaseUserManager):
 
 
 class User(AbstractUser):
-    """Extended User model using Django's built-in authentication"""
-    
     ROLE_CHOICES = [
         ('Student Teacher', 'Student Teacher'),
         ('Teacher', 'Teacher'),
         ('Department Head', 'Department Head'),
     ]
-    
-    # Remove username field requirement (use email instead)
+
     username = None
     email = models.EmailField(unique=True)
-    
-    # Custom fields
+
     middle_name = models.CharField(max_length=100, blank=True, null=True)
     dob = models.DateField(null=True, blank=True)
-    
+
     role = models.CharField(max_length=100, choices=ROLE_CHOICES)
     rank = models.CharField(max_length=100)
-    
+
     department = models.CharField(max_length=100)
-    school = models.CharField(max_length=255, blank=True, null=True)  
+
+    # Instead of plain CharField, link to SchoolRegistration
+    school = models.ForeignKey(
+        "SchoolRegistration",  # reference your school model
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="users"
+    )
+
     affiliations = models.TextField(blank=True, null=True)
-    
-    # Profile picture
+
     profile_picture = models.ImageField(
-        upload_to='profile_pictures/', 
-        null=True, 
+        upload_to='profile_pictures/',
+        null=True,
         blank=True,
         help_text="Profile picture for the user"
     )
-    
-    # Set email as the username field
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name', 'role', 'rank', 'department']
-    
-    # Use the custom manager
+
     objects = CustomUserManager()
-    
+
     def __str__(self):
         return self.email
-    
+
     @property
     def full_name(self):
-        """Return full name with middle name if available"""
         parts = [self.first_name]
         if self.middle_name:
             parts.append(self.middle_name)

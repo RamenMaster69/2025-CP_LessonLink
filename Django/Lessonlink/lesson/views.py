@@ -493,7 +493,7 @@ def registration_4(request):
                 role=role,
                 rank=rank,
                 department=department,
-                school=school_name,  # Store the school name
+                school=school,  # Store the school name
                 affiliations=", ".join(affiliations) if affiliations else ""
             )
 
@@ -736,6 +736,7 @@ def Dep_Faculty(request):
     # Get all teachers and student teachers in the same department
     faculty_members = User.objects.filter(
         department=user.department,
+        school=user.school,
         role__in=["Teacher", "Student Teacher"]
     ).order_by("role", "last_name")
 
