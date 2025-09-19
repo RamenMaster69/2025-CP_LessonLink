@@ -9,8 +9,6 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import LessonPlan
 from django.contrib import messages
 import re
-
-
 from .ai_instructions import LESSON_PLANNER_SYSTEM_INSTRUCTION
 
 # Configure the Gemini API
@@ -39,7 +37,9 @@ def generate_lesson_plan(request):
         # Parse JSON data
         try:
             data = json.loads(request.body)
-        except json.JSONDecodeError:
+            print("Received data:", data)  # Debugging
+        except json.JSONDecodeError as e:
+            print("JSON decode error:", e)  # Debugging
             return JsonResponse({
                 'success': False,
                 'error': 'Invalid JSON data received.'
@@ -70,6 +70,8 @@ def generate_lesson_plan(request):
             'assessment': data.get('assessment', '').strip(),
         }
         
+        print("Form data prepared:", form_data)  # Debugging
+        
         # Format the prompt for the AI
         prompt = f"""
         Create a comprehensive lesson plan based on these details:
@@ -88,8 +90,10 @@ def generate_lesson_plan(request):
         EVALUATION: {form_data['evaluation']}
         ASSESSMENT: {form_data['assessment']}
 
-        Please generate a complete lesson plan using the specified format.
+        Please generate a complete lesson plan using the specified JSON format.
         """
+        
+        print("Sending prompt to AI")  # Debugging
         
         # Generate the lesson plan using Gemini
         try:
@@ -98,133 +102,65 @@ def generate_lesson_plan(request):
                 prompt
             ])
             
-            # Parse the generated content into sections
-            parsed_content = parse_lesson_plan_content(response.text)
+            print("AI response received:", response.text[:200] + "...")  # Debugging first 200 chars
             
-            # Store the parsed content and original text in session
-            request.session['generated_lesson_plan'] = response.text
-            request.session['parsed_lesson_plan'] = parsed_content
-            request.session['lesson_form_data'] = form_data
-            request.session.modified = True
-            
-            return JsonResponse({
-                'success': True,
-                'lesson_plan': response.text
-            })
+            # Try to parse the response as JSON
+            try:
+                # Extract JSON from the response (Gemini might add some text around it)
+                json_match = re.search(r'\{.*\}', response.text, re.DOTALL)
+                if json_match:
+                    lesson_data = json.loads(json_match.group())
+                    print("JSON parsed successfully")  # Debugging
+                    
+                    # Store both the structured data and markdown in session
+                    request.session['generated_lesson_plan'] = lesson_data.get('markdown_output', '')
+                    request.session['parsed_lesson_plan'] = lesson_data
+                    request.session['lesson_form_data'] = form_data
+                    request.session.modified = True
+                    
+                    return JsonResponse({
+                        'success': True,
+                        'lesson_plan': lesson_data.get('markdown_output', '')
+                    })
+                else:
+                    # Fallback: if no JSON found, treat as markdown
+                    print("No JSON found in response, using fallback")  # Debugging
+                    request.session['generated_lesson_plan'] = response.text
+                    request.session['lesson_form_data'] = form_data
+                    request.session.modified = True
+                    
+                    return JsonResponse({
+                        'success': True,
+                        'lesson_plan': response.text
+                    })
+                    
+            except json.JSONDecodeError as json_error:
+                # If JSON parsing fails, fall back to markdown
+                print(f"JSON parsing error: {json_error}")  # Debugging
+                request.session['generated_lesson_plan'] = response.text
+                request.session['lesson_form_data'] = form_data
+                request.session.modified = True
+                
+                return JsonResponse({
+                    'success': True,
+                    'lesson_plan': response.text
+                })
             
         except Exception as ai_error:
+            print(f"AI service error: {str(ai_error)}")  # Debugging
             return JsonResponse({
                 'success': False,
                 'error': f'AI service error: {str(ai_error)}'
             }, status=500)
         
     except Exception as e:
+        print(f"Server error: {str(e)}")  # Debugging
+        import traceback
+        traceback.print_exc()  # This will print the full traceback to console
         return JsonResponse({
             'success': False,
             'error': f'Server error: {str(e)}'
         }, status=500)
-
-def parse_lesson_plan_content(content):
-    """Parse the AI-generated lesson plan content into structured data"""
-    parsed_data = {
-        'metadata': {},
-        'learning_objectives': [],
-        'subject_matter': {},
-        'materials_needed': [],
-        'procedure': {},
-        'differentiation': {}
-    }
-    
-    # Parse metadata
-    metadata_match = re.search(r'## Metadata\s*\n(.*?)(?=##|$)', content, re.DOTALL | re.IGNORECASE)
-    if metadata_match:
-        metadata_text = metadata_match.group(1)
-        metadata_patterns = {
-            'subject': r'\*\*Subject:\*\*\s*([^\n]+)',
-            'grade_level': r'\*\*Grade Level:\*\*\s*([^\n]+)',
-            'quarter': r'\*\*Quarter:\*\*\s*([^\n]+)',
-            'duration': r'\*\*Duration:\*\*\s*([^\n]+)',
-            'class_size': r'\*\*Class Size:\*\*\s*([^\n]+)',
-        }
-        
-        for field, pattern in metadata_patterns.items():
-            match = re.search(pattern, metadata_text, re.IGNORECASE)
-            if match:
-                parsed_data['metadata'][field] = match.group(1).strip()
-    
-    # Parse learning objectives
-    objectives_match = re.search(r'## Learning Objectives\s*\n(.*?)(?=##|$)', content, re.DOTALL | re.IGNORECASE)
-    if objectives_match:
-        objectives_text = objectives_match.group(1)
-        objectives_list = re.findall(r'\*\s*(.*?)(?=\n\*|\n\n|$)', objectives_text, re.DOTALL)
-        parsed_data['learning_objectives'] = [obj.strip() for obj in objectives_list if obj.strip()]
-    
-    # Parse subject matter
-    subject_matter_match = re.search(r'## Subject Matter\s*\n(.*?)(?=##|$)', content, re.DOTALL | re.IGNORECASE)
-    if subject_matter_match:
-        subject_matter_text = subject_matter_match.group(1)
-        # Extract topic
-        topic_match = re.search(r'\*\*Topic:\*\*\s*([^\n]+)', subject_matter_text, re.IGNORECASE)
-        if topic_match:
-            parsed_data['subject_matter']['topic'] = topic_match.group(1).strip()
-        
-        # Extract key concepts
-        concepts_match = re.search(r'\*\*Key Concepts:\*\*\s*([^\n]+)', subject_matter_text, re.IGNORECASE)
-        if concepts_match:
-            parsed_data['subject_matter']['key_concepts'] = concepts_match.group(1).strip()
-        
-        # Extract vocabulary
-        vocab_match = re.search(r'\*\*Vocabulary:\*\*\s*([^\n]+)', subject_matter_text, re.IGNORECASE)
-        if vocab_match:
-            parsed_data['subject_matter']['vocabulary'] = vocab_match.group(1).strip()
-    
-    # Parse materials needed
-    materials_match = re.search(r'## Materials Needed\s*\n(.*?)(?=##|$)', content, re.DOTALL | re.IGNORECASE)
-    if materials_match:
-        materials_text = materials_match.group(1)
-        materials_list = re.findall(r'\*\s*(.*?)(?=\n\*|\n\n|$)', materials_text, re.DOTALL)
-        parsed_data['materials_needed'] = [mat.strip() for mat in materials_list if mat.strip()]
-    
-    # Parse lesson procedure
-    procedure_match = re.search(r'## Lesson Procedure\s*\n(.*?)(?=##|$)', content, re.DOTALL | re.IGNORECASE)
-    if procedure_match:
-        procedure_text = procedure_match.group(1)
-        
-        # Parse each subsection
-        subsection_patterns = {
-            'introduction': r'### A\. Introduction\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
-            'instruction': r'### B\. Instruction/Direct Teaching\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
-            'application': r'### C\. Guided Practice/Application\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
-            'evaluation': r'### D\. Independent Practice/Evaluation\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
-            'assessment': r'### E\. Assessment\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
-        }
-        
-        for section, pattern in subsection_patterns.items():
-            match = re.search(pattern, procedure_text, re.DOTALL | re.IGNORECASE)
-            if match:
-                parsed_data['procedure'][section] = {
-                    'time': match.group(1).strip(),
-                    'content': match.group(2).strip()
-                }
-    
-    # Parse differentiation
-    differentiation_match = re.search(r'## Differentiation\s*\n(.*?)(?=##|$)', content, re.DOTALL | re.IGNORECASE)
-    if differentiation_match:
-        differentiation_text = differentiation_match.group(1)
-        
-        # Parse support for struggling learners
-        support_match = re.search(r'\*\*Support for Struggling Learners:\*\*\s*(.*?)(?=\*\*|$)', differentiation_text, re.DOTALL | re.IGNORECASE)
-        if support_match:
-            support_items = re.findall(r'\*\s*(.*?)(?=\n\*|\n\n|$)', support_match.group(1), re.DOTALL)
-            parsed_data['differentiation']['support'] = [item.strip() for item in support_items if item.strip()]
-        
-        # Parse extension for advanced learners
-        extension_match = re.search(r'\*\*Extension for Advanced Learners:\*\*\s*(.*?)(?=\*\*|$)', differentiation_text, re.DOTALL | re.IGNORECASE)
-        if extension_match:
-            extension_items = re.findall(r'\*\s*(.*?)(?=\n\*|\n\n|$)', extension_match.group(1), re.DOTALL)
-            parsed_data['differentiation']['extension'] = [item.strip() for item in extension_items if item.strip()]
-    
-    return parsed_data
 
 def lesson_plan_result(request):
     """Render the lesson plan result page"""
@@ -250,25 +186,52 @@ def save_lesson_plan(request):
                 'error': 'No lesson plan content found. Please generate a lesson plan first.'
             }, status=400)
         
-        # Create a new LessonPlan instance using the parsed content
-        lesson_plan = LessonPlan(
-            title=f"{parsed_content.get('metadata', {}).get('subject', 'Untitled')} - {parsed_content.get('metadata', {}).get('grade_level', '')}",
-            subject=parsed_content.get('metadata', {}).get('subject', form_data.get('subject', '')),
-            grade_level=parsed_content.get('metadata', {}).get('grade_level', form_data.get('grade_level', '')),
-            quarter=parsed_content.get('metadata', {}).get('quarter', form_data.get('quarter', '')),
-            duration=parse_duration(parsed_content.get('metadata', {}).get('duration', form_data.get('duration', '0'))),
-            population=parse_population(parsed_content.get('metadata', {}).get('class_size', form_data.get('population', '0'))),
-            learning_objectives='\n'.join(parsed_content.get('learning_objectives', [])),
-            subject_matter=format_subject_matter(parsed_content.get('subject_matter', {})),
-            materials_needed='\n'.join(parsed_content.get('materials_needed', [])),
-            introduction=parsed_content.get('procedure', {}).get('introduction', {}).get('content', ''),
-            instruction=parsed_content.get('procedure', {}).get('instruction', {}).get('content', ''),
-            application=parsed_content.get('procedure', {}).get('application', {}).get('content', ''),
-            evaluation=parsed_content.get('procedure', {}).get('evaluation', {}).get('content', ''),
-            assessment=parsed_content.get('procedure', {}).get('assessment', {}).get('content', ''),
-            generated_content=generated_content,
-            created_by=request.user
-        )
+        # If we have parsed JSON content, use it
+        if parsed_content and isinstance(parsed_content, dict):
+            # Use the parsed JSON data
+            metadata = parsed_content.get('metadata', {})
+            procedure = parsed_content.get('procedure', {})
+            subject_matter = parsed_content.get('subject_matter', {})
+            
+            lesson_plan = LessonPlan(
+                title=parsed_content.get('title', f"{metadata.get('subject', 'Untitled')} - {metadata.get('grade_level', '')}"),
+                subject=metadata.get('subject', form_data.get('subject', '')),
+                grade_level=metadata.get('grade_level', form_data.get('grade_level', '')),
+                quarter=metadata.get('quarter', form_data.get('quarter', '')),
+                duration=parse_duration(metadata.get('duration', form_data.get('duration', '0'))),
+                population=parse_population(metadata.get('class_size', form_data.get('population', '0'))),
+                learning_objectives='\n'.join(parsed_content.get('learning_objectives', [])),
+                subject_matter=format_subject_matter(subject_matter),
+                materials_needed='\n'.join(parsed_content.get('materials_needed', [])),
+                introduction=procedure.get('introduction', {}).get('content', ''),
+                instruction=procedure.get('instruction', {}).get('content', ''),
+                application=procedure.get('application', {}).get('content', ''),
+                evaluation=procedure.get('evaluation', {}).get('content', ''),
+                assessment=procedure.get('assessment', {}).get('content', ''),
+                generated_content=generated_content,
+                created_by=request.user
+            )
+        else:
+            # Fallback: if no parsed JSON, use form data with empty procedure sections
+            lesson_plan = LessonPlan(
+                title=f"{form_data.get('subject', 'Untitled')} - {form_data.get('grade_level', '')}",
+                subject=form_data.get('subject', ''),
+                grade_level=form_data.get('grade_level', ''),
+                quarter=form_data.get('quarter', ''),
+                duration=parse_duration(form_data.get('duration', '0')),
+                population=parse_population(form_data.get('population', '0')),
+                learning_objectives=form_data.get('learning_objectives', ''),
+                subject_matter=form_data.get('subject_matter', ''),
+                materials_needed=form_data.get('materials_needed', ''),
+                introduction=form_data.get('introduction', ''),
+                instruction=form_data.get('instruction', ''),
+                application=form_data.get('application', ''),
+                evaluation=form_data.get('evaluation', ''),
+                assessment=form_data.get('assessment', ''),
+                generated_content=generated_content,
+                created_by=request.user
+            )
+        
         lesson_plan.save()
         
         # Clear the session data after saving
@@ -316,13 +279,15 @@ def parse_population(population_str):
 def format_subject_matter(subject_matter_dict):
     """Format subject matter dictionary into a string"""
     parts = []
-    if 'topic' in subject_matter_dict:
+    if subject_matter_dict.get('topic'):
         parts.append(f"Topic: {subject_matter_dict['topic']}")
-    if 'key_concepts' in subject_matter_dict:
+    if subject_matter_dict.get('key_concepts'):
         parts.append(f"Key Concepts: {subject_matter_dict['key_concepts']}")
-    if 'vocabulary' in subject_matter_dict:
+    if subject_matter_dict.get('vocabulary'):
         parts.append(f"Vocabulary: {subject_matter_dict['vocabulary']}")
     return '\n'.join(parts)
+
+# Keep the rest of your views.py functions unchanged
 
 @login_required
 def draft_list(request):
