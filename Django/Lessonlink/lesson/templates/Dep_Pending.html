@@ -148,13 +148,13 @@
                                     <i class="fas fa-user text-white text-lg"></i>
                                 </div>
                                 <div>
-                                    <p class="font-semibold text-gray-900">Viktor Greg Lim</p>
+                                    <p class="font-semibold text-gray-900">{{ user.first_name }} {{ user.last_name }}</p>
                                     <p class="text-sm text-gray-500">Department Head</p>
                                 </div>
                             </div>
                         </div>
                         <div class="py-2">
-                            <a href="#"
+                            <a href=""
                                 class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
                                 <i class="fas fa-user w-4"></i>
                                 <span>My Profile</span>
@@ -165,7 +165,7 @@
                                 <span>Settings</span>
                             </a>
                             <hr class="my-2">
-                            <a href="#"
+                            <a href="{% url 'logout' %}"
                                 class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
                                 <i class="fas fa-sign-out-alt w-4"></i>
                                 <span>Logout</span>
@@ -194,6 +194,11 @@
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Dashboard</span>
+                </a>
+                <a href="{% url 'dep_calendar' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group]">
+                    <i class="fas fa-calendar text-lg w-5"></i>
+                    <span class="font-medium">Calendar</span>
                 </a>
                 <a href="{% url 'Dep_Pending' %}"
                     class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">

@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import landing, dep_template, teach_template, calendar, admin_calendar
+from .views import landing, dep_template, teach_template, calendar, admin_calendar, dep_calendar
 from .views import registration_1, registration_2, registration_3, registration_4, org_reg_1
 from .views import login_view, logout_view
 from .views import lesson_planner, lesson_plan
@@ -53,6 +53,7 @@ urlpatterns = [
     path('task/', task, name='task'),
     path('schedule/', schedule, name='schedule'),
     path('dep_pending/', Dep_Pending, name='Dep_Pending'),
+    path('dep_calendar/', dep_calendar, name='dep_calendar'),
     path('dep_template/', dep_template, name='dep_template'),
     path('teach_template/', teach_template, name='teach_template'),
     path('calendar/', calendar, name='calendar'),

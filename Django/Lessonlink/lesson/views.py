@@ -812,6 +812,9 @@ def Dep_Faculty(request):
         "pending_reviews": pending_reviews,
     })
 
+def dep_calendar(request):
+    return render(request, 'dep_calendar.html')
+
 
 
 @login_required

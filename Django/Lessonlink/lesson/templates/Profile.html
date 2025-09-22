@@ -204,8 +204,14 @@
                 <div class="flex flex-col lg:flex-row min-h-[600px]">
                     <!-- Left Side - Profile Card -->
                     <div class="w-full lg:w-1/3 bg-gradient-to-br from-[#11468F] via-blue-700 to-[#9E5EFF] p-8 text-white relative">
-                        <!-- Back Button -->
-                        <a href="{% url 'dashboard' %}">
+                        <!-- Back Button with Role-Based Redirect -->
+                        {% if user.role == "Department Head" %}
+                            <a href="{% url 'Dep_Dash' %}">
+                        {% elif user.role == "Student Teacher" %}
+                            <a href="{% url 'st_dash' %}">
+                        {% else %}
+                            <a href="{% url 'dashboard' %}">
+                        {% endif %}
                             <button class="flex items-center space-x-2 text-white/90 hover:text-white mb-6 transition-colors group">
                                 <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
                                 <span class="font-medium">Back to Dashboard</span>
