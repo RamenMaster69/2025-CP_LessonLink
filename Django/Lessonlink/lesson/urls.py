@@ -59,6 +59,11 @@ urlpatterns = [
     path('st_dash/', st_dash, name='st_dash'),
     path('admin_dashboard/', admin_dashboard, name='admin_dashboard'),
     path('admin_calendar/', admin_calendar, name='admin_calendar'),
+    path('admin/', admin.site.urls),
+    path('calendar/', include('lessonlinkCalendar.urls')),
+    path('', include('lesson.urls')),  # Your main app
+
+
 
 
     # path('upload-profile-picture/', upload_profile_picture, name='upload_profile_picture'),

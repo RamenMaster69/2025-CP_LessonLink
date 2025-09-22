@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'lesson',
     'lessonGenerator',
+    'lessonlinkCalendar',
+
 ]
 
 MIDDLEWARE = [
