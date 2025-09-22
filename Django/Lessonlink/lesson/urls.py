@@ -7,6 +7,7 @@ from .views import lesson_planner, lesson_plan
 from .views import dashboard, profile, ScheduleViewSet, draft, task, schedule
 from .views import Dep_Dash, Dep_Faculty, Dep_Pending
 from .views import st_dash
+from .views import admin_dashboard
 
 # Import the new task API views
 from .views import (
@@ -56,6 +57,7 @@ urlpatterns = [
     path('teach_template/', teach_template, name='teach_template'),
     path('calendar/', calendar, name='calendar'),
     path('st_dash/', st_dash, name='st_dash'),
+    path('admin_dashboard/', admin_dashboard, name='admin_dashboard'),
     path('admin_calendar/', admin_calendar, name='admin_calendar'),
 
 

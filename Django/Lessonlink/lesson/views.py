@@ -796,6 +796,9 @@ def calendar(request):
 def admin_calendar(request):
     return render(request, 'admin_calendar.html')
 
+def admin_dashboard(request):
+    return render(request, 'admin_dashboard.html')
+
 # Task API Views
 @csrf_exempt
 @require_POST
