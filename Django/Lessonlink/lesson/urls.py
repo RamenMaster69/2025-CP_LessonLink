@@ -59,9 +59,9 @@ urlpatterns = [
     path('st_dash/', st_dash, name='st_dash'),
     path('admin_dashboard/', admin_dashboard, name='admin_dashboard'),
     path('admin_calendar/', admin_calendar, name='admin_calendar'),
-    path('admin/', admin.site.urls),
-    path('calendar/', include('lessonlinkCalendar.urls')),
-    path('', include('lesson.urls')),  # Your main app
+    path('submit-lesson-plan/<int:lesson_plan_id>/', views.submit_lesson_plan, name='submit_lesson_plan'),
+    path('review-lesson-plan/<int:submission_id>/', views.review_lesson_plan, name='review_lesson_plan'),
+    path('lesson-plan-detail/<int:submission_id>/', views.lesson_plan_detail, name='lesson_plan_detail'),
 
 
 

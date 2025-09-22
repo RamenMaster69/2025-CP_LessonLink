@@ -327,6 +327,15 @@
                                     <div class="absolute right-0 mt-1 w-32 bg-white rounded-lg shadow-lg border border-gray-200 hidden dropdown-menu" data-id="{{ draft.id }}">
                                         <div class="py-1">
                                             <a href="{% url 'edit_draft' draft.id %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</a>
+                                            <!-- In the draft card actions section, add this after the edit button -->
+                                            {% if draft.status == 'draft' %}
+                                            <a href="{% url 'submit_lesson_plan' draft.id %}" 
+                                            class="block px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 submit-draft" 
+                                            data-id="{{ draft.id }}"
+                                            onclick="return confirm('Submit this lesson plan to your department head for approval?')">
+                                                Submit for Approval
+                                            </a>
+                                            {% endif %}
                                             <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 delete-draft" data-id="{{ draft.id }}">Delete</a>
                                         </div>
                                     </div>
@@ -355,6 +364,7 @@
                                 </a>
                             </div>
                         </div>
+                        
                     </div>
                     {% endfor %}
                 </div>

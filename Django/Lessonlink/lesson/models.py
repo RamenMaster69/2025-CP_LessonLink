@@ -486,3 +486,44 @@ class SchoolRegistration(models.Model):
         if notes:
             self.admin_notes = notes
         self.save()
+
+# Add this to your main app's models.py
+class LessonPlanSubmission(models.Model):
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('submitted', 'Submitted for Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('needs_revision', 'Needs Revision'),
+    ]
+    
+    lesson_plan = models.ForeignKey('lessonGenerator.LessonPlan', on_delete=models.CASCADE)
+    submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='submitted_lesson_plans')
+    submitted_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_lesson_plans')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    submission_date = models.DateTimeField(auto_now_add=True)
+    review_date = models.DateTimeField(null=True, blank=True)
+    review_notes = models.TextField(blank=True)
+    
+    class Meta:
+        ordering = ['-submission_date']
+    
+    def __str__(self):
+        return f"{self.lesson_plan.title} - {self.get_status_display()}"
+    
+    def time_since_submission(self):
+        """Return how long ago the lesson was submitted"""
+        from django.utils import timezone
+        now = timezone.now()
+        diff = now - self.submission_date
+        
+        if diff.days > 0:
+            return f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
+        elif diff.seconds >= 3600:
+            hours = diff.seconds // 3600
+            return f"{hours} hour{'s' if hours > 1 else ''} ago"
+        elif diff.seconds >= 60:
+            minutes = diff.seconds // 60
+            return f"{minutes} minute{'s' if minutes > 1 else ''} ago"
+        else:
+            return "Just now"

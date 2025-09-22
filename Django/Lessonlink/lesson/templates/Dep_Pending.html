@@ -220,108 +220,46 @@
                 </div>
 
                 <!-- Lesson Plan Cards -->
+                <!-- Replace the static lesson plan cards with this dynamic section -->
                 <div class="space-y-4">
-                    <!-- Card 1 -->
+                    {% for submission in pending_submissions %}
                     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                             <div class="flex-1">
                                 <div class="flex items-center gap-3 mb-3">
-                                    <h3 class="text-lg font-semibold text-gray-900">Reading Comprehension Strategies</h3>
-                                    <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm font-medium">Pending</span>
+                                    <h3 class="text-lg font-semibold text-gray-900">{{ submission.lesson_plan.title }}</h3>
+                                    <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm font-medium">
+                                        {{ submission.get_status_display }}
+                                    </span>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
                                     <div>
-                                        <span class="font-medium">Teacher:</span> Ms. Sarah Johnson
+                                        <span class="font-medium">Teacher:</span> {{ submission.submitted_by.full_name }}
                                     </div>
                                     <div>
-                                        <span class="font-medium">Grade:</span> Grade 3A English
+                                        <span class="font-medium">Grade:</span> {{ submission.lesson_plan.grade_level }}
                                     </div>
                                     <div>
-                                        <span class="font-medium">Submitted:</span> 5 minutes ago
+                                        <span class="font-medium">Submitted:</span> {{ submission.time_since_submission }}
                                     </div>
                                 </div>
-                                <p class="text-gray-600">Focus on developing reading comprehension skills through interactive activities...</p>
+                                <p class="text-gray-600">{{ submission.lesson_plan.learning_objectives|truncatewords:20 }}</p>
                             </div>
                             <div class="flex gap-2">
-                                <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
-                                    <i class="fas fa-check"></i>
-                                    Approve
-                                </button>
-                                <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
-                                    <i class="fas fa-times"></i>
-                                    Reject
-                                </button>
+                                <a href="{% url 'lesson_plan_detail' submission.id %}" 
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                                    <i class="fas fa-eye"></i>
+                                    Review
+                                </a>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Card 2 -->
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-3 mb-3">
-                                    <h3 class="text-lg font-semibold text-gray-900">Addition and Subtraction Practice</h3>
-                                    <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm font-medium">Pending</span>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
-                                    <div>
-                                        <span class="font-medium">Teacher:</span> Mr. Carlos Rivera
-                                    </div>
-                                    <div>
-                                        <span class="font-medium">Grade:</span> Grade 2B Mathematics
-                                    </div>
-                                    <div>
-                                        <span class="font-medium">Submitted:</span> 1 hour ago
-                                    </div>
-                                </div>
-                                <p class="text-gray-600">Hands-on activities to strengthen basic arithmetic skills using manipulatives...</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
-                                    <i class="fas fa-check"></i>
-                                    Approve
-                                </button>
-                                <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
-                                    <i class="fas fa-times"></i>
-                                    Reject
-                                </button>
-                            </div>
-                        </div>
+                    {% empty %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-inbox text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500">No pending lesson plan reviews</p>
                     </div>
-
-                    <!-- Card 3 -->
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-3 mb-3">
-                                    <h3 class="text-lg font-semibold text-gray-900">Plants Around Us</h3>
-                                    <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm font-medium">Pending</span>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
-                                    <div>
-                                        <span class="font-medium">Teacher:</span> Ms. Maria Santos
-                                    </div>
-                                    <div>
-                                        <span class="font-medium">Grade:</span> Grade 1C Science
-                                    </div>
-                                    <div>
-                                        <span class="font-medium">Submitted:</span> 2 hours ago
-                                    </div>
-                                </div>
-                                <p class="text-gray-600">Introduction to plant life cycles and basic botanical concepts for young learners...</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
-                                    <i class="fas fa-check"></i>
-                                    Approve
-                                </button>
-                                <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
-                                    <i class="fas fa-times"></i>
-                                    Reject
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </main>

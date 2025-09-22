@@ -164,3 +164,62 @@ class LessonPlan(models.Model):
             pass
 
         return parsed
+
+    def submit_for_approval(self, department_head):
+        """Submit this lesson plan to a department head for approval"""
+        from main.models import LessonPlanSubmission  # Import here to avoid circular import
+        
+        # Check if already submitted
+        existing_submission = LessonPlanSubmission.objects.filter(
+            lesson_plan=self, 
+            status__in=['submitted', 'approved', 'needs_revision']
+        ).first()
+        
+        if existing_submission:
+            return False, "This lesson plan has already been submitted for approval"
+        
+        # Create new submission
+        submission = LessonPlanSubmission.objects.create(
+            lesson_plan=self,
+            submitted_by=self.created_by,
+            submitted_to=department_head,
+            status='submitted'
+        )
+        
+        return True, "Lesson plan submitted successfully"
+
+    def get_structured_content(self):
+        """Return lesson plan content in a structured format for templates"""
+        parsed = self.parse_generated_content()
+        
+        # If we have parsed content from AI, use it
+        if parsed and parsed.get('metadata_fields'):
+            return {
+                'metadata': parsed.get('metadata_fields', {}),
+                'learning_objectives': parsed.get('learning_objectives_list', []),
+                'subject_matter': parsed.get('subject_matter', ''),
+                'materials': parsed.get('materials_list', []),
+                'procedure': parsed.get('procedure_subsections', {}),
+                'differentiation': parsed.get('differentiation_subsections', {})
+            }
+        
+        # Fallback to model fields
+        return {
+            'metadata': {
+                'subject': self.subject,
+                'grade_level': self.grade_level,
+                'quarter': self.quarter,
+                'duration': self.duration,
+                'class_size': self.population
+            },
+            'learning_objectives': self.learning_objectives.split('\n') if self.learning_objectives else [],
+            'subject_matter': self.subject_matter,
+            'materials': self.materials_needed.split('\n') if self.materials_needed else [],
+            'procedure': {
+                'introduction': {'content': self.introduction},
+                'instruction': {'content': self.instruction},
+                'application': {'content': self.application},
+                'evaluation': {'content': self.evaluation},
+                'assessment': {'content': self.assessment}
+            }
+        }

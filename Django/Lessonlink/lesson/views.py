@@ -21,6 +21,10 @@ import logging
 from PIL import Image
 import uuid
 from io import BytesIO
+# Add these imports at the top
+from django.utils import timezone
+from .models import LessonPlanSubmission
+from lessonGenerator.models import LessonPlan
 
 from .models import User, Schedule, Task, TaskNotification, SchoolRegistration
 from .serializers import ScheduleSerializer
@@ -983,3 +987,128 @@ def admin_approve_registration(request, registration_id):
             messages.error(request, "Registration not found.")
     
     return redirect('admin_school_registrations')
+
+
+
+@login_required
+def submit_lesson_plan(request, lesson_plan_id):
+    """Submit a lesson plan to department head for approval"""
+    if request.method == 'POST':
+        try:
+            lesson_plan = LessonPlan.objects.get(id=lesson_plan_id, created_by=request.user)
+            
+            # Get the department head (you might need to adjust this logic based on your user structure)
+            department_head = User.objects.filter(
+                role='Department Head',
+                department=request.user.department,
+                school=request.user.school
+            ).first()
+            
+            if not department_head:
+                messages.error(request, "No department head found for your department.")
+                return redirect('draft_list')
+            
+            success, message = lesson_plan.submit_for_approval(department_head)
+            
+            if success:
+                messages.success(request, message)
+                # Change lesson plan status to final when submitted
+                lesson_plan.status = LessonPlan.FINAL
+                lesson_plan.save()
+            else:
+                messages.error(request, message)
+                
+        except LessonPlan.DoesNotExist:
+            messages.error(request, "Lesson plan not found.")
+        
+        return redirect('draft_list')
+    
+    return redirect('dashboard')
+
+@login_required
+def Dep_Pending(request):
+    """Department head's pending reviews page"""
+    user = request.user
+    
+    if user.role != "Department Head":
+        messages.error(request, "You are not authorized to access this page.")
+        return redirect('dashboard')
+    
+    # Get pending submissions for this department head
+    pending_submissions = LessonPlanSubmission.objects.filter(
+        submitted_to=user,
+        status='submitted'
+    ).order_by('submission_date')
+    
+    # Get other submissions for history
+    reviewed_submissions = LessonPlanSubmission.objects.filter(
+        submitted_to=user
+    ).exclude(status='submitted').order_by('-review_date')[:10]
+    
+    return render(request, 'Dep_Pending.html', {
+        'user': user,
+        'pending_submissions': pending_submissions,
+        'reviewed_submissions': reviewed_submissions,
+        'pending_count': pending_submissions.count()
+    })
+
+@login_required
+def review_lesson_plan(request, submission_id):
+    """Department head reviews a lesson plan"""
+    if request.method == 'POST':
+        try:
+            submission = LessonPlanSubmission.objects.get(
+                id=submission_id,
+                submitted_to=request.user
+            )
+            
+            action = request.POST.get('action')
+            review_notes = request.POST.get('review_notes', '').strip()
+            
+            if action == 'approve':
+                submission.status = 'approved'
+                submission.lesson_plan.status = LessonPlan.FINAL
+                messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' approved successfully!")
+            elif action == 'reject':
+                submission.status = 'rejected'
+                messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' rejected.")
+            elif action == 'needs_revision':
+                submission.status = 'needs_revision'
+                messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' returned for revision.")
+            
+            submission.review_notes = review_notes
+            submission.review_date = timezone.now()
+            submission.save()
+            submission.lesson_plan.save()
+            
+        except LessonPlanSubmission.DoesNotExist:
+            messages.error(request, "Submission not found.")
+        
+        return redirect('Dep_Pending')
+    
+    return redirect('dashboard')
+
+@login_required
+def lesson_plan_detail(request, submission_id):
+    """View lesson plan details for review"""
+    try:
+        submission = LessonPlanSubmission.objects.get(id=submission_id)
+        
+        # Check if user has permission to view
+        if request.user != submission.submitted_to and request.user != submission.submitted_by:
+            messages.error(request, "You are not authorized to view this lesson plan.")
+            return redirect('dashboard')
+        
+        # Get structured content for the template
+        structured_content = submission.lesson_plan.get_structured_content()
+        
+        return render(request, 'lesson_plan_detail.html', {
+            'submission': submission,
+            'lesson_plan': submission.lesson_plan,
+            'structured_content': structured_content,
+            'can_review': request.user == submission.submitted_to and submission.status == 'submitted'
+        })
+        
+    except LessonPlanSubmission.DoesNotExist:
+        messages.error(request, "Lesson plan not found.")
+        return redirect('dashboard')
