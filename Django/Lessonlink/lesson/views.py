@@ -438,6 +438,7 @@ def registration_4(request):
         department = request.POST.get("department")
         school_id = request.POST.get("school")  # Get selected school ID
         affiliations = request.POST.getlist("affiliation[]")
+        role = request.session.get('reg_role')  # Get role from session
         
         # Get the school object
         try:
@@ -446,6 +447,30 @@ def registration_4(request):
         except (SchoolRegistration.DoesNotExist, ValueError):
             school_name = ""
             messages.error(request, "Please select a valid school.")
+
+        # VALIDATION: Check if department head already exists for this department in this school
+        if role == 'Department Head':
+            existing_department_head = User.objects.filter(
+                school=school,
+                department=department,
+                role='Department Head',
+                is_active=True
+            ).exists()
+            
+            if existing_department_head:
+                messages.error(
+                    request, 
+                    f'A Department Head already exists for {department} in {school.school_name}. '
+                    f'Please choose a different department or contact the administrator.'
+                )
+                return render(request, 'registration/registration_4.html', {
+                    'department': department,
+                    'school': school_id,
+                    'affiliations': affiliations,
+                    'schools': approved_schools,
+                    'error_message': f'A Department Head already exists for {department} in {school.school_name}.',
+                    'show_error': True
+                })
 
         # Validation for required fields
         if not department or not school_name:
@@ -466,7 +491,6 @@ def registration_4(request):
         middle_name = request.session.get('reg_middle_name', '')
         last_name = request.session.get('reg_last_name')
         dob = request.session.get('reg_dob')
-        role = request.session.get('reg_role')
         rank = request.session.get('reg_rank')
 
         # Check integrity
@@ -497,7 +521,7 @@ def registration_4(request):
                 role=role,
                 rank=rank,
                 department=department,
-                school=school,  # Store the school name
+                school=school,  # Store the school object
                 affiliations=", ".join(affiliations) if affiliations else ""
             )
 
@@ -533,6 +557,34 @@ def registration_4(request):
     return render(request, 'registration/registration_4.html', {
         'schools': approved_schools
     })
+
+@csrf_exempt
+def check_department_head(request):
+    """AJAX endpoint to check if department head already exists for a department in a school"""
+    school_id = request.GET.get('school')
+    department = request.GET.get('department')
+    
+    if not school_id or not department:
+        return JsonResponse({'error': 'Missing parameters'}, status=400)
+    
+    try:
+        school = SchoolRegistration.objects.get(id=school_id)
+        
+        # Check if department head already exists
+        exists = User.objects.filter(
+            school=school,
+            department=department,
+            role='Department Head',
+            is_active=True
+        ).exists()
+        
+        return JsonResponse({'exists': exists})
+    
+    except SchoolRegistration.DoesNotExist:
+        return JsonResponse({'error': 'School not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+        
     
 def registration_5(request):
     return render(request, 'registration/registration_5.html')

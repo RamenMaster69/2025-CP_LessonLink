@@ -13,6 +13,33 @@
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
+        .department-occupied {
+            border-color: #ef4444;
+            background-color: #fef2f2;
+        }
+        .department-available {
+            border-color: #10b981;
+            background-color: #f0fdf4;
+        }
+        .warning-message {
+            display: none;
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: #92400e;
+        }
+        .error-message {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: #dc2626;
+        }
 
         /* Success Modal Styles */
         .modal-overlay {
@@ -69,9 +96,23 @@
                     <p class="text-gray-600">Create your educator account and start planning smarter lessons</p>
                 </div>
 
+                <!-- Display Django messages -->
+                {% if messages %}
+                <div class="mb-6">
+                    {% for message in messages %}
+                    <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
                 <form method="POST" action="{% url 'registration_4' %}" class="space-y-6"
                     onsubmit="return handleFormSubmission(event)">
                     {% csrf_token %}
+
+                    <!-- Hidden field to store role from previous step -->
+                    <input type="hidden" id="userRole" value="{{ request.session.reg_role }}">
 
                     <!-- School Dropdown -->
                     <div class="relative">
@@ -80,7 +121,7 @@
                         </div>
                         <select id="school" name="school"
                             class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white"
-                            required>
+                            required onchange="checkDepartmentAvailability()">
                             <option value="">Select School</option>
                             {% for school in schools %}
                                 <option value="{{ school.id }}">{{ school.school_name }}</option>
@@ -100,7 +141,7 @@
                         </div>
                         <select id="department" name="department"
                             class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white"
-                            required>
+                            required onchange="checkDepartmentAvailability()">
                             <option value="">Select Department</option>
                             <option value="English">English Department</option>
                             <option value="Filipino">Filipino Department</option>
@@ -114,9 +155,13 @@
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                             <i class="fas fa-chevron-down text-gray-400"></i>
                         </div>
+                        
+                        <!-- Warning message for occupied departments -->
+                        <div id="departmentWarning" class="warning-message">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            <span id="warningText">This department already has a Department Head. Please choose a different department.</span>
+                        </div>
                     </div>
-
-
 
                     <!-- Affiliation Section -->
                     <div class="space-y-4">
@@ -149,8 +194,8 @@
                     </div>
 
                     <!-- Register Button -->
-                    <button type="submit"
-                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
+                    <button type="submit" id="submitButton"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
                         Create Educator Account
                     </button>
 
@@ -205,9 +250,70 @@
     </div>
 
     <script>
-        // Add event listener to department dropdown
-        document.getElementById('department').addEventListener('change', function() {
-            // Department change handler can be used for other purposes if needed
+        // Get the role from the hidden field
+        const userRole = document.getElementById('userRole').value;
+
+        async function checkDepartmentAvailability() {
+            const school = document.getElementById('school').value;
+            const department = document.getElementById('department').value;
+            const warningDiv = document.getElementById('departmentWarning');
+            const submitButton = document.getElementById('submitButton');
+            const departmentSelect = document.getElementById('department');
+
+            // Reset styles
+            departmentSelect.classList.remove('department-occupied', 'department-available');
+            warningDiv.style.display = 'none';
+            submitButton.disabled = false;
+
+            // Only check for Department Head role
+            if (userRole === 'Department Head' && school && department) {
+                try {
+                    const response = await fetch(`/api/check-department-head/?school=${school}&department=${department}`);
+                    const data = await response.json();
+                    
+                    if (data.exists) {
+                        // Department head already exists
+                        departmentSelect.classList.add('department-occupied');
+                        warningDiv.style.display = 'block';
+                        submitButton.disabled = true;
+                    } else {
+                        // Department is available
+                        departmentSelect.classList.add('department-available');
+                    }
+                } catch (error) {
+                    console.error('Error checking department availability:', error);
+                }
+            }
+        }
+
+        function handleFormSubmission(event) {
+            const department = document.getElementById('department').value;
+            const school = document.getElementById('school').value;
+            const submitButton = document.getElementById('submitButton');
+
+            // Client-side validation
+            if (!department) {
+                alert('Please select a Department.');
+                return false;
+            }
+            
+            if (!school) {
+                alert('Please select a School.');
+                return false;
+            }
+
+            // Prevent submission if department is occupied (for Department Head role)
+            if (userRole === 'Department Head' && submitButton.disabled) {
+                alert('This department already has a Department Head. Please choose a different department.');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Initialize check when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            checkDepartmentAvailability();
         });
 
         function addAffiliationField() {
@@ -261,25 +367,6 @@
             });
         }
 
-        function handleFormSubmission(event) {
-            const department = document.getElementById('department').value;
-            const school = document.getElementById('school').value;
-
-            // Client-side validation
-            if (!department) {
-                alert('Please select a Department.');
-                return false;
-            }
-            
-            if (!school) {
-                alert('Please select a School.');
-                return false;
-            }
-
-            // Allow form submission to Django backend
-            return true;
-        }
-
         function showSuccessModal() {
             const modal = document.getElementById('successModal');
             modal.classList.add('show');
@@ -300,5 +387,4 @@
         }
     </script>
 </body>
-
 </html>
