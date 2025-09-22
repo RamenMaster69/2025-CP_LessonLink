@@ -4,23 +4,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesson Plan - Print Version</title>
+    <title>Professional Lesson Plan</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
                     colors: {
-                        'gradient-start': '#667eea',
-                        'gradient-end': '#764ba2'
+                        'primary': '#1e40af',
+                        'secondary': '#3b82f6',
+                        'accent': '#06b6d4',
+                        'dark': '#1f2937',
+                        'light': '#f8fafc'
                     }
                 }
             }
         }
     </script>
     <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-header {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #06b6d4 100%);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .divider-line {
+            background: linear-gradient(90deg, transparent 0%, #e5e7eb 20%, #e5e7eb 80%, transparent 100%);
+            height: 1px;
         }
         
         @media print {
@@ -28,42 +48,96 @@
                 display: none !important;
             }
             
-            .print-page {
-                page-break-inside: avoid;
-            }
-            
             body {
+                font-size: 11pt !important;
+                line-height: 1.4 !important;
                 -webkit-print-color-adjust: exact;
                 color-adjust: exact;
+                margin: 0 !important;
+            }
+            
+            .print-container {
+                max-width: none !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+            
+            .gradient-header {
+                background: #1e40af !important;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
             }
             
             .signature-section {
                 page-break-inside: avoid;
-                margin-top: 2rem;
+                margin-top: 1.5rem;
+                border-top: 2px solid #374151 !important;
+            }
+            
+            .page-break {
+                page-break-before: always;
+            }
+            
+            h1, h2, h3, h4 {
+                page-break-after: avoid;
+            }
+            
+            .info-grid {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 1rem !important;
+            }
+            
+            .signature-grid {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 2rem !important;
             }
         }
         
         .signature-line {
             border-bottom: 2px solid #374151;
-            min-height: 40px;
-            margin-bottom: 8px;
+            min-height: 35px;
+            margin-bottom: 6px;
         }
         
-        /* Styling for markdown content */
-        .lesson-content h1, .lesson-content h2, .lesson-content h3 {
+        .info-badge {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #0ea5e9;
+        }
+        
+        /* Enhanced markdown content styling */
+        .lesson-content h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 1rem;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 0.5rem;
+        }
+        
+        .lesson-content h2 {
+            font-size: 1.4rem;
             font-weight: 600;
+            color: #1f2937;
             margin-bottom: 0.75rem;
-            color: #374151;
+            margin-top: 1.5rem;
         }
         
-        .lesson-content h1 { font-size: 1.5rem; }
-        .lesson-content h2 { font-size: 1.25rem; }
-        .lesson-content h3 { font-size: 1.125rem; }
+        .lesson-content h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            margin-top: 1rem;
+        }
         
         .lesson-content p {
             margin-bottom: 1rem;
-            line-height: 1.625;
+            line-height: 1.7;
             color: #4b5563;
+            text-align: justify;
         }
         
         .lesson-content ul, .lesson-content ol {
@@ -73,207 +147,322 @@
         }
         
         .lesson-content li {
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.4rem;
+            line-height: 1.6;
         }
         
         .lesson-content strong {
             font-weight: 600;
-            color: #374151;
+            color: #1f2937;
         }
         
         .lesson-content blockquote {
-            border-left: 4px solid #e5e7eb;
+            border-left: 4px solid #3b82f6;
             padding-left: 1rem;
-            margin: 1rem 0;
+            margin: 1.5rem 0;
             font-style: italic;
             color: #6b7280;
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 0 6px 6px 0;
+        }
+        
+        .activity-card {
+            background: #f8fafc;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0 8px 8px 0;
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 font-inter">
     <!-- Navigation Bar (No Print) -->
-    <div class="no-print bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
-            <button onclick="goBack()" class="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                </svg>
-                <span>Go Back</span>
-            </button>
-            
-            <div class="flex space-x-3">
-                <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                    Create Another
-                </a>
-                <button onclick="saveAsDraft()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium shadow-lg transition-colors">
-                    Save as Draft
+    <nav class="no-print bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <button onclick="goBack()" class="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-5 py-2.5 rounded-lg font-medium transition-all duration-200 hover:shadow-md">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    <span>Back</span>
                 </button>
-                <button onclick="printPage()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium shadow-lg transition-colors">
-                    Print Lesson Plan
-                </button>
+                
+                <div class="flex space-x-3">
+                    <a href="/" class="bg-secondary hover:bg-primary text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-md">
+                        Create New
+                    </a>
+                    <button onclick="saveAsDraft()" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg font-medium transition-all duration-200 hover:shadow-md">
+                        Save Draft
+                    </button>
+                    <button onclick="printPage()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg font-medium transition-all duration-200 hover:shadow-md">
+                        Print
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
+    </nav>
 
     <!-- Main Content Container -->
-    <div class="max-w-4xl mx-auto bg-white shadow-xl print-page mt-6 mb-6">
-        <!-- Header -->
-        <div class="gradient-bg text-white px-8 py-6">
-            <h1 class="text-2xl font-bold text-center">LESSON PLAN</h1>
-            <p class="text-center text-blue-100 mt-2">Generated Lesson Plan - Ready for Review</p>
+    <div class="max-w-5xl mx-auto bg-white card-shadow print-container mt-8 mb-8 rounded-xl overflow-hidden">
+        <!-- Professional Header -->
+        <div class="gradient-header text-white px-8 py-8">
+            <div class="text-center">
+                <h1 class="text-3xl font-bold tracking-wide mb-2">LESSON PLAN</h1>
+                <div class="w-24 h-1 bg-white/30 mx-auto mb-3"></div>
+                <p class="text-blue-100 font-medium">Professional Teaching Document</p>
+                <p class="text-blue-200 text-sm mt-1">Generated on <span id="current-date"></span></p>
+            </div>
         </div>
 
-        <!-- Dynamic Lesson Plan Content -->
+        <!-- Lesson Plan Content -->
         <div class="p-8">
-            <!-- Django Template Integration -->
-            <div class="lesson-content space-y-6">
+            <div class="lesson-content space-y-8">
                 {% if lesson_plan %}
                     {{ lesson_plan|markdown }}
                 {% else %}
-                    <!-- Fallback content if no lesson plan is provided -->
-                    <div class="border-b border-gray-200 pb-4">
-                        <h2 class="text-xl font-semibold text-gray-800 mb-3">Lesson Information</h2>
+                    <!-- Enhanced Lesson Information Section -->
+                    <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200">
+                        <h2 class="text-2xl font-bold text-dark mb-6 flex items-center">
+                            <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            Lesson Information
+                        </h2>
+                        <div class="info-grid grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="info-badge rounded-lg p-4">
+                                <label class="block text-sm font-semibold text-primary mb-2">Subject Area</label>
+                                <p class="text-dark font-semibold text-lg">Mathematics</p>
+                            </div>
+                            <div class="info-badge rounded-lg p-4">
+                                <label class="block text-sm font-semibold text-primary mb-2">Grade Level</label>
+                                <p class="text-dark font-semibold text-lg">Grade 5</p>
+                            </div>
+                            <div class="info-badge rounded-lg p-4">
+                                <label class="block text-sm font-semibold text-primary mb-2">Duration</label>
+                                <p class="text-dark font-semibold text-lg">45 minutes</p>
+                            </div>
+                            <div class="info-badge rounded-lg p-4">
+                                <label class="block text-sm font-semibold text-primary mb-2">Lesson Date</label>
+                                <div class="border-b-2 border-primary pb-1 min-h-[28px] bg-white rounded px-2"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="divider-line mb-8"></div>
+
+                    <!-- Learning Objectives -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-dark mb-4 flex items-center">
+                            <div class="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            Learning Objectives
+                        </h3>
+                        <div class="bg-emerald-50 rounded-lg p-5 border-l-4 border-emerald-500">
+                            <ul class="space-y-3 text-gray-700">
+                                <li class="flex items-start">
+                                    <span class="inline-block w-2 h-2 bg-emerald-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                                    <span>Students will understand the fundamental concept of fractions and their real-world applications</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="inline-block w-2 h-2 bg-emerald-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                                    <span>Students will be able to identify and create equivalent fractions using visual models</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="inline-block w-2 h-2 bg-emerald-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                                    <span>Students will solve basic fraction problems with confidence and accuracy</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Materials Needed -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-dark mb-4 flex items-center">
+                            <div class="w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                </svg>
+                            </div>
+                            Required Materials
+                        </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600">Subject:</label>
-                                <p class="text-gray-800 font-medium">Mathematics</p>
+                            <div class="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                                <ul class="space-y-2 text-gray-700">
+                                    <li class="flex items-center">
+                                        <span class="w-1.5 h-1.5 bg-amber-500 rounded-full mr-3"></span>
+                                        Fraction circles and manipulatives
+                                    </li>
+                                    <li class="flex items-center">
+                                        <span class="w-1.5 h-1.5 bg-amber-500 rounded-full mr-3"></span>
+                                        Interactive whiteboard and markers
+                                    </li>
+                                </ul>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600">Grade Level:</label>
-                                <p class="text-gray-800 font-medium">Grade 5</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600">Duration:</label>
-                                <p class="text-gray-800 font-medium">45 minutes</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600">Date:</label>
-                                <p class="text-gray-800 font-medium">_________________</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="border-b border-gray-200 pb-4">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Learning Objectives</h3>
-                        <ul class="list-disc list-inside space-y-1 text-gray-700">
-                            <li>Students will understand the concept of fractions</li>
-                            <li>Students will be able to identify equivalent fractions</li>
-                            <li>Students will solve basic fraction problems</li>
-                        </ul>
-                    </div>
-
-                    <div class="border-b border-gray-200 pb-4">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Materials Needed</h3>
-                        <ul class="list-disc list-inside space-y-1 text-gray-700">
-                            <li>Fraction circles</li>
-                            <li>Whiteboard and markers</li>
-                            <li>Student worksheets</li>
-                            <li>Calculator (optional)</li>
-                        </ul>
-                    </div>
-
-                    <div class="border-b border-gray-200 pb-4">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Lesson Activities</h3>
-                        <div class="space-y-3">
-                            <div>
-                                <h4 class="font-medium text-gray-800">Introduction (10 minutes)</h4>
-                                <p class="text-gray-700 ml-4">Review previous lesson on whole numbers and introduce fraction concepts using visual aids.</p>
-                            </div>
-                            <div>
-                                <h4 class="font-medium text-gray-800">Main Activity (25 minutes)</h4>
-                                <p class="text-gray-700 ml-4">Hands-on practice with fraction circles, group work on identifying equivalent fractions.</p>
-                            </div>
-                            <div>
-                                <h4 class="font-medium text-gray-800">Conclusion (10 minutes)</h4>
-                                <p class="text-gray-700 ml-4">Summary of key concepts and assignment of homework problems.</p>
+                            <div class="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                                <ul class="space-y-2 text-gray-700">
+                                    <li class="flex items-center">
+                                        <span class="w-1.5 h-1.5 bg-amber-500 rounded-full mr-3"></span>
+                                        Student activity worksheets
+                                    </li>
+                                    <li class="flex items-center">
+                                        <span class="w-1.5 h-1.5 bg-amber-500 rounded-full mr-3"></span>
+                                        Calculators (optional support)
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </div>
 
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Assessment Method</h3>
-                        <p class="text-gray-700">Formative assessment through observation during group work and exit ticket with three fraction problems.</p>
+                    <!-- Lesson Activities -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-dark mb-4 flex items-center">
+                            <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                </svg>
+                            </div>
+                            Lesson Activities
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="activity-card">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="font-semibold text-dark text-lg">Introduction & Warm-up</h4>
+                                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">10 minutes</span>
+                                </div>
+                                <p class="text-gray-700 leading-relaxed">Begin with a review of whole numbers and engage students with visual fraction demonstrations. Use real-world examples like pizza slices to introduce fraction concepts naturally.</p>
+                            </div>
+                            
+                            <div class="activity-card">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="font-semibold text-dark text-lg">Main Learning Activity</h4>
+                                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">25 minutes</span>
+                                </div>
+                                <p class="text-gray-700 leading-relaxed">Interactive hands-on exploration using fraction circles, collaborative group work to discover equivalent fractions, and guided practice with increasing complexity.</p>
+                            </div>
+                            
+                            <div class="activity-card">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="font-semibold text-dark text-lg">Conclusion & Assessment</h4>
+                                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">10 minutes</span>
+                                </div>
+                                <p class="text-gray-700 leading-relaxed">Comprehensive review of key concepts, student reflections on learning, and assignment of purposeful homework to reinforce understanding.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Assessment Strategy -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-dark mb-4 flex items-center">
+                            <div class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                </svg>
+                            </div>
+                            Assessment & Evaluation
+                        </h3>
+                        <div class="bg-purple-50 rounded-lg p-5 border border-purple-200">
+                            <p class="text-gray-700 leading-relaxed"><strong>Formative Assessment:</strong> Continuous observation during collaborative activities, real-time feedback during hands-on manipulation, and targeted questioning to gauge understanding.</p>
+                            <p class="text-gray-700 leading-relaxed mt-3"><strong>Summative Assessment:</strong> Exit ticket featuring three carefully designed fraction problems that assess comprehension at different cognitive levels.</p>
+                        </div>
                     </div>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Signature Section -->
-        <div class="signature-section border-t border-gray-300 p-8 bg-gray-50">
-            <h3 class="text-lg font-semibold text-gray-800 mb-6 text-center">APPROVAL SIGNATURES</h3>
+        <!-- Professional Signature Section -->
+        <div class="signature-section bg-gray-50 p-8 border-t-2 border-gray-300">
+            <div class="text-center mb-8">
+                <h3 class="text-xl font-bold text-dark mb-2">OFFICIAL APPROVAL</h3>
+                <div class="w-16 h-0.5 bg-primary mx-auto"></div>
+            </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <!-- Teacher Signature -->
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600 mb-2">TEACHER</label>
-                        <div class="signature-line"></div>
-                        <p class="text-xs text-gray-500 mt-1">Signature</p>
-                    </div>
+            <div class="signature-grid grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Teacher Section -->
+                <div class="bg-white rounded-lg p-6 border border-gray-200">
+                    <h4 class="font-semibold text-primary text-sm mb-4 uppercase tracking-wide">Teacher Approval</h4>
                     
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600 mb-2">Teacher Name:</label>
-                        <div class="border-b border-gray-400 pb-1 min-h-[24px]"></div>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600 mb-2">Date:</label>
-                        <div class="border-b border-gray-400 pb-1 min-h-[24px]"></div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-2">Digital/Physical Signature</label>
+                            <div class="signature-line bg-gray-50 rounded"></div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-2">Teacher Name</label>
+                            <div class="border-b-2 border-gray-300 pb-2 min-h-[24px] bg-gray-50 rounded-t"></div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-2">Date</label>
+                            <div class="border-b-2 border-gray-300 pb-2 min-h-[24px] bg-gray-50 rounded-t"></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Principal Signature -->
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600 mb-2">PRINCIPAL</label>
-                        <div class="signature-line"></div>
-                        <p class="text-xs text-gray-500 mt-1">Signature</p>
-                    </div>
+                <!-- Principal Section -->
+                <div class="bg-white rounded-lg p-6 border border-gray-200">
+                    <h4 class="font-semibold text-primary text-sm mb-4 uppercase tracking-wide">Administrative Approval</h4>
                     
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600 mb-2">Principal Name:</label>
-                        <div class="border-b border-gray-400 pb-1 min-h-[24px]"></div>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600 mb-2">Date:</label>
-                        <div class="border-b border-gray-400 pb-1 min-h-[24px]"></div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-2">Principal Signature</label>
+                            <div class="signature-line bg-gray-50 rounded"></div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-2">Principal Name</label>
+                            <div class="border-b-2 border-gray-300 pb-2 min-h-[24px] bg-gray-50 rounded-t"></div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-2">Date</label>
+                            <div class="border-b-2 border-gray-300 pb-2 min-h-[24px] bg-gray-50 rounded-t"></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Approval Status -->
-            <div class="mt-8 text-center">
-                <div class="inline-flex space-x-8">
-                    <label class="flex items-center space-x-2">
-                        <input type="checkbox" class="w-4 h-4 text-green-600 border-gray-300 rounded">
-                        <span class="text-sm font-medium text-gray-700">APPROVED</span>
+            <div class="mt-8 bg-white rounded-lg p-6 border border-gray-200">
+                <h4 class="font-semibold text-dark mb-4">Approval Status</h4>
+                <div class="flex justify-center space-x-12 mb-6">
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" class="w-5 h-5 text-emerald-600 border-2 border-gray-300 rounded focus:ring-emerald-500">
+                        <span class="font-medium text-emerald-700 text-lg">✓ APPROVED</span>
                     </label>
-                    <label class="flex items-center space-x-2">
-                        <input type="checkbox" class="w-4 h-4 text-red-600 border-gray-300 rounded">
-                        <span class="text-sm font-medium text-gray-700">NEEDS REVISION</span>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" class="w-5 h-5 text-amber-600 border-2 border-gray-300 rounded focus:ring-amber-500">
+                        <span class="font-medium text-amber-700 text-lg">⚠ NEEDS REVISION</span>
                     </label>
                 </div>
-            </div>
 
-            <!-- Comments Section -->
-            <div class="mt-6">
-                <label class="block text-sm font-medium text-gray-600 mb-2">Comments/Suggestions:</label>
-                <div class="min-h-[80px] border border-gray-300 rounded-lg p-3 bg-white">
-                    <!-- Space for handwritten comments -->
+                <!-- Enhanced Comments Section -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Administrative Comments & Suggestions</label>
+                    <div class="min-h-[100px] border-2 border-gray-300 rounded-lg p-4 bg-gray-50 focus-within:border-primary focus-within:bg-white transition-colors">
+                        <!-- Space for handwritten or typed comments -->
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Footer -->
-        <div class="bg-gray-100 px-8 py-4 text-center text-xs text-gray-500">
-            <p>This document requires both Teacher and Principal signatures for official approval.</p>
-            <p class="mt-1">Generated on: <span id="current-date"></span></p>
+        <!-- Professional Footer -->
+        <div class="bg-dark text-white px-8 py-6 text-center">
+            <div class="text-sm opacity-90">
+                <p class="font-medium">📋 This document requires official signatures from both Teacher and Principal for validation</p>
+                <p class="mt-2 text-xs opacity-75">Generated by Professional Lesson Plan System • <span id="footer-date"></span></p>
+            </div>
         </div>
     </div>
 
 <script>
-    // Function to get CSRF token from cookies
+    // Enhanced functionality
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -289,42 +478,72 @@
         return cookieValue;
     }
 
-    // Set current date
-    document.getElementById('current-date').textContent = new Date().toLocaleDateString();
+    // Set current dates
+    const currentDate = new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    
+    document.getElementById('current-date').textContent = currentDate;
+    document.getElementById('footer-date').textContent = currentDate;
 
-    // Print function
+    // Enhanced print function
     function printPage() {
+        // Add print-specific styling
+        const printStyles = `
+            <style>
+                @media print {
+                    body { font-size: 10pt !important; }
+                    .signature-line { border-bottom: 1px solid #000 !important; }
+                    .info-badge { border: 1px solid #000 !important; }
+                }
+            </style>
+        `;
+        document.head.insertAdjacentHTML('beforeend', printStyles);
+        
         window.print();
     }
 
-    // Go back function
     function goBack() {
         if (window.history.length > 1) {
             window.history.back();
         } else {
-            // Fallback to home page
             window.location.href = '/';
         }
     }
 
-    // Save as draft function
     function saveAsDraft() {
-        // Send AJAX request to save as draft
+        // Show loading state
+        const button = event.target;
+        const originalText = button.textContent;
+        button.textContent = 'Saving...';
+        button.disabled = true;
+
         fetch('/save-lesson-plan/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken'),
             },
-            body: JSON.stringify({}) // Empty body since we're using session data
+            body: JSON.stringify({})
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Lesson plan saved as draft successfully!');
-                if (data.draft_id) {
-                    window.location.href = `/drafts/${data.draft_id}/edit/`;
-                }
+                // Show success message with better styling
+                const successMsg = document.createElement('div');
+                successMsg.className = 'fixed top-4 right-4 bg-emerald-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                successMsg.innerHTML = '✓ Lesson plan saved successfully!';
+                document.body.appendChild(successMsg);
+                
+                setTimeout(() => {
+                    successMsg.remove();
+                    if (data.draft_id) {
+                        window.location.href = `/drafts/${data.draft_id}/edit/`;
+                    }
+                }, 2000);
             } else {
                 alert('Error: ' + data.error);
             }
@@ -332,8 +551,15 @@
         .catch(error => {
             console.error('Error:', error);
             alert('An error occurred while saving the draft.');
+        })
+        .finally(() => {
+            button.textContent = originalText;
+            button.disabled = false;
         });
     }
+
+    // Add smooth scroll behavior
+    document.documentElement.style.scrollBehavior = 'smooth';
 </script>
 </body>
 </html>
