@@ -181,50 +181,7 @@ REST_FRAMEWORK = {
     ],
 }
 
-# Logging Configuration
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'django.log',
-            'formatter': 'verbose',
-        },
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'lesson': {  # Your app logger
-            'handlers': ['file', 'console'],
-            'level': 'DEBUG',
-            'propagate': False,
-        },
-    },
-}
+
 
 # Security Settings (for production, keep relaxed for development)
 # Security Settings (for production, keep relaxed for development)
@@ -266,6 +223,3 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For developm
 # API Keys
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyCVu9MK5Hx9HgJ_mbjTwQR7zM1SQKvJchA')
 
-# Create logs directory if it doesn't exist
-LOGS_DIR = BASE_DIR / 'logs'
-LOGS_DIR.mkdir(exist_ok=True)

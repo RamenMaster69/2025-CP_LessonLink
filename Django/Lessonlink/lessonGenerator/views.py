@@ -1,3 +1,4 @@
+from lesson.models import LessonPlanSubmission  # Add this line
 import json
 import google.generativeai as genai
 from django.conf import settings
@@ -291,9 +292,58 @@ def format_subject_matter(subject_matter_dict):
 
 @login_required
 def draft_list(request):
-    """Display list of saved drafts"""
-    drafts = LessonPlan.objects.filter(created_by=request.user, status=LessonPlan.DRAFT).order_by('-created_at')
-    return render(request, 'lessonGenerator/draft_list.html', {'drafts': drafts})
+    """Display list of saved drafts with submission status"""
+    from lesson.models import LessonPlanSubmission  # Import here to avoid circular imports
+    
+    # Get all drafts for the user
+    drafts = LessonPlan.objects.filter(created_by=request.user).order_by('-created_at')
+    
+    # Prefetch related submissions to avoid N+1 queries
+    draft_ids = [draft.id for draft in drafts]
+    
+    # Get all submissions for these drafts in one query
+    submissions = LessonPlanSubmission.objects.filter(
+        lesson_plan_id__in=draft_ids
+    ).order_by('lesson_plan_id', '-submission_date')
+    
+    # Create a dictionary mapping draft ID to latest submission
+    latest_submissions = {}
+    for submission in submissions:
+        if submission.lesson_plan_id not in latest_submissions:
+            latest_submissions[submission.lesson_plan_id] = submission
+    
+    # Create a list of tuples with draft and its latest submission
+    draft_data = []
+    for draft in drafts:
+        draft_data.append({
+            'draft': draft,
+            'latest_submission': latest_submissions.get(draft.id)
+        })
+    
+    # Count by status for the summary cards
+    draft_count = LessonPlan.objects.filter(
+        created_by=request.user, 
+        status=LessonPlan.DRAFT
+    ).count()
+    
+    # Count submissions by status for the current user
+    user_submissions = LessonPlanSubmission.objects.filter(
+        submitted_by=request.user
+    )
+    
+    submitted_count = user_submissions.filter(status='submitted').count()
+    approved_count = user_submissions.filter(status='approved').count()
+    revision_count = user_submissions.filter(status='needs_revision').count()
+    rejected_count = user_submissions.filter(status='rejected').count()
+    
+    return render(request, 'lessonGenerator/draft_list.html', {
+        'draft_data': draft_data,  # Changed from 'drafts' to 'draft_data'
+        'draft_count': draft_count,
+        'submitted_count': submitted_count,
+        'approved_count': approved_count,
+        'revision_count': revision_count,
+        'rejected_count': rejected_count
+    })
 
 @login_required
 def edit_draft(request, draft_id):

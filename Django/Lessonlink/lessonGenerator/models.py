@@ -235,3 +235,19 @@ class LessonPlan(models.Model):
                 'assessment': {'content': self.assessment}
             }
         }
+    
+    def get_latest_submission(self):
+        """Get the latest submission for this lesson plan"""
+        from lesson.models import LessonPlanSubmission  # Import here to avoid circular import
+        
+        try:
+            return LessonPlanSubmission.objects.filter(
+                lesson_plan=self
+            ).order_by('-submission_date').first()
+        except LessonPlanSubmission.DoesNotExist:
+            return None
+
+    # Add this property to the LessonPlan class
+    @property
+    def latest_submission(self):
+        return self.get_latest_submission()
