@@ -856,7 +856,10 @@ def admin_calendar(request):
     return render(request, 'admin_calendar.html')
 
 def admin_dashboard(request):
-    return render(request, 'admin_dashboard.html')
+    school = SchoolRegistration.objects.first()  # or filter by the logged-in admin
+    return render(request, 'admin_dashboard.html', {
+        "SchoolRegistration": school
+    })
 
 # def system_admin()
 
