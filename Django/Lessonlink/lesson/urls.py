@@ -8,6 +8,8 @@ from .views import dashboard, profile, ScheduleViewSet, draft, task, schedule
 from .views import Dep_Dash, Dep_Faculty, Dep_Pending
 from .views import st_dash
 from .views import admin_dashboard
+from django.contrib import admin
+
 
 # Import the new task API views
 from .views import (
@@ -63,7 +65,8 @@ urlpatterns = [
     path('submit-lesson-plan/<int:lesson_plan_id>/', views.submit_lesson_plan, name='submit_lesson_plan'),
     path('review-lesson-plan/<int:submission_id>/', views.review_lesson_plan, name='review_lesson_plan'),
     path('lesson-plan-detail/<int:submission_id>/', views.lesson_plan_detail, name='lesson_plan_detail'),
-
+    path('admin/', admin.site.urls),
+    path('calendar/', include('lessonlinkCalendar.urls')),
 
 
 

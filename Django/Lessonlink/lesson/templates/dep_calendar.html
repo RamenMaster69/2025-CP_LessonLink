@@ -329,7 +329,7 @@
     </div>
 
 <script>
-    // Calendar functionality - USING LOCALSTORAGE (TEMPORARY)
+    // Calendar functionality - USING DATABASE (User-specific)
     let currentDate = new Date();
     let activities = [];
 
@@ -342,75 +342,94 @@
         deadline: '#f97316'
     };
 
-    // Load activities from localStorage
-    function loadActivities() {
-        const saved = localStorage.getItem('lessonlinkActivities');
-        if (saved) {
-            activities = JSON.parse(saved);
-        } else {
-            // Sample data
-            activities = [
-                {
-                    id: 1,
-                    title: "Midterm Examinations",
-                    description: "First semester midterm examinations for all courses",
-                    startDate: "2024-12-15",
-                    endDate: "2024-12-20",
-                    category: "examination"
-                },
-                {
-                    id: 2,
-                    title: "Faculty Meeting",
-                    description: "Monthly department faculty meeting",
-                    startDate: "2024-12-22",
-                    endDate: "2024-12-22",
-                    category: "meeting"
-                },
-                {
-                    id: 3,
-                    title: "Winter Break",
-                    description: "Academic winter break period",
-                    startDate: "2024-12-25",
-                    endDate: "2025-01-05",
-                    category: "holiday"
-                }
-            ];
-            // Save sample data to localStorage
-            localStorage.setItem('lessonlinkActivities', JSON.stringify(activities));
+    // Load activities from database via AJAX
+    async function loadActivities() {
+        try {
+            const response = await fetch("{% url 'lessonlinkCalendar:get_calendar_activities' %}");
+            if (response.ok) {
+                activities = await response.json();
+            } else {
+                console.error('Failed to load activities');
+                activities = [];
+            }
+        } catch (error) {
+            console.error('Error loading activities:', error);
+            activities = [];
         }
         renderCalendar();
         renderUpcomingActivities();
     }
 
-    // Save activity to localStorage
-    function saveActivity(activityData) {
+    // Save activity to database via AJAX
+    async function saveActivity(activityData) {
         try {
-            // Generate unique ID
-            activityData.id = Date.now();
-            activities.push(activityData);
-            localStorage.setItem('lessonlinkActivities', JSON.stringify(activities));
-            return true;
+            const response = await fetch("{% url 'lessonlinkCalendar:add_calendar_activity' %}",  {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify(activityData)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                activityData.id = result.id;
+                activities.push(activityData);
+                return true;
+            } else {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to save activity');
+            }
         } catch (error) {
             console.error('Error saving activity:', error);
+            alert('Error saving activity: ' + error.message);
             return false;
         }
     }
 
-    // Delete activity from localStorage
-    function deleteActivity(activityId) {
+    // Delete activity from database via AJAX
+    async function deleteActivity(activityId) {
         try {
-            activities = activities.filter(activity => activity.id !== activityId);
-            localStorage.setItem('lessonlinkActivities', JSON.stringify(activities));
-            return true;
+            const response = await fetch(`{% url 'lessonlinkCalendar:delete_calendar_activity' 0 %}`.replace('0', activityId), {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCSRFToken()
+                }
+            });
+
+            if (response.ok) {
+                activities = activities.filter(activity => activity.id !== activityId);
+                return true;
+            } else {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to delete activity');
+            }
         } catch (error) {
             console.error('Error deleting activity:', error);
+            alert('Error deleting activity: ' + error.message);
             return false;
         }
     }
 
-    // KEEP ALL YOUR EXISTING FUNCTIONS BELOW (renderCalendar, createDayElement, etc.)
-    // ... your existing functions remain unchanged ...
+    // Get CSRF token from cookies
+    function getCSRFToken() {
+        const name = 'csrftoken';
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 
+    // Keep all your existing rendering functions (they remain the same)
     function renderCalendar() {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
@@ -555,6 +574,7 @@
         
         if (date) {
             document.getElementById('activity-start-date').value = date;
+            document.getElementById('activity-end-date').value = date;
         }
     }
     
@@ -563,9 +583,9 @@
         document.getElementById('activity-form').reset();
     }
     
-    function removeActivity(activityId) {
+    async function removeActivity(activityId) {
         if (confirm('Are you sure you want to remove this activity?')) {
-            const success = deleteActivity(activityId);
+            const success = await deleteActivity(activityId);
             if (success) {
                 renderCalendar();
                 renderUpcomingActivities();
@@ -599,7 +619,7 @@
     document.getElementById('close-modal').addEventListener('click', closeModal);
     document.getElementById('cancel-activity').addEventListener('click', closeModal);
     
-    document.getElementById('activity-form').addEventListener('submit', (e) => {
+    document.getElementById('activity-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const newActivity = {
@@ -610,13 +630,11 @@
             category: document.getElementById('activity-category').value
         };
         
-        const success = saveActivity(newActivity);
+        const success = await saveActivity(newActivity);
         if (success) {
             renderCalendar();
             renderUpcomingActivities();
             closeModal();
-        } else {
-            alert('Error saving activity');
         }
     });
     
@@ -630,7 +648,7 @@
     });
     
     document.getElementById('overlay').addEventListener('click', () => {
-        document.getElementById('sidebar').classList.add('-translate-x-full');
+        document.getElementById('sidebar').classles.add('-translate-x-full');
         document.getElementById('overlay').classList.add('hidden');
     });
     
