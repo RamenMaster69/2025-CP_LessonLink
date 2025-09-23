@@ -741,3 +741,546 @@ INFO 2025-09-19 17:21:18,196 basehttp 7164 11296 "POST /generate-lesson-plan/ HT
 INFO 2025-09-19 17:21:18,269 basehttp 7164 11296 "GET /lesson-plan-result/ HTTP/1.1" 200 15010
 INFO 2025-09-19 17:21:25,553 basehttp 7164 11296 "POST /save-lesson-plan/ HTTP/1.1" 200 87
 INFO 2025-09-19 17:21:26,496 basehttp 7164 11296 "GET /drafts/4/edit/ HTTP/1.1" 200 16244
+INFO 2025-09-23 14:26:27,755 autoreload 13020 2500 Watching for file changes with StatReloader
+INFO 2025-09-23 14:51:37,483 basehttp 13020 14016 "GET / HTTP/1.1" 200 20309
+WARNING 2025-09-23 14:51:38,705 log 13020 14016 Not Found: /favicon.ico
+WARNING 2025-09-23 14:51:38,713 basehttp 13020 14016 "GET /favicon.ico HTTP/1.1" 404 13776
+INFO 2025-09-23 14:51:44,817 basehttp 13020 1868 "GET /login/ HTTP/1.1" 200 12094
+INFO 2025-09-23 14:52:14,160 basehttp 13020 3516 "GET /admin/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:52:14,429 basehttp 13020 3516 "GET /admin/login/?next=/admin/ HTTP/1.1" 200 4161
+INFO 2025-09-23 14:52:22,912 basehttp 13020 3516 "POST /admin/login/?next=/admin/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:52:23,002 basehttp 13020 3516 "GET /admin/ HTTP/1.1" 200 10621
+INFO 2025-09-23 14:52:27,836 basehttp 13020 3516 "GET /admin/lesson/user/ HTTP/1.1" 200 16278
+INFO 2025-09-23 14:52:28,002 basehttp 13020 3516 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+WARNING 2025-09-23 14:53:09,520 log 13020 11236 Forbidden (CSRF token from POST incorrect.): /login/
+WARNING 2025-09-23 14:53:09,522 basehttp 13020 11236 "POST /login/ HTTP/1.1" 403 2503
+INFO 2025-09-23 14:53:12,192 basehttp 13020 11236 "GET /login/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:53:12,304 basehttp 13020 11236 "GET /dashboard/ HTTP/1.1" 200 34354
+INFO 2025-09-23 14:53:23,117 basehttp 13020 15224 "GET /profile/ HTTP/1.1" 200 37857
+INFO 2025-09-23 14:53:32,036 basehttp 13020 15224 "GET /dashboard/ HTTP/1.1" 200 34354
+INFO 2025-09-23 14:53:35,294 basehttp 13020 10196 "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:53:35,304 basehttp 13020 10196 "GET / HTTP/1.1" 200 20309
+INFO 2025-09-23 14:53:37,120 basehttp 13020 10196 "GET /login/ HTTP/1.1" 200 12813
+INFO 2025-09-23 14:53:47,957 basehttp 13020 1936 "POST /login/ HTTP/1.1" 200 12829
+INFO 2025-09-23 14:53:54,388 basehttp 13020 13136 "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:53:54,419 basehttp 13020 13136 "GET /dep_dash/ HTTP/1.1" 200 37875
+ERROR 2025-09-23 14:53:58,399 log 13020 13136 Internal Server Error: /dep_pending/
+Traceback (most recent call last):
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: lesson_lessonplansubmission
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\joyce\OneDrive\Documents\Github\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py", line 1129, in Dep_Pending
+    for submission in pending_submissions:
+                      ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 400, in __iter__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 1928, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\sql\compiler.py", line 1574, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\sqlite3\base.py", line 354, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such table: lesson_lessonplansubmission
+ERROR 2025-09-23 14:53:58,418 basehttp 13020 13136 "GET /dep_pending/ HTTP/1.1" 500 164570
+INFO 2025-09-23 14:54:53,620 autoreload 14372 7992 Watching for file changes with StatReloader
+INFO 2025-09-23 14:54:57,437 basehttp 14372 4252 "GET /dep_pending/ HTTP/1.1" 200 12980
+INFO 2025-09-23 14:55:00,654 basehttp 14372 12820 "GET /dep_dash/ HTTP/1.1" 200 37875
+INFO 2025-09-23 14:55:16,983 basehttp 14372 2536 "GET /profile/ HTTP/1.1" 200 38356
+INFO 2025-09-23 14:55:26,451 basehttp 14372 7040 "GET /dep_dash/ HTTP/1.1" 200 37875
+INFO 2025-09-23 14:55:29,879 basehttp 14372 7040 "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:55:29,893 basehttp 14372 7040 "GET / HTTP/1.1" 200 20309
+INFO 2025-09-23 14:55:31,669 basehttp 14372 7040 "GET /login/ HTTP/1.1" 200 12813
+INFO 2025-09-23 14:55:36,413 basehttp 14372 10852 "GET /registration_1/ HTTP/1.1" 200 26939
+INFO 2025-09-23 14:55:39,750 basehttp 14372 14768 "POST /registration_1/ HTTP/1.1" 200 51
+INFO 2025-09-23 14:55:39,945 basehttp 14372 14768 "POST /registration_1/ HTTP/1.1" 200 51
+INFO 2025-09-23 14:55:41,069 basehttp 14372 14768 "POST /registration_1/ HTTP/1.1" 200 51
+INFO 2025-09-23 14:55:59,557 basehttp 14372 5604 "POST /registration_1/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:55:59,644 basehttp 14372 5604 "GET /registration_2/ HTTP/1.1" 200 7967
+INFO 2025-09-23 14:56:03,393 basehttp 14372 11684 "POST /registration_2/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:56:03,485 basehttp 14372 11684 "GET /registration_3/ HTTP/1.1" 200 11389
+INFO 2025-09-23 14:56:07,149 basehttp 14372 11684 "POST /registration_3/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:56:07,198 basehttp 14372 11684 "GET /registration_4/ HTTP/1.1" 200 18806
+WARNING 2025-09-23 14:56:14,723 log 14372 11396 Not Found: /api/check-department-head/
+WARNING 2025-09-23 14:56:14,725 basehttp 14372 11396 "GET /api/check-department-head/?school=2&department=English HTTP/1.1" 404 15886
+INFO 2025-09-23 14:56:20,753 basehttp 14372 68 "POST /registration_4/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:56:20,775 basehttp 14372 68 "GET /dep_dash/ HTTP/1.1" 200 37889
+INFO 2025-09-23 14:56:29,215 basehttp 14372 12956 "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:56:29,238 basehttp 14372 12956 "GET / HTTP/1.1" 200 20309
+INFO 2025-09-23 14:56:33,203 basehttp 14372 12956 "GET /admin/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:56:33,245 basehttp 14372 12956 "GET /admin/login/?next=/admin/ HTTP/1.1" 200 4413
+INFO 2025-09-23 14:56:43,162 basehttp 14372 6092 "POST /admin/login/?next=/admin/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:56:43,204 basehttp 14372 6092 "GET /admin/ HTTP/1.1" 200 10621
+INFO 2025-09-23 14:56:44,847 basehttp 14372 6092 "GET /admin/lesson/user/ HTTP/1.1" 200 16911
+INFO 2025-09-23 14:56:44,928 basehttp 14372 6092 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-09-23 14:56:53,381 basehttp 14372 4300 "POST /admin/logout/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:56:53,397 basehttp 14372 4300 "GET / HTTP/1.1" 200 20309
+INFO 2025-09-23 14:56:56,649 basehttp 14372 4300 "GET /login/ HTTP/1.1" 200 12094
+INFO 2025-09-23 14:57:05,692 basehttp 14372 10820 "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:57:05,721 basehttp 14372 10820 "GET /dashboard/ HTTP/1.1" 200 34354
+INFO 2025-09-23 14:57:08,872 basehttp 14372 12940 "GET /drafts/ HTTP/1.1" 200 62971
+INFO 2025-09-23 14:57:14,912 basehttp 14372 12940 "POST /submit-lesson-plan/7/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:57:14,966 basehttp 14372 12940 "GET /drafts/ HTTP/1.1" 200 62994
+INFO 2025-09-23 14:58:37,390 autoreload 14372 7992 C:\Users\joyce\OneDrive\Documents\Github\2025-CP_LessonLink\Django\Lessonlink\lessonGenerator\models.py changed, reloading.
+INFO 2025-09-23 14:59:17,459 autoreload 1156 5328 Watching for file changes with StatReloader
+INFO 2025-09-23 14:59:29,054 basehttp 1156 10876 "GET /drafts/ HTTP/1.1" 200 62413
+INFO 2025-09-23 14:59:35,224 basehttp 1156 6608 "POST /submit-lesson-plan/7/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:59:35,258 basehttp 1156 6608 "GET /drafts/ HTTP/1.1" 200 58179
+INFO 2025-09-23 14:59:40,494 basehttp 1156 8252 "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-23 14:59:40,527 basehttp 1156 8252 "GET / HTTP/1.1" 200 20309
+INFO 2025-09-23 14:59:43,336 basehttp 1156 8252 "GET /login/ HTTP/1.1" 200 12813
+INFO 2025-09-23 15:00:12,484 basehttp 1156 9932 "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-23 15:00:12,505 basehttp 1156 9932 "GET /dep_dash/ HTTP/1.1" 200 37889
+INFO 2025-09-23 15:00:19,345 basehttp 1156 13680 "GET /dep_pending/ HTTP/1.1" 200 14855
+ERROR 2025-09-23 15:00:25,717 log 1156 12372 Internal Server Error: /lesson-plan-detail/1/
+Traceback (most recent call last):
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\joyce\OneDrive\Documents\Github\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py", line 1202, in lesson_plan_detail
+    return render(request, 'lesson_plan_detail.html', {
+        'submission': submission,
+    ...<2 lines>...
+        'can_review': request.user == submission.submitted_to and submission.status == 'submitted'
+    })
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\backends\django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    nodelist = parser.parse()
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 862, in do_for
+    nodelist_loop = parser.parse(
+        (
+    ...<2 lines>...
+        )
+    )
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 489, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 487, in parse
+    filter_expression = self.compile_filter(token.contents)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 605, in compile_filter
+    return FilterExpression(token, self)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 701, in __init__
+    filter_func = parser.find_filter(filter_name)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 611, in find_filter
+    raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
+django.template.exceptions.TemplateSyntaxError: Invalid filter: 'strip'
+ERROR 2025-09-23 15:00:25,739 basehttp 1156 12372 "GET /lesson-plan-detail/1/ HTTP/1.1" 500 382478
+ERROR 2025-09-23 15:05:51,096 log 1156 9944 Internal Server Error: /lesson-plan-detail/1/
+Traceback (most recent call last):
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\joyce\OneDrive\Documents\Github\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py", line 1202, in lesson_plan_detail
+    return render(request, 'lesson_plan_detail.html', {
+        'submission': submission,
+    ...<2 lines>...
+        'can_review': request.user == submission.submitted_to and submission.status == 'submitted'
+    })
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\backends\django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    nodelist = parser.parse()
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 862, in do_for
+    nodelist_loop = parser.parse(
+        (
+    ...<2 lines>...
+        )
+    )
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 489, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 487, in parse
+    filter_expression = self.compile_filter(token.contents)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 605, in compile_filter
+    return FilterExpression(token, self)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 701, in __init__
+    filter_func = parser.find_filter(filter_name)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 611, in find_filter
+    raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
+django.template.exceptions.TemplateSyntaxError: Invalid filter: 'strip'
+ERROR 2025-09-23 15:05:51,107 basehttp 1156 9944 "GET /lesson-plan-detail/1/ HTTP/1.1" 500 383083
+INFO 2025-09-23 15:11:57,100 basehttp 1156 2744 "GET /dep_pending/ HTTP/1.1" 200 14861
+INFO 2025-09-23 15:12:01,548 basehttp 1156 2744 "GET /dep_dash/ HTTP/1.1" 200 37889
+INFO 2025-09-23 15:12:05,002 basehttp 1156 9644 "GET /dep_pending/ HTTP/1.1" 200 14861
+INFO 2025-09-23 15:12:24,022 basehttp 1156 9624 "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-23 15:12:24,046 basehttp 1156 9624 "GET / HTTP/1.1" 200 20309
+INFO 2025-09-23 15:12:26,572 basehttp 1156 13952 "GET /login/ HTTP/1.1" 200 13477
+INFO 2025-09-23 15:12:31,207 basehttp 1156 13952 "GET /registration_1/ HTTP/1.1" 200 26939
+INFO 2025-09-23 15:12:37,457 basehttp 1156 6124 "POST /registration_1/ HTTP/1.1" 200 51
+INFO 2025-09-23 15:12:37,668 basehttp 1156 6124 "POST /registration_1/ HTTP/1.1" 200 51
+INFO 2025-09-23 15:12:39,663 basehttp 1156 6124 "POST /registration_1/ HTTP/1.1" 200 51
+INFO 2025-09-23 15:13:07,700 basehttp 1156 10280 "POST /registration_1/ HTTP/1.1" 302 0
+INFO 2025-09-23 15:13:07,723 basehttp 1156 10280 "GET /registration_2/ HTTP/1.1" 200 7967
+INFO 2025-09-23 15:13:29,833 basehttp 1156 12920 "POST /registration_2/ HTTP/1.1" 302 0
+INFO 2025-09-23 15:13:29,856 basehttp 1156 12920 "GET /registration_3/ HTTP/1.1" 200 11389
+INFO 2025-09-23 15:13:37,446 basehttp 1156 13768 "POST /registration_3/ HTTP/1.1" 302 0
+INFO 2025-09-23 15:13:37,476 basehttp 1156 13768 "GET /registration_4/ HTTP/1.1" 200 18798
+INFO 2025-09-23 15:13:49,601 basehttp 1156 1920 "POST /registration_4/ HTTP/1.1" 302 0
+INFO 2025-09-23 15:13:49,634 basehttp 1156 1920 "GET /dashboard/ HTTP/1.1" 200 34341
+INFO 2025-09-23 15:13:54,934 basehttp 1156 1472 "GET /drafts/ HTTP/1.1" 200 29745
+INFO 2025-09-23 15:14:13,540 basehttp 1156 3176 "GET /drafts/ HTTP/1.1" 200 29154
+INFO 2025-09-23 15:14:16,043 basehttp 1156 5528 "GET /lesson_ai/ HTTP/1.1" 200 35044
+INFO 2025-09-23 15:15:05,177 basehttp 1156 6992 "POST /generate-lesson-plan/ HTTP/1.1" 200 3267
+INFO 2025-09-23 15:15:06,002 basehttp 1156 6992 "GET /lesson-plan-result/?plan=%23%20Lesson%20Plan%3A%20Identifying%20Main%20Idea%20and%20Supporting%20Details%0A%0A**Metadata%3A**%0A*%20**Subject%3A**%20English%0A*%20**Grade%20Level%3A**%203rd%20Grade%0A*%20**Quarter%3A**%201st%20Quarter%0A*%20**Duration%3A**%2060%20minutes%0A*%20**Class%20Size%3A**%2020%20students%0A%0A**Learning%20Objectives%3A**%0A*%20Students%20will%20be%20able%20to%20identify%20the%20main%20idea%20of%20a%20short%20paragraph.%0A*%20Students%20will%20be%20able%20to%20identify%20supporting%20details%20that%20explain%20the%20main%20idea.%0A%0A**Subject%20Matter%3A**%0A*%20**Topic%3A**%20Identifying%20Main%20Idea%20and%20Supporting%20Details%0A*%20**Key%20Concepts%3A**%20Main%20idea%3A%20the%20most%20important%20point%20of%20a%20paragraph.%20Supporting%20details%3A%20sentences%20that%20explain%20or%20give%20examples%20related%20to%20the%20main%20idea.%20Understanding%20how%20authors%20use%20topic%20sentences%20and%20supporting%20details%20to%20build%20a%20coherent%20paragraph.%0A*%20**Vocabulary%3A**%20Main%20idea%2C%20supporting%20details%2C%20topic%20sentence%2C%20paragraph%2C%20explain%2C%20examples%0A%0A**Materials%20Needed%3A**%0A*%20Chart%20paper%20or%20whiteboard%0A*%20Markers%0A*%20Short%20paragraphs%20(3-4%20sentences%20each)%20on%20various%20topics%20appropriate%20for%203rd%20grade%2C%20printed%20on%20worksheets%0A*%20Highlighters%0A*%20Colored%20pencils%20or%20crayons%0A%0A**Procedure%3A**%0A%0A**Introduction%20(10%20minutes)%3A**%20Begin%20by%20asking%20students%20what%20they%20think%20the%20most%20important%20part%20of%20a%20story%20is.%20Introduce%20the%20concept%20of%20the%20main%20idea%20as%20the%20most%20important%20point.%20Use%20a%20simple%20example%2C%20such%20as%2C%20%27If%20the%20story%20is%20about%20a%20cat%20who%20lost%20its%20toy%2C%20the%20main%20idea%20is%20the%20cat%20losing%20its%20toy.%20Everything%20else%20is%20about%20how%20it%20happened%20or%20how%20the%20cat%20felt.%27%20Engage%20students%20in%20a%20short%20brainstorming%20session%20to%20identify%20main%20ideas%20in%20familiar%20stories%20or%20events.%0A%0A**Instruction%20(25%20minutes)%3A**%20Model%20the%20process%20of%20identifying%20the%20main%20idea%20and%20supporting%20details.%20Use%20a%20short%20paragraph%20from%20the%20worksheet%20and%20think-aloud%20as%20you%20read%2C%20highlighting%20the%20topic%20sentence%20(main%20idea)%20and%20underline%20supporting%20details.%20Explain%20how%20supporting%20details%20provide%20more%20information%20and%20expand%20on%20the%20main%20idea.%20Guide%20students%20to%20work%20through%20one%20or%20two%20additional%20paragraphs%20together%2C%20focusing%20on%20identifying%20the%20key%20sentence%20and%20the%20supporting%20facts.%0A%0A**Application%20(15%20minutes)%3A**%20Students%20will%20work%20independently%20or%20in%20small%20groups%20to%20read%20and%20analyze%20the%20remaining%20paragraphs%20on%20their%20worksheets%2C%20identifying%20the%20main%20idea%20and%20highlighting%20supporting%20details%20using%20highlighters.%20Circulate%20to%20assist%20students%20who%20need%20help.%20Encourage%20peer-to-peer%20learning.%0A%0A**Evaluation%20(5%20minutes)%3A**%20Briefly%20review%20the%20key%20concepts%20and%20address%20any%20remaining%20questions%20or%20confusion.%20Facilitate%20a%20class%20discussion%20about%20different%20paragraphs%2C%20sharing%20answers%20and%20explanations.%0A%0A**Assessment%20(5%20minutes)%3A**%20Students%20will%20turn%20in%20their%20completed%20worksheets.%20Review%20these%20for%20accuracy%20in%20identifying%20main%20idea%20and%20supporting%20details.%20This%20can%20inform%20future%20instruction%20and%20differentiate%20accordingly.%0A%0A**Differentiation%3A**%0A%0A**Support%3A**%0A*%20Provide%20students%20with%20graphic%20organizers%20to%20help%20them%20visually%20represent%20the%20main%20idea%20and%20supporting%20details.%0A*%20Offer%20pre-selected%20main%20ideas%20for%20students%20to%20identify%20supporting%20details%20within%20the%20paragraph.%0A%0A**Extension%3A**%0A*%20Challenge%20students%20to%20write%20their%20own%20short%20paragraph%20with%20a%20clear%20main%20idea%20and%20supporting%20details.%0A*%20Have%20students%20find%20examples%20of%20main%20idea%20and%20supporting%20details%20from%20a%20chapter%20book%20read%20aloud. HTTP/1.1" 200 19546
+INFO 2025-09-23 15:15:17,555 basehttp 1156 10184 "POST /save-lesson-plan/ HTTP/1.1" 200 87
+INFO 2025-09-23 15:15:19,732 basehttp 1156 10184 "GET /drafts/8/edit/ HTTP/1.1" 200 16312
+INFO 2025-09-23 15:15:25,601 basehttp 1156 6520 "GET /drafts/ HTTP/1.1" 200 33507
+INFO 2025-09-23 15:15:32,927 basehttp 1156 6520 "GET /drafts/ HTTP/1.1" 200 33507
+INFO 2025-09-23 15:15:42,212 basehttp 1156 1116 "POST /submit-lesson-plan/8/ HTTP/1.1" 302 0
+INFO 2025-09-23 15:15:42,233 basehttp 1156 1116 "GET /drafts/ HTTP/1.1" 200 29742
+INFO 2025-09-23 15:15:50,644 basehttp 1156 8992 "GET /drafts/ HTTP/1.1" 200 29154
+INFO 2025-09-23 15:15:58,729 basehttp 1156 5132 "GET /drafts/ HTTP/1.1" 200 29154
+INFO 2025-09-23 15:16:01,763 basehttp 1156 5132 "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-23 15:16:01,777 basehttp 1156 5132 "GET / HTTP/1.1" 200 20309
+INFO 2025-09-23 15:16:07,488 basehttp 1156 13084 "GET /login/ HTTP/1.1" 200 12813
+INFO 2025-09-23 15:16:17,925 basehttp 1156 12624 "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-23 15:16:17,948 basehttp 1156 12624 "GET /dep_dash/ HTTP/1.1" 200 37889
+INFO 2025-09-23 15:16:20,359 basehttp 1156 12624 "GET /dep_pending/ HTTP/1.1" 200 17009
+ERROR 2025-09-23 15:16:28,370 log 1156 7440 Internal Server Error: /lesson-plan-detail/2/
+Traceback (most recent call last):
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\joyce\OneDrive\Documents\Github\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py", line 1202, in lesson_plan_detail
+    return render(request, 'lesson_plan_detail.html', {
+        'submission': submission,
+    ...<2 lines>...
+        'can_review': request.user == submission.submitted_to and submission.status == 'submitted'
+    })
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\backends\django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    nodelist = parser.parse()
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 862, in do_for
+    nodelist_loop = parser.parse(
+        (
+    ...<2 lines>...
+        )
+    )
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 489, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 487, in parse
+    filter_expression = self.compile_filter(token.contents)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 605, in compile_filter
+    return FilterExpression(token, self)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 701, in __init__
+    filter_func = parser.find_filter(filter_name)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 611, in find_filter
+    raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
+django.template.exceptions.TemplateSyntaxError: Invalid filter: 'strip'
+ERROR 2025-09-23 15:16:28,379 basehttp 1156 7440 "GET /lesson-plan-detail/2/ HTTP/1.1" 500 383118
+ERROR 2025-09-23 15:16:41,455 log 1156 5888 Internal Server Error: /lesson-plan-detail/2/
+Traceback (most recent call last):
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\joyce\OneDrive\Documents\Github\2025-CP_LessonLink\Django\Lessonlink\lesson\views.py", line 1202, in lesson_plan_detail
+    return render(request, 'lesson_plan_detail.html', {
+        'submission': submission,
+    ...<2 lines>...
+        'can_review': request.user == submission.submitted_to and submission.status == 'submitted'
+    })
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\backends\django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    nodelist = parser.parse()
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 862, in do_for
+    nodelist_loop = parser.parse(
+        (
+    ...<2 lines>...
+        )
+    )
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 489, in parse
+    raise self.error(token, e)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 487, in parse
+    filter_expression = self.compile_filter(token.contents)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 605, in compile_filter
+    return FilterExpression(token, self)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 701, in __init__
+    filter_func = parser.find_filter(filter_name)
+  File "C:\Users\joyce\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\template\base.py", line 611, in find_filter
+    raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
+django.template.exceptions.TemplateSyntaxError: Invalid filter: 'strip'
+ERROR 2025-09-23 15:16:41,466 basehttp 1156 5888 "GET /lesson-plan-detail/2/ HTTP/1.1" 500 383118
+INFO 2025-09-23 15:17:46,689 basehttp 1156 5188 "GET /dep_pending/ HTTP/1.1" 200 17014
+INFO 2025-09-23 15:18:06,057 basehttp 1156 9720 "GET /dep_dash/ HTTP/1.1" 200 37889
+INFO 2025-09-23 15:18:11,617 basehttp 1156 9720 "GET /dep_pending/ HTTP/1.1" 200 17014
+INFO 2025-09-23 15:19:57,126 basehttp 1156 12692 "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-23 15:19:57,138 basehttp 1156 12692 "GET / HTTP/1.1" 200 20309
+INFO 2025-09-23 15:19:59,892 basehttp 1156 12692 "GET /login/ HTTP/1.1" 200 13477
+INFO 2025-09-23 15:20:04,216 basehttp 1156 12692 "GET /registration_1/ HTTP/1.1" 200 26939
+INFO 2025-09-23 15:20:14,004 basehttp 1156 13164 "POST /registration_1/ HTTP/1.1" 200 51
+INFO 2025-09-23 15:20:28,875 basehttp 1156 9028 "POST /registration_1/ HTTP/1.1" 302 0
+INFO 2025-09-23 15:20:28,892 basehttp 1156 9028 "GET /registration_2/ HTTP/1.1" 200 7967
+INFO 2025-09-23 15:20:39,437 basehttp 1156 10896 "POST /registration_2/ HTTP/1.1" 302 0
+INFO 2025-09-23 15:20:39,454 basehttp 1156 10896 "GET /registration_3/ HTTP/1.1" 200 11389
+INFO 2025-09-23 15:20:49,879 basehttp 1156 2952 "POST /registration_3/ HTTP/1.1" 302 0
+INFO 2025-09-23 15:20:49,903 basehttp 1156 2952 "GET /registration_4/ HTTP/1.1" 200 18806
+INFO 2025-09-23 15:22:29,126 basehttp 1156 13160 "GET /registration_1/ HTTP/1.1" 200 26939
+INFO 2025-09-23 15:22:35,489 basehttp 1156 13160 "GET /login/ HTTP/1.1" 200 12094
+INFO 2025-09-23 15:22:51,940 basehttp 1156 15316 "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-23 15:22:51,968 basehttp 1156 7520 "GET /dashboard/ HTTP/1.1" 200 34354
+INFO 2025-09-23 15:22:54,054 basehttp 1156 7520 "GET /drafts/ HTTP/1.1" 200 58149
+INFO 2025-09-23 15:23:31,244 basehttp 1156 5248 "GET /drafts/6/edit/ HTTP/1.1" 200 16728
+INFO 2025-09-23 15:23:38,525 basehttp 1156 5684 "GET /drafts/ HTTP/1.1" 200 57591
+INFO 2025-09-23 15:23:55,163 basehttp 1156 13000 "GET /drafts/ HTTP/1.1" 200 57591

@@ -1050,31 +1050,54 @@ def submit_lesson_plan(request, lesson_plan_id):
     """Submit a lesson plan to department head for approval"""
     if request.method == 'POST':
         try:
+            # Get the lesson plan
             lesson_plan = LessonPlan.objects.get(id=lesson_plan_id, created_by=request.user)
             
-            # Get the department head (you might need to adjust this logic based on your user structure)
+            # Validate that the teacher has a school and department
+            if not request.user.school:
+                messages.error(request, "You are not assigned to any school. Please contact administrator.")
+                return redirect('draft_list')
+            
+            if not request.user.department:
+                messages.error(request, "You are not assigned to any department. Please contact administrator.")
+                return redirect('draft_list')
+            
+            # Find the correct department head - ensure same school and department
             department_head = User.objects.filter(
                 role='Department Head',
                 department=request.user.department,
-                school=request.user.school
+                school=request.user.school,
+                is_active=True
             ).first()
             
             if not department_head:
-                messages.error(request, "No department head found for your department.")
+                # Provide helpful error message
+                messages.error(request, 
+                    f"No active Department Head found for {request.user.department} department in {request.user.school}. "
+                    "Please contact administrator."
+                )
                 return redirect('draft_list')
             
+            # Use the model method to handle submission
             success, message = lesson_plan.submit_for_approval(department_head)
             
             if success:
-                messages.success(request, message)
                 # Change lesson plan status to final when submitted
                 lesson_plan.status = LessonPlan.FINAL
                 lesson_plan.save()
+                messages.success(request, message)
+                
+                # Log the submission
+                print(f"SUBMISSION SUCCESS: Lesson '{lesson_plan.title}' submitted by {request.user.full_name} to {department_head.full_name}")
             else:
                 messages.error(request, message)
+                print(f"SUBMISSION FAILED: {message}")
                 
         except LessonPlan.DoesNotExist:
-            messages.error(request, "Lesson plan not found.")
+            messages.error(request, "Lesson plan not found or you don't have permission to submit it.")
+        except Exception as e:
+            messages.error(request, f"An error occurred: {str(e)}")
+            print(f"SUBMISSION ERROR: {str(e)}")
         
         return redirect('draft_list')
     
@@ -1085,26 +1108,45 @@ def Dep_Pending(request):
     """Department head's pending reviews page"""
     user = request.user
     
+    # Only department heads can access this page
     if user.role != "Department Head":
         messages.error(request, "You are not authorized to access this page.")
         return redirect('dashboard')
     
-    # Get pending submissions for this department head
+    # Validate that department head has school and department assigned
+    if not user.school or not user.department:
+        messages.error(request, "Your account is missing school or department information. Please contact administrator.")
+        return redirect('dashboard')
+    
+    # Get pending submissions for this department head (with validation)
     pending_submissions = LessonPlanSubmission.objects.filter(
         submitted_to=user,
         status='submitted'
-    ).order_by('submission_date')
+    ).select_related('lesson_plan', 'submitted_by').order_by('submission_date')
     
-    # Get other submissions for history
+    # Additional validation: filter only valid submissions (same school/department)
+    valid_submissions = []
+    for submission in pending_submissions:
+        # Double-check that the submission is valid
+        if (submission.submitted_by.school == user.school and 
+            submission.submitted_by.department == user.department):
+            valid_submissions.append(submission)
+        else:
+            # Log invalid submissions (shouldn't happen due to model validation)
+            print(f"INVALID SUBMISSION: {submission.id} - School/Department mismatch")
+    
+    # Get reviewed submissions for history
     reviewed_submissions = LessonPlanSubmission.objects.filter(
         submitted_to=user
-    ).exclude(status='submitted').order_by('-review_date')[:10]
+    ).exclude(status='submitted').select_related('lesson_plan', 'submitted_by').order_by('-review_date')[:10]
     
     return render(request, 'Dep_Pending.html', {
         'user': user,
-        'pending_submissions': pending_submissions,
+        'pending_submissions': valid_submissions,
         'reviewed_submissions': reviewed_submissions,
-        'pending_count': pending_submissions.count()
+        'pending_count': len(valid_submissions),
+        'user_school': user.school,
+        'user_department': user.department
     })
 
 @login_required

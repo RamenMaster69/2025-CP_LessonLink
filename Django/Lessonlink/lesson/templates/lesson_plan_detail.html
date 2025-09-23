@@ -108,16 +108,16 @@
                         {% if '\n' in lesson_plan.learning_objectives or '*' in lesson_plan.learning_objectives %}
                             <ul class="space-y-2">
                                 {% for line in lesson_plan.learning_objectives.splitlines %}
-                                    {% if line.strip %}
-                                        {% if line.strip|slice:1 == '*' %}
+                                    {% if line and line.strip %}  <!-- Fixed: removed .strip() -->
+                                        {% if line.strip|slice:1 == '*' %}  <!-- Fixed: removed .strip() -->
                                             <li class="flex items-start">
                                                 <i class="fas fa-circle text-xs mt-1 mr-2 text-green-500"></i>
-                                                <span>{{ line.strip|slice:"1:"|strip }}</span>
+                                                <span>{{ line.strip|slice:"1:"|strip }}</span>  <!-- Fixed: used filter -->
                                             </li>
                                         {% else %}
                                             <li class="flex items-start">
                                                 <i class="fas fa-circle text-xs mt-1 mr-2 text-green-500"></i>
-                                                <span>{{ line.strip }}</span>
+                                                <span>{{ line.strip }}</span>  <!-- Fixed: used filter -->
                                             </li>
                                         {% endif %}
                                     {% endif %}
@@ -160,16 +160,16 @@
                         {% if '\n' in lesson_plan.materials_needed or '*' in lesson_plan.materials_needed %}
                             <ul class="space-y-2">
                                 {% for line in lesson_plan.materials_needed.splitlines %}
-                                    {% if line.strip %}
-                                        {% if line.strip|slice:1 == '*' %}
+                                    {% if line and line.strip %}  <!-- Fixed: removed .strip() -->
+                                        {% if line.strip|slice:1 == '*' %}  <!-- Fixed: removed .strip() -->
                                             <li class="flex items-start">
                                                 <i class="fas fa-check-circle text-xs mt-1 mr-2 text-yellow-500"></i>
-                                                <span>{{ line.strip|slice:"1:"|strip }}</span>
+                                                <span>{{ line.strip|slice:"1:"|strip }}</span>  <!-- Fixed: used filter -->
                                             </li>
                                         {% else %}
                                             <li class="flex items-start">
                                                 <i class="fas fa-check-circle text-xs mt-1 mr-2 text-yellow-500"></i>
-                                                <span>{{ line.strip }}</span>
+                                                <span>{{ line.strip }}</span>  <!-- Fixed: used filter -->
                                             </li>
                                         {% endif %}
                                     {% endif %}

@@ -487,7 +487,7 @@ class SchoolRegistration(models.Model):
             self.admin_notes = notes
         self.save()
 
-# Add this to your main app's models.py
+# Add this to main/models.py
 class LessonPlanSubmission(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Draft'),
@@ -507,6 +507,13 @@ class LessonPlanSubmission(models.Model):
     
     class Meta:
         ordering = ['-submission_date']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['lesson_plan', 'status'],
+                condition=models.Q(status__in=['submitted', 'approved', 'needs_revision']),
+                name='unique_active_submission'
+            )
+        ]
     
     def __str__(self):
         return f"{self.lesson_plan.title} - {self.get_status_display()}"
@@ -527,3 +534,15 @@ class LessonPlanSubmission(models.Model):
             return f"{minutes} minute{'s' if minutes > 1 else ''} ago"
         else:
             return "Just now"
+    
+    def clean(self):
+        """Validate that teacher and department head are in same school and department"""
+        if self.submitted_by and self.submitted_to:
+            if self.submitted_by.school != self.submitted_to.school:
+                raise ValidationError("Teacher and Department Head must be in the same school.")
+            if self.submitted_by.department != self.submitted_to.department:
+                raise ValidationError("Teacher and Department Head must be in the same department.")
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)

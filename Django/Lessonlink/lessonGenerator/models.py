@@ -165,9 +165,17 @@ class LessonPlan(models.Model):
 
         return parsed
 
+    # Add this method to your LessonPlan model in lessonGenerator app
     def submit_for_approval(self, department_head):
         """Submit this lesson plan to a department head for approval"""
-        from main.models import LessonPlanSubmission  # Import here to avoid circular import
+        from lesson.models import LessonPlanSubmission  # Import here to avoid circular import
+        
+        # Validate that teacher and department head are in same school and department
+        if self.created_by.school != department_head.school:
+            return False, f"Department Head {department_head.full_name} is not in your school ({self.created_by.school})."
+        
+        if self.created_by.department != department_head.department:
+            return False, f"Department Head {department_head.full_name} is not in your department ({self.created_by.department})."
         
         # Check if already submitted
         existing_submission = LessonPlanSubmission.objects.filter(
@@ -176,17 +184,21 @@ class LessonPlan(models.Model):
         ).first()
         
         if existing_submission:
-            return False, "This lesson plan has already been submitted for approval"
+            return False, "This lesson plan has already been submitted for approval."
         
         # Create new submission
-        submission = LessonPlanSubmission.objects.create(
-            lesson_plan=self,
-            submitted_by=self.created_by,
-            submitted_to=department_head,
-            status='submitted'
-        )
-        
-        return True, "Lesson plan submitted successfully"
+        try:
+            submission = LessonPlanSubmission.objects.create(
+                lesson_plan=self,
+                submitted_by=self.created_by,
+                submitted_to=department_head,
+                status='submitted'
+            )
+            return True, f"Lesson plan submitted successfully to {department_head.full_name}!"
+        except ValidationError as e:
+            return False, str(e)
+        except Exception as e:
+            return False, f"Error submitting lesson plan: {str(e)}"
 
     def get_structured_content(self):
         """Return lesson plan content in a structured format for templates"""
