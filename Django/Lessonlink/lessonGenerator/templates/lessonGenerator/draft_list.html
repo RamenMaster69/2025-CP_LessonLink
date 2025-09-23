@@ -66,21 +66,21 @@
 </head>
 
 <body class="bg-gray-50 min-h-screen">
-    <!-- Messages -->
-    {% if messages %}
-    <div class="fixed top-20 right-4 z-50 space-y-2 max-w-sm">
-        {% for message in messages %}
-        <div class="bg-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-500 text-white px-6 py-3 rounded-lg shadow-lg">
-            <div class="flex items-center justify-between">
-                <span>{{ message }}</span>
-                <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
-                    <i class="fas fa-times"></i>
-                </button>
+    <!-- Popup Modal Overlay -->
+    <div id="popup-overlay" class="popup-overlay">
+        <div id="popup-modal" class="popup-modal">
+            <div class="popup-header">
+                <div id="popup-icon" class="popup-icon">
+                    <i id="popup-icon-class" class="fas fa-info"></i>
+                </div>
+                <h3 id="popup-title" class="popup-title">Title</h3>
+                <p id="popup-message" class="popup-message">Message content goes here</p>
+            </div>
+            <div id="popup-footer" class="popup-footer">
+                <!-- Buttons will be inserted here dynamically -->
             </div>
         </div>
-        {% endfor %}
     </div>
-    {% endif %}
 
     <!-- Header - FORCE VISIBLE -->
     <header id="main-header" class="bg-white shadow-sm border-b" style="display: flex !important; position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; z-index: 1000 !important;">
@@ -121,11 +121,7 @@
                 <!-- Profile -->
                 <div class="relative">
                     <button id="profile-btn" class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300">
-                        {% if user.profile_picture %}
-                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="w-full h-full object-cover">
-                        {% else %}
                         <i class="fas fa-user text-gray-500"></i>
-                        {% endif %}
                     </button>
                     <div id="profile-dropdown" class="dropdown-menu absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
                         <div class="p-4 border-b border-gray-100">
@@ -416,6 +412,7 @@
                     activeDropdown = null;
                 }
             });
+        });
 
             // Feedback modal functionality
             const feedbackModal = document.getElementById('feedback-modal');
