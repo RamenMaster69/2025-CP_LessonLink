@@ -54,7 +54,7 @@
         .status-needs_revision { background-color: #ffedd5; color: #9a3412; }
         .status-final { background-color: #dbeafe; color: #1e40af; }
         
-        /* Dropdown styles - FIXED */
+        /* Dropdown styles */
         .dropdown-menu { 
             display: none !important; 
             opacity: 0;
@@ -77,18 +77,18 @@
             z-index: 10;
         }
         
-        /* Ensure content is clickable */
-        main * {
-            pointer-events: auto !important;
-        }
-        
         /* Modal styles */
-        .modal-hidden {
+        #feedback-modal {
             display: none !important;
+            z-index: 1000 !important;
         }
         
-        .modal-visible {
+        #feedback-modal.modal-visible {
             display: flex !important;
+        }
+        
+        .modal-content {
+            pointer-events: auto;
         }
     </style>
 </head>
@@ -347,8 +347,8 @@
     </div>
 
     <!-- Feedback Modal -->
-    <div id="feedback-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-hidden">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+    <div id="feedback-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 modal-content">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-gray-900">Department Head Feedback</h3>
@@ -370,14 +370,19 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('Document loaded - initializing functionality');
+            
             let activeDropdown = null;
             let activeDropdownToggle = null;
 
-            // Initialize dropdown functionality
+            // Initialize dropdown functionality - FIXED
             function initializeDropdowns() {
+                console.log('Initializing dropdowns...');
+                
                 // Dropdown toggle functionality
                 document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
                     toggle.addEventListener('click', function(e) {
+                        console.log('Dropdown toggle clicked');
                         e.stopPropagation();
                         e.preventDefault();
                         
@@ -385,6 +390,7 @@
                         const dropdown = document.querySelector(`.dropdown-menu[data-draft-id="${draftId}"]`);
                         
                         if (dropdown) {
+                            console.log('Dropdown found, toggling...');
                             // Close any currently open dropdown
                             if (activeDropdown && activeDropdown !== dropdown) {
                                 activeDropdown.classList.remove('show');
@@ -400,10 +406,14 @@
                             if (dropdown.classList.contains('show')) {
                                 activeDropdown = dropdown;
                                 activeDropdownToggle = this;
+                                console.log('Dropdown opened');
                             } else {
                                 activeDropdown = null;
                                 activeDropdownToggle = null;
+                                console.log('Dropdown closed');
                             }
+                        } else {
+                            console.log('Dropdown not found for draft ID:', draftId);
                         }
                     });
                 });
@@ -418,6 +428,7 @@
                         }
                         activeDropdown = null;
                         activeDropdownToggle = null;
+                        console.log('Dropdown closed by outside click');
                     }
                 });
 
@@ -427,21 +438,43 @@
                         e.stopPropagation();
                     });
                 });
+                
+                console.log('Dropdowns initialized');
             }
 
-            // Feedback modal functionality
+            // Feedback modal functionality - FIXED
             function initializeFeedbackModal() {
+                console.log('Initializing feedback modal...');
+                
                 const feedbackModal = document.getElementById('feedback-modal');
                 const feedbackContent = document.getElementById('feedback-content');
+                const closeFeedback = document.getElementById('close-feedback');
+                const closeFeedbackBtn = document.getElementById('close-feedback-btn');
 
-                // Show feedback modal
+                if (!feedbackModal) {
+                    console.error('Feedback modal not found!');
+                    return;
+                }
+
+                // Direct event listeners for feedback buttons - FIXED
                 document.querySelectorAll('.show-feedback-btn').forEach(button => {
                     button.addEventListener('click', function(e) {
+                        console.log('Feedback button clicked');
                         e.preventDefault();
                         e.stopPropagation();
                         
                         const notes = this.getAttribute('data-notes');
-                        console.log('Feedback notes:', notes); // Debug log
+                        console.log('Feedback notes:', notes);
+                        
+                        // Close any open dropdown first
+                        if (activeDropdown) {
+                            activeDropdown.classList.remove('show');
+                            activeDropdown = null;
+                        }
+                        if (activeDropdownToggle) {
+                            activeDropdownToggle.classList.remove('active');
+                            activeDropdownToggle = null;
+                        }
                         
                         if (notes && notes.trim() !== '') {
                             feedbackContent.innerHTML = `<div class="whitespace-pre-wrap text-sm leading-relaxed">${notes}</div>`;
@@ -449,35 +482,58 @@
                             feedbackContent.innerHTML = '<p class="text-gray-500 text-center py-4">No feedback provided by the department head.</p>';
                         }
                         
-                        feedbackModal.classList.remove('modal-hidden');
                         feedbackModal.classList.add('modal-visible');
+                        console.log('Feedback modal opened');
                     });
                 });
 
-                // Close feedback modal
-                document.getElementById('close-feedback').addEventListener('click', function(e) {
-                    e.preventDefault();
+                // Close feedback modal functions
+                function closeModal() {
                     feedbackModal.classList.remove('modal-visible');
-                    feedbackModal.classList.add('modal-hidden');
+                    console.log('Feedback modal closed');
+                }
+
+                closeFeedback.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeModal();
                 });
 
-                document.getElementById('close-feedback-btn').addEventListener('click', function(e) {
+                closeFeedbackBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    feedbackModal.classList.remove('modal-visible');
-                    feedbackModal.classList.add('modal-hidden');
+                    e.stopPropagation();
+                    closeModal();
                 });
 
-                // Close modal when clicking outside
+                // Close modal when clicking outside (but not on the modal content)
                 feedbackModal.addEventListener('click', function(e) {
                     if (e.target === feedbackModal) {
-                        feedbackModal.classList.remove('modal-visible');
-                        feedbackModal.classList.add('modal-hidden');
+                        closeModal();
                     }
                 });
+
+                // Prevent modal from closing when clicking inside modal content
+                const modalContent = document.querySelector('.modal-content');
+                if (modalContent) {
+                    modalContent.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                    });
+                }
+
+                // Close modal with Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && feedbackModal.classList.contains('modal-visible')) {
+                        closeModal();
+                    }
+                });
+                
+                console.log('Feedback modal initialized');
             }
 
             // Delete draft functionality
             function initializeDeleteButtons() {
+                console.log('Initializing delete buttons...');
+                
                 document.querySelectorAll('.delete-draft-btn').forEach(button => {
                     button.addEventListener('click', function(e) {
                         e.preventDefault();
@@ -500,45 +556,24 @@
                         }
                     });
                 });
-            }
-
-            // Header and sidebar protection
-            function protectLayout() {
-                const header = document.getElementById('main-header');
-                const sidebar = document.getElementById('sidebar');
                 
-                if (header) {
-                    header.style.display = 'flex';
-                    header.style.visibility = 'visible';
-                }
-                
-                if (sidebar) {
-                    sidebar.style.display = 'block';
-                    sidebar.style.visibility = 'visible';
-                }
+                console.log('Delete buttons initialized');
             }
 
             // Initialize all functionality
-            protectLayout();
+            console.log('Starting initialization...');
             initializeDropdowns();
             initializeFeedbackModal();
             initializeDeleteButtons();
+            console.log('All functionality initialized');
 
-            // Auto-remove messages
-            setTimeout(() => {
-                const messages = document.querySelectorAll('.fixed > div');
-                messages.forEach(message => {
-                    if (message.textContent.includes('{{ message }}')) {
-                        message.style.opacity = '0';
-                        setTimeout(() => message.remove(), 300);
-                    }
-                });
-            }, 5000);
-
-            // Debug: Log all feedback buttons and their data
+            // Debug: Log all elements
+            console.log('Dropdown toggles found:', document.querySelectorAll('.dropdown-toggle').length);
             console.log('Feedback buttons found:', document.querySelectorAll('.show-feedback-btn').length);
+            console.log('Delete buttons found:', document.querySelectorAll('.delete-draft-btn').length);
+            
             document.querySelectorAll('.show-feedback-btn').forEach((btn, index) => {
-                console.log(`Button ${index + 1} notes:`, btn.getAttribute('data-notes'));
+                console.log(`Feedback button ${index + 1} notes:`, btn.getAttribute('data-notes'));
             });
         });
     </script>
