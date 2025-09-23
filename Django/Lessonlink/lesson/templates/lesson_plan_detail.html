@@ -97,7 +97,7 @@
                 </div>
             </div>
 
-            <!-- Learning Objectives Section -->
+            <!-- Learning Objectives Section - SIMPLIFIED -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 section-card">
                 <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                     <i class="fas fa-bullseye text-green-500 mr-2"></i>
@@ -105,27 +105,9 @@
                 </h2>
                 <div class="bg-gray-50 rounded-lg p-4">
                     {% if lesson_plan.learning_objectives %}
-                        {% if '\n' in lesson_plan.learning_objectives or '*' in lesson_plan.learning_objectives %}
-                            <ul class="space-y-2">
-                                {% for line in lesson_plan.learning_objectives.splitlines %}
-                                    {% if line and line.strip %}  <!-- Fixed: removed .strip() -->
-                                        {% if line.strip|slice:1 == '*' %}  <!-- Fixed: removed .strip() -->
-                                            <li class="flex items-start">
-                                                <i class="fas fa-circle text-xs mt-1 mr-2 text-green-500"></i>
-                                                <span>{{ line.strip|slice:"1:"|strip }}</span>  <!-- Fixed: used filter -->
-                                            </li>
-                                        {% else %}
-                                            <li class="flex items-start">
-                                                <i class="fas fa-circle text-xs mt-1 mr-2 text-green-500"></i>
-                                                <span>{{ line.strip }}</span>  <!-- Fixed: used filter -->
-                                            </li>
-                                        {% endif %}
-                                    {% endif %}
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            <p class="text-gray-700">{{ lesson_plan.learning_objectives|linebreaks }}</p>
-                        {% endif %}
+                        <div class="prose max-w-none">
+                            {{ lesson_plan.learning_objectives|linebreaks }}
+                        </div>
                     {% else %}
                         <p class="text-gray-500 italic">No learning objectives provided.</p>
                     {% endif %}
@@ -149,7 +131,7 @@
                 </div>
             </div>
 
-            <!-- Materials Needed Section -->
+            <!-- Materials Needed Section - SIMPLIFIED -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 section-card">
                 <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                     <i class="fas fa-tools text-yellow-500 mr-2"></i>
@@ -157,27 +139,9 @@
                 </h2>
                 <div class="bg-gray-50 rounded-lg p-4">
                     {% if lesson_plan.materials_needed %}
-                        {% if '\n' in lesson_plan.materials_needed or '*' in lesson_plan.materials_needed %}
-                            <ul class="space-y-2">
-                                {% for line in lesson_plan.materials_needed.splitlines %}
-                                    {% if line and line.strip %}  <!-- Fixed: removed .strip() -->
-                                        {% if line.strip|slice:1 == '*' %}  <!-- Fixed: removed .strip() -->
-                                            <li class="flex items-start">
-                                                <i class="fas fa-check-circle text-xs mt-1 mr-2 text-yellow-500"></i>
-                                                <span>{{ line.strip|slice:"1:"|strip }}</span>  <!-- Fixed: used filter -->
-                                            </li>
-                                        {% else %}
-                                            <li class="flex items-start">
-                                                <i class="fas fa-check-circle text-xs mt-1 mr-2 text-yellow-500"></i>
-                                                <span>{{ line.strip }}</span>  <!-- Fixed: used filter -->
-                                            </li>
-                                        {% endif %}
-                                    {% endif %}
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            <p class="text-gray-700">{{ lesson_plan.materials_needed|linebreaks }}</p>
-                        {% endif %}
+                        <div class="prose max-w-none">
+                            {{ lesson_plan.materials_needed|linebreaks }}
+                        </div>
                     {% else %}
                         <p class="text-gray-500 italic">No materials listed.</p>
                     {% endif %}
