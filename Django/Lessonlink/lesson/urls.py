@@ -9,6 +9,7 @@ from .views import Dep_Dash, Dep_Faculty, Dep_Pending
 from .views import st_dash
 from .views import admin_dashboard
 from django.contrib import admin
+from . import views 
 
 
 # Import the new task API views
@@ -58,7 +59,7 @@ urlpatterns = [
     path('dep_calendar/', dep_calendar, name='dep_calendar'),
     path('dep_template/', dep_template, name='dep_template'),
     path('teach_template/', teach_template, name='teach_template'),
-    path('calendar/', calendar, name='calendar'),
+    path('calendar-view/', calendar, name='calendar'),
     path('st_dash/', st_dash, name='st_dash'),
     path('admin_dashboard/', admin_dashboard, name='admin_dashboard'),
     path('admin_calendar/', admin_calendar, name='admin_calendar'),
@@ -68,6 +69,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('calendar/', include('lessonlinkCalendar.urls')),
 
+    
 
 
     # path('upload-profile-picture/', upload_profile_picture, name='upload_profile_picture'),

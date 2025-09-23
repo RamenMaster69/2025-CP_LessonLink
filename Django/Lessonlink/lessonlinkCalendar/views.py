@@ -10,8 +10,12 @@ from .models import CalendarActivity
 @csrf_exempt
 @require_http_methods(["GET"])
 def get_calendar_activities(request):
-    """Get activities for the current user"""
-    activities = CalendarActivity.objects.filter(user=request.user)
+    """Get activities for the entire department"""
+    # Show activities from all users in the same department and school
+    activities = CalendarActivity.objects.filter(
+        user__department=request.user.department,
+        user__school=request.user.school
+    )
     
     activities_data = []
     for activity in activities:
@@ -20,8 +24,9 @@ def get_calendar_activities(request):
             'title': activity.title,
             'description': activity.description,
             'startDate': activity.start_date.isoformat(),
-            'endDate': activity.end_date.isoformat() if activity.end_date else None,
+            'endDate': activity.end_date.isoformat() if activity.end_date else activity.start_date.isoformat(),
             'category': activity.category,
+            'author': f"{activity.user.first_name} {activity.user.last_name}"  # Add author name
         })
     
     return JsonResponse(activities_data, safe=False)

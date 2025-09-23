@@ -25,7 +25,7 @@ from io import BytesIO
 from django.utils import timezone
 from .models import LessonPlanSubmission
 from lessonGenerator.models import LessonPlan
-
+from django.shortcuts import redirect
 from .models import User, Schedule, Task, TaskNotification, SchoolRegistration
 from .serializers import ScheduleSerializer
 
@@ -813,7 +813,12 @@ def Dep_Faculty(request):
     })
 
 def dep_calendar(request):
-    return render(request, 'dep_calendar.html')
+    user = request.user
+    # Allow both Department Heads and Teachers to access
+    if user.role not in ["Department Head", "Teacher", "Student Teacher"]:
+        messages.error(request, "You are not allowed to access this page.")
+        return redirect('dashboard')
+    return render(request, 'dep_calendar.html', {'user': user})
 
 
 

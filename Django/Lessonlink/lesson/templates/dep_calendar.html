@@ -98,6 +98,19 @@
         .modal-backdrop {
             backdrop-filter: blur(4px);
         }
+
+        .read-only .calendar-day {
+            cursor: default;
+        }
+
+        .read-only .calendar-day:hover {
+            background-color: inherit;
+            border-color: #e5e7eb;
+        }
+
+        .read-only .activity-item {
+            cursor: default;
+        }
     </style>
 </head>
 
@@ -159,12 +172,14 @@
         <aside id="sidebar"
             class="w-64 bg-white shadow-lg h-screen fixed top-16 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30">
             <nav class="p-4 space-y-2">
-                <!-- Quick Actions Button -->
+                <!-- Quick Actions Button (Hidden for Teachers) -->
+                {% if user.role == "Department Head" %}
                 <button id="add-activity-btn"
                     class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
                     <i class="fas fa-plus text-lg"></i>
                     <span class="font-medium">Add Activity</span>
                 </button>
+                {% endif %}
 
                 <!-- Navigation Items -->
                 <a href="{% url 'Dep_Dash' %}"
@@ -177,6 +192,8 @@
                     <i class="fas fa-calendar text-lg w-5"></i>
                     <span class="font-medium">Calendar</span>
                 </a>
+                
+                {% if user.role == "Department Head" %}
                 <a href="{% url 'Dep_Pending' %}"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-clock text-lg w-5 group-hover:text-primary transition-colors"></i>
@@ -187,17 +204,30 @@
                     <i class="fas fa-users text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Faculty</span>
                 </a>
+                {% endif %}
             </nav>
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 md:ml-64 p-6">
+        <main class="flex-1 md:ml-64 p-6 {% if user.role != 'Department Head' %}read-only{% endif %}">
             <!-- Calendar Header -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h2 class="text-2xl font-bold text-gray-900">Academic Calendar</h2>
-                        <p class="text-gray-600">Manage academic activities and events</p>
+                        <h2 class="text-2xl font-bold text-gray-900">
+                            {% if user.role == "Department Head" %}
+                            Academic Calendar
+                            {% else %}
+                            Department Calendar
+                            {% endif %}
+                        </h2>
+                        <p class="text-gray-600">
+                            {% if user.role == "Department Head" %}
+                            Manage academic activities and events
+                            {% else %}
+                            View academic activities and events
+                            {% endif %}
+                        </p>
                     </div>
                     <div class="flex items-center space-x-4">
                         <!-- Month Navigation -->
@@ -213,11 +243,13 @@
                             </button>
                         </div>
                         
-                        <!-- Add Activity Button -->
+                        <!-- Add Activity Button (Hidden for Teachers) -->
+                        {% if user.role == "Department Head" %}
                         <button id="add-activity-btn-header"
                             class="px-4 py-2 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all font-medium shadow-md">
                             <i class="fas fa-plus mr-2"></i>Add Activity
                         </button>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -245,10 +277,12 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-gray-900">Upcoming Activities</h3>
+                    {% if user.role == "Department Head" %}
                     <button id="add-activity-btn-secondary"
                         class="px-4 py-2 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all text-sm font-medium">
                         <i class="fas fa-plus mr-2"></i>Add Activity
                     </button>
+                    {% endif %}
                 </div>
                 <div id="upcoming-activities" class="space-y-3">
                     <!-- Activities will be populated by JavaScript -->
@@ -260,7 +294,8 @@
         <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden"></div>
     </div>
 
-    <!-- Add Activity Modal -->
+    <!-- Add Activity Modal (Only for Department Head) -->
+    {% if user.role == "Department Head" %}
     <div id="add-activity-modal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 hidden">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-xl shadow-2xl w-full max-w-md">
@@ -327,11 +362,13 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
 <script>
     // Calendar functionality - USING DATABASE (User-specific)
     let currentDate = new Date();
     let activities = [];
+    const isDepartmentHead = "{{ user.role }}" === "Department Head";
 
     const categoryColors = {
         academic: '#3b82f6',
@@ -360,8 +397,10 @@
         renderUpcomingActivities();
     }
 
-    // Save activity to database via AJAX
+    // Save activity to database via AJAX (Only for Department Head)
     async function saveActivity(activityData) {
+        if (!isDepartmentHead) return false;
+        
         try {
             const response = await fetch("{% url 'lessonlinkCalendar:add_calendar_activity' %}",  {
                 method: 'POST',
@@ -388,8 +427,10 @@
         }
     }
 
-    // Delete activity from database via AJAX
+    // Delete activity from database via AJAX (Only for Department Head)
     async function deleteActivity(activityId) {
+        if (!isDepartmentHead) return false;
+        
         try {
             const response = await fetch(`{% url 'lessonlinkCalendar:delete_calendar_activity' 0 %}`.replace('0', activityId), {
                 method: 'DELETE',
@@ -429,7 +470,6 @@
         return cookieValue;
     }
 
-    // Keep all your existing rendering functions (they remain the same)
     function renderCalendar() {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
@@ -474,7 +514,8 @@
     
     function createDayElement(day, isOtherMonth, isToday) {
         const dayElement = document.createElement('div');
-        dayElement.className = `calendar-day p-2 cursor-pointer ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}`;
+        const cursorClass = isDepartmentHead ? 'cursor-pointer' : 'cursor-default';
+        dayElement.className = `calendar-day p-2 ${cursorClass} ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}`;
         
         const dateStr = isOtherMonth ? '' : 
             `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -486,7 +527,7 @@
             </div>
         `;
         
-        if (!isOtherMonth) {
+        if (!isOtherMonth && isDepartmentHead) {
             dayElement.addEventListener('click', () => openAddActivityModal(dateStr));
         }
         
@@ -502,7 +543,7 @@
         });
         
         return dayActivities.map(activity => `
-            <div class="group relative text-xs p-1 rounded bg-opacity-20 text-gray-700 hover:bg-opacity-30 transition-all cursor-pointer" 
+            <div class="group relative text-xs p-1 rounded bg-opacity-20 text-gray-700 hover:bg-opacity-30 transition-all ${isDepartmentHead ? 'cursor-pointer' : 'cursor-default'}" 
                  style="background-color: ${categoryColors[activity.category]}20; border-left: 3px solid ${categoryColors[activity.category]}"
                  title="${activity.title}${activity.description ? '\n' + activity.description : ''}">
                 <div class="flex items-center justify-between">
@@ -510,11 +551,13 @@
                         <span class="activity-dot flex-shrink-0" style="background-color: ${categoryColors[activity.category]}"></span>
                         <span class="truncate">${activity.title}</span>
                     </div>
+                    ${isDepartmentHead ? `
                     <button onclick="removeActivity(${activity.id})" 
                         class="opacity-0 group-hover:opacity-100 ml-1 p-0.5 text-red-500 hover:text-red-700 transition-all"
                         title="Remove activity">
                         <i class="fas fa-times text-xs"></i>
                     </button>
+                    ` : ''}
                 </div>
             </div>
         `).join('');
@@ -534,9 +577,11 @@
                 <div class="text-center py-8 text-gray-500">
                     <i class="fas fa-calendar-times text-3xl mb-3"></i>
                     <p>No upcoming activities</p>
+                    ${isDepartmentHead ? `
                     <button onclick="openAddActivityModal()" class="mt-3 text-purple-600 hover:text-purple-700 font-medium">
                         Add your first activity
                     </button>
+                    ` : ''}
                 </div>
             `;
             return;
@@ -558,32 +603,43 @@
                     <div class="text-xs bg-gray-100 px-2 py-1 rounded-full capitalize">
                         ${activity.category}
                     </div>
+                    ${isDepartmentHead ? `
                     <button onclick="removeActivity(${activity.id})" 
                         class="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
                         title="Remove activity">
                         <i class="fas fa-trash text-sm"></i>
                     </button>
+                    ` : ''}
                 </div>
             </div>
         `).join('');
     }
     
     function openAddActivityModal(date = '') {
-        const modal = document.getElementById('add-activity-modal');
-        modal.classList.remove('hidden');
+        if (!isDepartmentHead) return;
         
-        if (date) {
-            document.getElementById('activity-start-date').value = date;
-            document.getElementById('activity-end-date').value = date;
+        const modal = document.getElementById('add-activity-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            
+            if (date) {
+                document.getElementById('activity-start-date').value = date;
+                document.getElementById('activity-end-date').value = date;
+            }
         }
     }
     
     function closeModal() {
-        document.getElementById('add-activity-modal').classList.add('hidden');
-        document.getElementById('activity-form').reset();
+        const modal = document.getElementById('add-activity-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.getElementById('activity-form').reset();
+        }
     }
     
     async function removeActivity(activityId) {
+        if (!isDepartmentHead) return;
+        
         if (confirm('Are you sure you want to remove this activity?')) {
             const success = await deleteActivity(activityId);
             if (success) {
@@ -593,7 +649,7 @@
         }
     }
     
-    // Event listeners
+    // Event listeners (Only for Department Head)
     document.getElementById('prev-month').addEventListener('click', () => {
         currentDate.setMonth(currentDate.getMonth() - 1);
         renderCalendar();
@@ -604,39 +660,60 @@
         renderCalendar();
     });
     
-    document.getElementById('add-activity-btn').addEventListener('click', () => {
-        openAddActivityModal();
-    });
-    
-    document.getElementById('add-activity-btn-secondary').addEventListener('click', () => {
-        openAddActivityModal();
-    });
-    
-    document.getElementById('add-activity-btn-header').addEventListener('click', () => {
-        openAddActivityModal();
-    });
-    
-    document.getElementById('close-modal').addEventListener('click', closeModal);
-    document.getElementById('cancel-activity').addEventListener('click', closeModal);
-    
-    document.getElementById('activity-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const newActivity = {
-            title: document.getElementById('activity-title').value,
-            description: document.getElementById('activity-description').value,
-            startDate: document.getElementById('activity-start-date').value,
-            endDate: document.getElementById('activity-end-date').value || document.getElementById('activity-start-date').value,
-            category: document.getElementById('activity-category').value
-        };
-        
-        const success = await saveActivity(newActivity);
-        if (success) {
-            renderCalendar();
-            renderUpcomingActivities();
-            closeModal();
+    if (isDepartmentHead) {
+        const addActivityBtn = document.getElementById('add-activity-btn');
+        if (addActivityBtn) {
+            addActivityBtn.addEventListener('click', () => {
+                openAddActivityModal();
+            });
         }
-    });
+        
+        const addActivityBtnSecondary = document.getElementById('add-activity-btn-secondary');
+        if (addActivityBtnSecondary) {
+            addActivityBtnSecondary.addEventListener('click', () => {
+                openAddActivityModal();
+            });
+        }
+        
+        const addActivityBtnHeader = document.getElementById('add-activity-btn-header');
+        if (addActivityBtnHeader) {
+            addActivityBtnHeader.addEventListener('click', () => {
+                openAddActivityModal();
+            });
+        }
+        
+        const closeModalBtn = document.getElementById('close-modal');
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', closeModal);
+        }
+        
+        const cancelActivityBtn = document.getElementById('cancel-activity');
+        if (cancelActivityBtn) {
+            cancelActivityBtn.addEventListener('click', closeModal);
+        }
+        
+        const activityForm = document.getElementById('activity-form');
+        if (activityForm) {
+            activityForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const newActivity = {
+                    title: document.getElementById('activity-title').value,
+                    description: document.getElementById('activity-description').value,
+                    startDate: document.getElementById('activity-start-date').value,
+                    endDate: document.getElementById('activity-end-date').value || document.getElementById('activity-start-date').value,
+                    category: document.getElementById('activity-category').value
+                };
+                
+                const success = await saveActivity(newActivity);
+                if (success) {
+                    renderCalendar();
+                    renderUpcomingActivities();
+                    closeModal();
+                }
+            });
+        }
+    }
     
     // Mobile menu toggle
     document.getElementById('mobile-menu-btn').addEventListener('click', () => {
@@ -648,8 +725,14 @@
     });
     
     document.getElementById('overlay').addEventListener('click', () => {
-        document.getElementById('sidebar').classles.add('-translate-x-full');
-        document.getElementById('overlay').classList.add('hidden');
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            sidebar.classList.add('-translate-x-full');
+        }
+        const overlay = document.getElementById('overlay');
+        if (overlay) {
+            overlay.classList.add('hidden');
+        }
     });
     
     // Initialize calendar
