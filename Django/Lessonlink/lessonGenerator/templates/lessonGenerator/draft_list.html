@@ -1,118 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LessonLink - Teacher Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    animation: {
-                        'fade-in': 'fadeIn 0.3s ease-in-out',
-                        'slide-in': 'slideIn 0.3s ease-out',
-                        'scale-in': 'scaleIn 0.2s ease-out'
-                    }
-                }
-            }
-        }
-    </script>
     <style>
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* CRITICAL: PREVENT ANY HIDING - AGGRESSIVE STYLES */
+        header {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 1000 !important;
+            background: white !important;
+            border-bottom: 1px solid #e5e7eb !important;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
         }
 
-        @keyframes slideIn {
-            from {
-                transform: translateX(-100%);
-            }
-
-            to {
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes scaleIn {
-            from {
-                opacity: 0;
-                transform: scale(0.9) translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-
-        .sidebar-transition {
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .dropdown-enter {
-            animation: scaleIn 0.2s ease-out;
-        }
-
-        /* Session Warning Modal */
-        .session-modal {
-            backdrop-filter: blur(8px);
+        #sidebar {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            transform: translateX(0) !important;
         }
         
-        .card-hover {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
+        /* Override any hiding classes */
+        .hidden { display: block !important; opacity: 1 !important; visibility: visible !important; }
+        .-translate-x-full { transform: translateX(0) !important; }
         
-        .card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Status badge colors */
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
         .status-draft { background-color: #f3f4f6; color: #374151; }
         .status-submitted { background-color: #fef3c7; color: #92400e; }
         .status-approved { background-color: #d1fae5; color: #065f46; }
         .status-rejected { background-color: #fee2e2; color: #991b1b; }
         .status-needs_revision { background-color: #ffedd5; color: #9a3412; }
+        
+        /* Dropdown styles */
+        .dropdown-menu { 
+            display: none !important; 
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .dropdown-menu.show { 
+            display: block !important; 
+            opacity: 1 !important;
+        }
     </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen">
-    <!-- Session Warning Modal -->
-    <div id="session-warning-modal" class="fixed inset-0 bg-black bg-opacity-50 session-modal z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl transform transition-all">
-            <div class="text-center">
-                <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-2">Session Timeout Warning</h3>
-                <p class="text-gray-600 mb-6">You've been inactive for a while. Your session will expire in <span id="countdown" class="font-bold text-red-600">60</span> seconds.</p>
-                <div class="flex space-x-4">
-                    <button id="extend-session-btn" class="flex-1 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white px-6 py-3 rounded-lg font-semibold hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all">
-                        Stay Logged In
-                    </button>
-                    <button id="logout-now-btn" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-all">
-                        Logout Now
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Messages Display -->
+    <!-- Messages -->
     {% if messages %}
     <div class="fixed top-20 right-4 z-50 space-y-2 max-w-sm">
         {% for message in messages %}
-        <div class="bg-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300">
+        <div class="bg-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-500 text-white px-6 py-3 rounded-lg shadow-lg">
             <div class="flex items-center justify-between">
                 <span>{{ message }}</span>
                 <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
@@ -124,128 +71,57 @@
     </div>
     {% endif %}
 
-    <!-- Header - Fixed at top -->
-    <header class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-40">
-        <div class="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
-            <!-- Mobile menu button -->
-            <button id="mobile-menu-btn"
-                class="md:hidden p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
-                <i class="fas fa-bars text-lg"></i>
-            </button>
-
+    <!-- Header - FORCE VISIBLE -->
+    <header id="main-header" class="bg-white shadow-sm border-b" style="display: flex !important; position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; z-index: 1000 !important;">
+        <div class="flex items-center justify-between px-6 py-4 w-full">
             <!-- Logo -->
-            <div class="flex items-center space-x-3 flex-1 md:flex-none">
+            <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
-                <div class="hidden sm:block">
+                <div>
                     <h1 class="text-xl font-bold text-gray-900">LessonLink</h1>
-                    <p class="text-sm text-gray-500 hidden lg:block">Western Mindanao State University</p>
+                    <p class="text-sm text-gray-500">Western Mindanao State University</p>
                 </div>
             </div>
 
             <!-- Right side actions -->
-            <div class="flex items-center space-x-2 md:space-x-4">
-                <!-- Session Timer Display -->
-                <div class="hidden md:flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-full">
-                    <i class="fas fa-clock text-gray-500 text-sm"></i>
-                    <span id="session-timer" class="text-sm text-gray-600">5:00</span>
-                </div>
-
+            <div class="flex items-center space-x-4">
                 <!-- Search -->
-                <div class="relative hidden md:block">
-                    <input type="text" placeholder="Search lessons..."
-                        class="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                <div class="relative">
+                    <input type="text" placeholder="Search lessons..." class="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500">
                     <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
 
-                <!-- Mobile search button -->
-                <button class="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                    <i class="fas fa-search text-lg"></i>
-                </button>
-
                 <!-- Notifications -->
                 <div class="relative">
-                    <button id="notification-btn"
-                        class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button id="notification-btn" class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
                         <i class="fas fa-bell text-lg"></i>
-                        <span id="notification-badge"
-                            class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                        <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
                     </button>
-
-                    <!-- Notifications Dropdown -->
-                    <div id="notification-dropdown"
-                        class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
+                    <div id="notification-dropdown" class="dropdown-menu absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
                         <div class="p-4 border-b border-gray-100">
-                            <div class="flex items-center justify-between">
-                                <h3 class="font-semibold text-gray-900">Notifications</h3>
-                                <button class="text-purple-600 text-sm hover:text-purple-700">Mark all read</button>
-                            </div>
+                            <h3 class="font-semibold text-gray-900">Notifications</h3>
                         </div>
-                        <div class="max-h-96 overflow-y-auto">
-                            <div class="p-4 hover:bg-gray-50 border-b border-gray-100">
-                                <div class="flex items-start space-x-3">
-                                    <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                                    <div class="flex-1">
-                                        <p class="text-sm text-gray-900 font-medium">New lesson plan submitted</p>
-                                        <p class="text-xs text-gray-500 mt-1">Grade 3A English lesson ready for review
-                                        </p>
-                                        <p class="text-xs text-gray-400 mt-1">2 minutes ago</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="p-4 hover:bg-gray-50 border-b border-gray-100">
-                                <div class="flex items-start space-x-3">
-                                    <div class="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                                    <div class="flex-1">
-                                        <p class="text-sm text-gray-900 font-medium">Class schedule updated</p>
-                                        <p class="text-xs text-gray-500 mt-1">Grade 2B math class moved to 11:30 AM</p>
-                                        <p class="text-xs text-gray-400 mt-1">1 hour ago</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="p-4 hover:bg-gray-50 border-b border-gray-100">
-                                <div class="flex items-start space-x-3">
-                                    <div class="w-2 h-2 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
-                                    <div class="flex-1">
-                                        <p class="text-sm text-gray-900 font-medium">Assignment reminder</p>
-                                        <p class="text-xs text-gray-500 mt-1">5 students haven't submitted their
-                                            homework</p>
-                                        <p class="text-xs text-gray-400 mt-1">3 hours ago</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-4 border-t border-gray-100">
-                            <button
-                                class="w-full text-center text-purple-600 text-sm hover:text-purple-700 font-medium">
-                                View all notifications
-                            </button>
+                        <div class="p-4">
+                            <p class="text-sm text-gray-600">No new notifications</p>
                         </div>
                     </div>
                 </div>
 
-                
                 <!-- Profile -->
                 <div class="relative">
-                    <button id="profile-btn"
-                        class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                    <button id="profile-btn" class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300">
                         {% if user.profile_picture %}
-                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
-                            class="w-full h-full object-cover">
+                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="w-full h-full object-cover">
                         {% else %}
                         <i class="fas fa-user text-gray-500"></i>
                         {% endif %}
                     </button>
-
-                    <!-- Profile Dropdown -->
-                    <div id="profile-dropdown"
-                        class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
+                    <div id="profile-dropdown" class="dropdown-menu absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
                         <div class="p-4 border-b border-gray-100">
                             <div class="flex items-center space-x-3">
-                                <div
-                                    class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                                <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
                                     {% if user.profile_picture %}
-                                    <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
-                                        class="w-full h-full object-cover">
+                                    <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="w-full h-full object-cover">
                                     {% else %}
                                     <i class="fas fa-user text-white text-lg"></i>
                                     {% endif %}
@@ -257,21 +133,11 @@
                             </div>
                         </div>
                         <div class="py-2">
-                            <a href="{% url 'profile' %}"
-                                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
-                                <i class="fas fa-user w-4"></i>
-                                <span>My Profile</span>
+                            <a href="{% url 'profile' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50">
+                                <i class="fas fa-user w-4"></i><span>My Profile</span>
                             </a>
-                            <a href="#"
-                                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
-                                <i class="fas fa-cog w-4"></i>
-                                <span>Settings</span>
-                            </a>
-                            <hr class="my-2">
-                            <a href="{% url 'logout' %}"
-                                class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
-                                <i class="fas fa-sign-out-alt w-4"></i>
-                                <span>Logout</span>
+                            <a href="{% url 'logout' %}" class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50">
+                                <i class="fas fa-sign-out-alt w-4"></i><span>Logout</span>
                             </a>
                         </div>
                     </div>
@@ -280,59 +146,43 @@
         </div>
     </header>
 
+    <!-- Main Layout -->
     <div class="flex pt-16">
-        <!-- Sidebar - Fixed and sticky -->
-        <aside id="sidebar"
-            class="w-64 bg-white shadow-lg h-[calc(100vh-4rem)] fixed top-16 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-white shadow-lg h-[calc(100vh-4rem)] fixed top-16 left-0 z-30 overflow-y-auto">
             <nav class="p-4 pt-8 space-y-2">
-                <!-- Create Lesson Button (Updated) -->
-                <a href="{% url 'lesson_planner' %}"><button
-                        class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
+                <a href="{% url 'lesson_planner' %}">
+                    <button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] shadow-md">
                         <i class="fas fa-plus text-lg"></i>
                         <span class="font-medium">Create Lesson</span>
-                    </button></a>
+                    </button>
+                </a>
 
-                <!-- Navigation Items (Updated) -->
-                <a href="{% url 'dashboard' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                    <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                    <span>Dashboard</span>
+                <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg">
+                    <i class="fas fa-home text-lg w-5"></i><span>Dashboard</span>
                 </a>
-                <a href="{% url 'draft' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
-                    <i class="fas fa-file-alt text-lg w-5"></i>
-                    <span class="font-medium">Drafts</span>
+                <a href="{% url 'draft' %}" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                    <i class="fas fa-file-alt text-lg w-5"></i><span class="font-medium">Drafts</span>
                 </a>
-                <a href="{% url 'task' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                    <i class="fas fa-tasks text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                    <span>Tasks</span>
+                <a href="{% url 'task' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg">
+                    <i class="fas fa-tasks text-lg w-5"></i><span>Tasks</span>
                 </a>
-                <a href="{% url 'schedule' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                    <i class="fas fa-clock text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                    <span>Schedule</span>
+                <a href="{% url 'schedule' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg">
+                    <i class="fas fa-clock text-lg w-5"></i><span>Schedule</span>
                 </a>
-                <a href="{% url 'calendar' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                    <i class="fas fa-calendar text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                    <span>Calendar</span>
+                <a href="{% url 'calendar' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg">
+                    <i class="fas fa-calendar text-lg w-5"></i><span>Calendar</span>
                 </a>
             </nav>
         </aside>
 
-        <!-- Overlay for mobile -->
-        <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
-
         <!-- Main Content -->
-        <main class="flex-1 md:ml-64 bg-gray-50">
-            <div class="p-4 md:p-6 lg:p-8">
-                <!-- Page Header -->
+        <main class="flex-1 ml-64 bg-gray-50 min-h-screen">
+            <div class="p-8">
                 <div class="mb-6">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Drafts</h1>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Drafts</h1>
                     <p class="text-gray-600">Manage your lesson plan drafts and continue where you left off</p>
                     
-                    <!-- School/Department Info -->
                     {% if user.school and user.department %}
                     <div class="mt-2 text-sm text-gray-500">
                         <i class="fas fa-school mr-1"></i> {{ user.school }} • 
@@ -342,103 +192,38 @@
                 </div>
 
                 {% if drafts %}
-                <!-- Drafts Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {% for draft in drafts %}
-                    <!-- Dynamic Draft Card -->
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden card-hover">
-                        <div class="h-32 bg-gradient-to-br 
-                            {% cycle 'from-blue-100 to-purple-100' 'from-green-100 to-blue-100' 'from-purple-100 to-pink-100' %} 
-                            relative">
+                        <div class="h-32 bg-gradient-to-br from-blue-100 to-purple-100 relative">
                             <div class="absolute top-3 right-3">
-                                <div class="relative">
-                                    <button class="p-2 bg-white/80 rounded-full hover:bg-white transition-colors dropdown-toggle" data-id="{{ draft.id }}">
-                                        <i class="fas fa-ellipsis-h text-gray-600"></i>
-                                    </button>
-                                    <div class="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 hidden dropdown-menu" data-id="{{ draft.id }}">
-                                        <div class="py-1">
-                                            <a href="{% url 'edit_draft' draft.id %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                                <i class="fas fa-edit mr-2"></i>Edit
-                                            </a>
-                                            
-                                            <!-- Submission Logic -->
-                                            {% if draft.status == 'draft' %}
-                                            <form method="post" action="{% url 'submit_lesson_plan' draft.id %}" class="inline-block w-full">
-                                                {% csrf_token %}
-                                                <button type="submit" 
-                                                        class="block w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50"
-                                                        onclick="return confirm('Submit this lesson plan to your Department Head for approval?')">
-                                                    <i class="fas fa-paper-plane mr-2"></i>Submit for Approval
-                                                </button>
-                                            </form>
-                                            {% else %}
-                                                {% with submission=draft.lessonsubmission_set.first %}
-                                                    {% if submission %}
-                                                        {% if submission.status == 'submitted' %}
-                                                        <div class="px-4 py-2 text-sm text-yellow-600">
-                                                            <i class="fas fa-clock mr-2"></i>Pending Review
-                                                        </div>
-                                                        {% elif submission.status == 'needs_revision' %}
-                                                        <a href="{% url 'edit_draft' draft.id %}" class="block px-4 py-2 text-sm text-orange-600 hover:bg-orange-50">
-                                                            <i class="fas fa-edit mr-2"></i>Revise
-                                                        </a>
-                                                        {% elif submission.status == 'approved' %}
-                                                        <div class="px-4 py-2 text-sm text-green-600">
-                                                            <i class="fas fa-check mr-2"></i>Approved
-                                                        </div>
-                                                        {% elif submission.status == 'rejected' %}
-                                                        <div class="px-4 py-2 text-sm text-red-600">
-                                                            <i class="fas fa-times mr-2"></i>Rejected
-                                                        </div>
-                                                        {% endif %}
-                                                    {% endif %}
-                                                {% endwith %}
-                                            {% endif %}
-                                            
-                                            <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 delete-draft" data-id="{{ draft.id }}">
-                                                <i class="fas fa-trash mr-2"></i>Delete
-                                            </a>
-                                        </div>
+                                <button class="dropdown-toggle p-2 bg-white/80 rounded-full hover:bg-white" data-id="{{ draft.id }}">
+                                    <i class="fas fa-ellipsis-h text-gray-600"></i>
+                                </button>
+                                <div class="dropdown-menu absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50" data-id="{{ draft.id }}">
+                                    <div class="py-1">
+                                        <a href="{% url 'edit_draft' draft.id %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            <i class="fas fa-edit mr-2"></i>Edit
+                                        </a>
+                                        {% if draft.status == 'draft' %}
+                                        <form method="post" action="{% url 'submit_lesson_plan' draft.id %}" class="inline-block w-full">
+                                            {% csrf_token %}
+                                            <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50" onclick="return confirm('Submit this lesson plan?')">
+                                                <i class="fas fa-paper-plane mr-2"></i>Submit for Approval
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 delete-draft" data-id="{{ draft.id }}">
+                                            <i class="fas fa-trash mr-2"></i>Delete
+                                        </a>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="p-4">
                             <div class="flex items-center justify-between mb-2">
-                                <!-- Status Badge - Updated Logic -->
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                    {% if draft.status == 'final' %}
-                                        {% with submission=draft.lessonsubmission_set.first %}
-                                            {% if submission.status == 'approved' %}status-approved
-                                            {% elif submission.status == 'rejected' %}status-rejected
-                                            {% elif submission.status == 'needs_revision' %}status-needs_revision
-                                            {% elif submission.status == 'submitted' %}status-submitted
-                                            {% else %}status-draft{% endif %}
-                                        {% endwith %}
-                                    {% else %}status-draft{% endif %}">
-                                    <i class="fas 
-                                        {% if draft.status == 'final' %}
-                                            {% with submission=draft.lessonsubmission_set.first %}
-                                                {% if submission.status == 'approved' %}fa-check
-                                                {% elif submission.status == 'rejected' %}fa-times
-                                                {% elif submission.status == 'needs_revision' %}fa-edit
-                                                {% elif submission.status == 'submitted' %}fa-clock
-                                                {% else %}fa-edit{% endif %}
-                                            {% endwith %}
-                                        {% else %}fa-edit{% endif %}
-                                    mr-1"></i>
-                                    
-                                    {% if draft.status == 'final' %}
-                                        {% with submission=draft.lessonsubmission_set.first %}
-                                            {% if submission %}
-                                                {{ submission.get_status_display }}
-                                            {% else %}
-                                                Final
-                                            {% endif %}
-                                        {% endwith %}
-                                    {% else %}
-                                        Draft
-                                    {% endif %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium status-draft">
+                                    <i class="fas fa-edit mr-1"></i>Draft
                                 </span>
                                 <span class="text-xs text-gray-500">{{ draft.created_at|date:"M d, Y" }}</span>
                             </div>
@@ -451,66 +236,24 @@
                                     <i class="fas fa-users text-xs text-gray-400 ml-2"></i>
                                     <span class="text-xs text-gray-500">{{ draft.population|default:"N/A" }} students</span>
                                 </div>
-                                <a href="{% url 'edit_draft' draft.id %}" class="text-[#11468F] hover:text-[#0d3a7a] transition-colors">
+                                <a href="{% url 'edit_draft' draft.id %}" class="text-[#11468F] hover:text-[#0d3a7a]">
                                     <i class="fas fa-arrow-right"></i>
                                 </a>
                             </div>
-                            
-                            <!-- Submission Info -->
-                            {% if draft.status == 'final' %}
-                                {% with submission=draft.lessonsubmission_set.first %}
-                                    {% if submission %}
-                                    <div class="mt-3 pt-3 border-t border-gray-100">
-                                        <div class="text-xs text-gray-500">
-                                            <i class="fas fa-paper-plane mr-1"></i>
-                                            Submitted to: {{ submission.submitted_to.first_name }}
-                                        </div>
-                                        <div class="text-xs text-gray-500 mt-1">
-                                            <i class="fas fa-calendar mr-1"></i>
-                                            {{ submission.submission_date|date:"M d, Y" }}
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                {% endwith %}
-                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}
                 </div>
                 {% else %}
-                <!-- Empty State (Shown when there are no drafts) -->
                 <div class="text-center py-12">
                     <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <i class="fas fa-file-alt text-3xl text-gray-400"></i>
                     </div>
                     <h3 class="text-lg font-medium text-gray-900 mb-2">No drafts yet</h3>
                     <p class="text-gray-600 mb-6">Start creating your first lesson plan to see your drafts here.</p>
-                    <a href="{% url 'lesson_ai' %}" class="bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white px-6 py-3 rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all inline-block">
+                    <a href="{% url 'lesson_ai' %}" class="bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white px-6 py-3 rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] inline-block">
                         Create Your First Lesson
                     </a>
-                </div>
-                {% endif %}
-
-                <!-- Department Head Info -->
-                {% if user.role == "Teacher" or user.role == "Student Teacher" %}
-                <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div class="flex items-center">
-                        <i class="fas fa-info-circle text-blue-500 text-xl mr-3"></i>
-                        <div>
-                            <h3 class="font-semibold text-blue-900">Submission Information</h3>
-                            <p class="text-sm text-blue-700 mt-1">
-                                Your lesson plans will be submitted to the Department Head of 
-                                <strong>{{ user.department }}</strong> department at <strong>{{ user.school }}</strong>.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Load More Button (Hidden when there are no drafts) -->
-                {% if drafts %}
-                <div class="mt-8 text-center">
-                    <p class="text-gray-500 text-sm mb-4">Showing {{ drafts|length }} draft{{ drafts|length|pluralize }}</p>
                 </div>
                 {% endif %}
             </div>
@@ -518,264 +261,106 @@
     </div>
 
     <script>
-        // Session Management System
-        class SessionManager {
-            constructor() {
-                this.sessionDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
-                this.warningTime = 60 * 1000; // 1 minute warning in milliseconds
-                this.lastActivity = Date.now();
-                this.sessionTimer = null;
-                this.warningTimer = null;
-                this.countdownTimer = null;
-                this.isWarningShown = false;
-                this.countdownSeconds = 60;
-                
-                this.init();
-            }
-
-            init() {
-                // Track user activity
-                this.trackActivity();
-                // Start session monitoring
-                this.startSessionMonitoring();
-                // Update timer display
-                this.updateTimerDisplay();
-            }
-
-            trackActivity() {
-                const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-                
-                events.forEach(event => {
-                    document.addEventListener(event, () => {
-                        this.resetActivity();
-                    }, true);
-                });
-            }
-
-            resetActivity() {
-                this.lastActivity = Date.now();
-                
-                // Hide warning modal if shown
-                if (this.isWarningShown) {
-                    this.hideWarningModal();
-                }
-                
-                // Reset timers
-                this.clearTimers();
-                this.startSessionMonitoring();
-            }
-
-            startSessionMonitoring() {
-                // Set timer for warning (4 minutes)
-                this.warningTimer = setTimeout(() => {
-                    this.showWarningModal();
-                }, this.sessionDuration - this.warningTime);
-
-                // Set timer for automatic logout (5 minutes)
-                this.sessionTimer = setTimeout(() => {
-                    this.logout();
-                }, this.sessionDuration);
-            }
-
-            showWarningModal() {
-                this.isWarningShown = true;
-                this.countdownSeconds = 60;
-                
-                const modal = document.getElementById('session-warning-modal');
-                modal.classList.remove('hidden');
-                
-                // Start countdown
-                this.startCountdown();
-            }
-
-            startCountdown() {
-                const countdownElement = document.getElementById('countdown');
-                countdownElement.textContent = this.countdownSeconds;
-                
-                this.countdownTimer = setInterval(() => {
-                    this.countdownSeconds--;
-                    countdownElement.textContent = this.countdownSeconds;
-                    
-                    if (this.countdownSeconds <= 0) {
-                        clearInterval(this.countdownTimer);
-                        this.logout();
-                    }
-                }, 1000);
-                
-                // Setup button handlers
-                document.getElementById('extend-session-btn').addEventListener('click', () => {
-                    this.resetActivity();
-                });
-                
-                document.getElementById('logout-now-btn').addEventListener('click', () => {
-                    this.logout();
-                });
-            }
-
-            hideWarningModal() {
-                this.isWarningShown = false;
-                const modal = document.getElementById('session-warning-modal');
-                modal.classList.add('hidden');
-            }
-
-            clearTimers() {
-                if (this.sessionTimer) {
-                    clearTimeout(this.sessionTimer);
-                    this.sessionTimer = null;
-                }
-                if (this.warningTimer) {
-                    clearTimeout(this.warningTimer);
-                    this.warningTimer = null;
-                }
-                if (this.countdownTimer) {
-                    clearInterval(this.countdownTimer);
-                    this.countdownTimer = null;
-                }
-            }
-
-            updateTimerDisplay() {
-                const timerElement = document.getElementById('session-timer');
-                if (!timerElement) return;
-                
-                setInterval(() => {
-                    const remainingTime = Math.max(0, this.sessionDuration - (Date.now() - this.lastActivity));
-                    const minutes = Math.floor(remainingTime / 60000);
-                    const seconds = Math.floor((remainingTime % 60000) / 1000);
-                    
-                    timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                }, 1000);
-            }
-
-            logout() {
-                // Clear all timers
-                this.clearTimers();
-                
-                // Redirect to logout URL (Django's default logout view)
-                window.location.href = "{% url 'logout' %}";
-            }
-        }
-
-        // Initialize the session manager when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            const sessionManager = new SessionManager();
+        // HEADER PROTECTION - AGGRESSIVE APPROACH
+        document.addEventListener('DOMContentLoaded', function() {
+            let activeDropdown = null;
             
-            // Mobile menu functionality
-            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-
-            function toggleMobileMenu() {
-                sidebar.classList.toggle('-translate-x-full');
-                overlay.classList.toggle('hidden');
-                document.body.classList.toggle('overflow-hidden');
+            // Function to aggressively protect the header
+            function protectHeader() {
+                const header = document.getElementById('main-header');
+                if (header) {
+                    // Force all possible hiding properties
+                    header.style.display = 'flex';
+                    header.style.visibility = 'visible';
+                    header.style.opacity = '1';
+                    header.style.transform = 'translateY(0)';
+                    header.style.position = 'fixed';
+                    header.style.top = '0';
+                    header.style.left = '0';
+                    header.style.right = '0';
+                    header.style.zIndex = '1000';
+                    header.style.background = 'white';
+                    header.style.borderBottom = '1px solid #e5e7eb';
+                    header.style.boxShadow = '0 1px 3px 0 rgba(0, 0, 0, 0.1)';
+                    
+                    // Remove any hiding classes
+                    header.classList.remove('hidden', '-translate-x-full', 'translate-x-full', '-translate-y-full', 'translate-y-full');
+                }
+                
+                // Also protect sidebar
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar) {
+                    sidebar.style.display = 'block';
+                    sidebar.style.visibility = 'visible';
+                    sidebar.style.opacity = '1';
+                    sidebar.style.transform = 'translateX(0)';
+                    sidebar.classList.remove('hidden', '-translate-x-full');
+                }
             }
 
-            mobileMenuBtn.addEventListener('click', toggleMobileMenu);
-            
-            overlay.addEventListener('click', () => {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
-                document.body.classList.remove('overflow-hidden');
-            });
+            // Run header protection VERY frequently
+            setInterval(protectHeader, 10); // Check every 10ms - maximum protection
+            protectHeader(); // Run immediately
 
-            // Profile dropdown functionality
+            // Dropdown functionality
             const profileBtn = document.getElementById('profile-btn');
             const profileDropdown = document.getElementById('profile-dropdown');
+            
+            if (profileBtn) {
+                profileBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    toggleDropdown(profileDropdown);
+                });
+            }
 
-            profileBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                profileDropdown.classList.toggle('hidden');
-                if (!profileDropdown.classList.contains('hidden')) {
-                    profileDropdown.classList.add('dropdown-enter');
-                    // Close notifications dropdown if open
-                    document.getElementById('notification-dropdown').classList.add('hidden');
-                }
-            });
-
-            // Notification dropdown functionality
             const notificationBtn = document.getElementById('notification-btn');
             const notificationDropdown = document.getElementById('notification-dropdown');
-            const notificationBadge = document.getElementById('notification-badge');
-
-            notificationBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                notificationDropdown.classList.toggle('hidden');
-                if (!notificationDropdown.classList.contains('hidden')) {
-                    notificationDropdown.classList.add('dropdown-enter');
-                    // Hide notification badge when opened
-                    notificationBadge.classList.add('hidden');
-                    // Close profile dropdown if open
-                    profileDropdown.classList.add('hidden');
-                }
-            });
-
-            // Draft card dropdown functionality
-            document.querySelectorAll('.dropdown-toggle').forEach(button => {
-                button.addEventListener('click', (e) => {
+            
+            if (notificationBtn) {
+                notificationBtn.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    const draftId = button.getAttribute('data-id');
-                    const dropdown = document.querySelector(`.dropdown-menu[data-id="${draftId}"]`);
-                    
-                    // Close all other dropdowns
-                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                        if (menu !== dropdown) {
-                            menu.classList.add('hidden');
-                        }
-                    });
-                    
-                    // Toggle current dropdown
-                    dropdown.classList.toggle('hidden');
+                    toggleDropdown(notificationDropdown);
                 });
-            });
+            }
 
-            // Close dropdowns when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
-                    profileDropdown.classList.add('hidden');
-                }
-                if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
-                    notificationDropdown.classList.add('hidden');
-                }
-                
-                // Close all draft dropdowns
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    if (!menu.parentElement.contains(e.target)) {
-                        menu.classList.add('hidden');
+            document.querySelectorAll('.dropdown-toggle').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const draftId = this.getAttribute('data-id');
+                    const dropdown = document.querySelector(`.dropdown-menu[data-id="${draftId}"]`);
+                    if (dropdown) {
+                        toggleDropdown(dropdown);
                     }
                 });
             });
 
-            // Handle window resize
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 768) {
-                    sidebar.classList.remove('-translate-x-full');
-                    overlay.classList.add('hidden');
-                    document.body.classList.remove('overflow-hidden');
-                } else {
-                    sidebar.classList.add('-translate-x-full');
-                    overlay.classList.add('hidden');
-                    document.body.classList.remove('overflow-hidden');
+            function toggleDropdown(dropdown) {
+                if (activeDropdown && activeDropdown !== dropdown) {
+                    activeDropdown.classList.remove('show');
+                }
+                dropdown.classList.toggle('show');
+                activeDropdown = dropdown.classList.contains('show') ? dropdown : null;
+            }
+
+            document.addEventListener('click', function(e) {
+                if (activeDropdown && !activeDropdown.contains(e.target)) {
+                    activeDropdown.classList.remove('show');
+                    activeDropdown = null;
                 }
             });
 
-            // Delete draft functionality
             document.querySelectorAll('.delete-draft').forEach(button => {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
-                    const draftId = this.getAttribute('data-id');
                     if (confirm('Are you sure you want to delete this draft?')) {
-                        // This would typically make an API call to delete the draft
-                        console.log(`Deleting draft with ID: ${draftId}`);
-                        // For now, just reload the page
-                        window.location.reload();
+                        console.log('Deleting draft:', this.getAttribute('data-id'));
                     }
                 });
             });
 
-            // Auto-hide messages after 5 seconds
             setTimeout(() => {
-                document.querySelectorAll('[class*="bg-"]').forEach(message => {
-                    if (message.closest('.fixed')) {
+                document.querySelectorAll('.fixed > div').forEach(message => {
+                    if (message.textContent.includes('{{ message }}')) {
                         message.remove();
                     }
                 });

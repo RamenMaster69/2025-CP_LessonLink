@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Professional Lesson Plan</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
@@ -15,9 +15,12 @@
                         'inter': ['Inter', 'sans-serif'],
                     },
                     colors: {
-                        'primary': '#1e40af',
+                        'primary': '#2563eb',
                         'secondary': '#3b82f6',
                         'accent': '#06b6d4',
+                        'success': '#10b981',
+                        'warning': '#f59e0b',
+                        'purple': '#8b5cf6',
                         'dark': '#1f2937',
                         'light': '#f8fafc'
                     }
@@ -31,172 +34,310 @@
         }
         
         .gradient-header {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #06b6d4 100%);
+            background: linear-gradient(135deg, #1e40af 0%, #2563eb 25%, #3b82f6 50%, #06b6d4 75%, #0891b2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .gradient-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            animation: float 20s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(180deg); }
         }
         
         .card-shadow {
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .card-shadow:hover {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
         }
         
         .divider-line {
             background: linear-gradient(90deg, transparent 0%, #e5e7eb 20%, #e5e7eb 80%, transparent 100%);
-            height: 1px;
+            height: 2px;
+            position: relative;
         }
         
-        @media print {
-            .no-print {
-                display: none !important;
-            }
-            
-            body {
-                font-size: 11pt !important;
-                line-height: 1.4 !important;
-                -webkit-print-color-adjust: exact;
-                color-adjust: exact;
-                margin: 0 !important;
-            }
-            
-            .print-container {
-                max-width: none !important;
-                margin: 0 !important;
-                box-shadow: none !important;
-                border-radius: 0 !important;
-            }
-            
-            .gradient-header {
-                background: #1e40af !important;
-                print-color-adjust: exact;
-                -webkit-print-color-adjust: exact;
-            }
-            
-            .signature-section {
-                page-break-inside: avoid;
-                margin-top: 1.5rem;
-                border-top: 2px solid #374151 !important;
-            }
-            
-            .page-break {
-                page-break-before: always;
-            }
-            
-            h1, h2, h3, h4 {
-                page-break-after: avoid;
-            }
-            
-            .info-grid {
-                display: grid !important;
-                grid-template-columns: 1fr 1fr !important;
-                gap: 1rem !important;
-            }
-            
-            .signature-grid {
-                display: grid !important;
-                grid-template-columns: 1fr 1fr !important;
-                gap: 2rem !important;
-            }
+        .divider-line::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 8px;
+            background: #3b82f6;
+            border-radius: 50%;
         }
         
         .signature-line {
             border-bottom: 2px solid #374151;
-            min-height: 35px;
-            margin-bottom: 6px;
+            min-height: 40px;
+            margin-bottom: 8px;
+            position: relative;
+            transition: border-color 0.3s ease;
+        }
+        
+        .signature-line:hover {
+            border-color: #2563eb;
         }
         
         .info-badge {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border: 1px solid #0ea5e9;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #dbeafe 100%);
+            border: 2px solid #93c5fd;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
         
-        /* Enhanced markdown content styling */
-        .lesson-content h1 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: #1e40af;
+        .info-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+        
+        .info-badge:hover::before {
+            left: 100%;
+        }
+        
+        .info-badge:hover {
+            border-color: #2563eb;
+            transform: translateY(-2px);
+        }
+        
+        .activity-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-left: 5px solid #3b82f6;
+            padding: 1.5rem;
             margin-bottom: 1rem;
-            border-bottom: 3px solid #3b82f6;
-            padding-bottom: 0.5rem;
+            border-radius: 0 12px 12px 0;
+            position: relative;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .activity-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(180deg, #3b82f6, #06b6d4);
+            transition: width 0.3s ease;
+        }
+        
+        .activity-card:hover {
+            transform: translateX(5px);
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.15);
+        }
+        
+        .activity-card:hover::before {
+            width: 8px;
+        }
+        
+        .section-icon {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .section-icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+        
+        .time-badge {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        /* Enhanced navbar styling */
+        .nav-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Smooth animations */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Enhanced lesson content styling */
+        .lesson-content h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1e40af;
+            margin-bottom: 1.5rem;
+            border-bottom: 4px solid #3b82f6;
+            padding-bottom: 0.75rem;
+            position: relative;
+        }
+        
+        .lesson-content h1::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: #06b6d4;
         }
         
         .lesson-content h2 {
-            font-size: 1.4rem;
-            font-weight: 600;
+            font-size: 1.5rem;
+            font-weight: 700;
             color: #1f2937;
-            margin-bottom: 0.75rem;
-            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            margin-top: 2rem;
+            position: relative;
+            padding-left: 1rem;
+        }
+        
+        .lesson-content h2::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #3b82f6, #06b6d4);
         }
         
         .lesson-content h3 {
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             font-weight: 600;
             color: #374151;
-            margin-bottom: 0.5rem;
-            margin-top: 1rem;
+            margin-bottom: 0.75rem;
+            margin-top: 1.25rem;
         }
         
         .lesson-content p {
-            margin-bottom: 1rem;
-            line-height: 1.7;
+            margin-bottom: 1.25rem;
+            line-height: 1.8;
             color: #4b5563;
             text-align: justify;
         }
         
         .lesson-content ul, .lesson-content ol {
-            margin-bottom: 1rem;
-            padding-left: 1.5rem;
+            margin-bottom: 1.25rem;
+            padding-left: 2rem;
             color: #4b5563;
         }
         
         .lesson-content li {
-            margin-bottom: 0.4rem;
-            line-height: 1.6;
+            margin-bottom: 0.5rem;
+            line-height: 1.7;
         }
         
         .lesson-content strong {
-            font-weight: 600;
+            font-weight: 700;
             color: #1f2937;
         }
         
         .lesson-content blockquote {
-            border-left: 4px solid #3b82f6;
-            padding-left: 1rem;
-            margin: 1.5rem 0;
+            border-left: 5px solid #3b82f6;
+            padding-left: 1.5rem;
+            margin: 2rem 0;
             font-style: italic;
             color: #6b7280;
-            background: #f8fafc;
-            padding: 1rem;
-            border-radius: 0 6px 6px 0;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 1.5rem;
+            border-radius: 0 8px 8px 0;
         }
         
-        .activity-card {
-            background: #f8fafc;
-            border-left: 4px solid #3b82f6;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 0 8px 8px 0;
+        /* Enhanced approval section */
+        .approval-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            position: relative;
+        }
+        
+        .approval-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #06b6d4, #10b981);
+        }
+        
+        .signature-box {
+            background: #ffffff;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .signature-box:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Responsive improvements */
+        @media (max-width: 768px) {
+            .gradient-header {
+                padding: 2rem 1rem;
+            }
+            
+            .card-shadow {
+                margin: 1rem;
+                border-radius: 8px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr !important;
+            }
         }
     </style>
 </head>
-<body class="bg-gray-50 font-inter">
-    <!-- Navigation Bar (No Print) -->
-    <nav class="no-print bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+<body class="bg-gradient-to-br from-gray-50 to-blue-50 font-inter min-h-screen">
+    <!-- Enhanced Navigation Bar -->
+    <nav class="nav-gradient shadow-lg sticky top-0 z-50">
         <div class="max-w-6xl mx-auto px-6 py-4">
             <div class="flex justify-between items-center">
-                <button onclick="goBack()" class="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-5 py-2.5 rounded-lg font-medium transition-all duration-200 hover:shadow-md">
+                <button onclick="goBack()" class="flex items-center space-x-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:shadow-lg transform hover:scale-105">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
-                    <span>Back</span>
+                    <span>Back to Dashboard</span>
                 </button>
                 
-                <div class="flex space-x-3">
-                    <a href="/" class="bg-secondary hover:bg-primary text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-md">
-                        Create New
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 hover:shadow-lg transform hover:scale-105">
+                        ✨ Create New Plan
                     </a>
-                    <button onclick="saveAsDraft()" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg font-medium transition-all duration-200 hover:shadow-md">
-                        Save Draft
-                    </button>
-                    <button onclick="printPage()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg font-medium transition-all duration-200 hover:shadow-md">
-                        Print
+                    <button onclick="saveAsDraft()" class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:shadow-lg transform hover:scale-105">
+                        💾 Save Draft
                     </button>
                 </div>
             </div>
@@ -204,114 +345,129 @@
     </nav>
 
     <!-- Main Content Container -->
-    <div class="max-w-5xl mx-auto bg-white card-shadow print-container mt-8 mb-8 rounded-xl overflow-hidden">
-        <!-- Professional Header -->
-        <div class="gradient-header text-white px-8 py-8">
-            <div class="text-center">
-                <h1 class="text-3xl font-bold tracking-wide mb-2">LESSON PLAN</h1>
-                <div class="w-24 h-1 bg-white/30 mx-auto mb-3"></div>
-                <p class="text-blue-100 font-medium">Professional Teaching Document</p>
-                <p class="text-blue-200 text-sm mt-1">Generated on <span id="current-date"></span></p>
+    <div class="max-w-6xl mx-auto bg-white card-shadow mt-8 mb-8 rounded-2xl overflow-hidden fade-in">
+        <!-- Enhanced Professional Header -->
+        <div class="gradient-header text-white px-8 py-12 relative">
+            <div class="text-center relative z-10">
+                <div class="mb-4">
+                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h1 class="text-4xl font-black tracking-wide mb-3">PROFESSIONAL LESSON PLAN</h1>
+                <div class="w-32 h-1 bg-white/40 mx-auto mb-4"></div>
+                <p class="text-blue-100 font-semibold text-lg">Excellence in Educational Planning</p>
+                <p class="text-blue-200 text-sm mt-3 bg-white/10 inline-block px-4 py-2 rounded-full">
+                    📅 Generated on <span id="current-date" class="font-semibold"></span>
+                </p>
             </div>
         </div>
 
         <!-- Lesson Plan Content -->
-        <div class="p-8">
-            <div class="lesson-content space-y-8">
+        <div class="p-8 lg:p-12">
+            <div class="lesson-content space-y-10">
                 {% if lesson_plan %}
                     {{ lesson_plan|markdown }}
                 {% else %}
                     <!-- Enhanced Lesson Information Section -->
-                    <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200">
-                        <h2 class="text-2xl font-bold text-dark mb-6 flex items-center">
-                            <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center mr-3">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-100 rounded-2xl p-8 border-2 border-blue-200 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -translate-y-16 translate-x-16"></div>
+                        <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/20 rounded-full translate-y-12 -translate-x-12"></div>
+                        
+                        <h2 class="text-3xl font-bold text-dark mb-8 flex items-center relative z-10">
+                            <div class="section-icon w-12 h-12 bg-primary rounded-xl flex items-center justify-center mr-4">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                             </div>
-                            Lesson Information
+                            Lesson Overview
                         </h2>
-                        <div class="info-grid grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="info-badge rounded-lg p-4">
-                                <label class="block text-sm font-semibold text-primary mb-2">Subject Area</label>
-                                <p class="text-dark font-semibold text-lg">Mathematics</p>
+                        
+                        <div class="info-grid grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                            <div class="info-badge rounded-xl p-6">
+                                <label class="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Subject Area</label>
+                                <p class="text-dark font-bold text-2xl">Mathematics</p>
                             </div>
-                            <div class="info-badge rounded-lg p-4">
-                                <label class="block text-sm font-semibold text-primary mb-2">Grade Level</label>
-                                <p class="text-dark font-semibold text-lg">Grade 5</p>
+                            <div class="info-badge rounded-xl p-6">
+                                <label class="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Grade Level</label>
+                                <p class="text-dark font-bold text-2xl">Grade 5</p>
                             </div>
-                            <div class="info-badge rounded-lg p-4">
-                                <label class="block text-sm font-semibold text-primary mb-2">Duration</label>
-                                <p class="text-dark font-semibold text-lg">45 minutes</p>
+                            <div class="info-badge rounded-xl p-6">
+                                <label class="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Duration</label>
+                                <p class="text-dark font-bold text-2xl">45 minutes</p>
                             </div>
-                            <div class="info-badge rounded-lg p-4">
-                                <label class="block text-sm font-semibold text-primary mb-2">Lesson Date</label>
-                                <div class="border-b-2 border-primary pb-1 min-h-[28px] bg-white rounded px-2"></div>
+                            <div class="info-badge rounded-xl p-6">
+                                <label class="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Lesson Date</label>
+                                <div class="border-b-3 border-primary pb-2 min-h-[32px] bg-white/50 rounded-lg px-3"></div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="divider-line mb-8"></div>
+                    <div class="divider-line mb-10"></div>
 
-                    <!-- Learning Objectives -->
-                    <div class="mb-8">
-                        <h3 class="text-xl font-bold text-dark mb-4 flex items-center">
-                            <div class="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center mr-3">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <!-- Enhanced Learning Objectives -->
+                    <div class="mb-10">
+                        <h3 class="text-2xl font-bold text-dark mb-6 flex items-center">
+                            <div class="section-icon w-10 h-10 bg-success rounded-xl flex items-center justify-center mr-4">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                             </div>
                             Learning Objectives
                         </h3>
-                        <div class="bg-emerald-50 rounded-lg p-5 border-l-4 border-emerald-500">
-                            <ul class="space-y-3 text-gray-700">
-                                <li class="flex items-start">
-                                    <span class="inline-block w-2 h-2 bg-emerald-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                                    <span>Students will understand the fundamental concept of fractions and their real-world applications</span>
+                        <div class="bg-gradient-to-br from-emerald-50 to-green-100 rounded-2xl p-8 border-l-8 border-emerald-500">
+                            <ul class="space-y-4 text-gray-700">
+                                <li class="flex items-start group">
+                                    <span class="inline-block w-3 h-3 bg-emerald-500 rounded-full mt-2 mr-4 flex-shrink-0 group-hover:scale-125 transition-transform"></span>
+                                    <span class="text-lg leading-relaxed">Students will understand the fundamental concept of fractions and their real-world applications</span>
                                 </li>
-                                <li class="flex items-start">
-                                    <span class="inline-block w-2 h-2 bg-emerald-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                                    <span>Students will be able to identify and create equivalent fractions using visual models</span>
+                                <li class="flex items-start group">
+                                    <span class="inline-block w-3 h-3 bg-emerald-500 rounded-full mt-2 mr-4 flex-shrink-0 group-hover:scale-125 transition-transform"></span>
+                                    <span class="text-lg leading-relaxed">Students will be able to identify and create equivalent fractions using visual models</span>
                                 </li>
-                                <li class="flex items-start">
-                                    <span class="inline-block w-2 h-2 bg-emerald-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                                    <span>Students will solve basic fraction problems with confidence and accuracy</span>
+                                <li class="flex items-start group">
+                                    <span class="inline-block w-3 h-3 bg-emerald-500 rounded-full mt-2 mr-4 flex-shrink-0 group-hover:scale-125 transition-transform"></span>
+                                    <span class="text-lg leading-relaxed">Students will solve basic fraction problems with confidence and accuracy</span>
                                 </li>
                             </ul>
                         </div>
                     </div>
 
-                    <!-- Materials Needed -->
-                    <div class="mb-8">
-                        <h3 class="text-xl font-bold text-dark mb-4 flex items-center">
-                            <div class="w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center mr-3">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <!-- Enhanced Materials Needed -->
+                    <div class="mb-10">
+                        <h3 class="text-2xl font-bold text-dark mb-6 flex items-center">
+                            <div class="section-icon w-10 h-10 bg-warning rounded-xl flex items-center justify-center mr-4">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                                 </svg>
                             </div>
-                            Required Materials
+                            Required Materials & Resources
                         </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="bg-amber-50 rounded-lg p-4 border border-amber-200">
-                                <ul class="space-y-2 text-gray-700">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-gradient-to-br from-amber-50 to-yellow-100 rounded-2xl p-6 border-2 border-amber-200 hover:border-amber-400 transition-colors">
+                                <h4 class="font-bold text-amber-800 mb-4 text-lg">📚 Teaching Materials</h4>
+                                <ul class="space-y-3 text-gray-700">
                                     <li class="flex items-center">
-                                        <span class="w-1.5 h-1.5 bg-amber-500 rounded-full mr-3"></span>
+                                        <span class="w-2 h-2 bg-amber-500 rounded-full mr-4"></span>
                                         Fraction circles and manipulatives
                                     </li>
                                     <li class="flex items-center">
-                                        <span class="w-1.5 h-1.5 bg-amber-500 rounded-full mr-3"></span>
+                                        <span class="w-2 h-2 bg-amber-500 rounded-full mr-4"></span>
                                         Interactive whiteboard and markers
                                     </li>
                                 </ul>
                             </div>
-                            <div class="bg-amber-50 rounded-lg p-4 border border-amber-200">
-                                <ul class="space-y-2 text-gray-700">
+                            <div class="bg-gradient-to-br from-amber-50 to-yellow-100 rounded-2xl p-6 border-2 border-amber-200 hover:border-amber-400 transition-colors">
+                                <h4 class="font-bold text-amber-800 mb-4 text-lg">🎯 Student Resources</h4>
+                                <ul class="space-y-3 text-gray-700">
                                     <li class="flex items-center">
-                                        <span class="w-1.5 h-1.5 bg-amber-500 rounded-full mr-3"></span>
+                                        <span class="w-2 h-2 bg-amber-500 rounded-full mr-4"></span>
                                         Student activity worksheets
                                     </li>
                                     <li class="flex items-center">
-                                        <span class="w-1.5 h-1.5 bg-amber-500 rounded-full mr-3"></span>
+                                        <span class="w-2 h-2 bg-amber-500 rounded-full mr-4"></span>
                                         Calculators (optional support)
                                     </li>
                                 </ul>
@@ -319,247 +475,411 @@
                         </div>
                     </div>
 
-                    <!-- Lesson Activities -->
-                    <div class="mb-8">
-                        <h3 class="text-xl font-bold text-dark mb-4 flex items-center">
-                            <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-3">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <!-- Enhanced Lesson Activities -->
+                    <div class="mb-10">
+                        <h3 class="text-2xl font-bold text-dark mb-6 flex items-center">
+                            <div class="section-icon w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center mr-4">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                                 </svg>
                             </div>
-                            Lesson Activities
+                            Structured Learning Activities
                         </h3>
-                        <div class="space-y-4">
+                        <div class="space-y-6">
                             <div class="activity-card">
-                                <div class="flex items-center justify-between mb-3">
-                                    <h4 class="font-semibold text-dark text-lg">Introduction & Warm-up</h4>
-                                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">10 minutes</span>
+                                <div class="flex items-center justify-between mb-4">
+                                    <h4 class="font-bold text-dark text-xl flex items-center">
+                                        <span class="text-2xl mr-3">🚀</span>
+                                        Introduction & Warm-up
+                                    </h4>
+                                    <span class="time-badge text-white px-4 py-2 rounded-full text-sm font-bold">10 minutes</span>
                                 </div>
-                                <p class="text-gray-700 leading-relaxed">Begin with a review of whole numbers and engage students with visual fraction demonstrations. Use real-world examples like pizza slices to introduce fraction concepts naturally.</p>
+                                <p class="text-gray-700 leading-relaxed text-lg">Begin with a review of whole numbers and engage students with visual fraction demonstrations. Use real-world examples like pizza slices to introduce fraction concepts naturally and create an engaging learning atmosphere.</p>
                             </div>
                             
                             <div class="activity-card">
-                                <div class="flex items-center justify-between mb-3">
-                                    <h4 class="font-semibold text-dark text-lg">Main Learning Activity</h4>
-                                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">25 minutes</span>
+                                <div class="flex items-center justify-between mb-4">
+                                    <h4 class="font-bold text-dark text-xl flex items-center">
+                                        <span class="text-2xl mr-3">🎯</span>
+                                        Main Learning Activity
+                                    </h4>
+                                    <span class="time-badge text-white px-4 py-2 rounded-full text-sm font-bold">25 minutes</span>
                                 </div>
-                                <p class="text-gray-700 leading-relaxed">Interactive hands-on exploration using fraction circles, collaborative group work to discover equivalent fractions, and guided practice with increasing complexity.</p>
+                                <p class="text-gray-700 leading-relaxed text-lg">Interactive hands-on exploration using fraction circles, collaborative group work to discover equivalent fractions, and guided practice with increasing complexity. Students will work in pairs to reinforce understanding through peer learning.</p>
                             </div>
                             
                             <div class="activity-card">
-                                <div class="flex items-center justify-between mb-3">
-                                    <h4 class="font-semibold text-dark text-lg">Conclusion & Assessment</h4>
-                                    <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">10 minutes</span>
+                                <div class="flex items-center justify-between mb-4">
+                                    <h4 class="font-bold text-dark text-xl flex items-center">
+                                        <span class="text-2xl mr-3">✅</span>
+                                        Conclusion & Assessment
+                                    </h4>
+                                    <span class="time-badge text-white px-4 py-2 rounded-full text-sm font-bold">10 minutes</span>
                                 </div>
-                                <p class="text-gray-700 leading-relaxed">Comprehensive review of key concepts, student reflections on learning, and assignment of purposeful homework to reinforce understanding.</p>
+                                <p class="text-gray-700 leading-relaxed text-lg">Comprehensive review of key concepts, student reflections on learning, and assignment of purposeful homework to reinforce understanding. Quick formative assessment to gauge lesson effectiveness.</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Assessment Strategy -->
-                    <div class="mb-8">
-                        <h3 class="text-xl font-bold text-dark mb-4 flex items-center">
-                            <div class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center mr-3">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <!-- Enhanced Assessment Strategy -->
+                    <div class="mb-10">
+                        <h3 class="text-2xl font-bold text-dark mb-6 flex items-center">
+                            <div class="section-icon w-10 h-10 bg-purple rounded-xl flex items-center justify-center mr-4">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                                 </svg>
                             </div>
-                            Assessment & Evaluation
+                            Assessment & Evaluation Strategy
                         </h3>
-                        <div class="bg-purple-50 rounded-lg p-5 border border-purple-200">
-                            <p class="text-gray-700 leading-relaxed"><strong>Formative Assessment:</strong> Continuous observation during collaborative activities, real-time feedback during hands-on manipulation, and targeted questioning to gauge understanding.</p>
-                            <p class="text-gray-700 leading-relaxed mt-3"><strong>Summative Assessment:</strong> Exit ticket featuring three carefully designed fraction problems that assess comprehension at different cognitive levels.</p>
+                        <div class="bg-gradient-to-br from-purple-50 to-indigo-100 rounded-2xl p-8 border-2 border-purple-200">
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h4 class="font-bold text-purple-800 text-lg mb-3 flex items-center">
+                                        <span class="text-xl mr-2">📊</span>
+                                        Formative Assessment
+                                    </h4>
+                                    <p class="text-gray-700 leading-relaxed">Continuous observation during collaborative activities, real-time feedback during hands-on manipulation, and targeted questioning to gauge understanding throughout the lesson.</p>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-purple-800 text-lg mb-3 flex items-center">
+                                        <span class="text-xl mr-2">📝</span>
+                                        Summative Assessment
+                                    </h4>
+                                    <p class="text-gray-700 leading-relaxed">Exit ticket featuring three carefully designed fraction problems that assess comprehension at different cognitive levels, ensuring comprehensive understanding evaluation.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Professional Signature Section -->
-        <div class="signature-section bg-gray-50 p-8 border-t-2 border-gray-300">
-            <div class="text-center mb-8">
-                <h3 class="text-xl font-bold text-dark mb-2">OFFICIAL APPROVAL</h3>
-                <div class="w-16 h-0.5 bg-primary mx-auto"></div>
+        <!-- Enhanced Professional Signature Section -->
+        <div class="approval-section p-8 lg:p-12 border-t-4 border-gray-300 relative">
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-3xl font-bold text-dark mb-3">OFFICIAL APPROVAL</h3>
+                <div class="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto"></div>
+                <p class="text-gray-600 mt-4 text-lg">Required signatures for lesson plan validation</p>
             </div>
             
-            <div class="signature-grid grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Teacher Section -->
-                <div class="bg-white rounded-lg p-6 border border-gray-200">
-                    <h4 class="font-semibold text-primary text-sm mb-4 uppercase tracking-wide">Teacher Approval</h4>
+            <div class="signature-grid grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <!-- Enhanced Teacher Section -->
+                <div class="signature-box rounded-2xl p-8 border-2 border-gray-200">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mr-4">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="font-bold text-primary text-lg uppercase tracking-wide">Teacher Approval</h4>
+                    </div>
                     
-                    <div class="space-y-4">
+                    <div class="space-y-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-600 mb-2">Digital/Physical Signature</label>
-                            <div class="signature-line bg-gray-50 rounded"></div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Digital/Physical Signature</label>
+                            <div class="signature-line bg-gray-50 rounded-lg"></div>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-600 mb-2">Teacher Name</label>
-                            <div class="border-b-2 border-gray-300 pb-2 min-h-[24px] bg-gray-50 rounded-t"></div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Teacher Name</label>
+                            <div class="border-b-3 border-gray-400 pb-3 min-h-[32px] bg-gray-50 rounded-t-lg px-3"></div>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-600 mb-2">Date</label>
-                            <div class="border-b-2 border-gray-300 pb-2 min-h-[24px] bg-gray-50 rounded-t"></div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Date</label>
+                            <div class="border-b-3 border-gray-400 pb-3 min-h-[32px] bg-gray-50 rounded-t-lg px-3"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Principal Section -->
-                <div class="bg-white rounded-lg p-6 border border-gray-200">
-                    <h4 class="font-semibold text-primary text-sm mb-4 uppercase tracking-wide">Administrative Approval</h4>
+                <!-- Enhanced Principal Section -->
+                <div class="signature-box rounded-2xl p-8 border-2 border-gray-200">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mr-4">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                        <h4 class="font-bold text-purple-700 text-lg uppercase tracking-wide">Administrative Approval</h4>
+                    </div>
                     
-                    <div class="space-y-4">
+                    <div class="space-y-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-600 mb-2">Principal Signature</label>
-                            <div class="signature-line bg-gray-50 rounded"></div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Principal Signature</label>
+                            <div class="signature-line bg-gray-50 rounded-lg"></div>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-600 mb-2">Principal Name</label>
-                            <div class="border-b-2 border-gray-300 pb-2 min-h-[24px] bg-gray-50 rounded-t"></div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Principal Name</label>
+                            <div class="border-b-3 border-gray-400 pb-3 min-h-[32px] bg-gray-50 rounded-t-lg px-3"></div>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-600 mb-2">Date</label>
-                            <div class="border-b-2 border-gray-300 pb-2 min-h-[24px] bg-gray-50 rounded-t"></div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Date</label>
+                            <div class="border-b-3 border-gray-400 pb-3 min-h-[32px] bg-gray-50 rounded-t-lg px-3"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Approval Status -->
-            <div class="mt-8 bg-white rounded-lg p-6 border border-gray-200">
-                <h4 class="font-semibold text-dark mb-4">Approval Status</h4>
-                <div class="flex justify-center space-x-12 mb-6">
-                    <label class="flex items-center space-x-3 cursor-pointer">
-                        <input type="checkbox" class="w-5 h-5 text-emerald-600 border-2 border-gray-300 rounded focus:ring-emerald-500">
-                        <span class="font-medium text-emerald-700 text-lg">✓ APPROVED</span>
+            <!-- Enhanced Approval Status -->
+            <div class="mt-12 bg-white rounded-2xl p-8 border-2 border-gray-200 shadow-lg">
+                <div class="flex items-center justify-center mb-6">
+                    <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                    </div>
+                    <h4 class="font-bold text-dark text-xl">Approval Status</h4>
+                </div>
+                
+                <div class="flex justify-center space-x-16 mb-8">
+                    <label class="flex items-center space-x-4 cursor-pointer group">
+                        <input type="checkbox" class="w-6 h-6 text-emerald-600 border-3 border-gray-300 rounded-lg focus:ring-emerald-500 transition-all group-hover:border-emerald-400">
+                        <span class="font-bold text-emerald-700 text-xl group-hover:text-emerald-800 transition-colors flex items-center">
+                            <span class="text-2xl mr-2">✅</span>
+                            APPROVED
+                        </span>
                     </label>
-                    <label class="flex items-center space-x-3 cursor-pointer">
-                        <input type="checkbox" class="w-5 h-5 text-amber-600 border-2 border-gray-300 rounded focus:ring-amber-500">
-                        <span class="font-medium text-amber-700 text-lg">⚠ NEEDS REVISION</span>
+                    <label class="flex items-center space-x-4 cursor-pointer group">
+                        <input type="checkbox" class="w-6 h-6 text-amber-600 border-3 border-gray-300 rounded-lg focus:ring-amber-500 transition-all group-hover:border-amber-400">
+                        <span class="font-bold text-amber-700 text-xl group-hover:text-amber-800 transition-colors flex items-center">
+                            <span class="text-2xl mr-2">⚠️</span>
+                            NEEDS REVISION
+                        </span>
                     </label>
                 </div>
 
                 <!-- Enhanced Comments Section -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-3">Administrative Comments & Suggestions</label>
-                    <div class="min-h-[100px] border-2 border-gray-300 rounded-lg p-4 bg-gray-50 focus-within:border-primary focus-within:bg-white transition-colors">
-                        <!-- Space for handwritten or typed comments -->
+                    <label class="block text-lg font-bold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                        Administrative Comments & Suggestions
+                    </label>
+                    <div class="min-h-[120px] border-3 border-gray-300 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white focus-within:border-blue-400 focus-within:bg-white transition-all shadow-inner">
+                        <div class="text-gray-400 text-sm">
+                            Space for detailed feedback, suggestions, and administrative notes...
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Professional Footer -->
-        <div class="bg-dark text-white px-8 py-6 text-center">
-            <div class="text-sm opacity-90">
-                <p class="font-medium">📋 This document requires official signatures from both Teacher and Principal for validation</p>
-                <p class="mt-2 text-xs opacity-75">Generated by Professional Lesson Plan System • <span id="footer-date"></span></p>
+        <!-- Enhanced Professional Footer -->
+        <div class="bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white px-8 py-8 text-center relative overflow-hidden">
+            <div class="absolute inset-0 opacity-10">
+                <div class="absolute top-0 left-1/4 w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                <div class="absolute bottom-0 right-1/3 w-1 h-1 bg-white rounded-full animate-pulse" style="animation-delay: 1s;"></div>
+                <div class="absolute top-1/2 right-1/4 w-1.5 h-1.5 bg-white rounded-full animate-pulse" style="animation-delay: 2s;"></div>
+            </div>
+            
+            <div class="relative z-10">
+                <div class="flex items-center justify-center mb-4">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <p class="font-bold text-lg">Official Educational Document</p>
+                </div>
+                
+                <p class="text-blue-200 mb-2">📋 This document requires official signatures from both Teacher and Principal for validation</p>
+                <div class="w-24 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto my-4"></div>
+                <p class="text-xs text-gray-400">
+                    Generated by Professional Lesson Plan System • 
+                    <span id="footer-date" class="font-medium"></span> • 
+                    Excellence in Education
+                </p>
             </div>
         </div>
     </div>
 
-<script>
-    // Enhanced functionality
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    // Set current dates
-    const currentDate = new Date().toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-    
-    document.getElementById('current-date').textContent = currentDate;
-    document.getElementById('footer-date').textContent = currentDate;
-
-    // Enhanced print function
-    function printPage() {
-        // Add print-specific styling
-        const printStyles = `
-            <style>
-                @media print {
-                    body { font-size: 10pt !important; }
-                    .signature-line { border-bottom: 1px solid #000 !important; }
-                    .info-badge { border: 1px solid #000 !important; }
-                }
-            </style>
-        `;
-        document.head.insertAdjacentHTML('beforeend', printStyles);
-        
-        window.print();
-    }
-
-    function goBack() {
-        if (window.history.length > 1) {
-            window.history.back();
-        } else {
-            window.location.href = '/';
-        }
-    }
-
-    function saveAsDraft() {
-        // Show loading state
-        const button = event.target;
-        const originalText = button.textContent;
-        button.textContent = 'Saving...';
-        button.disabled = true;
-
-        fetch('/save-lesson-plan/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken'),
-            },
-            body: JSON.stringify({})
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Show success message with better styling
-                const successMsg = document.createElement('div');
-                successMsg.className = 'fixed top-4 right-4 bg-emerald-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-                successMsg.innerHTML = '✓ Lesson plan saved successfully!';
-                document.body.appendChild(successMsg);
-                
-                setTimeout(() => {
-                    successMsg.remove();
-                    if (data.draft_id) {
-                        window.location.href = `/drafts/${data.draft_id}/edit/`;
+    <script>
+        // Enhanced functionality with better UX
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
                     }
-                }, 2000);
-            } else {
-                alert('Error: ' + data.error);
+                }
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while saving the draft.');
-        })
-        .finally(() => {
-            button.textContent = originalText;
-            button.disabled = false;
-        });
-    }
+            return cookieValue;
+        }
 
-    // Add smooth scroll behavior
-    document.documentElement.style.scrollBehavior = 'smooth';
-</script>
+        // Set current dates with enhanced formatting
+        const currentDate = new Date().toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        document.getElementById('current-date').textContent = currentDate;
+        document.getElementById('footer-date').textContent = currentDate;
+
+        // Enhanced back navigation
+        function goBack() {
+            // Add smooth transition effect
+            document.body.style.transition = 'opacity 0.3s ease-out';
+            document.body.style.opacity = '0.7';
+            
+            setTimeout(() => {
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = '/';
+                }
+            }, 150);
+        }
+
+        // Enhanced save functionality with better user feedback
+        function saveAsDraft() {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            
+            // Enhanced loading state
+            button.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Saving...';
+            button.disabled = true;
+            button.classList.add('opacity-75');
+
+            fetch('/save-lesson-plan/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Enhanced success notification
+                    const successMsg = document.createElement('div');
+                    successMsg.className = 'fixed top-6 right-6 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500';
+                    successMsg.innerHTML = `
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div>
+                                <p class="font-bold">Success!</p>
+                                <p class="text-sm text-green-100">Lesson plan saved successfully</p>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(successMsg);
+                    
+                    // Animate in
+                    setTimeout(() => successMsg.classList.remove('translate-x-full'), 100);
+                    
+                    // Animate out and redirect
+                    setTimeout(() => {
+                        successMsg.classList.add('translate-x-full');
+                        setTimeout(() => {
+                            successMsg.remove();
+                            if (data.draft_id) {
+                                window.location.href = `/drafts/${data.draft_id}/edit/`;
+                            }
+                        }, 500);
+                    }, 2500);
+                } else {
+                    showErrorMessage('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorMessage('An error occurred while saving the draft.');
+            })
+            .finally(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+                button.classList.remove('opacity-75');
+            });
+        }
+
+        // Enhanced error message function
+        function showErrorMessage(message) {
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'fixed top-6 right-6 bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500';
+            errorMsg.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div>
+                        <p class="font-bold">Error</p>
+                        <p class="text-sm text-red-100">${message}</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(errorMsg);
+            
+            setTimeout(() => errorMsg.classList.remove('translate-x-full'), 100);
+            setTimeout(() => {
+                errorMsg.classList.add('translate-x-full');
+                setTimeout(() => errorMsg.remove(), 500);
+            }, 4000);
+        }
+
+        // Add enhanced smooth scroll behavior and interactions
+        document.documentElement.style.scrollBehavior = 'smooth';
+
+        // Add hover effects to interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add subtle animations to cards on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all major sections
+            document.querySelectorAll('.activity-card, .info-badge, .signature-box').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(el);
+            });
+
+            // Add click ripple effect to buttons
+            document.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const ripple = document.createElement('span');
+                    const rect = button.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+                    
+                    ripple.style.width = ripple.style.height = size + 'px';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.className = 'absolute bg-white/30 rounded-full animate-ping pointer-events-none';
+                    
+                    button.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+        });
+    </script>
 </body>
 </html>
