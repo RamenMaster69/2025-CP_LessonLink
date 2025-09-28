@@ -866,7 +866,7 @@
                 
                 if (data.success) {
                     // Redirect to results page with the lesson plan
-                    window.location.href = `/lesson-plan-result/?plan=${encodeURIComponent(data.lesson_plan)}`;
+                    window.location.href = `/lesson-plan-result/`;
                 } else {
                     alert('Error: ' + data.error);
                 }

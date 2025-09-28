@@ -15,7 +15,7 @@ from .ai_instructions import LESSON_PLANNER_SYSTEM_INSTRUCTION
 # Configure the Gemini API
 try:
     genai.configure(api_key=settings.GEMINI_API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash')
 except Exception as e:
     print(f"Gemini configuration error: {e}")
     model = None
