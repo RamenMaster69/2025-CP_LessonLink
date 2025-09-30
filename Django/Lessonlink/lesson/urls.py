@@ -66,6 +66,8 @@ urlpatterns = [
     path('submit-lesson-plan/<int:lesson_plan_id>/', views.submit_lesson_plan, name='submit_lesson_plan'),
     path('review-lesson-plan/<int:submission_id>/', views.review_lesson_plan, name='review_lesson_plan'),
     path('lesson-plan-detail/<int:submission_id>/', views.lesson_plan_detail, name='lesson_plan_detail'),
+    path('faculty-management/', views.admin_dep_faculty_management, name='admin_faculty_management'),
+    
     
 
     

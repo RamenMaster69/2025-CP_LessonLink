@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LessonLink - Faculty Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#1E40AF',
+                        accent: '#F59E0B',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-transition {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .dropdown-enter {
+            animation: scaleIn 0.2s ease-out;
+        }
+        
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            
+            body * {
+                visibility: hidden;
+            }
+            
+            #printable-section,
+            #printable-section * {
+                visibility: visible;
+            }
+            
+            #printable-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white;
+            }
+            
+            .print-header {
+                text-align: center;
+                margin-bottom: 20px;
+                border-bottom: 2px solid #000;
+                padding-bottom: 15px;
+            }
+            
+            .print-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+                font-size: 11px;
+            }
+            
+            .print-table th,
+            .print-table td {
+                border: 1px solid #000;
+                padding: 6px 4px;
+                text-align: left;
+            }
+            
+            .print-table th {
+                background-color: #f0f0f0 !important;
+                font-weight: bold;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white/70 backdrop-blur-xl border-b border-white/20 fixed top-0 left-0 right-0 z-40 shadow-lg">
+        <div class="flex items-center justify-between px-6 py-4">
+            <button id="mobile-menu-btn" class="md:hidden p-3 text-purple-600 hover:bg-purple-50 rounded-xl transition-all duration-300">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <div class="flex items-center space-x-4">
+                <div class="w-10 h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-xl shadow-lg flex items-center justify-center">
+                    <i class="fas fa-graduation-cap text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-[#11468F] to-[#9E5EFF] bg-clip-text text-transparent">LessonLink</h1>
+                    <p class="text-xs text-gray-500 hidden lg:block font-medium">Western Mindanao State University</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <div class="relative hidden md:block">
+                    <input type="text" id="header-search" placeholder="Search faculty..." 
+                        class="w-64 px-5 py-3 bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all">
+                    <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+
+                <div class="relative">
+                    <button id="notification-btn" class="relative p-3 text-gray-600 hover:bg-gray-100 rounded-xl transition-all">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                            <span class="text-white text-xs font-bold">3</span>
+                        </span>
+                    </button>
+                </div>
+
+                <div class="relative">
+                    <button id="profile-btn" class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center hover:shadow-lg transition-all">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex pt-16">
+        <!-- Sidebar -->
+<aside id="sidebar" class="w-72 bg-white/70 backdrop-blur-xl shadow-lg h-screen fixed top-16 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 border-r border-gray-200/50">
+    <nav class="p-6 space-y-3">
+        <button class="w-full flex items-center space-x-4 px-6 py-4 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-xl hover:shadow-lg font-semibold transition-all">
+            <i class="fas fa-plus text-lg"></i>
+            <span>Create New Lesson</span>
+        </button>
+
+        <!-- FIXED: Connect Dashboard to admin_dashboard.html -->
+        <a href="{% url 'admin_dashboard' %}" class="flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all">
+            <i class="fas fa-home w-5 text-lg"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <!-- FIXED: Current page - Faculty Management -->
+        <a href="{% url 'admin_faculty_management' %}" class="flex items-center space-x-4 px-6 py-4 text-[#11468F] bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl font-semibold border border-blue-200">
+            <i class="fas fa-chalkboard-teacher w-5 text-lg"></i>
+            <span>Faculty and Department Management</span>
+        </a>
+
+        <!-- FIXED: Connect Calendar to admin_calendar.html -->
+        <a href="{% url 'admin_calendar' %}" class="flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all">
+            <i class="fas fa-calendar-alt w-5 text-lg"></i>
+            <span>Calendar</span>
+        </a>
+
+        <a href="#" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
+                    <i class="fas fa-tasks w-5 text-lg"></i>
+                    <span>Tasks</span>
+        </a>
+    </nav>
+</aside>
+
+        <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden backdrop-blur-sm"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8 md:ml-72">
+            
+            <!-- Page Header -->
+<div class="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 rounded-2xl p-8 text-white mb-8 shadow-lg">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-3xl font-bold mb-3">Faculty Management</h2>
+            <p class="text-xl opacity-90 mb-2">Manage department heads and teachers for {{ user_school }}</p>
+            <p class="text-sm opacity-80">Showing faculty from your assigned school only</p>
+        </div>
+        <div class="hidden lg:block">
+            <div class="w-32 h-32 bg-white/10 rounded-full flex items-center justify-center">
+                <i class="fas fa-users text-6xl text-white/80"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-lg hover:shadow-xl transition-all">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm text-gray-600 font-semibold mb-1">Total Faculty</h3>
+                            <p class="text-3xl font-bold text-gray-900 mb-2">{{ total_faculty }}</p>
+                            <p class="text-xs text-gray-500">All departments</p>
+                        </div>
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center">
+                            <i class="fas fa-users text-2xl text-blue-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-lg hover:shadow-xl transition-all">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm text-gray-600 font-semibold mb-1">Department Heads</h3>
+                            <p class="text-3xl font-bold text-gray-900 mb-2">{{ dept_heads }}</p>
+                            <p class="text-xs text-gray-500">Active heads</p>
+                        </div>
+                        <div class="w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center">
+                            <i class="fas fa-user-tie text-2xl text-purple-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-lg hover:shadow-xl transition-all">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm text-gray-600 font-semibold mb-1">Teachers</h3>
+                            <p class="text-3xl font-bold text-gray-900 mb-2">{{ teachers }}</p>
+                            <p class="text-xs text-gray-500">Active teachers</p>
+                        </div>
+                        <div class="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center">
+                            <i class="fas fa-chalkboard-teacher text-2xl text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-lg hover:shadow-xl transition-all">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm text-gray-600 font-semibold mb-1">Departments</h3>
+                            <p class="text-3xl font-bold text-gray-900 mb-2">{{ unique_departments }}</p>
+                            <p class="text-xs text-gray-500">Active departments</p>
+                        </div>
+                        <div class="w-16 h-16 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-2xl flex items-center justify-center">
+                            <i class="fas fa-building text-2xl text-yellow-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Faculty Table -->
+            <div class="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <h2 class="text-xl font-bold text-gray-800">All Faculty Members</h2>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <!-- Role Filter -->
+                            <select id="role-filter" class="px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white">
+                                <option value="all">All Roles</option>
+                                <option value="Department Head">Department Heads</option>
+                                <option value="Teacher">Teachers</option>
+                            </select>
+
+                            <!-- Department Filter -->
+                            <select id="dept-filter" class="px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white">
+                                <option value="all">All Departments</option>
+                                {% for dept in departments %}
+                                <option value="{{ dept }}">{{ dept }}</option>
+                                {% endfor %}
+                            </select>
+
+                            <button id="print-btn" class="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all">
+                                <i class="fas fa-print"></i>
+                                <span>Print</span>
+                            </button>
+
+                            <button id="export-btn" class="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-xl hover:shadow-lg transition-all">
+                                <i class="fas fa-download"></i>
+                                <span>Export</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full" id="faculty-table">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject/Specialization</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider no-print">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="faculty-tbody">
+                            {% for faculty in faculty_members %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center no-print">
+                                            <span class="text-white font-semibold text-sm">
+                                                {{ faculty.first_name|first }}{{ faculty.last_name|first }}
+                                            </span>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm font-medium text-gray-900">{{ faculty.full_name }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-sm text-gray-900 font-medium">{{ faculty.department }}</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                                        {% if faculty.role == 'Department Head' %}bg-purple-100 text-purple-800
+                                        {% elif faculty.role == 'Teacher' %}bg-blue-100 text-blue-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ faculty.role }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-sm text-gray-700">
+                                        {% if faculty.role == 'Department Head' %}
+                                            {{ faculty.department }} Department Head
+                                        {% else %}
+                                            {{ faculty.department }}
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        {% if faculty.is_active %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-sm text-gray-600">{{ faculty.email }}</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
+                                    <button class="text-blue-600 hover:text-blue-800 mr-3" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="text-gray-600 hover:text-gray-800" title="More Options">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
+                                    No faculty members found.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="no-results" class="hidden px-6 py-12 text-center">
+                    <i class="fas fa-search text-4xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500 text-lg">No faculty members found matching your filters</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Print Section -->
+    <div id="printable-section" style="display: none;">
+        <div class="print-header">
+            <h1>LessonLink - Faculty Management</h1>
+            <h2>Western Mindanao State University</h2>
+            <p>Complete Faculty Report</p>
+        </div>
+        
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Role</th>
+                    <th>Subject</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="print-table-body">
+                {% for faculty in faculty_members %}
+                <tr>
+                    <td>{{ faculty.full_name }}</td>
+                    <td>{{ faculty.department }}</td>
+                    <td>{{ faculty.role }}</td>
+                    <td>{% if faculty.role == 'Department Head' %}{{ faculty.department }} Department Head{% else %}{{ faculty.department }}{% endif %}</td>
+                    <td>{{ faculty.email }}</td>
+                    <td>{% if faculty.is_active %}Active{% else %}Inactive{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div style="margin-top: 30px; text-align: center; font-size: 11px; border-top: 1px solid #000; padding-top: 10px;">
+            <p>Generated on: <span id="print-date"></span></p>
+        </div>
+    </div>
+
+    <script>
+        // Real faculty data from Django for JavaScript functionality
+        const facultyData = [
+            {% for faculty in faculty_members %}
+            {
+                name: "{{ faculty.full_name }}",
+                dept: "{{ faculty.department }}",
+                role: "{{ faculty.role }}",
+                subject: "{% if faculty.role == 'Department Head' %}{{ faculty.department }} Department Head{% else %}{{ faculty.department }}{% endif %}",
+                email: "{{ faculty.email }}",
+                status: "{% if faculty.is_active %}Active{% else %}Inactive{% endif %}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        let filteredData = [...facultyData];
+
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('');
+        }
+
+        function getRoleBadgeClass(role) {
+            const classes = {
+                'Department Head': 'bg-purple-100 text-purple-800',
+                'Teacher': 'bg-blue-100 text-blue-800',
+                'Student Teacher': 'bg-pink-100 text-pink-800'
+            };
+            return classes[role] || 'bg-gray-100 text-gray-800';
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('faculty-tbody');
+            const noResults = document.getElementById('no-results');
+            
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '';
+                noResults.classList.remove('hidden');
+                return;
+            }
+            
+            noResults.classList.add('hidden');
+            tbody.innerHTML = filteredData.map(faculty => `
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center no-print">
+                                <span class="text-white font-semibold text-sm">${getInitials(faculty.name)}</span>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-900">${faculty.name}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-sm text-gray-900 font-medium">${faculty.dept}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeClass(faculty.role)}">
+                            ${faculty.role}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-sm text-gray-700">${faculty.subject}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                            ${faculty.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-sm text-gray-600">${faculty.email}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
+                        <button class="text-blue-600 hover:text-blue-800 mr-3" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="text-gray-600 hover:text-gray-800" title="More Options">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('total-faculty').textContent = filteredData.length;
+            document.getElementById('dept-heads').textContent = filteredData.filter(f => f.role === 'Department Head').length;
+            document.getElementById('teachers').textContent = filteredData.filter(f => f.role === 'Teacher').length;
+            
+            const uniqueDepts = new Set(filteredData.map(f => f.dept));
+            document.getElementById('departments').textContent = uniqueDepts.size;
+        }
+
+        function applyFilters() {
+            const roleFilter = document.getElementById('role-filter').value;
+            const deptFilter = document.getElementById('dept-filter').value;
+            const searchTerm = document.getElementById('header-search').value.toLowerCase();
+
+            filteredData = facultyData.filter(faculty => {
+                const matchesRole = roleFilter === 'all' || faculty.role === roleFilter;
+                const matchesDept = deptFilter === 'all' || faculty.dept === deptFilter;
+                const matchesSearch = faculty.name.toLowerCase().includes(searchTerm) || 
+                                    faculty.email.toLowerCase().includes(searchTerm) ||
+                                    faculty.subject.toLowerCase().includes(searchTerm);
+                return matchesRole && matchesDept && matchesSearch;
+            });
+
+            renderTable();
+        }
+
+        // Event listeners
+        document.getElementById('role-filter').addEventListener('change', applyFilters);
+        document.getElementById('dept-filter').addEventListener('change', applyFilters);
+        document.getElementById('header-search').addEventListener('input', applyFilters);
+
+        // Mobile menu
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        });
+
+        // Print functionality
+        document.getElementById('print-btn').addEventListener('click', () => {
+            const printTableBody = document.getElementById('print-table-body');
+            const printDate = document.getElementById('print-date');
+            
+            printDate.textContent = new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            printTableBody.innerHTML = filteredData.map(faculty => `
+                <tr>
+                    <td>${faculty.name}</td>
+                    <td>${faculty.dept}</td>
+                    <td>${faculty.role}</td>
+                    <td>${faculty.subject}</td>
+                    <td>${faculty.email}</td>
+                    <td>${faculty.status}</td>
+                </tr>
+            `).join('');
+            
+            document.getElementById('printable-section').style.display = 'block';
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    document.getElementById('printable-section').style.display = 'none';
+                }, 100);
+            }, 100);
+        });
+
+        // Export functionality
+        document.getElementById('export-btn').addEventListener('click', () => {
+            const csv = [
+                ['Name', 'Department', 'Role', 'Subject', 'Email', 'Status'],
+                ...filteredData.map(f => [f.name, f.dept, f.role, f.subject, f.email, f.status])
+            ].map(row => row.join(',')).join('\n');
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'faculty_report.csv';
+            a.click();
+        });
+
+        // Initialize
+        renderTable();
+    </script>
+</body>
+</html>

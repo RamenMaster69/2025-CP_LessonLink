@@ -28,6 +28,8 @@ from lessonGenerator.models import LessonPlan
 from django.shortcuts import redirect
 from .models import User, Schedule, Task, TaskNotification, SchoolRegistration
 from .serializers import ScheduleSerializer
+from django.db.models import Q
+
 
 logger = logging.getLogger(__name__)
 
@@ -413,6 +415,92 @@ def registration_3(request):
         return redirect('registration_4')
 
     return render(request, 'registration/registration_3.html')
+
+@login_required
+def admin_dep_faculty_management(request):
+    """Admin faculty management view - shows Teachers and Department Heads from user's school"""
+    user = request.user
+    
+    # Only allow admin users or department heads
+    if not user.is_superuser and user.role != "Department Head":
+        messages.error(request, "You are not authorized to access this page.")
+        return redirect('dashboard')
+    
+    # Get ONLY Teachers and Department Heads from USER'S SCHOOL
+    faculty_members = User.objects.filter(
+        is_active=True,
+        role__in=['Department Head', 'Teacher'],
+        school=user.school  # ← FILTER BY USER'S SCHOOL
+    ).select_related('school').order_by('department', 'last_name')
+    
+    print(f"DEBUG: Found {faculty_members.count()} faculty members from {user.school}")
+    
+    # Get unique departments from USER'S SCHOOL
+    departments = User.objects.filter(
+        is_active=True,
+        department__isnull=False,
+        school=user.school  # ← FILTER BY USER'S SCHOOL
+    ).exclude(department='').values_list('department', flat=True).distinct().order_by('department')
+    
+    # Apply filters
+    role_filter = request.GET.get('role', 'all')
+    dept_filter = request.GET.get('department', 'all')
+    search_query = request.GET.get('search', '')
+    
+    if role_filter != 'all':
+        faculty_members = faculty_members.filter(role=role_filter)
+    
+    if dept_filter != 'all':
+        faculty_members = faculty_members.filter(department=dept_filter)
+    
+    if search_query:
+        faculty_members = faculty_members.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(department__icontains=search_query)
+        )
+    
+    # Calculate statistics
+    total_faculty = faculty_members.count()
+    dept_heads = faculty_members.filter(role='Department Head').count()
+    teachers = faculty_members.filter(role='Teacher').count()
+    unique_departments = faculty_members.values_list('department', flat=True).distinct().count()
+    
+    # Prepare data for JavaScript
+    faculty_data = []
+    for faculty in faculty_members:
+        if faculty.role == 'Department Head':
+            subject = f"{faculty.department} Department Head"
+        else:
+            subject = faculty.department
+        
+        faculty_data.append({
+            'name': faculty.full_name,
+            'dept': faculty.department,
+            'role': faculty.role,
+            'subject': subject,
+            'email': faculty.email,
+            'status': 'Active' if faculty.is_active else 'Inactive',
+            'school': faculty.school.school_name if faculty.school else 'Not assigned'
+        })
+    
+    print(f"DEBUG: faculty_data has {len(faculty_data)} items from {user.school}")
+    
+    context = {
+        'user': user,
+        'faculty_members': faculty_members,
+        'faculty_data_json': json.dumps(faculty_data),
+        'departments': departments,
+        'total_faculty': total_faculty,
+        'dept_heads': dept_heads,
+        'teachers': teachers,
+        'unique_departments': unique_departments,
+        'user_school': user.school.school_name if user.school else 'No School Assigned',  # Add school info
+    }
+    
+    return render(request, 'admin_dep_faculty_management.html', context)
+    
 
 def registration_4(request):
     # Debug logs
