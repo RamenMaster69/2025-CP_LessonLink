@@ -440,3 +440,19 @@ def regenerate_lesson_content(request):
             'success': False,
             'error': f'Server error: {str(e)}'
         }, status=500)
+
+@login_required
+def view_draft(request, draft_id):
+    """View a lesson draft in read-only format"""
+    draft = get_object_or_404(LessonPlan, id=draft_id, created_by=request.user)
+    
+    # Get submission status if exists
+    from lesson.models import LessonPlanSubmission
+    latest_submission = LessonPlanSubmission.objects.filter(
+        lesson_plan=draft
+    ).order_by('-submission_date').first()
+    
+    return render(request, 'lessonGenerator/view_draft.html', {
+        'draft': draft,
+        'latest_submission': latest_submission
+    })
