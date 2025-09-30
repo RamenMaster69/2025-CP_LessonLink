@@ -193,6 +193,11 @@
                 
                 <div class="flex items-center space-x-4">
                     <!-- Status Badge -->
+                    {% if draft.auto_approved %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                        <i class="fas fa-crown mr-2"></i>Auto-Approved
+                    </span>
+                    {% endif %}
                     {% if latest_submission %}
                     <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium status-{{ latest_submission.status }}">
                         <i class="fas fa-{% if latest_submission.status == 'approved' %}check{% elif latest_submission.status == 'rejected' %}times{% elif latest_submission.status == 'needs_revision' %}exclamation{% else %}clock{% endif %} mr-2"></i>

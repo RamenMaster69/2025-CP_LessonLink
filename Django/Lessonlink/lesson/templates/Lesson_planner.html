@@ -561,6 +561,11 @@
                 const data = await response.json();
                 
                 if (data.success) {
+                    if (data.auto_approved) {
+                        showSuccessMessage('Lesson plan created and automatically approved!');
+                    } else {
+                        showSuccessMessage('Lesson plan saved as draft successfully!');
+                    }
                     // Redirect to results page with the lesson plan
                     window.location.href = `/lesson-plan-result/`;
                 } else {

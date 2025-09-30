@@ -6,6 +6,7 @@
     <title>LessonLink Lesson Plan Assistant</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Your existing CSS styles remain the same */
         .gradient-bg {
             background: linear-gradient(135deg, #11468F 0%, #9E5EFF 100%);
         }
@@ -224,6 +225,7 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
+    <!-- Your existing HTML body content remains exactly the same -->
     <!-- Header -->
     <div class="gradient-bg text-white px-4 sm:px-6 py-4">
         <div class="flex items-center justify-between">
@@ -591,6 +593,69 @@
     </div>
 
     <script>
+        // ADD THE MISSING FUNCTIONS HERE - AT THE BEGINNING OF THE SCRIPT SECTION
+        function showSuccessMessage(message) {
+            // Create success message element
+            const successMsg = document.createElement('div');
+            successMsg.className = 'fixed top-6 right-6 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500';
+            successMsg.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div>
+                        <p class="font-bold">Success!</p>
+                        <p class="text-sm text-green-100">${message}</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(successMsg);
+            
+            // Animate in
+            setTimeout(() => successMsg.classList.remove('translate-x-full'), 100);
+            
+            // Animate out and remove
+            setTimeout(() => {
+                successMsg.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (document.body.contains(successMsg)) {
+                        document.body.removeChild(successMsg);
+                    }
+                }, 500);
+            }, 4000);
+        }
+
+        function showErrorMessage(message) {
+            // Create error message element
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'fixed top-6 right-6 bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500';
+            errorMsg.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div>
+                        <p class="font-bold">Error</p>
+                        <p class="text-sm text-red-100">${message}</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(errorMsg);
+            
+            // Animate in
+            setTimeout(() => errorMsg.classList.remove('translate-x-full'), 100);
+            
+            // Animate out and remove
+            setTimeout(() => {
+                errorMsg.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (document.body.contains(errorMsg)) {
+                        document.body.removeChild(errorMsg);
+                    }
+                }, 500);
+            }, 4000);
+        }
+
         // Function to get CSRF token from cookies
         function getCookie(name) {
             let cookieValue = null;
@@ -868,7 +933,7 @@
                     // Redirect to results page with the lesson plan
                     window.location.href = `/lesson-plan-result/`;
                 } else {
-                    alert('Error: ' + data.error);
+                    showErrorMessage('Error: ' + data.error);
                 }
             } catch (error) {
                 console.error('Fetch error:', error);
@@ -883,13 +948,54 @@
                     <p><strong>Time:</strong> ${new Date().toLocaleTimeString()}</p>
                 `;
                 
-                alert('An error occurred: ' + error.message);
+                showErrorMessage('An error occurred: ' + error.message);
             } finally {
                 // Hide loading overlay
                 document.getElementById('loading-overlay').classList.add('hidden');
                 stopLoadingAnimation();
             }
         });
+
+        // Add save lesson plan functionality for the result page
+        async function saveLessonPlan() {
+            try {
+                const response = await fetch('/save-lesson-plan/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify({})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.auto_approved) {
+                        showSuccessMessage('Lesson plan created and automatically approved!');
+                        // Redirect to department head drafts page after delay
+                        setTimeout(() => {
+                            window.location.href = '/drafts/department-head/';
+                        }, 1500);
+                    } else {
+                        showSuccessMessage('Lesson plan saved as draft successfully!');
+                        // Redirect based on user role
+                        setTimeout(() => {
+                            if (data.user_role === 'Department Head') {
+                                window.location.href = '/drafts/department-head/';
+                            } else {
+                                window.location.href = '/drafts/';
+                            }
+                        }, 1500);
+                    }
+                } else {
+                    showErrorMessage('Error saving lesson plan: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                showErrorMessage('An error occurred while saving the lesson plan.');
+            }
+        }
     </script>
 </body>
 </html>

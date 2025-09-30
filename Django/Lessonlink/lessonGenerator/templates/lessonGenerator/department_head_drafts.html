@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LessonLink - My Lesson Plans</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 64px;
+        }
+        
+        header {
+            display: flex !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 40 !important;
+            background: white !important;
+            border-bottom: 1px solid #e5e7eb !important;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+            height: 64px;
+        }
+
+        #sidebar {
+            display: block !important;
+            position: fixed !important;
+            z-index: 30 !important;
+            top: 64px !important;
+        }
+        
+        main {
+            position: relative;
+            z-index: 10 !important;
+        }
+        
+        .dropdown-menu {
+            z-index: 100 !important;
+        }
+        
+        .card-hover:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); 
+        }
+        
+        /* Status badge styles */
+        .status-draft { background-color: #f3f4f6; color: #374151; }
+        .status-approved { background-color: #d1fae5; color: #065f46; }
+        .status-final { background-color: #dbeafe; color: #1e40af; }
+        
+        /* Dropdown styles */
+        .dropdown-menu { 
+            display: none !important; 
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .dropdown-menu.show { 
+            display: block !important; 
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            pointer-events: all !important;
+        }
+
+        .badge-auto-approved { 
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .badge-department-head {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header id="main-header" class="bg-white shadow-sm border-b">
+        <div class="flex items-center justify-between px-6 py-4 w-full">
+            <!-- Logo -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900">LessonLink</h1>
+                    <p class="text-sm text-gray-500">Western Mindanao State University</p>
+                </div>
+            </div>
+
+            <!-- Right side actions -->
+            <div class="flex items-center space-x-4">
+                <!-- Search -->
+                <div class="relative">
+                    <input type="text" placeholder="Search lessons..." class="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+
+                <!-- Notifications -->
+                <div class="relative">
+                    <button id="notification-btn" class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                    </button>
+                    <div id="notification-dropdown" class="dropdown-menu absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200">
+                        <div class="p-4 border-b border-gray-100">
+                            <h3 class="font-semibold text-gray-900">Notifications</h3>
+                        </div>
+                        <div class="p-4">
+                            <p class="text-sm text-gray-600">No new notifications</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile -->
+                <div class="relative">
+                    <button id="profile-btn" class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300">
+                        <i class="fas fa-user text-gray-500"></i>
+                    </button>
+                    <div id="profile-dropdown" class="dropdown-menu absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200">
+                        <div class="p-4 border-b border-gray-100">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                                    {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="w-full h-full object-cover">
+                                    {% else %}
+                                    <i class="fas fa-user text-white text-lg"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900">{{ user.first_name }} {{ user.last_name }}</p>
+                                    <p class="text-sm text-gray-500">{{ user.role }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="py-2">
+                            <a href="{% url 'profile' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50">
+                                <i class="fas fa-user w-4"></i><span>My Profile</span>
+                            </a>
+                            <a href="{% url 'logout' %}" class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50">
+                                <i class="fas fa-sign-out-alt w-4"></i><span>Logout</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-white shadow-lg h-[calc(100vh-4rem)] fixed overflow-y-auto">
+            <nav class="p-4 pt-8 space-y-2">
+                <a href="{% url 'lesson_ai' %}">
+                    <button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] shadow-md">
+                        <i class="fas fa-plus text-lg"></i>
+                        <span class="font-medium">Create Lesson</span>
+                    </button>
+                </a>
+
+                <a href="{% url 'Dep_Dash' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg">
+                    <i class="fas fa-home text-lg w-5"></i><span>Dashboard</span>
+                </a>
+                <a href="{% url 'department_head_drafts' %}" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                    <i class="fas fa-file-alt text-lg w-5"></i><span class="font-medium">My Lesson Plans</span>
+                </a>
+                <a href="{% url 'Dep_Pending' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg">
+                    <i class="fas fa-clock text-lg w-5"></i><span>Pending Reviews</span>
+                </a>
+                <a href="{% url 'Dep_Faculty' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg">
+                    <i class="fas fa-users text-lg w-5"></i><span>Faculty</span>
+                </a>
+                <a href="{% url 'dep_calendar' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg">
+                    <i class="fas fa-calendar text-lg w-5"></i><span>Calendar</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-64 bg-gray-50 min-h-screen">
+            <div class="p-8">
+                <div class="mb-6">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">My Lesson Plans</h1>
+                    <p class="text-gray-600">As a Department Head, your lesson plans are automatically approved</p>
+                    
+                    {% if user.school and user.department %}
+                    <div class="mt-2 text-sm text-gray-500">
+                        <i class="fas fa-school mr-1"></i> {{ user.school }} • 
+                        <i class="fas fa-users mr-1 ml-2"></i> {{ user.department }} Department •
+                        <span class="badge-department-head px-2 py-1 rounded-full text-xs font-bold ml-2">
+                            <i class="fas fa-crown mr-1"></i>Department Head
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Status Summary -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-white rounded-lg p-4 shadow-sm border">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-green-600">Approved Plans</span>
+                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-bold">{{ approved_count }}</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 shadow-sm border">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">Drafts</span>
+                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-bold">{{ draft_count }}</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 shadow-sm border">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-blue-600">Total Created</span>
+                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-bold">{{ approved_count|add:draft_count }}</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 shadow-sm border">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-purple-600">Auto-Approved</span>
+                            <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-bold">{{ approved_count }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Approved Plans Section -->
+                {% if approved_plans %}
+                <div class="mb-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold text-gray-900">Approved Lesson Plans</h2>
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                            {{ approved_count }} Auto-Approved
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {% for plan in approved_plans %}
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden card-hover relative">
+                            <div class="h-32 bg-gradient-to-br from-green-100 to-emerald-100 relative">
+                                <div class="absolute top-3 right-3">
+                                    <span class="badge-auto-approved px-2 py-1 rounded-full text-xs font-bold">
+                                        <i class="fas fa-crown mr-1"></i>Auto-Approved
+                                    </span>
+                                </div>
+                                <div class="absolute bottom-3 left-3">
+                                    <span class="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-green-800">
+                                        <i class="fas fa-check mr-1"></i>Ready to Use
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium status-approved">
+                                        <i class="fas fa-file-check mr-1"></i>
+                                        Final
+                                    </span>
+                                    <span class="text-xs text-gray-500">{{ plan.created_at|date:"M d, Y" }}</span>
+                                </div>
+                                
+                                <h3 class="font-semibold text-gray-900 mb-1">{{ plan.title }}</h3>
+                                <p class="text-sm text-gray-600 mb-3">{{ plan.subject }} - {{ plan.grade_level }}</p>
+
+                                <div class="mb-3 p-2 bg-green-50 rounded-lg border border-green-200">
+                                    <div class="text-xs text-green-700 flex items-center">
+                                        <i class="fas fa-bolt mr-1"></i>
+                                        <span>Automatically approved for department head</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-clock text-xs text-gray-400"></i>
+                                        <span class="text-xs text-gray-500">{{ plan.duration|default:"N/A" }} min</span>
+                                        <i class="fas fa-users text-xs text-gray-400 ml-2"></i>
+                                        <span class="text-xs text-gray-500">{{ plan.population|default:"N/A" }} students</span>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <a href="{% url 'view_draft' plan.id %}" class="text-[#11468F] hover:text-[#0d3a7a] transition-colors" title="View Lesson Plan">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'edit_draft' plan.id %}" class="text-blue-600 hover:text-blue-800 transition-colors" title="Edit Lesson Plan">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Drafts Section -->
+                {% if draft_plans %}
+                <div class="mb-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold text-gray-900">Draft Lesson Plans</h2>
+                        <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
+                            {{ draft_count }} Drafts
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {% for plan in draft_plans %}
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden card-hover relative">
+                            <div class="h-32 bg-gradient-to-br from-blue-100 to-purple-100 relative">
+                                <div class="absolute top-3 right-3">
+                                    <button class="dropdown-toggle p-2 bg-white/80 rounded-full hover:bg-white transition-colors" data-draft-id="{{ plan.id }}">
+                                        <i class="fas fa-ellipsis-h text-gray-600"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium status-draft">
+                                        <i class="fas fa-edit mr-1"></i>
+                                        Draft
+                                    </span>
+                                    <span class="text-xs text-gray-500">{{ plan.created_at|date:"M d, Y" }}</span>
+                                </div>
+                                
+                                <h3 class="font-semibold text-gray-900 mb-1">{{ plan.title }}</h3>
+                                <p class="text-sm text-gray-600 mb-3">{{ plan.subject }} - {{ plan.grade_level }}</p>
+
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-clock text-xs text-gray-400"></i>
+                                        <span class="text-xs text-gray-500">{{ plan.duration|default:"N/A" }} min</span>
+                                        <i class="fas fa-users text-xs text-gray-400 ml-2"></i>
+                                        <span class="text-xs text-gray-500">{{ plan.population|default:"N/A" }} students</span>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <a href="{% url 'edit_draft' plan.id %}" class="text-blue-600 hover:text-blue-800 transition-colors" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'view_draft' plan.id %}" class="text-[#11468F] hover:text-[#0d3a7a] transition-colors" title="View">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Menu options -->
+                            <div class="dropdown-menu absolute right-3 top-12 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1" data-draft-id="{{ plan.id }}">
+                                <a href="{% url 'edit_draft' plan.id %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                    <i class="fas fa-edit mr-2"></i>Edit
+                                </a>
+                                <a href="{% url 'view_draft' plan.id %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                    <i class="fas fa-eye mr-2"></i>View
+                                </a>
+                                <button class="block w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-green-50 transition-colors finalize-draft-btn" data-draft-id="{{ plan.id }}">
+                                    <i class="fas fa-check mr-2"></i>Mark as Final
+                                </button>
+                                <button class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors delete-draft-btn" data-draft-id="{{ plan.id }}">
+                                    <i class="fas fa-trash mr-2"></i>Delete
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if not approved_plans and not draft_plans %}
+                <div class="text-center py-12">
+                    <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-file-alt text-3xl text-gray-400"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No lesson plans yet</h3>
+                    <p class="text-gray-600 mb-6">Create your first lesson plan - it will be automatically approved!</p>
+                    <a href="{% url 'lesson_ai' %}" class="bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white px-6 py-3 rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] inline-block transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Create Your First Lesson
+                    </a>
+                </div>
+                {% endif %}
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <a href="{% url 'lesson_ai' %}" class="bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white p-4 rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all text-center">
+                            <i class="fas fa-plus text-xl mb-2 block"></i>
+                            <span class="font-medium">Create New Lesson</span>
+                            <p class="text-sm text-white/80 mt-1">Auto-approved for department head</p>
+                        </a>
+                        <a href="{% url 'Dep_Pending' %}" class="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all text-center">
+                            <i class="fas fa-clock text-xl mb-2 block"></i>
+                            <span class="font-medium">Review Submissions</span>
+                            <p class="text-sm text-white/80 mt-1">Pending teacher lesson plans</p>
+                        </a>
+                        <a href="{% url 'Dep_Faculty' %}" class="bg-gradient-to-r from-emerald-500 to-green-500 text-white p-4 rounded-lg hover:from-emerald-600 hover:to-green-600 transition-all text-center">
+                            <i class="fas fa-users text-xl mb-2 block"></i>
+                            <span class="font-medium">Faculty Management</span>
+                            <p class="text-sm text-white/80 mt-1">Manage department faculty</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Department Head Drafts loaded - initializing functionality');
+            
+            let activeDropdown = null;
+            let activeDropdownToggle = null;
+
+            // Initialize dropdown functionality
+            function initializeDropdowns() {
+                console.log('Initializing dropdowns...');
+                
+                // Dropdown toggle functionality
+                document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                    toggle.addEventListener('click', function(e) {
+                        console.log('Dropdown toggle clicked');
+                        e.stopPropagation();
+                        e.preventDefault();
+                        
+                        const draftId = this.getAttribute('data-draft-id');
+                        const dropdown = document.querySelector(`.dropdown-menu[data-draft-id="${draftId}"]`);
+                        
+                        if (dropdown) {
+                            console.log('Dropdown found, toggling...');
+                            // Close any currently open dropdown
+                            if (activeDropdown && activeDropdown !== dropdown) {
+                                activeDropdown.classList.remove('show');
+                                if (activeDropdownToggle) {
+                                    activeDropdownToggle.classList.remove('active');
+                                }
+                            }
+                            
+                            // Toggle current dropdown
+                            dropdown.classList.toggle('show');
+                            this.classList.toggle('active');
+                            
+                            if (dropdown.classList.contains('show')) {
+                                activeDropdown = dropdown;
+                                activeDropdownToggle = this;
+                                console.log('Dropdown opened');
+                            } else {
+                                activeDropdown = null;
+                                activeDropdownToggle = null;
+                                console.log('Dropdown closed');
+                            }
+                        } else {
+                            console.log('Dropdown not found for draft ID:', draftId);
+                        }
+                    });
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (activeDropdown && !activeDropdown.contains(e.target) && 
+                        (!activeDropdownToggle || !activeDropdownToggle.contains(e.target))) {
+                        activeDropdown.classList.remove('show');
+                        if (activeDropdownToggle) {
+                            activeDropdownToggle.classList.remove('active');
+                        }
+                        activeDropdown = null;
+                        activeDropdownToggle = null;
+                        console.log('Dropdown closed by outside click');
+                    }
+                });
+
+                // Prevent dropdown from closing when clicking inside it
+                document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                    menu.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                    });
+                });
+                
+                console.log('Dropdowns initialized');
+            }
+
+            // Delete draft functionality
+            function initializeDeleteButtons() {
+                console.log('Initializing delete buttons...');
+                
+                document.querySelectorAll('.delete-draft-btn').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const draftId = this.getAttribute('data-draft-id');
+                        if (confirm('Are you sure you want to delete this lesson plan? This action cannot be undone.')) {
+                            console.log('Deleting draft:', draftId);
+                            // Add your actual delete functionality here
+                            showToast('Lesson plan deleted successfully!', 'success');
+                        }
+                        
+                        // Close the dropdown after clicking
+                        if (activeDropdown) {
+                            activeDropdown.classList.remove('show');
+                            activeDropdown = null;
+                        }
+                        if (activeDropdownToggle) {
+                            activeDropdownToggle.classList.remove('active');
+                            activeDropdownToggle = null;
+                        }
+                    });
+                });
+                
+                console.log('Delete buttons initialized');
+            }
+
+            // Finalize draft functionality
+            function initializeFinalizeButtons() {
+                console.log('Initializing finalize buttons...');
+                
+                document.querySelectorAll('.finalize-draft-btn').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const draftId = this.getAttribute('data-draft-id');
+                        if (confirm('Mark this lesson plan as final? It will be ready for use.')) {
+                            console.log('Finalizing draft:', draftId);
+                            // Add your actual finalize functionality here
+                            showToast('Lesson plan marked as final!', 'success');
+                        }
+                        
+                        // Close the dropdown after clicking
+                        if (activeDropdown) {
+                            activeDropdown.classList.remove('show');
+                            activeDropdown = null;
+                        }
+                        if (activeDropdownToggle) {
+                            activeDropdownToggle.classList.remove('active');
+                            activeDropdownToggle = null;
+                        }
+                    });
+                });
+                
+                console.log('Finalize buttons initialized');
+            }
+
+            // Toast notification function
+            function showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `fixed top-20 right-6 z-50 max-w-sm bg-white border rounded-lg shadow-lg p-4 transform translate-x-full transition-transform duration-300 ${
+                    type === 'success' ? 'border-green-200' : 
+                    type === 'error' ? 'border-red-200' : 'border-blue-200'
+                }`;
+                
+                const icon = type === 'success' ? 'fa-check' : 
+                           type === 'error' ? 'fa-times' : 'fa-info';
+                const iconColor = type === 'success' ? 'text-green-600' : 
+                                type === 'error' ? 'text-red-600' : 'text-blue-600';
+                const bgColor = type === 'success' ? 'bg-green-100' : 
+                              type === 'error' ? 'bg-red-100' : 'bg-blue-100';
+                
+                toast.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 ${bgColor} rounded-full flex items-center justify-center">
+                            <i class="fas ${icon} ${iconColor}"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-900">${message}</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(toast);
+                
+                // Animate in
+                setTimeout(() => {
+                    toast.classList.remove('translate-x-full');
+                }, 100);
+                
+                // Animate out and remove
+                setTimeout(() => {
+                    toast.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        if (document.body.contains(toast)) {
+                            document.body.removeChild(toast);
+                        }
+                    }, 300);
+                }, 3000);
+            }
+
+            // Initialize all functionality
+            console.log('Starting initialization...');
+            initializeDropdowns();
+            initializeDeleteButtons();
+            initializeFinalizeButtons();
+            console.log('All functionality initialized');
+
+            // Add click event to draft cards
+            document.querySelectorAll('.card-hover').forEach(card => {
+                card.style.cursor = 'pointer';
+                card.addEventListener('click', function(e) {
+                    // Don't trigger if clicking dropdown or buttons
+                    if (!e.target.closest('.dropdown-toggle') && 
+                        !e.target.closest('.dropdown-menu') && 
+                        !e.target.closest('a') && 
+                        !e.target.closest('button') &&
+                        !e.target.closest('form')) {
+                        const draftId = this.querySelector('.dropdown-toggle')?.getAttribute('data-draft-id');
+                        if (draftId) {
+                            window.location.href = `/drafts/${draftId}/view/`;
+                        }
+                    }
+                });
+            });
+
+            // Profile and notification dropdown functionality (from header)
+            const profileBtn = document.getElementById('profile-btn');
+            const profileDropdown = document.getElementById('profile-dropdown');
+            const notificationBtn = document.getElementById('notification-btn');
+            const notificationDropdown = document.getElementById('notification-dropdown');
+
+            if (profileBtn && profileDropdown) {
+                profileBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    profileDropdown.classList.toggle('show');
+                    notificationDropdown.classList.remove('show');
+                });
+            }
+
+            if (notificationBtn && notificationDropdown) {
+                notificationBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    notificationDropdown.classList.toggle('show');
+                    profileDropdown.classList.remove('show');
+                });
+            }
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function() {
+                if (profileDropdown) profileDropdown.classList.remove('show');
+                if (notificationDropdown) notificationDropdown.classList.remove('show');
+            });
+        });
+    </script>
+</body>
+</html>

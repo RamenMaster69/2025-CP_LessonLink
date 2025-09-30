@@ -187,6 +187,9 @@ def save_lesson_plan(request):
                 'error': 'No lesson plan content found. Please generate a lesson plan first.'
             }, status=400)
         
+        # Check if user is a department head for auto-approval
+        is_department_head = request.user.role == 'Department Head'
+        
         # If we have parsed JSON content, use it
         if parsed_content and isinstance(parsed_content, dict):
             # Use the parsed JSON data
@@ -210,7 +213,10 @@ def save_lesson_plan(request):
                 evaluation=procedure.get('evaluation', {}).get('content', ''),
                 assessment=procedure.get('assessment', {}).get('content', ''),
                 generated_content=generated_content,
-                created_by=request.user
+                created_by=request.user,
+                # Auto-approve for department heads
+                status=LessonPlan.FINAL if is_department_head else LessonPlan.DRAFT,
+                auto_approved=is_department_head
             )
         else:
             # Fallback: if no parsed JSON, use form data with empty procedure sections
@@ -230,7 +236,10 @@ def save_lesson_plan(request):
                 evaluation=form_data.get('evaluation', ''),
                 assessment=form_data.get('assessment', ''),
                 generated_content=generated_content,
-                created_by=request.user
+                created_by=request.user,
+                # Auto-approve for department heads
+                status=LessonPlan.FINAL if is_department_head else LessonPlan.DRAFT,
+                auto_approved=is_department_head
             )
         
         lesson_plan.save()
@@ -243,10 +252,16 @@ def save_lesson_plan(request):
         if 'lesson_form_data' in request.session:
             del request.session['lesson_form_data']
         
+        message = 'Lesson plan saved as draft successfully!'
+        if is_department_head:
+            message = 'Lesson plan created and automatically approved!'
+        
         return JsonResponse({
             'success': True,
             'draft_id': lesson_plan.id,
-            'message': 'Lesson plan saved as draft successfully!'
+            'message': message,
+            'auto_approved': is_department_head,
+            'user_role': request.user.role  # Add user role to response
         })
         
     except Exception as e:
@@ -455,4 +470,32 @@ def view_draft(request, draft_id):
     return render(request, 'lessonGenerator/view_draft.html', {
         'draft': draft,
         'latest_submission': latest_submission
+    })
+
+@login_required
+def department_head_drafts(request):
+    """Display list of department head's lesson plans (auto-approved)"""
+    if request.user.role != 'Department Head':
+        messages.error(request, "Access denied. Department heads only.")
+        return redirect('draft_list')
+    
+    # Get all approved lesson plans for the department head
+    approved_plans = LessonPlan.objects.filter(
+        created_by=request.user, 
+        status=LessonPlan.FINAL,
+        auto_approved=True
+    ).order_by('-created_at')
+    
+    # Get drafts if any
+    draft_plans = LessonPlan.objects.filter(
+        created_by=request.user,
+        status=LessonPlan.DRAFT
+    ).order_by('-created_at')
+    
+    return render(request, 'lessonGenerator/department_head_drafts.html', {
+        'approved_plans': approved_plans,
+        'draft_plans': draft_plans,
+        'approved_count': approved_plans.count(),
+        'draft_count': draft_plans.count(),
+        'is_department_head': True
     })

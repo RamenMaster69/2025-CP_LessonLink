@@ -28,6 +28,7 @@ class LessonPlan(models.Model):
     assessment = models.TextField()
     generated_content = models.TextField()  # AI-generated content
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=DRAFT)
+    auto_approved = models.BooleanField(default=False, help_text="Automatically approved for department heads")
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # ✅ Changed from User to settings.AUTH_USER_MODEL
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
