@@ -39,12 +39,16 @@ def org_reg_1(request):
     """Handle school registration form - both GET and POST"""
     
     if request.method == 'GET':
-        # Display the form
         return render(request, 'org_reg/org_reg_1.html')
     
     elif request.method == 'POST':
+        print("=== 🚀 FORM SUBMISSION DEBUG ===")
+        print("📦 All POST data:", dict(request.POST))
+        print("🔑 Password received:", request.POST.get('password'))
+        print("📋 All POST keys:", list(request.POST.keys()))
+        print("================================")
         try:
-            # Extract form data
+            # Extract form data - ADD PASSWORD
             form_data = {
                 'school_name': request.POST.get('school_name', '').strip(),
                 'school_id': request.POST.get('school_id', '').strip(),
@@ -60,25 +64,23 @@ def org_reg_1(request):
                 'position': request.POST.get('position', '').strip(),
                 'contact_email': request.POST.get('contact_email', '').strip(),
                 'contact_phone': request.POST.get('contact_phone', '').strip(),
+                'password': request.POST.get('password', '').strip(),  # ADD THIS
                 'accuracy': request.POST.get('accuracy') == 'on',
                 'terms': request.POST.get('terms') == 'on',
                 'communications': request.POST.get('communications') == 'on',
             }
+
+            # Debug the extracted data
+            print("=== 📊 EXTRACTED FORM DATA ===")
+            for key, value in form_data.items():
+                print(f"{key}: {value}")
+            print("==============================")
             
-            # Handle year_established - convert to int if provided
-            if form_data['year_established']:
-                try:
-                    form_data['year_established'] = int(form_data['year_established'])
-                except (ValueError, TypeError):
-                    form_data['year_established'] = None
-            else:
-                form_data['year_established'] = None
-            
-            # Validate required fields
+            # Validate required fields - ADD PASSWORD
             required_fields = [
                 'school_name', 'school_id', 'address', 'province', 'region',
                 'phone_number', 'email', 'contact_person', 'position',
-                'contact_email', 'contact_phone'
+                'contact_email', 'contact_phone', 'password'  # ADD PASSWORD
             ]
             
             missing_fields = []
@@ -90,13 +92,10 @@ def org_reg_1(request):
                 messages.error(request, f"Please complete the following required fields: {', '.join(missing_fields)}")
                 return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
             
-            # Validate required checkboxes
-            if not form_data['accuracy']:
-                messages.error(request, "You must certify the accuracy of the information provided.")
-                return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
-            
-            if not form_data['terms']:
-                messages.error(request, "You must agree to the Terms of Service and Privacy Policy.")
+            # Validate password strength
+            password = form_data['password']
+            if len(password) < 8:
+                messages.error(request, "Password must be at least 8 characters long.")
                 return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
             
             # Check if school_id already exists
@@ -104,7 +103,12 @@ def org_reg_1(request):
                 messages.error(request, f"A school with ID '{form_data['school_id']}' is already registered.")
                 return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
             
-            # Create the school registration record
+            # Check if email already exists in User model
+            if User.objects.filter(email=form_data['contact_email']).exists():
+                messages.error(request, f"An account with email '{form_data['contact_email']}' already exists.")
+                return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
+            
+            # Create the school registration record first
             school_registration = SchoolRegistration.objects.create(
                 school_name=form_data['school_name'],
                 school_id=form_data['school_id'],
@@ -120,33 +124,50 @@ def org_reg_1(request):
                 position=form_data['position'],
                 contact_email=form_data['contact_email'],
                 contact_phone=form_data['contact_phone'],
+                password=form_data['password'],  # Store the password
                 accuracy=form_data['accuracy'],
                 terms=form_data['terms'],
                 communications=form_data['communications'],
                 status='pending'
             )
             
-            # Handle file upload if present
-            # if request.FILES.get('certificate_file'):
-            #     school_registration.certificate_file = request.FILES['certificate_file']
-            #     school_registration.save()
-            
-            # Log the successful registration
-            logger.info(f"New school registration: {school_registration.school_name} ({school_registration.school_id})")
+            # Create a user account for the school admin
+            try:
+                # Split contact person name into first and last name
+                name_parts = form_data['contact_person'].split(' ', 1)
+                first_name = name_parts[0]
+                last_name = name_parts[1] if len(name_parts) > 1 else "Admin"
+                
+                user = User.objects.create_user(
+                    email=form_data['contact_email'],
+                    password=form_data['password'],
+                    first_name=first_name,
+                    last_name=last_name,
+                    role='Department Head',  # Default role for school admin
+                    rank=form_data['position'],
+                    department='Administration',  # Default department
+                    school=school_registration  # Link to the school
+                )
+                
+                # Log both creations
+                logger.info(f"New school registration: {school_registration.school_name} ({school_registration.school_id})")
+                logger.info(f"Created user account: {user.email} for school {school_registration.school_name}")
+                
+            except Exception as user_error:
+                # If user creation fails, delete the school registration and show error
+                school_registration.delete()
+                logger.error(f"Failed to create user account: {str(user_error)}")
+                messages.error(request, "Failed to create user account. Please try again.")
+                return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
             
             # Success message
             messages.success(
                 request, 
                 f"Registration submitted successfully! "
                 f"Your application for {school_registration.school_name} has been received. "
-                f"You will be contacted at {school_registration.contact_email} once your registration is reviewed."
+                f"A temporary admin account has been created with email: {school_registration.contact_email}. "
+                f"You will be contacted once your registration is reviewed."
             )
-            
-            # Create success context
-            context = {
-                'school_registration': school_registration,
-                'success': True
-            }
             
             return redirect('landing')
             

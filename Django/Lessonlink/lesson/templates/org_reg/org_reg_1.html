@@ -89,6 +89,51 @@
         .file-info.show {
             display: block;
         }
+
+        /* Password Popup Styles */
+        .password-popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .password-popup-overlay.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .password-popup {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -131,8 +176,10 @@
 
         <!-- Registration Form -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-            <form method="POST" action="{% url 'org_reg_1' %}" enctype="multipart/form-data">
+            <form method="POST" action="{% url 'org_reg_1' %}" enctype="multipart/form-data" id="registrationForm">
     {% csrf_token %}
+    <input type="hidden" name="password" id="formPassword">
+                
                 <!-- Section 1: Institution Details -->
 <section class="form-section p-8" data-section="1" id="section-1">
     <div class="flex items-start space-x-4 mb-8">
@@ -184,7 +231,6 @@
     </div>
 </section>
 
-
                 <!-- Section 2: Contact Information -->
 <section class="form-section p-8" data-section="2" id="section-2">
     <div class="flex items-start space-x-4 mb-8">
@@ -196,7 +242,6 @@
     </div>
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Address -->
         <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700 mb-2">
                 Complete Address <span class="text-red-500">*</span>
@@ -210,7 +255,6 @@
             ></textarea>
         </div>
         
-        <!-- Province -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
                 Province <span class="text-red-500">*</span>
@@ -224,7 +268,6 @@
             >
         </div>
         
-        <!-- Region -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
                 Region <span class="text-red-500">*</span>
@@ -240,7 +283,6 @@
             </select>
         </div>
         
-        <!-- Phone -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
                 Phone Number <span class="text-red-500">*</span>
@@ -254,7 +296,6 @@
             >
         </div>
         
-        <!-- Email -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
                 Email Address <span class="text-red-500">*</span>
@@ -268,7 +309,6 @@
             >
         </div>
         
-        <!-- Website -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Website</label>
             <input 
@@ -279,7 +319,6 @@
             >
         </div>
         
-        <!-- Facebook -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Facebook Page</label>
             <input 
@@ -292,7 +331,6 @@
     </div>
 </section>
 
-
                 <!-- Section 3: Administrative Contact -->
 <section class="form-section p-8" data-section="3" id="section-3">
     <div class="flex items-start space-x-4 mb-8">
@@ -304,7 +342,6 @@
     </div>
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Contact Person -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
                 Contact Person Name <span class="text-red-500">*</span>
@@ -318,7 +355,6 @@
             >
         </div>
         
-        <!-- Position -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
                 Position/Title <span class="text-red-500">*</span>
@@ -332,7 +368,6 @@
             >
         </div>
         
-        <!-- Contact Email -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
                 Contact Email <span class="text-red-500">*</span>
@@ -346,7 +381,6 @@
             >
         </div>
         
-        <!-- Contact Phone -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
                 Contact Phone <span class="text-red-500">*</span>
@@ -362,11 +396,9 @@
     </div>
 </section>
 
-
                 <!-- Terms and Conditions -->
 <section class="p-8">
     <div class="space-y-4">
-        <!-- Accuracy Certification -->
         <div class="flex items-start space-x-3">
             <input 
                 type="checkbox" 
@@ -380,7 +412,6 @@
             </label>
         </div>
         
-        <!-- Terms of Service -->
         <div class="flex items-start space-x-3">
             <input 
                 type="checkbox" 
@@ -397,7 +428,6 @@
             </label>
         </div>
         
-        <!-- Optional Updates -->
         <div class="flex items-start space-x-3">
             <input 
                 type="checkbox" 
@@ -412,7 +442,6 @@
     </div>
 </section>
 
-<!-- Form Actions -->
 <div class="bg-gray-50 px-8 py-6 rounded-b-lg">
     <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
         <div class="flex items-center text-sm text-gray-600">
@@ -422,7 +451,8 @@
         
         <div class="flex space-x-4">
             <button 
-                type="submit"
+                type="button"
+                onclick="handleSubmitClick(event)"
                 class="px-8 py-3 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center transition-colors"
             >
                 Submit Registration
@@ -432,6 +462,7 @@
     </div>
 </div>
 </form>
+        </div>
 
         <!-- Support Information -->
         <div class="mt-8 text-center">
@@ -455,17 +486,74 @@
         </div>
     </main>
 
+    <!-- Password Popup -->
+    <div id="passwordPopup" class="password-popup-overlay">
+        <div class="password-popup">
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-4">
+                    <i data-lucide="lock" class="w-6 h-6 text-blue-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Enter Password</h3>
+                <p class="text-sm text-gray-600">Create a secure password for your school account</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Password <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="password" 
+                        id="popupPassword"
+                        name="password"
+                        class="input-field w-full px-4 py-3 rounded-md text-sm"
+                        placeholder="Enter password"
+                        required
+                    >
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Confirm Password <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="password" 
+                        id="popupConfirmPassword"
+                        class="input-field w-full px-4 py-3 rounded-md text-sm"
+                        placeholder="Confirm password"
+                        required
+                    >
+                </div>
+
+                <div id="passwordError" class="text-sm text-red-600 hidden"></div>
+
+                <div class="flex space-x-3 pt-4">
+                    <button 
+                        type="button"
+                        onclick="closePasswordPopup()"
+                        class="flex-1 px-4 py-3 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        type="button"
+                        onclick="confirmPassword()"
+                        class="flex-1 px-4 py-3 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Initialize Lucide icons
         lucide.createIcons();
         
-        // Section visibility tracking
         let currentActiveSection = 1;
         const totalSections = 5;
         
-        // Initialize scroll-based section tracking
         function initializeSectionTracking() {
-            // Track scroll events
             let ticking = false;
             
             function updateSectionOnScroll() {
@@ -478,16 +566,13 @@
                 }
             }
             
-            // Add scroll listener
             window.addEventListener('scroll', updateSectionOnScroll);
             
-            // Also check on page load
             setTimeout(() => {
                 checkActiveSection();
             }, 100);
         }
         
-        // Check which section is currently visible
         function checkActiveSection() {
             const sections = document.querySelectorAll('.form-section');
             const scrollPosition = window.scrollY + window.innerHeight / 3;
@@ -503,27 +588,22 @@
                 }
             });
             
-            // Update if different from current
             if (activeSection !== currentActiveSection) {
                 updateActiveSection(activeSection);
             }
         }
         
-        // Update active section indicator
         function updateActiveSection(sectionNumber) {
             const sectionNumbers = document.querySelectorAll('.section-number');
             
-            // Remove all active and completed classes first
             sectionNumbers.forEach(num => {
                 num.classList.remove('active', 'completed');
             });
             
-            // Add active class to current section
             if (sectionNumbers[sectionNumber - 1]) {
                 sectionNumbers[sectionNumber - 1].classList.add('active');
             }
             
-            // Mark previous sections as completed
             for (let i = 0; i < sectionNumber - 1; i++) {
                 if (sectionNumbers[i]) {
                     sectionNumbers[i].classList.add('completed');
@@ -531,108 +611,126 @@
             }
             
             currentActiveSection = sectionNumber;
+        }
+
+        function handleSubmitClick(event) {
+            event.preventDefault();
+
+            const form = document.getElementById('registrationForm');
+            const allRequiredFields = form.querySelectorAll('input[required], select[required], textarea[required]');
+            const requiredFields = Array.from(allRequiredFields).filter(field => field.type !== 'hidden');
             
-            console.log(`Active section: ${sectionNumber}`); // Debug log
-        }
-        
-        // Submit registration function
-        function submitRegistration(event) {
-    event.preventDefault(); // Stop default submission for validation
+            let isValid = true;
+            let firstInvalidField = null;
+            const invalidFields = [];
 
-    // Basic validation
-    const requiredFields = document.querySelectorAll('input[required], select[required], textarea[required]');
-    let isValid = true;
-    let firstInvalidField = null;
-    const invalidFields = [];
-
-    // Check required fields
-    requiredFields.forEach(field => {
-        if (!field.value.trim()) {
-            isValid = false;
-            field.style.borderColor = '#dc2626';
-            field.style.backgroundColor = '#fef2f2';
-            invalidFields.push(field);
-            if (!firstInvalidField) firstInvalidField = field;
-        } else {
-            field.style.borderColor = '#d1d5db';
-            field.style.backgroundColor = '#ffffff';
-        }
-    });
-
-    // Check required checkboxes
-    const requiredCheckboxes = ['accuracy', 'terms'];
-    requiredCheckboxes.forEach(id => {
-        const checkbox = document.getElementById(id);
-        if (!checkbox.checked) isValid = false;
-    });
-
-    if (isValid) {
-        const form = event.target.form || event.target; // Get the form element
-        const submitBtn = event.target;
-
-        // Show loading state
-        submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 mr-2 animate-spin"></i>Processing...';
-        submitBtn.disabled = true;
-        lucide.createIcons();
-
-        // Optional: short delay to show loading spinner
-        setTimeout(() => {
-            // Actually submit the form to Django
-            form.submit();
-        }, 500); // 0.5s delay so user sees the spinner
-
-    } else {
-        // Focus on first invalid field
-        if (firstInvalidField) {
-            firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            setTimeout(() => firstInvalidField.focus(), 500);
-        }
-
-        // Show error messages
-        if (!document.getElementById('accuracy').checked || !document.getElementById('terms').checked) {
-            showAlert('Please accept all required terms and conditions.', 'error');
-        } else {
-            showAlert(`Please complete all required fields. ${invalidFields.length} field(s) need attention.`, 'error');
-        }
-
-        // Clear field highlighting after 3 seconds
-        setTimeout(() => {
-            invalidFields.forEach(field => {
-                field.style.borderColor = '#d1d5db';
-                field.style.backgroundColor = '#ffffff';
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.style.borderColor = '#dc2626';
+                    field.style.backgroundColor = '#fef2f2';
+                    invalidFields.push(field);
+                    if (!firstInvalidField) firstInvalidField = field;
+                } else {
+                    field.style.borderColor = '#d1d5db';
+                    field.style.backgroundColor = '#ffffff';
+                }
             });
-        }, 3000);
-    }
-}
 
-// Example alert function (keep your existing one)
-function showAlert(message, type) {
-    const alertDiv = document.createElement('div');
-    const bgColor = type === 'success' ? 'bg-green-50 border-green-200 text-green-800' :
-                    type === 'error' ? 'bg-red-50 border-red-200 text-red-800' :
-                    'bg-blue-50 border-blue-200 text-blue-800';
+            const requiredCheckboxes = ['accuracy', 'terms'];
+            requiredCheckboxes.forEach(id => {
+                const checkbox = document.getElementById(id);
+                if (!checkbox.checked) isValid = false;
+            });
 
-    alertDiv.className = `fixed top-4 right-4 ${bgColor} border rounded-lg px-4 py-3 shadow-lg z-50 max-w-md`;
-    alertDiv.innerHTML = `
-        <div class="flex items-center">
-            <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-4 h-4 mr-2"></i>
-            <p class="text-sm font-medium">${message}</p>
-            <button onclick="this.parentElement.parentElement.remove()" class="ml-3">
-                <i data-lucide="x" class="w-4 h-4"></i>
-            </button>
-        </div>
-    `;
-    document.body.appendChild(alertDiv);
-    lucide.createIcons();
+            if (isValid) {
+                showPasswordPopup();
+            } else {
+                if (firstInvalidField) {
+                    firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setTimeout(() => firstInvalidField.focus(), 500);
+                }
 
-    setTimeout(() => {
-        if (alertDiv.parentElement) alertDiv.remove();
-    }, 5000);
-}
-                       
+                if (!document.getElementById('accuracy').checked || !document.getElementById('terms').checked) {
+                    showAlert('Please accept all required terms and conditions.', 'error');
+                } else {
+                    showAlert(`Please complete all required fields. ${invalidFields.length} field(s) need attention.`, 'error');
+                }
+
+                setTimeout(() => {
+                    invalidFields.forEach(field => {
+                        field.style.borderColor = '#d1d5db';
+                        field.style.backgroundColor = '#ffffff';
+                    });
+                }, 3000);
+            }
+        }
+
+        function showPasswordPopup() {
+            const popup = document.getElementById('passwordPopup');
+            popup.classList.add('show');
+            document.getElementById('popupPassword').focus();
+            document.getElementById('passwordError').classList.add('hidden');
+        }
+
+        function closePasswordPopup() {
+            const popup = document.getElementById('passwordPopup');
+            popup.classList.remove('show');
+            document.getElementById('popupPassword').value = '';
+            document.getElementById('popupConfirmPassword').value = '';
+            document.getElementById('passwordError').classList.add('hidden');
+        }
+
+        function confirmPassword() {
+            const password = document.getElementById('popupPassword').value;
+            const confirmPassword = document.getElementById('popupConfirmPassword').value;
+            const errorDiv = document.getElementById('passwordError');
+
+            if (!password || !confirmPassword) {
+                errorDiv.textContent = 'Please fill in both password fields.';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            if (password.length < 8) {
+                errorDiv.textContent = 'Password must be at least 8 characters long.';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                errorDiv.textContent = 'Passwords do not match.';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('formPassword').value = password;
+
+            closePasswordPopup();
+
+            document.getElementById('registrationForm').submit();
+        }
+
+        document.getElementById('passwordPopup').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePasswordPopup();
+            }
+        });
+
+        document.getElementById('popupPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('popupConfirmPassword').focus();
+            }
+        });
+
+        document.getElementById('popupConfirmPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                confirmPassword();
+            }
+        });
        
-        
-        // Alert system
         function showAlert(message, type) {
             const alertDiv = document.createElement('div');
             const bgColor = type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 
@@ -660,17 +758,13 @@ function showAlert(message, type) {
             }, 5000);
         }
         
-        // Initialize everything when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize section tracking
             initializeSectionTracking();
             
-            // Set initial active section
             setTimeout(() => {
                 updateActiveSection(1);
             }, 200);
             
-            // Also add click handlers for section numbers to allow manual navigation
             const sectionNumbers = document.querySelectorAll('.section-number');
             sectionNumbers.forEach((num, index) => {
                 num.style.cursor = 'pointer';
@@ -689,7 +783,6 @@ function showAlert(message, type) {
                 });
             });
             
-            // Initialize drag and drop functionality
             const uploadZones = document.querySelectorAll('.upload-zone');
             
             uploadZones.forEach(zone => {
@@ -714,7 +807,7 @@ function showAlert(message, type) {
                     zone.classList.remove('dragover');
                     
                     if (zone.classList.contains('uploaded')) {
-                        return; // Don't allow drop if file already uploaded
+                        return;
                     }
                     
                     const files = e.dataTransfer.files;

@@ -284,6 +284,14 @@ class SchoolRegistration(models.Model):
         verbose_name="Year Established",
         help_text="Year the institution was established"
     )
+
+    password = models.CharField(
+    max_length=128,
+    verbose_name="Admin Password",
+    help_text="Password for the school administrator account",
+    null=True,
+    blank=True
+    )
     
     # Contact Information
     address = models.TextField(
