@@ -35,6 +35,8 @@ logger = logging.getLogger(__name__)
 
 # School Registration Views
 
+from django.contrib.auth.hashers import make_password
+
 def org_reg_1(request):
     """Handle school registration form - both GET and POST"""
     
@@ -108,7 +110,7 @@ def org_reg_1(request):
                 messages.error(request, f"An account with email '{form_data['contact_email']}' already exists.")
                 return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
             
-            # Create the school registration record first
+            # Create the school registration record first WITH HASHED PASSWORD
             school_registration = SchoolRegistration.objects.create(
                 school_name=form_data['school_name'],
                 school_id=form_data['school_id'],
@@ -124,7 +126,7 @@ def org_reg_1(request):
                 position=form_data['position'],
                 contact_email=form_data['contact_email'],
                 contact_phone=form_data['contact_phone'],
-                password=form_data['password'],  # Store the password
+                password=make_password(form_data['password']),  # HASH THE PASSWORD
                 accuracy=form_data['accuracy'],
                 terms=form_data['terms'],
                 communications=form_data['communications'],
@@ -140,7 +142,7 @@ def org_reg_1(request):
                 
                 user = User.objects.create_user(
                     email=form_data['contact_email'],
-                    password=form_data['password'],
+                    password=form_data['password'],  # This gets hashed automatically by CustomUserManager
                     first_name=first_name,
                     last_name=last_name,
                     role='Department Head',  # Default role for school admin

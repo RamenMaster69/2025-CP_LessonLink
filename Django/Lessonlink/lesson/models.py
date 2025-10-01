@@ -279,8 +279,8 @@ class SchoolRegistration(models.Model):
     )
     
     year_established = models.PositiveIntegerField(
-        null=True,
-        blank=True,
+        # null=True,
+        # blank=True,
         verbose_name="Year Established",
         help_text="Year the institution was established"
     )
