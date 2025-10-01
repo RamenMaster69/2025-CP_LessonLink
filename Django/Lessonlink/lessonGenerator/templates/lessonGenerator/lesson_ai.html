@@ -6,7 +6,6 @@
     <title>LessonLink Lesson Plan Assistant</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Your existing CSS styles remain the same */
         .gradient-bg {
             background: linear-gradient(135deg, #11468F 0%, #9E5EFF 100%);
         }
@@ -20,7 +19,6 @@
             background: linear-gradient(to bottom right, #f0f9ff, #e0f2fe);
         }
         
-        /* Enhanced Loading Animation */
         .loader-dots {
             display: flex;
             justify-content: center;
@@ -108,75 +106,6 @@
             min-height: 24px;
         }
         
-        .loader-stages {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 400px;
-            margin: 20px auto;
-        }
-        
-        .loader-stage {
-            text-align: center;
-            flex: 1;
-            position: relative;
-        }
-        
-        .loader-stage:not(:last-child):after {
-            content: '';
-            position: absolute;
-            top: 12px;
-            right: -50%;
-            width: 100%;
-            height: 2px;
-            background: #E5E7EB;
-            z-index: 1;
-        }
-        
-        .stage-indicator {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: #E5E7EB;
-            margin: 0 auto 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-            z-index: 2;
-            position: relative;
-        }
-        
-        .stage-active .stage-indicator {
-            background: #4F46E5;
-            animation: pulse-stage 1.5s infinite;
-        }
-        
-        .stage-complete .stage-indicator {
-            background: #10B981;
-        }
-        
-        .stage-label {
-            font-size: 0.75rem;
-            color: #6B7280;
-        }
-        
-        .stage-active .stage-label {
-            color: #4F46E5;
-            font-weight: 600;
-        }
-        
-        @keyframes pulse-stage {
-            0%, 100% {
-                box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4);
-            }
-            50% {
-                box-shadow: 0 0 0 8px rgba(79, 70, 229, 0);
-            }
-        }
-        
         .ai-thinking {
             display: flex;
             align-items: center;
@@ -200,32 +129,41 @@
             font-weight: bold;
         }
         
-        .ai-text {
-            flex: 1;
+        .radio-option {
+            cursor: pointer;
+            transition: all 0.2s;
         }
         
-        .ai-typing {
-            display: inline-block;
-            overflow: hidden;
-            border-right: 2px solid #4F46E5;
-            white-space: nowrap;
-            animation: typing 3.5s steps(40, end) infinite, blink-caret 0.75s step-end infinite;
+        .radio-option:hover {
+            background-color: #f9fafb;
         }
         
-        @keyframes typing {
-            0% { width: 0 }
-            50% { width: 100% }
-            100% { width: 100% }
+        .radio-option input:checked + label {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
         }
         
-        @keyframes blink-caret {
-            from, to { border-color: transparent }
-            50% { border-color: #4F46E5 }
+        .ai-suggestion-card {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .ai-suggestion-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .custom-textarea {
+            display: none;
+            margin-top: 10px;
+        }
+        
+        .custom-textarea.active {
+            display: block;
         }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Your existing HTML body content remains exactly the same -->
     <!-- Header -->
     <div class="gradient-bg text-white px-4 sm:px-6 py-4">
         <div class="flex items-center justify-between">
@@ -348,32 +286,144 @@
 
                     <!-- Lesson Procedure -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Lesson Procedure</label>
-                        <div class="space-y-3 sm:space-y-4">
-                            <div>
-                                <label for="introduction" class="block text-sm font-medium text-gray-600 mb-1">Introduction (5 minutes)</label>
-                                <textarea id="introduction" name="introduction" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-14 sm:h-16 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="How will you begin the lesson? Outline..." required></textarea>
-                            </div>
+                        <label class="block text-sm font-medium text-gray-700 mb-4">Lesson Procedure</label>
+                        <div class="space-y-6">
                             
-                            <div>
-                                <label for="instruction" class="block text-sm font-medium text-gray-600 mb-1">Instruction (25 minutes)</label>
-                                <textarea id="instruction" name="instruction" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-14 sm:h-16 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="How will you present the new content?" required></textarea>
+                            <!-- Introduction Section -->
+                            <div class="border border-gray-200 rounded-lg p-4 bg-white">
+                                <div class="flex justify-between items-center mb-3">
+                                    <label class="block text-sm font-medium text-gray-700">Introduction (5 minutes)</label>
+                                    <button type="button" class="ai-suggest-btn text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full transition" data-section="introduction">
+                                        ✨ AI Suggestions
+                                    </button>
+                                </div>
+                                <select id="introduction" name="introduction" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                    <option value="">Select Introduction Method</option>
+                                    <option value="hook">Hook/Attention Grabber</option>
+                                    <option value="review">Review of Previous Lesson</option>
+                                    <option value="connection">Real-world Connection</option>
+                                    <option value="question">Question-based Opening</option>
+                                    <option value="story">Story/Anecdote</option>
+                                    <option value="activity">Interactive Activity</option>
+                                    <option value="custom">Custom (Write Your Own)</option>
+                                </select>
+                                <textarea id="introduction-custom" class="custom-textarea w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-2 focus:ring-2 focus:ring-blue-500" placeholder="Describe your custom introduction approach..." rows="3"></textarea>
                             </div>
-                            
-                            <div>
-                                <label for="application" class="block text-sm font-medium text-gray-600 mb-1">Application (20 minutes)</label>
-                                <textarea id="application" name="application" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-14 sm:h-16 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="How will you provide the lesson content?" required></textarea>
+
+                            <!-- Instruction Section -->
+                            <div class="border border-gray-200 rounded-lg p-4 bg-white">
+                                <div class="flex justify-between items-center mb-3">
+                                    <label class="block text-sm font-medium text-gray-700">Instruction (25 minutes)</label>
+                                    <button type="button" class="ai-suggest-btn text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full transition" data-section="instruction">
+                                        ✨ AI Suggestions
+                                    </button>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
+                                        <input type="radio" id="instr-direct" name="instruction" value="direct" class="mr-2" required>
+                                        <label for="instr-direct" class="cursor-pointer text-sm">Direct Instruction (Teacher-led lecture)</label>
+                                    </div>
+                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
+                                        <input type="radio" id="instr-demo" name="instruction" value="demonstration" class="mr-2">
+                                        <label for="instr-demo" class="cursor-pointer text-sm">Demonstration & Modeling</label>
+                                    </div>
+                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
+                                        <input type="radio" id="instr-discovery" name="instruction" value="discovery" class="mr-2">
+                                        <label for="instr-discovery" class="cursor-pointer text-sm">Guided Discovery</label>
+                                    </div>
+                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
+                                        <input type="radio" id="instr-multimedia" name="instruction" value="multimedia" class="mr-2">
+                                        <label for="instr-multimedia" class="cursor-pointer text-sm">Multimedia Presentation</label>
+                                    </div>
+                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
+                                        <input type="radio" id="instr-discussion" name="instruction" value="discussion" class="mr-2">
+                                        <label for="instr-discussion" class="cursor-pointer text-sm">Interactive Discussion</label>
+                                    </div>
+                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
+                                        <input type="radio" id="instr-handson" name="instruction" value="handson" class="mr-2">
+                                        <label for="instr-handson" class="cursor-pointer text-sm">Hands-on Exploration</label>
+                                    </div>
+                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
+                                        <input type="radio" id="instr-custom" name="instruction" value="custom" class="mr-2">
+                                        <label for="instr-custom" class="cursor-pointer text-sm">Custom Method</label>
+                                    </div>
+                                </div>
+                                <textarea id="instruction-custom" class="custom-textarea w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="Describe your custom instruction method..." rows="3"></textarea>
                             </div>
-                            
-                            <div>
-                                <label for="evaluation" class="block text-sm font-medium text-gray-600 mb-1">Evaluation (5 minutes)</label>
-                                <textarea id="evaluation" name="evaluation" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-14 sm:h-16 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="How will you assess the lesson content?" required></textarea>
+
+                            <!-- Application Section -->
+                            <div class="border border-gray-200 rounded-lg p-4 bg-white">
+                                <div class="flex justify-between items-center mb-3">
+                                    <label class="block text-sm font-medium text-gray-700">Application (20 minutes)</label>
+                                    <button type="button" class="ai-suggest-btn text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full transition" data-section="application">
+                                        ✨ AI Suggestions
+                                    </button>
+                                </div>
+                                <select id="application" name="application" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                    <option value="">Select Application Activity</option>
+                                    <option value="individual">Individual Practice</option>
+                                    <option value="group">Group Work/Collaboration</option>
+                                    <option value="problem">Problem-Solving Activity</option>
+                                    <option value="lab">Lab/Experiment</option>
+                                    <option value="project">Creative Project</option>
+                                    <option value="realworld">Real-world Application Task</option>
+                                    <option value="custom">Custom Activity</option>
+                                </select>
+                                <textarea id="application-custom" class="custom-textarea w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-2 focus:ring-2 focus:ring-blue-500" placeholder="Describe your custom application activity..." rows="3"></textarea>
                             </div>
-                            
-                            <div>
-                                <label for="assessment" class="block text-sm font-medium text-gray-600 mb-1">Assessment (5 min-out)</label>
-                                <textarea id="assessment" name="assessment" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-14 sm:h-16 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="How will you assess the lesson content?" required></textarea>
+
+                            <!-- Evaluation Section -->
+                            <div class="border border-gray-200 rounded-lg p-4 bg-white">
+                                <label class="block text-sm font-medium text-gray-700 mb-3">Evaluation (5 minutes)</label>
+                                <div class="space-y-2">
+                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
+                                        <input type="radio" id="eval-oral" name="evaluation" value="oral" class="mr-2" required>
+                                        <label for="eval-oral" class="cursor-pointer text-sm">Oral Questioning</label>
+                                    </div>
+                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
+                                        <input type="radio" id="eval-quiz" name="evaluation" value="quiz" class="mr-2">
+                                        <label for="eval-quiz" class="cursor-pointer text-sm">Quick Quiz/Exit Ticket</label>
+                                    </div>
+                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
+                                        <input type="radio" id="eval-peer" name="evaluation" value="peer" class="mr-2">
+                                        <label for="eval-peer" class="cursor-pointer text-sm">Peer Assessment</label>
+                                    </div>
+                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
+                                        <input type="radio" id="eval-self" name="evaluation" value="self" class="mr-2">
+                                        <label for="eval-self" class="cursor-pointer text-sm">Self-Assessment Checklist</label>
+                                    </div>
+                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
+                                        <input type="radio" id="eval-observation" name="evaluation" value="observation" class="mr-2">
+                                        <label for="eval-observation" class="cursor-pointer text-sm">Observation & Feedback</label>
+                                    </div>
+                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
+                                        <input type="radio" id="eval-digital" name="evaluation" value="digital" class="mr-2">
+                                        <label for="eval-digital" class="cursor-pointer text-sm">Digital Poll/Kahoot</label>
+                                    </div>
+                                </div>
                             </div>
+
+                            <!-- Assessment Section -->
+                            <div class="border border-gray-200 rounded-lg p-4 bg-white">
+                                <div class="flex justify-between items-center mb-3">
+                                    <label class="block text-sm font-medium text-gray-700">Assessment (5 minutes)</label>
+                                    <button type="button" class="ai-suggest-btn text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full transition" data-section="assessment">
+                                        ✨ AI Suggestions
+                                    </button>
+                                </div>
+                                <select id="assessment" name="assessment" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                    <option value="">Select Assessment Method</option>
+                                    <option value="written">Written Test/Quiz</option>
+                                    <option value="performance">Performance Task</option>
+                                    <option value="portfolio">Portfolio Assessment</option>
+                                    <option value="rubric">Rubric-based Evaluation</option>
+                                    <option value="formative">Formative Observation</option>
+                                    <option value="summative">Summative Project</option>
+                                    <option value="custom">Custom Assessment</option>
+                                </select>
+                                <textarea id="assessment-custom" class="custom-textarea w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-2 focus:ring-2 focus:ring-blue-500" placeholder="Describe your custom assessment method..." rows="3"></textarea>
+                            </div>
+
                         </div>
                     </div>
 
@@ -392,7 +442,6 @@
 
         <!-- Right Sidebar - AI Panel -->
         <div id="sidebar" class="w-80 bg-white border-l border-gray-200 p-6 overflow-y-auto hidden md:block">
-            <!-- AI Suggestions -->
             <div class="mb-8">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">AI Suggestions</h3>
                 <div class="space-y-3">
@@ -422,7 +471,6 @@
                 </div>
             </div>
 
-            <!-- Standards Compliance -->
             <div class="mb-8">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Standards Compliance</h3>
                 <div class="space-y-3">
@@ -441,7 +489,6 @@
                 </div>
             </div>
 
-            <!-- Quick Resources -->
             <div>
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Resources</h3>
                 <div class="space-y-3">
@@ -477,14 +524,12 @@
 
         <!-- Mobile Sidebar -->
         <div id="mobile-sidebar" class="fixed top-0 right-0 w-80 max-w-[85vw] h-full bg-white border-l border-gray-200 p-6 z-50 transform translate-x-full sidebar-transition overflow-y-auto md:hidden">
-            <!-- Close button for mobile -->
             <button id="close-sidebar" class="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
 
-            <!-- Same content as desktop sidebar -->
             <div class="mt-8">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">AI Suggestions</h3>
                 <div class="space-y-3">
@@ -500,51 +545,57 @@
         </div>
     </div>
 
+    <!-- AI Suggestions Modal -->
+    <div id="ai-suggestions-modal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+                <div class="gradient-bg text-white px-6 py-4 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold">AI Suggestions</h3>
+                    <button id="close-ai-modal" class="p-2 hover:bg-white/10 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="overflow-y-auto max-h-[calc(90vh-120px)] p-6">
+                    <div id="ai-suggestions-content" class="space-y-4">
+                        <!-- AI suggestions will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 px-6 py-4 flex justify-end">
+                    <button id="close-ai-modal-footer" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Enhanced Loading Overlay -->
     <div id="loading-overlay" class="fixed inset-0 bg-gray-800 bg-opacity-90 flex items-center justify-center hidden z-50">
         <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4">
             <div class="text-center">
-                <!-- AI Thinking Animation -->
                 <div class="ai-thinking">
                     <div class="ai-icon">AI</div>
                     <div class="ai-text">
                         <p class="text-sm font-medium text-gray-700">AI Assistant is thinking</p>
-                        <div class="ai-typing">Creating your custom lesson plan...</div>
                     </div>
                 </div>
                 
-                <!-- Progress Stages -->
-                <div class="loader-stages">
-                    <div class="loader-stage stage-complete">
-                        <div class="stage-indicator">✓</div>
-                        <div class="stage-label">Processing</div>
-                    </div>
-                    <div class="loader-stage stage-active">
-                        <div class="stage-indicator">2</div>
-                        <div class="stage-label">Generating</div>
-                    </div>
-                    <div class="loader-stage">
-                        <div class="stage-indicator">3</div>
-                        <div class="stage-label">Finalizing</div>
-                    </div>
-                </div>
-                
-                <!-- Animated Progress Bar -->
                 <div class="loader-bar">
                     <div class="loader-progress"></div>
                 </div>
                 
-                <!-- Loading Dots -->
                 <div class="loader-dots">
                     <div class="loader-dot"></div>
                     <div class="loader-dot"></div>
                     <div class="loader-dot"></div>
                 </div>
                 
-                <!-- Dynamic Messages -->
                 <div class="loader-message" id="loading-message">Analyzing your inputs...</div>
                 
-                <!-- Spinner -->
                 <div class="loader-spiral"></div>
                 
                 <p class="text-gray-600 text-sm mt-4">Please wait while we create your lesson plan</p>
@@ -557,7 +608,6 @@
     <div id="preview-modal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 hidden">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-                <!-- Modal Header -->
                 <div class="gradient-bg text-white px-6 py-4 flex items-center justify-between">
                     <h3 class="text-lg font-semibold">Lesson Plan Preview</h3>
                     <button id="close-preview" class="p-2 hover:bg-white/10 rounded-lg">
@@ -567,14 +617,10 @@
                     </button>
                 </div>
                 
-                <!-- Modal Content -->
                 <div class="overflow-y-auto max-h-[calc(90vh-120px)]">
-                    <div id="preview-content" class="p-6">
-                        <!-- Preview content will be populated here -->
-                    </div>
+                    <div id="preview-content" class="p-6"></div>
                 </div>
                 
-                <!-- Modal Footer -->
                 <div class="border-t border-gray-200 px-6 py-4 flex justify-end space-x-3">
                     <button id="close-preview-footer" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">
                         Close
@@ -587,15 +633,81 @@
         </div>
     </div>
 
-    <!-- Debug Info -->
-    <div id="debug-info" class="hidden text-xs text-gray-500 mt-4 p-4 bg-gray-100">
-        <p>Debug information will appear here</p>
-    </div>
-
     <script>
-        // ADD THE MISSING FUNCTIONS HERE - AT THE BEGINNING OF THE SCRIPT SECTION
+        // AI Suggestions Data
+        const aiSuggestions = {
+            introduction: [
+                {
+                    title: "Engaging Question Hook",
+                    description: "Start with a thought-provoking question related to the topic that captures student interest and activates prior knowledge.",
+                    example: "What would happen if gravity suddenly disappeared?"
+                },
+                {
+                    title: "Real-World Connection",
+                    description: "Connect the lesson to students' everyday experiences to make it relevant and meaningful.",
+                    example: "Have you ever wondered why your phone battery drains faster in cold weather?"
+                },
+                {
+                    title: "Visual Hook",
+                    description: "Use an intriguing image, video, or demonstration to grab attention and spark curiosity.",
+                    example: "Show a surprising science experiment or historical artifact"
+                }
+            ],
+            instruction: [
+                {
+                    title: "Interactive Demonstration",
+                    description: "Model the concept with student participation, allowing them to observe and engage with the learning process.",
+                    example: "Demonstrate a math problem on the board while asking students to predict the next step"
+                },
+                {
+                    title: "Multimedia Presentation",
+                    description: "Use videos, animations, and interactive slides to present information in engaging ways.",
+                    example: "Show an educational video followed by guided discussion"
+                },
+                {
+                    title: "Collaborative Discovery",
+                    description: "Guide students to discover concepts through structured group exploration and inquiry.",
+                    example: "Provide materials and guiding questions for students to explore in small groups"
+                }
+            ],
+            application: [
+                {
+                    title: "Hands-On Practice",
+                    description: "Students apply the new knowledge through individual worksheets, problems, or exercises with teacher support.",
+                    example: "Complete practice problems with gradual release of responsibility"
+                },
+                {
+                    title: "Group Project Activity",
+                    description: "Students work collaboratively to apply concepts in a creative or problem-solving task.",
+                    example: "Create a group poster, model, or presentation demonstrating understanding"
+                },
+                {
+                    title: "Real-World Application",
+                    description: "Students use the new knowledge to solve authentic problems or complete realistic tasks.",
+                    example: "Apply math concepts to calculate real measurements or budget scenarios"
+                }
+            ],
+            assessment: [
+                {
+                    title: "Exit Ticket Quiz",
+                    description: "Quick 3-5 question formative assessment to gauge understanding before students leave.",
+                    example: "Answer key questions on index cards or digital form"
+                },
+                {
+                    title: "Performance Task",
+                    description: "Students demonstrate understanding through a practical application or demonstration.",
+                    example: "Solve a problem, create something, or perform a skill"
+                },
+                {
+                    title: "Rubric-Based Assessment",
+                    description: "Use a detailed rubric to assess students' work across multiple criteria.",
+                    example: "Evaluate projects or presentations using clear success criteria"
+                }
+            ]
+        };
+
+        // Show success message
         function showSuccessMessage(message) {
-            // Create success message element
             const successMsg = document.createElement('div');
             successMsg.className = 'fixed top-6 right-6 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500';
             successMsg.innerHTML = `
@@ -610,29 +722,21 @@
                 </div>
             `;
             document.body.appendChild(successMsg);
-            
-            // Animate in
             setTimeout(() => successMsg.classList.remove('translate-x-full'), 100);
-            
-            // Animate out and remove
             setTimeout(() => {
                 successMsg.classList.add('translate-x-full');
-                setTimeout(() => {
-                    if (document.body.contains(successMsg)) {
-                        document.body.removeChild(successMsg);
-                    }
-                }, 500);
+                setTimeout(() => document.body.contains(successMsg) && document.body.removeChild(successMsg), 500);
             }, 4000);
         }
 
+        // Show error message
         function showErrorMessage(message) {
-            // Create error message element
             const errorMsg = document.createElement('div');
             errorMsg.className = 'fixed top-6 right-6 bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500';
             errorMsg.innerHTML = `
                 <div class="flex items-center">
                     <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     <div>
                         <p class="font-bold">Error</p>
@@ -641,22 +745,14 @@
                 </div>
             `;
             document.body.appendChild(errorMsg);
-            
-            // Animate in
             setTimeout(() => errorMsg.classList.remove('translate-x-full'), 100);
-            
-            // Animate out and remove
             setTimeout(() => {
                 errorMsg.classList.add('translate-x-full');
-                setTimeout(() => {
-                    if (document.body.contains(errorMsg)) {
-                        document.body.removeChild(errorMsg);
-                    }
-                }, 500);
+                setTimeout(() => document.body.contains(errorMsg) && document.body.removeChild(errorMsg), 500);
             }, 4000);
         }
 
-        // Function to get CSRF token from cookies
+        // Get CSRF token
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -672,7 +768,7 @@
             return cookieValue;
         }
 
-        // Mobile sidebar toggle functionality
+        // Mobile sidebar functionality
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const mobileOverlay = document.getElementById('mobile-overlay');
         const mobileSidebar = document.getElementById('mobile-sidebar');
@@ -699,7 +795,90 @@
             });
         }
 
-        // Preview Modal functionality
+        // Custom textarea toggle for dropdown/radio selections
+        document.getElementById('introduction').addEventListener('change', function() {
+            const customTextarea = document.getElementById('introduction-custom');
+            if (this.value === 'custom') {
+                customTextarea.classList.add('active');
+            } else {
+                customTextarea.classList.remove('active');
+            }
+        });
+
+        document.getElementById('application').addEventListener('change', function() {
+            const customTextarea = document.getElementById('application-custom');
+            if (this.value === 'custom') {
+                customTextarea.classList.add('active');
+            } else {
+                customTextarea.classList.remove('active');
+            }
+        });
+
+        document.getElementById('assessment').addEventListener('change', function() {
+            const customTextarea = document.getElementById('assessment-custom');
+            if (this.value === 'custom') {
+                customTextarea.classList.add('active');
+            } else {
+                customTextarea.classList.remove('active');
+            }
+        });
+
+        // Radio button custom option for instruction
+        document.querySelectorAll('input[name="instruction"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const customTextarea = document.getElementById('instruction-custom');
+                if (this.value === 'custom') {
+                    customTextarea.classList.add('active');
+                } else {
+                    customTextarea.classList.remove('active');
+                }
+            });
+        });
+
+        // AI Suggestions Modal
+        const aiSuggestionsModal = document.getElementById('ai-suggestions-modal');
+        const closeAiModal = document.getElementById('close-ai-modal');
+        const closeAiModalFooter = document.getElementById('close-ai-modal-footer');
+        const aiSuggestionsContent = document.getElementById('ai-suggestions-content');
+
+        document.querySelectorAll('.ai-suggest-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const section = this.dataset.section;
+                const suggestions = aiSuggestions[section] || [];
+                
+                aiSuggestionsContent.innerHTML = `
+                    <div class="mb-4">
+                        <h4 class="text-lg font-semibold text-gray-900 capitalize">${section} Suggestions</h4>
+                        <p class="text-sm text-gray-600 mt-1">Select a suggestion to use in your lesson plan</p>
+                    </div>
+                    ${suggestions.map(suggestion => `
+                        <div class="ai-suggestion-card border border-gray-200 rounded-lg p-4 hover:border-purple-400 transition">
+                            <h5 class="font-semibold text-gray-900 mb-2">${suggestion.title}</h5>
+                            <p class="text-sm text-gray-700 mb-2">${suggestion.description}</p>
+                            <p class="text-xs text-gray-500 italic">Example: ${suggestion.example}</p>
+                            <button class="mt-3 text-sm bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition" onclick="useSuggestion('${section}', '${suggestion.title}')">
+                                Use This Suggestion
+                            </button>
+                        </div>
+                    `).join('')}
+                `;
+                
+                aiSuggestionsModal.classList.remove('hidden');
+            });
+        });
+
+        function useSuggestion(section, title) {
+            showSuccessMessage(`"${title}" suggestion applied to ${section}!`);
+            aiSuggestionsModal.classList.add('hidden');
+        }
+
+        closeAiModal.addEventListener('click', () => aiSuggestionsModal.classList.add('hidden'));
+        closeAiModalFooter.addEventListener('click', () => aiSuggestionsModal.classList.add('hidden'));
+        aiSuggestionsModal.addEventListener('click', (e) => {
+            if (e.target === aiSuggestionsModal) aiSuggestionsModal.classList.add('hidden');
+        });
+
+        // Preview Modal
         const previewBtn = document.getElementById('preview-btn');
         const previewModal = document.getElementById('preview-modal');
         const closePreview = document.getElementById('close-preview');
@@ -708,6 +887,46 @@
         const previewContent = document.getElementById('preview-content');
 
         function getFormData() {
+            // Helper to get readable label for selection
+            function getReadableValue(elementId, value) {
+                const element = document.getElementById(elementId);
+                if (element.tagName === 'SELECT') {
+                    const option = element.querySelector(`option[value="${value}"]`);
+                    return option ? option.textContent : value;
+                }
+                return value;
+            }
+
+            // Get instruction method
+            const instructionRadio = document.querySelector('input[name="instruction"]:checked');
+            let instructionValue = instructionRadio ? instructionRadio.value : '';
+            if (instructionValue === 'custom') {
+                instructionValue = document.getElementById('instruction-custom').value || 'Custom method';
+            } else {
+                const labels = {
+                    'direct': 'Direct Instruction (Teacher-led lecture)',
+                    'demonstration': 'Demonstration & Modeling',
+                    'discovery': 'Guided Discovery',
+                    'multimedia': 'Multimedia Presentation',
+                    'discussion': 'Interactive Discussion',
+                    'handson': 'Hands-on Exploration'
+                };
+                instructionValue = labels[instructionValue] || instructionValue;
+            }
+
+            // Get evaluation method
+            const evaluationRadio = document.querySelector('input[name="evaluation"]:checked');
+            let evaluationValue = evaluationRadio ? evaluationRadio.value : '';
+            const evalLabels = {
+                'oral': 'Oral Questioning',
+                'quiz': 'Quick Quiz/Exit Ticket',
+                'peer': 'Peer Assessment',
+                'self': 'Self-Assessment Checklist',
+                'observation': 'Observation & Feedback',
+                'digital': 'Digital Poll/Kahoot'
+            };
+            evaluationValue = evalLabels[evaluationValue] || evaluationValue;
+
             return {
                 subject: document.getElementById('subject').value,
                 gradeLevel: document.getElementById('grade-level').value,
@@ -717,24 +936,25 @@
                 learningObjectives: document.getElementById('learning-objectives').value,
                 subjectMatter: document.getElementById('subject-matter').value,
                 materialsNeeded: document.getElementById('materials-needed').value,
-                introduction: document.getElementById('introduction').value,
-                instruction: document.getElementById('instruction').value,
-                application: document.getElementById('application').value,
-                evaluation: document.getElementById('evaluation').value,
-                assessment: document.getElementById('assessment').value
+                introduction: getReadableValue('introduction', document.getElementById('introduction').value) + 
+                    (document.getElementById('introduction').value === 'custom' ? ': ' + document.getElementById('introduction-custom').value : ''),
+                instruction: instructionValue,
+                application: getReadableValue('application', document.getElementById('application').value) +
+                    (document.getElementById('application').value === 'custom' ? ': ' + document.getElementById('application-custom').value : ''),
+                evaluation: evaluationValue,
+                assessment: getReadableValue('assessment', document.getElementById('assessment').value) +
+                    (document.getElementById('assessment').value === 'custom' ? ': ' + document.getElementById('assessment-custom').value : '')
             };
         }
 
         function generatePreview(data) {
             return `
                 <div class="space-y-6">
-                    <!-- Header -->
                     <div class="text-center border-b border-gray-200 pb-4">
                         <h3 class="text-2xl font-bold text-gray-900 mb-2">Lesson Plan</h3>
                         <p class="text-gray-600">${data.subject} - ${data.gradeLevel}</p>
                     </div>
                     
-                    <!-- Basic Information -->
                     <div class="bg-gray-50 rounded-lg p-4">
                         <h4 class="font-semibold text-gray-900 mb-3">Lesson Details</h4>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -761,7 +981,6 @@
                         </div>
                     </div>
                     
-                    <!-- Learning Objectives -->
                     <div>
                         <h4 class="font-semibold text-gray-900 mb-3">Learning Objectives</h4>
                         <div class="bg-white border border-gray-200 rounded-lg p-4">
@@ -769,7 +988,6 @@
                         </div>
                     </div>
                     
-                    <!-- Subject Matter and Materials -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <h4 class="font-semibold text-gray-900 mb-3">Subject Matter</h4>
@@ -785,7 +1003,6 @@
                         </div>
                     </div>
                     
-                    <!-- Lesson Procedure -->
                     <div>
                         <h4 class="font-semibold text-gray-900 mb-3">Lesson Procedure</h4>
                         <div class="space-y-3">
@@ -833,19 +1050,11 @@
             document.body.style.overflow = 'auto';
         }
 
-        if (closePreview) {
-            closePreview.addEventListener('click', closePreviewModal);
-        }
-        
-        if (closePreviewFooter) {
-            closePreviewFooter.addEventListener('click', closePreviewModal);
-        }
-        
+        if (closePreview) closePreview.addEventListener('click', closePreviewModal);
+        if (closePreviewFooter) closePreviewFooter.addEventListener('click', closePreviewModal);
         if (previewModal) {
             previewModal.addEventListener('click', (e) => {
-                if (e.target === previewModal) {
-                    closePreviewModal();
-                }
+                if (e.target === previewModal) closePreviewModal();
             });
         }
 
@@ -856,45 +1065,16 @@
             });
         }
 
-        // Enhanced loading animation with dynamic messages
-        const loadingMessages = [
-            "Analyzing your inputs...",
-            "Generating learning objectives...",
-            "Creating lesson structure...",
-            "Adding educational standards...",
-            "Finalizing your lesson plan...",
-            "Almost done..."
-        ];
-
-        let messageIndex = 0;
-        let messageInterval;
-
-        function startLoadingAnimation() {
-            const loadingMessage = document.getElementById('loading-message');
-            messageIndex = 0;
-            loadingMessage.textContent = loadingMessages[messageIndex];
-            
-            messageInterval = setInterval(() => {
-                messageIndex = (messageIndex + 1) % loadingMessages.length;
-                loadingMessage.textContent = loadingMessages[messageIndex];
-            }, 3000);
-        }
-
-        function stopLoadingAnimation() {
-            if (messageInterval) {
-                clearInterval(messageInterval);
-            }
-        }
-
-        // Form submission handling with backend integration
+        // Form submission
         document.getElementById('lesson-plan-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Show enhanced loading overlay
             document.getElementById('loading-overlay').classList.remove('hidden');
-            startLoadingAnimation();
             
-            // Gather form data
+            // Gather form data with proper values
+            const instructionRadio = document.querySelector('input[name="instruction"]:checked');
+            const evaluationRadio = document.querySelector('input[name="evaluation"]:checked');
+            
             const formData = {
                 subject: document.getElementById('subject').value,
                 grade_level: document.getElementById('grade-level').value,
@@ -904,15 +1084,18 @@
                 learning_objectives: document.getElementById('learning-objectives').value,
                 subject_matter: document.getElementById('subject-matter').value,
                 materials_needed: document.getElementById('materials-needed').value,
-                introduction: document.getElementById('introduction').value,
-                instruction: document.getElementById('instruction').value,
-                application: document.getElementById('application').value,
-                evaluation: document.getElementById('evaluation').value,
-                assessment: document.getElementById('assessment').value,
+                introduction: document.getElementById('introduction').value === 'custom' ? 
+                    document.getElementById('introduction-custom').value : document.getElementById('introduction').value,
+                instruction: instructionRadio ? (instructionRadio.value === 'custom' ? 
+                    document.getElementById('instruction-custom').value : instructionRadio.value) : '',
+                application: document.getElementById('application').value === 'custom' ?
+                    document.getElementById('application-custom').value : document.getElementById('application').value,
+                evaluation: evaluationRadio ? evaluationRadio.value : '',
+                assessment: document.getElementById('assessment').value === 'custom' ?
+                    document.getElementById('assessment-custom').value : document.getElementById('assessment').value,
             };
             
             try {
-                // Send request to backend
                 const response = await fetch('/generate-lesson-plan/', {
                     method: 'POST',
                     headers: {
@@ -922,7 +1105,6 @@
                     body: JSON.stringify(formData)
                 });
                 
-                // Check if response is OK
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -930,72 +1112,17 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Redirect to results page with the lesson plan
                     window.location.href = `/lesson-plan-result/`;
                 } else {
                     showErrorMessage('Error: ' + data.error);
                 }
             } catch (error) {
                 console.error('Fetch error:', error);
-                
-                // Show detailed error information
-                const debugInfo = document.getElementById('debug-info');
-                debugInfo.classList.remove('hidden');
-                debugInfo.innerHTML = `
-                    <p><strong>Error:</strong> ${error.message}</p>
-                    <p><strong>URL:</strong> /generate-lesson-plan/</p>
-                    <p><strong>Method:</strong> POST</p>
-                    <p><strong>Time:</strong> ${new Date().toLocaleTimeString()}</p>
-                `;
-                
                 showErrorMessage('An error occurred: ' + error.message);
             } finally {
-                // Hide loading overlay
                 document.getElementById('loading-overlay').classList.add('hidden');
-                stopLoadingAnimation();
             }
         });
-
-        // Add save lesson plan functionality for the result page
-        async function saveLessonPlan() {
-            try {
-                const response = await fetch('/save-lesson-plan/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                    },
-                    body: JSON.stringify({})
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    if (data.auto_approved) {
-                        showSuccessMessage('Lesson plan created and automatically approved!');
-                        // Redirect to department head drafts page after delay
-                        setTimeout(() => {
-                            window.location.href = '/drafts/department-head/';
-                        }, 1500);
-                    } else {
-                        showSuccessMessage('Lesson plan saved as draft successfully!');
-                        // Redirect based on user role
-                        setTimeout(() => {
-                            if (data.user_role === 'Department Head') {
-                                window.location.href = '/drafts/department-head/';
-                            } else {
-                                window.location.href = '/drafts/';
-                            }
-                        }, 1500);
-                    }
-                } else {
-                    showErrorMessage('Error saving lesson plan: ' + data.error);
-                }
-            } catch (error) {
-                console.error('Save error:', error);
-                showErrorMessage('An error occurred while saving the lesson plan.');
-            }
-        }
     </script>
 </body>
 </html>
