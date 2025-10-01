@@ -67,8 +67,9 @@ urlpatterns = [
     path('review-lesson-plan/<int:submission_id>/', views.review_lesson_plan, name='review_lesson_plan'),
     path('lesson-plan-detail/<int:submission_id>/', views.lesson_plan_detail, name='lesson_plan_detail'),
     path('faculty-management/', views.admin_dep_faculty_management, name='admin_faculty_management'),
-    
-    
+    path('teacher_calendar/', views.teacher_calendar, name='teacher_calendar'),
+    path('calendar-api/', include('lessonlinkCalendar.urls')),
+
 
     
 

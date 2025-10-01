@@ -194,6 +194,36 @@ def validate_school_id_ajax(request):
     })
 
 
+def admin_get_calendar_activities(request):
+    """API endpoint to get calendar activities"""
+    # For now, return empty array - you can replace with database logic later
+    activities = []
+    return JsonResponse(activities, safe=False)
+
+def admin_add_calendar_activity(request):
+    """API endpoint to add calendar activity"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            # For now, just return a success response
+            # You can add database saving logic here later
+            return JsonResponse({'success': True, 'id': 1})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
+
+def admin_delete_calendar_activity(request, activity_id):
+    """API endpoint to delete calendar activity"""
+    if request.method == 'DELETE':
+        try:
+            # For now, just return success
+            # You can add database deletion logic here later
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
+
+
 # User Registration and Authentication Views
 @login_required
 def upload_profile_picture(request):
@@ -906,7 +936,33 @@ def dep_calendar(request):
     if user.role not in ["Department Head", "Teacher", "Student Teacher"]:
         messages.error(request, "You are not allowed to access this page.")
         return redirect('dashboard')
-    return render(request, 'dep_calendar.html', {'user': user})
+    
+    # Set user_role based on actual user role
+    if user.is_superuser:
+        user_role = 'admin'
+    elif user.role == "Department Head":
+        user_role = 'department_head'
+    else:  # Teacher or Student Teacher
+        user_role = 'teacher'
+    
+    context = {
+        'user': user,
+        'user_role': user_role
+    }
+    return render(request, 'dep_calendar.html', context) 
+
+def teacher_calendar(request):
+    user = request.user
+    # Only allow Teachers and Student Teachers
+    if user.role not in ["Teacher", "Student Teacher"]:
+        messages.error(request, "You are not allowed to access this page.")
+        return redirect('dashboard')
+    
+    context = {
+        'user': user,
+        'user_role': 'teacher'
+    }
+    return render(request, 'teacher_calendar.html', context)
 
 
 
@@ -946,7 +1002,11 @@ def calendar(request):
     return render(request, 'calendar.html')
 
 def admin_calendar(request):
-    return render(request, 'admin_calendar.html')
+    context = {
+        'user': request.user,
+        'user_role': 'admin'  # This makes the template show admin permissions
+    }
+    return render(request, 'dep_calendar.html', context)
 
 def admin_dashboard(request):
     school = SchoolRegistration.objects.first()  # or filter by the logged-in admin
