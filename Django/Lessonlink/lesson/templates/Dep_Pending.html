@@ -180,20 +180,26 @@
     <div class="flex pt-16">
         <!-- Sidebar - Fixed and sticky -->
         <aside id="sidebar"
-            class="w-64 bg-white shadow-lg h-screen fixed top-16 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30">
+            class="w-64 bg-white shadow-lg h-screen fixed top-20 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
             <nav class="p-4 space-y-2">
                 <!-- Quick Actions Button -->
-                <button
-                    class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
-                    <i class="fas fa-clipboard-check text-lg"></i>
-                    <span class="font-medium">Review Queue</span>
-                </button>
+                <a href="{% url 'lesson_ai' %}">
+                    <button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] shadow-md">
+                        <i class="fas fa-plus text-lg"></i>
+                        <span class="font-medium">Create Lesson</span>
+                    </button>
+                </a>
 
                 <!-- Navigation Items -->
                 <a href="{% url 'Dep_Dash' %}"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Dashboard</span>
+                </a>
+                <a href="{% url 'department_head_drafts' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>My Lesson Plans</span>
                 </a>
                 <a href="{% url 'dep_calendar' %}"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group]">

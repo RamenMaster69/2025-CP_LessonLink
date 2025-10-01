@@ -261,7 +261,8 @@ def save_lesson_plan(request):
             'draft_id': lesson_plan.id,
             'message': message,
             'auto_approved': is_department_head,
-            'user_role': request.user.role  # Add user role to response
+            'user_role': request.user.role,
+            'redirect_url': '/drafts/department-head/' if is_department_head else '/drafts/'
         })
         
     except Exception as e:
@@ -385,7 +386,12 @@ def edit_draft(request, draft_id):
         draft.save()
         
         messages.success(request, 'Draft updated successfully!')
-        return redirect('draft_list')
+        
+        # Redirect based on user role
+        if request.user.role == 'Department Head':
+            return redirect('department_head_drafts')
+        else:
+            return redirect('draft_list')
     
     return render(request, 'lessonGenerator/edit_draft.html', {'draft': draft})
 
