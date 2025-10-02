@@ -11,7 +11,6 @@ from .views import admin_dashboard
 from django.contrib import admin
 from . import views 
 
-
 # Import the new task API views
 from .views import (
     add_task_api, update_task_status_api, delete_task_api,
@@ -43,7 +42,6 @@ urlpatterns = [
     path('registration_3/', registration_3, name='registration_3'),
     path('registration_4/', registration_4, name='registration_4'),
     path('org_reg_1/', org_reg_1, name='org_reg_1'),
-    # path('school_registration/', school_registration, name='school_registration'),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
     path('dashboard/', dashboard, name='dashboard'),
@@ -68,14 +66,9 @@ urlpatterns = [
     path('lesson-plan-detail/<int:submission_id>/', views.lesson_plan_detail, name='lesson_plan_detail'),
     path('faculty-management/', views.admin_dep_faculty_management, name='admin_faculty_management'),
     path('teacher_calendar/', views.teacher_calendar, name='teacher_calendar'),
-    path('calendar-api/', include('lessonlinkCalendar.urls')),
-
-
+    path('admin/school-registrations/', views.admin_school_registrations, name='admin_school_registrations'),
     
+    # Calendar API URLs - FIXED PATH (Option 1)
+    path('calendar-api/', include('lessonlinkCalendar.urls')), 
 
-
-    # path('upload-profile-picture/', upload_profile_picture, name='upload_profile_picture'),
-]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

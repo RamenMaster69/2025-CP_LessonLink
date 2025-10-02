@@ -217,34 +217,34 @@ def validate_school_id_ajax(request):
     })
 
 
-def admin_get_calendar_activities(request):
-    """API endpoint to get calendar activities"""
-    # For now, return empty array - you can replace with database logic later
-    activities = []
-    return JsonResponse(activities, safe=False)
+# def admin_get_calendar_activities(request):
+#     """API endpoint to get calendar activities"""
+#     # For now, return empty array - you can replace with database logic later
+#     activities = []
+#     return JsonResponse(activities, safe=False)
 
-def admin_add_calendar_activity(request):
-    """API endpoint to add calendar activity"""
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            # For now, just return a success response
-            # You can add database saving logic here later
-            return JsonResponse({'success': True, 'id': 1})
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=400)
-    return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
+# def admin_add_calendar_activity(request):
+#     """API endpoint to add calendar activity"""
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#             # For now, just return a success response
+#             # You can add database saving logic here later
+#             return JsonResponse({'success': True, 'id': 1})
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)}, status=400)
+#     return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
 
-def admin_delete_calendar_activity(request, activity_id):
-    """API endpoint to delete calendar activity"""
-    if request.method == 'DELETE':
-        try:
-            # For now, just return success
-            # You can add database deletion logic here later
-            return JsonResponse({'success': True})
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=400)
-    return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
+# def admin_delete_calendar_activity(request, activity_id):
+#     """API endpoint to delete calendar activity"""
+#     if request.method == 'DELETE':
+#         try:
+#             # For now, just return success
+#             # You can add database deletion logic here later
+#             return JsonResponse({'success': True})
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)}, status=400)
+#     return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
 
 
 # User Registration and Authentication Views
@@ -733,18 +733,12 @@ def registration_5(request):
 def login_view(request):
     # If user is already logged in, redirect based on role
     if request.user.is_authenticated:
-        if request.user.role == "Student Teacher":
-            return redirect('st_dash')
-        elif request.user.role == "Department Head":
-            return redirect('Dep_Dash')
-        else:
-            return redirect('dashboard')
+        return redirect_based_on_role(request.user)
 
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
 
-        # Validation for empty fields
         if not email or not password:
             messages.error(request, "Please fill in both email and password.")
             return render(request, 'login.html', {
@@ -753,42 +747,172 @@ def login_view(request):
                 'show_error': True
             })
 
-        # Use Django's built-in authenticate function
+        # Try regular user authentication first
         user = authenticate(request, username=email, password=password)
         
+        print(f"DEBUG login: Regular auth result - {user}")
+        
         if user is not None:
-            # User authentication successful
+            print(f"DEBUG login: Regular user found - {user.email}, Role: {user.role}")
             login(request, user)
             messages.success(request, f"Welcome back, {user.first_name}!")
-
-            # Redirect based on role
-            if user.role == "Student Teacher":
-                return redirect('st_dash')
-            elif user.role == "Department Head":
-                return redirect('Dep_Dash')
-            else:
-                return redirect('dashboard')
+            return redirect_based_on_role(user)
         else:
-            # Check if user exists to give specific error message
+            # Try school admin login using school email
+            school_admin = try_school_admin_login(email, password)
+            print(f"DEBUG login: School admin result - {school_admin}")
+            
+            if school_admin:
+                print(f"DEBUG login: School admin found - {school_admin.email}, Role: {school_admin.role}")
+                login(request, school_admin)
+                messages.success(request, f"Welcome, {school_admin.first_name}!")
+                return redirect_based_on_role(school_admin)
+            
+            # Show appropriate error message
             try:
-                existing_user = User.objects.get(email=email)
+                # Check if email exists in User model
+                User.objects.get(email=email)
                 messages.error(request, "Invalid password. Please try again.")
-                return render(request, 'login.html', {
-                    'email': email,
-                    'error_message': "Invalid password. Please try again.",
-                    'invalid_password': True,
-                    'show_error': True
-                })
             except User.DoesNotExist:
-                messages.error(request, "No account found with this email. Please register first.")
-                return render(request, 'login.html', {
-                    'email': email,
-                    'error_message': "No account found with this email. Please register first.",
-                    'email_not_found': True,
-                    'show_error': True
-                })
+                # Check if email exists in SchoolRegistration
+                school_exists = SchoolRegistration.objects.filter(
+                    Q(contact_email=email) | Q(email=email)
+                ).exists()
+                
+                if school_exists:
+                    messages.error(request, "Invalid password for this school account. Please try again.")
+                else:
+                    messages.error(request, "No account found with this email. Please register first.")
+            
+            return render(request, 'login.html', {
+                'email': email,
+                'show_error': True
+            })
 
     return render(request, 'login.html')
+
+    
+
+def redirect_based_on_role(user):
+    """Redirect user based on their role"""
+    if user.role == "Student Teacher":
+        return redirect('st_dash')
+    elif user.role == "Department Head":
+        return redirect('Dep_Dash')
+    elif user.role == "Teacher":  # ← ADD THIS CASE
+        return redirect('dashboard')
+    elif user.role in ["Admin", "Supervisor"]:
+        return redirect('admin_dashboard')
+    else:
+        return redirect('dashboard')  # Default to regular dashboard
+
+def try_school_admin_login(email, password):
+    """Try to authenticate as school admin using SchoolRegistration credentials"""
+    try:
+        # Check if this email exists in SchoolRegistration (both contact_email and email fields)
+        school_reg = SchoolRegistration.objects.filter(
+            Q(contact_email=email) | Q(email=email),
+            status='approved'  # Only allow approved schools
+        ).first()
+        
+        if school_reg:
+            # Check password directly (since SchoolRegistration stores hashed password)
+            from django.contrib.auth.hashers import check_password
+            if check_password(password, school_reg.password):
+                # Find or create user account for this school admin
+                user, created = User.objects.get_or_create(
+                    email=school_reg.contact_email,  # Use contact_email as primary email
+                    defaults={
+                        'first_name': school_reg.contact_person.split(' ', 1)[0] if ' ' in school_reg.contact_person else school_reg.contact_person,
+                        'last_name': school_reg.contact_person.split(' ', 1)[1] if ' ' in school_reg.contact_person else 'Admin',
+                        'role': 'Department Head',
+                        'rank': school_reg.position,
+                        'department': 'Administration',
+                        'school': school_reg,
+                        'is_active': True
+                    }
+                )
+                
+                if created:
+                    # Set password for the user account
+                    user.set_password(password)
+                    user.save()
+                    print(f"Created new user account for school admin: {user.email}")
+                
+                return user
+    except Exception as e:
+        print(f"School admin login error: {e}")
+    
+    return None
+
+
+
+def redirect_based_on_role(user):
+    """Redirect user based on their role"""
+    print(f"DEBUG redirect_based_on_role: User {user.email} - Role: {user.role} - Superuser: {user.is_superuser}")
+    
+    if user.role == "Student Teacher":
+        print("  -> Redirecting to st_dash")
+        return redirect('st_dash')
+    elif user.role == "Department Head":
+        print("  -> Redirecting to Dep_Dash")
+        return redirect('Dep_Dash')
+    elif user.role == "Teacher":
+        print("  -> Redirecting to dashboard")
+        return redirect('dashboard')
+    elif user.role in ["Admin", "Supervisor"] or user.is_superuser:
+        print("  -> Redirecting to admin_dashboard")
+        return redirect('admin_dashboard')
+    else:
+        print(f"  -> Unknown role '{user.role}', redirecting to dashboard")
+        return redirect('dashboard')
+
+def try_school_admin_login(email, password):
+    """Try to authenticate as school admin using SchoolRegistration credentials - ONLY APPROVED SCHOOLS"""
+    try:
+        # Only allow approved schools to login
+        school_reg = SchoolRegistration.objects.filter(
+            Q(contact_email=email) | Q(email=email),
+            status='approved'  # ← KEEP THIS - ONLY APPROVED SCHOOLS CAN LOGIN
+        ).first()
+        
+        if school_reg:
+            # Check password directly
+            from django.contrib.auth.hashers import check_password
+            if check_password(password, school_reg.password):
+                # Find or create user account
+                user = User.objects.filter(
+                    Q(email=school_reg.contact_email) | Q(school=school_reg),
+                    role__in=['Department Head', 'Admin']
+                ).first()
+                
+                if user:
+                    print(f"Found existing user: {user.email} with role: {user.role}")
+                    return user
+                else:
+                    # Create new user account for school admin
+                    name_parts = school_reg.contact_person.split(' ', 1)
+                    first_name = name_parts[0]
+                    last_name = name_parts[1] if len(name_parts) > 1 else "Admin"
+                    
+                    user = User.objects.create_user(
+                        email=school_reg.contact_email,
+                        password=password,
+                        first_name=first_name,
+                        last_name=last_name,
+                        role='Department Head',
+                        rank=school_reg.position,
+                        department='Administration',
+                        school=school_reg,
+                        is_active=True
+                    )
+                    print(f"Created new user account for school admin: {user.email}")
+                    return user
+                    
+    except Exception as e:
+        print(f"School admin login error: {e}")
+    
+    return None
 
 @login_required
 def dashboard(request):
@@ -960,6 +1084,9 @@ def dep_calendar(request):
         messages.error(request, "You are not allowed to access this page.")
         return redirect('dashboard')
     
+    # DEBUG: Print user info to console
+    print(f"CALENDAR ACCESS: User {user.email} - Role: {user.role} - Superuser: {user.is_superuser}")
+    
     # Set user_role based on actual user role
     if user.is_superuser:
         user_role = 'admin'
@@ -972,7 +1099,7 @@ def dep_calendar(request):
         'user': user,
         'user_role': user_role
     }
-    return render(request, 'dep_calendar.html', context) 
+    return render(request, 'dep_calendar.html', context)
 
 def teacher_calendar(request):
     user = request.user
@@ -1031,11 +1158,107 @@ def admin_calendar(request):
     }
     return render(request, 'dep_calendar.html', context)
 
+@login_required
 def admin_dashboard(request):
-    school = SchoolRegistration.objects.first()  # or filter by the logged-in admin
-    return render(request, 'admin_dashboard.html', {
-        "SchoolRegistration": school
-    })
+    """Enhanced admin dashboard with real data"""
+    user = request.user
+    
+    # Get the school for the logged-in admin
+    school = None
+    
+    # Try different ways to get the school
+    if user.school:
+        school = user.school
+    elif hasattr(user, 'schoolregistration'):
+        school = user.schoolregistration
+    else:
+        # Try to find school by admin's email
+        school = SchoolRegistration.objects.filter(
+            Q(contact_email=user.email) | Q(email=user.email)
+        ).first()
+    
+    # If no school found, get the first one (fallback)
+    if not school:
+        school = SchoolRegistration.objects.first()
+
+    # Get real statistics
+    if school:
+        # School-specific statistics
+        total_users = User.objects.filter(school=school).count()
+        teachers_count = User.objects.filter(school=school, role='Teacher').count()
+        dept_heads_count = User.objects.filter(school=school, role='Department Head').count()
+        student_teachers_count = User.objects.filter(school=school, role='Student Teacher').count()
+        total_lessons = LessonPlan.objects.filter(created_by__school=school).count()
+        approved_lessons = LessonPlan.objects.filter(created_by__school=school, status='final').count()
+        draft_lessons = LessonPlan.objects.filter(created_by__school=school, status='draft').count()
+        
+        # Recent activities for this school
+        recent_lessons = LessonPlan.objects.filter(created_by__school=school).order_by('-created_at')[:5]
+        recent_users = User.objects.filter(school=school).order_by('-date_joined')[:5]
+        
+        # Calculate growth (you can implement more sophisticated logic)
+        user_growth = "+12%"  # Placeholder - implement your growth logic
+        lesson_growth = "+5%"  # Placeholder
+        
+    else:
+        # System-wide statistics (super admin view)
+        total_users = User.objects.count()
+        teachers_count = User.objects.filter(role='Teacher').count()
+        dept_heads_count = User.objects.filter(role='Department Head').count()
+        student_teachers_count = User.objects.filter(role='Student Teacher').count()
+        total_lessons = LessonPlan.objects.count()
+        approved_lessons = LessonPlan.objects.filter(status='final').count()
+        draft_lessons = LessonPlan.objects.filter(status='draft').count()
+        total_schools = SchoolRegistration.objects.count()
+        approved_schools = SchoolRegistration.objects.filter(status='approved').count()
+        
+        # Recent activities
+        recent_lessons = LessonPlan.objects.select_related('created_by').order_by('-created_at')[:5]
+        recent_users = User.objects.select_related('school').order_by('-date_joined')[:5]
+        
+        user_growth = "+8%"
+        lesson_growth = "+12%"
+
+    # Get pending submissions for department heads
+    pending_submissions = 0
+    if user.role == 'Department Head':
+        pending_submissions = LessonPlanSubmission.objects.filter(
+            submitted_to=user, 
+            status='submitted'
+        ).count()
+
+    context = {
+        "SchoolRegistration": school,
+        'school': school,
+        'user': user,
+        
+        # Real statistics
+        'total_users': total_users,
+        'teachers_count': teachers_count,
+        'dept_heads_count': dept_heads_count,
+        'student_teachers_count': student_teachers_count,
+        'total_lessons': total_lessons,
+        'approved_lessons': approved_lessons,
+        'draft_lessons': draft_lessons,
+        'pending_submissions': pending_submissions,
+        
+        # Growth metrics
+        'user_growth': user_growth,
+        'lesson_growth': lesson_growth,
+        
+        # Recent activities
+        'recent_lessons': recent_lessons,
+        'recent_users': recent_users,
+        
+        # System-wide stats (for super admin)
+        'total_schools': total_schools if not school else 0,
+        'approved_schools': approved_schools if not school else 0,
+        
+        'is_admin': user.role in ['Admin', 'Department Head', 'Supervisor'],
+        'user_role': user.role,
+    }
+    
+    return render(request, 'admin_dashboard.html', context)
 
 # def system_admin()
 

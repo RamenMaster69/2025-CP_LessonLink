@@ -106,6 +106,10 @@
         .department-activity {
             border-left: 3px solid #3b82f6 !important;
         }
+
+        .teacher-activity {
+            border-left: 3px solid #10b981 !important;
+        }
     </style>
 </head>
 
@@ -165,35 +169,54 @@
     <div class="flex pt-16">
         <!-- Sidebar - Fixed and sticky -->
         <aside id="sidebar" class="w-72 bg-white/70 backdrop-blur-xl shadow-elevation-2 h-screen fixed top-16 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 border-r border-gray-200/50">
-            <nav class="p-6 space-y-3">
-                <!-- Enhanced Create Lesson Button -->
-                <button class="w-full flex items-center space-x-4 px-6 py-4 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-xl hover:shadow-neon font-semibold transition-all duration-300 transform hover:scale-105">
-                    <i class="fas fa-plus text-lg"></i>
-                    <span>Create New Lesson</span>
-                </button>
+    <nav class="p-6 space-y-3">
+        <!-- Enhanced Create Lesson Button -->
+        <button class="w-full flex items-center space-x-4 px-6 py-4 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-xl hover:shadow-neon font-semibold transition-all duration-300 transform hover:scale-105">
+            <i class="fas fa-plus text-lg"></i>
+            <span>Create New Lesson</span>
+        </button>
 
-                <!-- Enhanced Navigation Items -->
-                <a href="{% url 'admin_dashboard' %}" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
-                    <i class="fas fa-home w-5 text-lg"></i>
-                    <span>Dashboard</span>
-                </a>
-                
-                <a href="{% url 'admin_faculty_management' %}" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
-                    <i class="fas fa-chalkboard-teacher w-5 text-lg"></i>
-                    <span>Faculty Management</span>
-                </a>
-                
-                <a href="{% url 'dep_calendar' %}" class="nav-item active flex items-center space-x-4 px-6 py-4 text-[#11468F] bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl font-semibold border border-blue-200">
-                    <i class="fas fa-calendar-alt w-5 text-lg"></i>
-                    <span>Calendar</span>
-                </a>
-                
-                <a href="#" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
-                    <i class="fas fa-tasks w-5 text-lg"></i>
-                    <span>Tasks</span>
-                </a>
-            </nav>
-        </aside>
+        <!-- Role-based Navigation -->
+        {% if user_role == 'admin' %}
+            <!-- Admin Links -->
+            <a href="{% url 'admin_dashboard' %}" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
+                <i class="fas fa-home w-5 text-lg"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'admin_faculty_management' %}" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
+                <i class="fas fa-chalkboard-teacher w-5 text-lg"></i>
+                <span>Faculty Management</span>
+            </a>
+        {% elif user_role == 'department_head' %}
+            <!-- Department Head Links -->
+            <a href="{% url 'Dep_Dash' %}" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
+                <i class="fas fa-home w-5 text-lg"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'Dep_Faculty' %}" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
+                <i class="fas fa-chalkboard-teacher w-5 text-lg"></i>
+                <span>Faculty Management</span>
+            </a>
+        {% else %}
+            <!-- Teacher Links -->
+            <a href="{% url 'dashboard' %}" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
+                <i class="fas fa-home w-5 text-lg"></i>
+                <span>Dashboard</span>
+            </a>
+        {% endif %}
+
+        <!-- Calendar Link (Common for all roles but goes to appropriate view based on user_role in context) -->
+        <a href="{% url 'dep_calendar' %}" class="nav-item active flex items-center space-x-4 px-6 py-4 text-[#11468F] bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl font-semibold border border-blue-200">
+            <i class="fas fa-calendar-alt w-5 text-lg"></i>
+            <span>Calendar</span>
+        </a>
+        
+        <a href="#" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
+            <i class="fas fa-tasks w-5 text-lg"></i>
+            <span>Tasks</span>
+        </a>
+    </nav>
+</aside>
 
         <!-- Main Content -->
         <main class="flex-1 md:ml-72 p-6">
@@ -337,6 +360,8 @@
                             <option value="event">Event</option>
                             <option value="deadline">Deadline</option>
                             <option value="training">Training</option>
+                            <option value="holiday">Holiday</option>
+                            <option value="enrollment">Enrollment</option>
                         </select>
                     </div>
                     
@@ -360,8 +385,9 @@
     // Calendar functionality - Dynamic permissions based on user role
     let currentDate = new Date();
     let activities = [];
-    const userRole = "{{ user_role }}"; // 'admin', 'department_head', or 'teacher'
+    const userRole = "{{ user_role }}"; // 'admin', 'Department Head', or 'teacher'
     const currentUserName = "{{ user.first_name }} {{ user.last_name }}";
+    const currentUserId = {{ user.id }};
 
     const categoryColors = {
         academic: '#3b82f6',
@@ -378,9 +404,10 @@
     function canUserEditActivity(activity) {
         if (userRole === 'admin') {
             return true; // Admin can edit everything
-        } else if (userRole === 'department_head') {
-            // Department heads can only edit activities they created
-            return activity.author === currentUserName;
+        } else if (userRole === 'Department Head') {
+            // Department heads can only edit their own activities AND cannot edit admin activities
+            const isAdminActivity = activity.user && activity.user.is_superuser;
+            return activity.user.id === currentUserId && !isAdminActivity;
         } else {
             return false; // Teachers can't edit anything
         }
@@ -388,13 +415,13 @@
 
     // Function to check if user can add activities
     function canUserAddActivities() {
-        return userRole !== 'teacher';
+        return userRole !== 'teacher' && userRole !== 'Student Teacher';
     }
 
     // Load activities from database via AJAX
     async function loadActivities() {
         try {
-            const response = await fetch("{% url 'lessonlinkCalendar:get_calendar_activities' %}");
+            const response = await fetch("/calendar-api/activities/");
             if (response.ok) {
                 activities = await response.json();
             } else {
@@ -412,7 +439,7 @@
     // Save activity to database via AJAX
     async function saveActivity(activityData) {
         try {
-            const response = await fetch("{% url 'lessonlinkCalendar:add_calendar_activity' %}", {
+            const response = await fetch("/calendar-api/activities/add/", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -421,14 +448,21 @@
                 body: JSON.stringify(activityData)
             });
 
+            const responseText = await response.text();
+            
+            // Check if response is HTML (error page)
+            if (responseText.trim().startsWith('<!DOCTYPE') || responseText.includes('<html')) {
+                throw new Error('Server returned HTML page instead of JSON. Check authentication and CSRF.');
+            }
+            
+            // Try to parse as JSON
+            const result = JSON.parse(responseText);
+            
             if (response.ok) {
-                const result = await response.json();
-                // Reload activities to get the new one with proper author info
                 await loadActivities();
                 return true;
             } else {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to save activity');
+                throw new Error(result.error || 'Failed to save activity');
             }
         } catch (error) {
             console.error('Error saving activity:', error);
@@ -440,20 +474,28 @@
     // Delete activity from database via AJAX
     async function deleteActivity(activityId) {
         try {
-            const response = await fetch(`{% url 'lessonlinkCalendar:delete_calendar_activity' activity_id=0 %}`.replace('0', activityId), {
+            const response = await fetch(`/calendar-api/activities/delete/${activityId}/`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRFToken': getCSRFToken()
                 }
             });
 
+            const responseText = await response.text();
+            
+            // Check if response is HTML (error page)
+            if (responseText.trim().startsWith('<!DOCTYPE') || responseText.includes('<html')) {
+                throw new Error('Server returned HTML page instead of JSON. Check authentication and CSRF.');
+            }
+            
+            // Try to parse as JSON
+            const result = JSON.parse(responseText);
+            
             if (response.ok) {
-                // Reload activities to reflect the deletion
                 await loadActivities();
                 return true;
             } else {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to delete activity');
+                throw new Error(result.error || 'Failed to delete activity');
             }
         } catch (error) {
             console.error('Error deleting activity:', error);
@@ -552,9 +594,18 @@
         });
         
         return dayActivities.map(activity => {
-            const canEdit = canUserEditActivity(activity);
+            const canEdit = activity.canEdit || canUserEditActivity(activity);
+            const canDelete = activity.canDelete || canUserEditActivity(activity);
             const isAdminActivity = activity.user && activity.user.is_superuser;
-            const activityClass = isAdminActivity ? 'admin-activity' : 'department-activity';
+            const isCurrentUserActivity = activity.user && activity.user.id === currentUserId;
+            
+            // Determine activity class based on creator type
+            let activityClass = 'department-activity';
+            if (isAdminActivity) {
+                activityClass = 'admin-activity';
+            } else if (!isAdminActivity && !isCurrentUserActivity) {
+                activityClass = 'teacher-activity';
+            }
             
             return `
             <div class="group relative text-xs p-1 rounded bg-opacity-20 text-gray-700 hover:bg-opacity-30 transition-all cursor-pointer ${activityClass}" 
@@ -566,8 +617,9 @@
                         <span class="activity-dot flex-shrink-0" style="background-color: ${categoryColors[activity.category]}"></span>
                         <span class="truncate">${activity.title}</span>
                         ${isAdminActivity ? '<span class="ml-1 text-red-500 text-xs">(Admin)</span>' : ''}
+                        ${!isAdminActivity && !isCurrentUserActivity ? '<span class="ml-1 text-green-500 text-xs">(Teacher)</span>' : ''}
                     </div>
-                    ${canEdit ? `
+                    ${canDelete ? `
                     <button onclick="removeActivity(event, ${activity.id})" 
                         class="opacity-0 group-hover:opacity-100 ml-1 p-0.5 text-red-500 hover:text-red-700 transition-all"
                         title="Remove activity">
@@ -605,8 +657,10 @@
         }
         
         container.innerHTML = upcoming.map(activity => {
-            const canEdit = canUserEditActivity(activity);
+            const canEdit = activity.canEdit || canUserEditActivity(activity);
+            const canDelete = activity.canDelete || canUserEditActivity(activity);
             const isAdminActivity = activity.user && activity.user.is_superuser;
+            const isCurrentUserActivity = activity.user && activity.user.id === currentUserId;
             
             return `
             <div class="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
@@ -615,6 +669,7 @@
                     <h4 class="font-medium text-gray-900 truncate">
                         ${activity.title}
                         ${isAdminActivity ? '<span class="text-red-500 text-xs ml-1">(Admin)</span>' : ''}
+                        ${!isAdminActivity && !isCurrentUserActivity ? '<span class="text-green-500 text-xs ml-1">(Teacher)</span>' : ''}
                     </h4>
                     <p class="text-sm text-gray-600 truncate">${activity.description || 'No description'}</p>
                     <p class="text-xs text-gray-500 mt-1">
@@ -629,7 +684,7 @@
                     <div class="text-xs bg-gray-100 px-2 py-1 rounded-full capitalize">
                         ${activity.category}
                     </div>
-                    ${canEdit ? `
+                    ${canDelete ? `
                     <button onclick="removeActivity(event, ${activity.id})" 
                         class="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
                         title="Remove activity">
@@ -651,6 +706,11 @@
                 document.getElementById('activity-start-date').value = date;
                 document.getElementById('activity-end-date').value = date;
             }
+            
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('activity-start-date').min = today;
+            document.getElementById('activity-end-date').min = today;
         }
     }
     
@@ -664,7 +724,16 @@
     
     function editActivity(activityId) {
         // For now, just open the add modal - you can implement proper edit later
-        openAddActivityModal();
+        const activity = activities.find(a => a.id === activityId);
+        if (activity) {
+            openAddActivityModal();
+            // Pre-fill form with activity data for editing
+            document.getElementById('activity-title').value = activity.title;
+            document.getElementById('activity-description').value = activity.description || '';
+            document.getElementById('activity-start-date').value = activity.startDate;
+            document.getElementById('activity-end-date').value = activity.endDate || activity.startDate;
+            document.getElementById('activity-category').value = activity.category;
+        }
     }
     
     async function removeActivity(event, activityId) {
@@ -672,7 +741,7 @@
         
         const activity = activities.find(a => a.id === activityId);
         if (activity && !canUserEditActivity(activity)) {
-            alert('You cannot delete this activity.');
+            alert('You are not authorized to delete this activity.');
             return;
         }
         
@@ -732,6 +801,12 @@
                 endDate: document.getElementById('activity-end-date').value || document.getElementById('activity-start-date').value,
                 category: document.getElementById('activity-category').value
             };
+            
+            // Validate end date is not before start date
+            if (newActivity.endDate && newActivity.endDate < newActivity.startDate) {
+                alert('End date cannot be before start date.');
+                return;
+            }
             
             const success = await saveActivity(newActivity);
             if (success) {

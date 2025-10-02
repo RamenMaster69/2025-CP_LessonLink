@@ -61,6 +61,8 @@
 
                 <form class="space-y-6" method="POST" action="{% url 'login' %}"
                     onsubmit="return validateForm(event)">
+                    
+                    <!-- CSRF Token - Make sure this is included -->
                     {% csrf_token %}
 
                     <!-- Email -->
@@ -301,5 +303,4 @@
         });
     </script>
 </body>
-
 </html>

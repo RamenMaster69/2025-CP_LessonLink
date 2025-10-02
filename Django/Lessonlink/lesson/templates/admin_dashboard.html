@@ -165,7 +165,7 @@
                     <button id="notification-btn" class="relative p-3 text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-300 group">
                         <i class="fas fa-bell group-hover:animate-bounce-soft"></i>
                         <span id="notification-badge" class="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center">
-                            <span class="text-white text-xs font-bold">3</span>
+                            <span class="text-white text-xs font-bold">{{ pending_submissions|default:0 }}</span>
                         </span>
                     </button>
 
@@ -178,33 +178,41 @@
                             </div>
                         </div>
                         <div class="max-h-96 overflow-y-auto">
+                            {% if pending_submissions > 0 %}
                             <div class="p-4 hover:bg-blue-50 border-b border-gray-50 transition-all duration-300">
                                 <div class="flex items-start space-x-4">
                                     <div class="w-3 h-3 bg-blue-500 rounded-full mt-2 status-indicator"></div>
                                     <div class="flex-1">
-                                        <p class="text-sm font-semibold text-gray-800">New institution registered</p>
-                                        <p class="text-xs text-gray-500 mt-1">Zamboanga City High School • 2 hours ago</p>
+                                        <p class="text-sm font-semibold text-gray-800">{{ pending_submissions }} Pending Lesson Submissions</p>
+                                        <p class="text-xs text-gray-500 mt-1">Review lesson plans awaiting approval</p>
                                     </div>
                                 </div>
                             </div>
+                            {% endif %}
+                            
+                            {% if recent_lessons %}
                             <div class="p-4 hover:bg-green-50 border-b border-gray-50 transition-all duration-300">
                                 <div class="flex items-start space-x-4">
                                     <div class="w-3 h-3 bg-green-500 rounded-full mt-2 status-indicator"></div>
                                     <div class="flex-1">
-                                        <p class="text-sm font-semibold text-gray-800">System backup completed</p>
-                                        <p class="text-xs text-gray-500 mt-1">Automated backup • 4 hours ago</p>
+                                        <p class="text-sm font-semibold text-gray-800">{{ recent_lessons|length }} New Lessons Created</p>
+                                        <p class="text-xs text-gray-500 mt-1">Recent lesson plan activity</p>
                                     </div>
                                 </div>
                             </div>
+                            {% endif %}
+                            
+                            {% if recent_users %}
                             <div class="p-4 hover:bg-yellow-50 transition-all duration-300">
                                 <div class="flex items-start space-x-4">
                                     <div class="w-3 h-3 bg-yellow-500 rounded-full mt-2 status-indicator"></div>
                                     <div class="flex-1">
-                                        <p class="text-sm font-semibold text-gray-800">Server maintenance scheduled</p>
-                                        <p class="text-xs text-gray-500 mt-1">Tonight at 2:00 AM • 1 hour ago</p>
+                                        <p class="text-sm font-semibold text-gray-800">{{ recent_users|length }} New User{% if recent_users|length > 1 %}s{% endif %}</p>
+                                        <p class="text-xs text-gray-500 mt-1">Recent user registrations</p>
                                     </div>
                                 </div>
                             </div>
+                            {% endif %}
                         </div>
                         <div class="p-4 border-t border-gray-100">
                             <button class="w-full text-center text-purple-600 text-sm hover:text-purple-700 font-semibold py-2 rounded-lg hover:bg-purple-50 transition-all duration-300">
@@ -221,35 +229,35 @@
                     </button>
 
                     <!-- Enhanced Profile Dropdown -->
-                    <!-- Enhanced Profile Dropdown with proper URLs -->
-<div id="profile-dropdown" class="absolute right-0 mt-3 w-64 bg-white/95 backdrop-blur-xl rounded-2xl shadow-elevation-3 border border-gray-100 hidden z-50">
-    <div class="p-6 border-b border-gray-100">
-        <div class="flex items-center space-x-4">
-            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg">
-                <i class="fas fa-user text-white"></i>
-            </div>
-            <div>
-                <p class="font-bold text-gray-800">{{ user.full_name }}</p>
-                <p class="text-sm text-gray-500">{{ user.email }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="py-3">
-        <a href="{% url 'profile' %}" class="flex items-center space-x-4 px-6 py-3 text-gray-700 hover:bg-gray-50 transition-all duration-300">
-            <i class="fas fa-user w-4 text-gray-500"></i>
-            <span class="font-medium">My Profile</span>
-        </a>
-        <a href="#" class="flex items-center space-x-4 px-6 py-3 text-gray-700 hover:bg-gray-50 transition-all duration-300">
-            <i class="fas fa-cog w-4 text-gray-500"></i>
-            <span class="font-medium">Settings</span>
-        </a>
-        <hr class="my-2 border-gray-100">
-        <a href="{% url 'logout' %}" class="flex items-center space-x-4 px-6 py-3 text-red-600 hover:bg-red-50 transition-all duration-300">
-            <i class="fas fa-sign-out-alt w-4"></i>
-            <span class="font-medium">Logout</span>
-        </a>
-    </div>
-</div>
+                    <div id="profile-dropdown" class="absolute right-0 mt-3 w-64 bg-white/95 backdrop-blur-xl rounded-2xl shadow-elevation-3 border border-gray-100 hidden z-50">
+                        <div class="p-6 border-b border-gray-100">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg">
+                                    <i class="fas fa-user text-white"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-gray-800">{{ user.full_name }}</p>
+                                    <p class="text-sm text-gray-500">{{ user.email }}</p>
+                                    <p class="text-xs text-purple-600 font-medium">{{ user.role }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="py-3">
+                            <a href="{% url 'profile' %}" class="flex items-center space-x-4 px-6 py-3 text-gray-700 hover:bg-gray-50 transition-all duration-300">
+                                <i class="fas fa-user w-4 text-gray-500"></i>
+                                <span class="font-medium">My Profile</span>
+                            </a>
+                            <a href="#" class="flex items-center space-x-4 px-6 py-3 text-gray-700 hover:bg-gray-50 transition-all duration-300">
+                                <i class="fas fa-cog w-4 text-gray-500"></i>
+                                <span class="font-medium">Settings</span>
+                            </a>
+                            <hr class="my-2 border-gray-100">
+                            <a href="{% url 'logout' %}" class="flex items-center space-x-4 px-6 py-3 text-red-600 hover:bg-red-50 transition-all duration-300">
+                                <i class="fas fa-sign-out-alt w-4"></i>
+                                <span class="font-medium">Logout</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -260,28 +268,44 @@
         <aside id="sidebar" class="w-72 bg-white/70 backdrop-blur-xl shadow-elevation-2 h-screen fixed top-16 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 border-r border-gray-200/50">
             <nav class="p-6 space-y-3">
                 <!-- Enhanced Create Lesson Button -->
-                <button class="w-full flex items-center space-x-4 px-6 py-4 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-xl hover:shadow-neon font-semibold transition-all duration-300 transform hover:scale-105">
+                <a href="{% url 'lesson_planner' %}" class="w-full flex items-center space-x-4 px-6 py-4 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-xl hover:shadow-neon font-semibold transition-all duration-300 transform hover:scale-105">
                     <i class="fas fa-plus text-lg"></i>
                     <span>Create New Lesson</span>
-                </button>
+                </a>
 
                 <!-- Enhanced Navigation Items -->
-                <a href="#" class="nav-item active flex items-center space-x-4 px-6 py-4 text-[#11468F] bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl font-semibold border border-blue-200">
+                <a href="{% url 'admin_dashboard' %}" class="nav-item active flex items-center space-x-4 px-6 py-4 text-[#11468F] bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl font-semibold border border-blue-200">
                     <i class="fas fa-home w-5 text-lg"></i>
                     <span>Dashboard</span>
                 </a>
                 
-                <a href="{% url 'admin_faculty_management' %}" class="flex items-center space-x-4 px-6 py-4 text-[#11468F] bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl font-semibold border border-blue-200">
-            <i class="fas fa-chalkboard-teacher w-5 text-lg"></i>
-            <span>Faculty and Department Management</span>
+                <a href="{% url 'admin_faculty_management' %}" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
+                    <i class="fas fa-chalkboard-teacher w-5 text-lg"></i>
+                    <span>Faculty Management</span>
                 </a>
-                <a href="#" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
+                
+                <a href="{% url 'Dep_Pending' %}" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
+                    <i class="fas fa-file-alt w-5 text-lg"></i>
+                    <span>Lesson Reviews</span>
+                    {% if pending_submissions > 0 %}
+                    <span class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">{{ pending_submissions }}</span>
+                    {% endif %}
+                </a>
+                
+                <a href="{% url 'admin_calendar' %}" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
                     <i class="fas fa-calendar-alt w-5 text-lg"></i>
                     <span>Calendar</span>
                 </a>
-                <a href="#" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
+                
+                <!-- Add other navigation items that exist in your urls.py -->
+                <a href="{% url 'task' %}" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
                     <i class="fas fa-tasks w-5 text-lg"></i>
                     <span>Tasks</span>
+                </a>
+                
+                <a href="{% url 'profile' %}" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
+                    <i class="fas fa-user w-5 text-lg"></i>
+                    <span>Profile</span>
                 </a>
             </nav>
         </aside>
@@ -292,69 +316,100 @@
         <!-- Enhanced Main Content -->
         <main class="flex-1 p-8 md:ml-72">
             <!-- Enhanced Welcome Header -->
-<div class="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 rounded-2xl p-8 text-white mb-8 shadow-elevation-3 relative overflow-hidden">
-    <div class="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
-    <div class="relative z-10">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-3xl font-bold mb-3">Welcome back, Administrator!</h2>
-                <p class="text-xl opacity-90 mb-6">Your LessonLink system is running smoothly</p>
-                <a href="{% url 'admin_faculty_management' %}" class="bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/30 transition-all duration-300 border border-white/30">
-                    <i class="fas fa-building mr-3"></i>
-                    Manage Departments
-                </a>
-            </div>
-            <div class="hidden lg:block">
-                <div class="w-32 h-32 bg-white/10 rounded-full flex items-center justify-center">
-                    <i class="fas fa-tachometer-alt text-6xl text-white/80"></i>
+            <div class="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 rounded-2xl p-8 text-white mb-8 shadow-elevation-3 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-3xl font-bold mb-3">Welcome back, {{ user.first_name }}!</h2>
+                            <p class="text-xl opacity-90 mb-6">
+                                {% if school %}
+                                    Managing {{ school.school_name }}
+                                {% else %}
+                                    System Administration Dashboard
+                                {% endif %}
+                            </p>
+                            <div class="flex space-x-4">
+                                <a href="{% url 'admin_faculty_management' %}" class="bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/30 transition-all duration-300 border border-white/30">
+                                    <i class="fas fa-building mr-3"></i>
+                                    Manage {% if school %}Faculty{% else %}Schools{% endif %}
+                                </a>
+                                {% if pending_submissions > 0 %}
+                                <a href="{% url 'Dep_Pending' %}" class="bg-red-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-red-600 transition-all duration-300">
+                                    <i class="fas fa-file-alt mr-3"></i>
+                                    Review Lessons ({{ pending_submissions }})
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="hidden lg:block">
+                            <div class="w-32 h-32 bg-white/10 rounded-full flex items-center justify-center">
+                                <i class="fas fa-tachometer-alt text-6xl text-white/80"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
             <!-- Enhanced Key Metrics -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Total Users Card -->
                 <div class="metric-card bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-elevation-2">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h3 class="text-sm text-gray-600 font-semibold mb-1">Total Users</h3>
-                            <p class="text-3xl font-bold text-gray-900 mb-2">1,247</p>
+                            <h3 class="text-sm text-gray-600 font-semibold mb-1">
+                                {% if school %}Total Users{% else %}Total Schools{% endif %}
+                            </h3>
+                            <p class="text-3xl font-bold text-gray-900 mb-2">
+                                {% if school %}{{ total_users }}{% else %}{{ total_schools }}{% endif %}
+                            </p>
                             <div class="flex items-center text-green-600">
                                 <i class="fas fa-arrow-up text-xs mr-1"></i>
-                                <span class="text-sm font-medium">+12% this month</span>
+                                <span class="text-sm font-medium">{{ user_growth }}</span>
                             </div>
                         </div>
                         <div class="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center">
-                            <i class="fas fa-users text-2xl text-blue-600"></i>
+                            <i class="fas {% if school %}fa-users{% else %}fa-university{% endif %} text-2xl text-blue-600"></i>
                         </div>
                     </div>
                 </div>
 
+                <!-- Teachers/Institutions Card -->
                 <div class="metric-card bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-elevation-2">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h3 class="text-sm text-gray-600 font-semibold mb-1">Active Institutions</h3>
-                            <p class="text-3xl font-bold text-gray-900 mb-2">18</p>
+                            <h3 class="text-sm text-gray-600 font-semibold mb-1">
+                                {% if school %}Teachers{% else %}Approved Schools{% endif %}
+                            </h3>
+                            <p class="text-3xl font-bold text-gray-900 mb-2">
+                                {% if school %}{{ teachers_count }}{% else %}{{ approved_schools }}{% endif %}
+                            </p>
                             <div class="flex items-center text-green-600">
                                 <i class="fas fa-arrow-up text-xs mr-1"></i>
-                                <span class="text-sm font-medium">+2 new this week</span>
+                                <span class="text-sm font-medium">
+                                    {% if school %}
+                                        {{ dept_heads_count }} Dept Heads
+                                    {% else %}
+                                        {{ total_schools }} total
+                                    {% endif %}
+                                </span>
                             </div>
                         </div>
                         <div class="w-16 h-16 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-2xl flex items-center justify-center">
-                            <i class="fas fa-university text-2xl text-yellow-600"></i>
+                            <i class="fas {% if school %}fa-chalkboard-teacher{% else %}fa-check-circle{% endif %} text-2xl text-yellow-600"></i>
                         </div>
                     </div>
                 </div>
 
+                <!-- Total Lessons Card -->
                 <div class="metric-card bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-elevation-2">
                     <div class="flex items-center justify-between">
                         <div>
                             <h3 class="text-sm text-gray-600 font-semibold mb-1">Total Lessons</h3>
-                            <p class="text-3xl font-bold text-gray-900 mb-2">5,892</p>
+                            <p class="text-3xl font-bold text-gray-900 mb-2">{{ total_lessons }}</p>
                             <div class="flex items-center text-green-600">
                                 <i class="fas fa-arrow-up text-xs mr-1"></i>
-                                <span class="text-sm font-medium">+145 today</span>
+                                <span class="text-sm font-medium">{{ lesson_growth }}</span>
                             </div>
                         </div>
                         <div class="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center">
@@ -363,18 +418,25 @@
                     </div>
                 </div>
 
+                <!-- System Status Card -->
                 <div class="metric-card bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-elevation-2">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h3 class="text-sm text-gray-600 font-semibold mb-1">System Uptime</h3>
-                            <p class="text-3xl font-bold text-gray-900 mb-2">99.8%</p>
+                            <h3 class="text-sm text-gray-600 font-semibold mb-1">
+                                {% if school %}Approved Lessons{% else %}System Uptime{% endif %}
+                            </h3>
+                            <p class="text-3xl font-bold text-gray-900 mb-2">
+                                {% if school %}{{ approved_lessons }}{% else %}99.8%{% endif %}
+                            </p>
                             <div class="flex items-center text-green-600">
                                 <div class="w-2 h-2 bg-green-500 rounded-full mr-2 status-indicator"></div>
-                                <span class="text-sm font-medium">Excellent</span>
+                                <span class="text-sm font-medium">
+                                    {% if school %}{{ draft_lessons }} drafts{% else %}Excellent{% endif %}
+                                </span>
                             </div>
                         </div>
                         <div class="w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center">
-                            <i class="fas fa-server text-2xl text-purple-600"></i>
+                            <i class="fas {% if school %}fa-check-circle{% else %}fa-server{% endif %} text-2xl text-purple-600"></i>
                         </div>
                     </div>
                 </div>
@@ -391,36 +453,42 @@
                     </div>
                     <div class="p-6">
                         <div class="space-y-6">
-                            <div class="flex items-start space-x-4 p-4 bg-green-50 rounded-xl border border-green-200">
-                                <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
-                                    <i class="fas fa-user-plus text-white"></i>
+                            {% if recent_lessons %}
+                                {% for lesson in recent_lessons %}
+                                <div class="flex items-start space-x-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
+                                        <i class="fas fa-book-open text-white"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-semibold text-gray-800">New Lesson: {{ lesson.title }}</p>
+                                        <p class="text-sm text-gray-600 mt-1">Created by {{ lesson.created_by.get_full_name }} in {{ lesson.subject }}</p>
+                                        <p class="text-xs text-blue-600 mt-2 font-medium">{{ lesson.created_at|timesince }} ago</p>
+                                    </div>
                                 </div>
-                                <div class="flex-1">
-                                    <p class="font-semibold text-gray-800">New institution registered</p>
-                                    <p class="text-sm text-gray-600 mt-1">Zamboanga City High School successfully onboarded</p>
-                                    <p class="text-xs text-green-600 mt-2 font-medium">2 hours ago</p>
+                                {% endfor %}
+                            {% endif %}
+
+                            {% if recent_users %}
+                                {% for user in recent_users %}
+                                <div class="flex items-start space-x-4 p-4 bg-green-50 rounded-xl border border-green-200">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
+                                        <i class="fas fa-user-plus text-white"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-semibold text-gray-800">New {{ user.role }}: {{ user.get_full_name }}</p>
+                                        <p class="text-sm text-gray-600 mt-1">{{ user.department }} • {{ user.email }}</p>
+                                        <p class="text-xs text-green-600 mt-2 font-medium">{{ user.date_joined|timesince }} ago</p>
+                                    </div>
                                 </div>
+                                {% endfor %}
+                            {% endif %}
+
+                            {% if not recent_lessons and not recent_users %}
+                            <div class="text-center py-8">
+                                <i class="fas fa-inbox text-4xl text-gray-300 mb-4"></i>
+                                <p class="text-gray-500">No recent activity</p>
                             </div>
-                            <div class="flex items-start space-x-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
-                                    <i class="fas fa-database text-white"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="font-semibold text-gray-800">System backup completed</p>
-                                    <p class="text-sm text-gray-600 mt-1">All data successfully backed up to secure servers</p>
-                                    <p class="text-xs text-blue-600 mt-2 font-medium">4 hours ago</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start space-x-4 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-                                <div class="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-                                    <i class="fas fa-exclamation-triangle text-white"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="font-semibold text-gray-800">Server load spike detected</p>
-                                    <p class="text-sm text-gray-600 mt-1">Auto-scaling activated to handle increased traffic</p>
-                                    <p class="text-xs text-yellow-600 mt-2 font-medium">6 hours ago</p>
-                                </div>
-                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -429,55 +497,56 @@
                 <div class="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-elevation-2">
                     <div class="p-6 border-b border-gray-100">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-xl font-bold text-gray-800">System Status</h3>
+                            <h3 class="text-xl font-bold text-gray-800">Quick Actions</h3>
                             <div class="flex items-center space-x-2">
                                 <div class="w-3 h-3 bg-green-500 rounded-full status-indicator"></div>
-                                <span class="text-sm font-semibold text-green-600">All Systems Operational</span>
+                                <span class="text-sm font-semibold text-green-600">Ready</span>
                             </div>
                         </div>
                     </div>
                     <div class="p-6">
                         <div class="space-y-4">
-                            <div class="flex items-center justify-between p-4 bg-green-50 rounded-xl border border-green-200">
+                            <a href="{% url 'lesson_planner' %}" class="flex items-center justify-between p-4 bg-blue-50 rounded-xl border border-blue-200 hover:bg-blue-100 transition-all duration-300">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-4 h-4 bg-blue-500 rounded-full status-indicator"></div>
+                                    <span class="font-semibold text-gray-800">Create Lesson</span>
+                                </div>
+                                <div class="text-right">
+                                    <i class="fas fa-arrow-right text-blue-600"></i>
+                                </div>
+                            </a>
+                            
+                            <a href="{% url 'admin_faculty_management' %}" class="flex items-center justify-between p-4 bg-green-50 rounded-xl border border-green-200 hover:bg-green-100 transition-all duration-300">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-4 h-4 bg-green-500 rounded-full status-indicator"></div>
-                                    <span class="font-semibold text-gray-800">Database</span>
+                                    <span class="font-semibold text-gray-800">Manage Faculty</span>
                                 </div>
                                 <div class="text-right">
-                                    <span class="text-sm font-bold text-green-600">Operational</span>
-                                    <p class="text-xs text-gray-500">Response: 23ms</p>
+                                    <i class="fas fa-arrow-right text-green-600"></i>
                                 </div>
-                            </div>
-                            <div class="flex items-center justify-between p-4 bg-green-50 rounded-xl border border-green-200">
+                            </a>
+                            
+                            {% if pending_submissions > 0 %}
+                            <a href="{% url 'Dep_Pending' %}" class="flex items-center justify-between p-4 bg-red-50 rounded-xl border border-red-200 hover:bg-red-100 transition-all duration-300">
                                 <div class="flex items-center space-x-3">
-                                    <div class="w-4 h-4 bg-green-500 rounded-full status-indicator"></div>
-                                    <span class="font-semibold text-gray-800">AI Service</span>
+                                    <div class="w-4 h-4 bg-red-500 rounded-full status-indicator"></div>
+                                    <span class="font-semibold text-gray-800">Review Lessons</span>
                                 </div>
                                 <div class="text-right">
-                                    <span class="text-sm font-bold text-green-600">Operational</span>
-                                    <p class="text-xs text-gray-500">Load: 67%</p>
+                                    <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">{{ pending_submissions }}</span>
                                 </div>
-                            </div>
-                            <div class="flex items-center justify-between p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+                            </a>
+                            {% endif %}
+                            
+                            <a href="{% url 'admin_calendar' %}" class="flex items-center justify-between p-4 bg-purple-50 rounded-xl border border-purple-200 hover:bg-purple-100 transition-all duration-300">
                                 <div class="flex items-center space-x-3">
-                                    <div class="w-4 h-4 bg-yellow-500 rounded-full status-indicator"></div>
-                                    <span class="font-semibold text-gray-800">File Storage</span>
+                                    <div class="w-4 h-4 bg-purple-500 rounded-full status-indicator"></div>
+                                    <span class="font-semibold text-gray-800">View Calendar</span>
                                 </div>
                                 <div class="text-right">
-                                    <span class="text-sm font-bold text-yellow-600">High Load</span>
-                                    <p class="text-xs text-gray-500">Usage: 85%</p>
+                                    <i class="fas fa-arrow-right text-purple-600"></i>
                                 </div>
-                            </div>
-                            <div class="flex items-center justify-between p-4 bg-green-50 rounded-xl border border-green-200">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-4 h-4 bg-green-500 rounded-full status-indicator"></div>
-                                    <span class="font-semibold text-gray-800">Authentication</span>
-                                </div>
-                                <div class="text-right">
-                                    <span class="text-sm font-bold text-green-600">Operational</span>
-                                    <p class="text-xs text-gray-500">Active: 1,247</p>
-                                </div>
-                            </div>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -489,16 +558,55 @@
                 <div class="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-elevation-2">
                     <div class="p-6 border-b border-gray-100">
                         <h3 class="text-xl font-bold text-gray-800">Usage Analytics</h3>
-                        <p class="text-sm text-gray-600 mt-1">System usage over the past 7 days</p>
+                        <p class="text-sm text-gray-600 mt-1">System usage overview</p>
                     </div>
                     <div class="p-6 chart-container">
                         <div class="space-y-4">
                             <div class="flex justify-between items-center">
                                 <span class="text-sm font-medium text-gray-600">Lessons Created</span>
-                                <span class="text-lg font-bold text-gray-900">156</span>
+                                <span class="text-lg font-bold text-gray-900">{{ total_lessons }}</span>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-3">
-                                <div class="bg-gradient-to-r from-green-500 to-teal-500 h-3 rounded-full" style="width: 65%"></div>
+                                <div class="bg-gradient-to-r from-green-500 to-teal-500 h-3 rounded-full" style="width: {% widthratio approved_lessons total_lessons 100 %}%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>Approved: {{ approved_lessons }}</span>
+                                <span>Drafts: {{ draft_lessons }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Distribution -->
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-elevation-2">
+                    <div class="p-6 border-b border-gray-100">
+                        <h3 class="text-xl font-bold text-gray-800">User Distribution</h3>
+                        <p class="text-sm text-gray-600 mt-1">Active users by role</p>
+                    </div>
+                    <div class="p-6 chart-container">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-600">Teachers</span>
+                                <span class="text-lg font-bold text-gray-900">{{ teachers_count }}</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-3 rounded-full" style="width: {% widthratio teachers_count total_users 100 %}%"></div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-600">Department Heads</span>
+                                <span class="text-lg font-bold text-gray-900">{{ dept_heads_count }}</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full" style="width: {% widthratio dept_heads_count total_users 100 %}%"></div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-600">Student Teachers</span>
+                                <span class="text-lg font-bold text-gray-900">{{ student_teachers_count }}</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div class="bg-gradient-to-r from-green-500 to-emerald-500 h-3 rounded-full" style="width: {% widthratio student_teachers_count total_users 100 %}%"></div>
                             </div>
                         </div>
                     </div>
@@ -597,24 +705,6 @@
                 if (button.textContent.includes('View All')) {
                     button.addEventListener('click', () => {
                         showNotification('Loading detailed analytics dashboard...', 'info');
-                    });
-                }
-                
-                if (button.textContent.includes('Restart Services')) {
-                    button.addEventListener('click', () => {
-                        showNotification('Initiating service restart...', 'warning');
-                        setTimeout(() => {
-                            showNotification('All services restarted successfully!', 'success');
-                        }, 2000);
-                    });
-                }
-                
-                if (button.textContent.includes('Export Logs')) {
-                    button.addEventListener('click', () => {
-                        showNotification('Preparing log export...', 'info');
-                        setTimeout(() => {
-                            showNotification('Logs exported successfully!', 'success');
-                        }, 1500);
                     });
                 }
             });
