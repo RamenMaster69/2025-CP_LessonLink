@@ -634,77 +634,21 @@
     </div>
 
     <script>
-        // AI Suggestions Data
-        const aiSuggestions = {
-            introduction: [
-                {
-                    title: "Engaging Question Hook",
-                    description: "Start with a thought-provoking question related to the topic that captures student interest and activates prior knowledge.",
-                    example: "What would happen if gravity suddenly disappeared?"
-                },
-                {
-                    title: "Real-World Connection",
-                    description: "Connect the lesson to students' everyday experiences to make it relevant and meaningful.",
-                    example: "Have you ever wondered why your phone battery drains faster in cold weather?"
-                },
-                {
-                    title: "Visual Hook",
-                    description: "Use an intriguing image, video, or demonstration to grab attention and spark curiosity.",
-                    example: "Show a surprising science experiment or historical artifact"
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
                 }
-            ],
-            instruction: [
-                {
-                    title: "Interactive Demonstration",
-                    description: "Model the concept with student participation, allowing them to observe and engage with the learning process.",
-                    example: "Demonstrate a math problem on the board while asking students to predict the next step"
-                },
-                {
-                    title: "Multimedia Presentation",
-                    description: "Use videos, animations, and interactive slides to present information in engaging ways.",
-                    example: "Show an educational video followed by guided discussion"
-                },
-                {
-                    title: "Collaborative Discovery",
-                    description: "Guide students to discover concepts through structured group exploration and inquiry.",
-                    example: "Provide materials and guiding questions for students to explore in small groups"
-                }
-            ],
-            application: [
-                {
-                    title: "Hands-On Practice",
-                    description: "Students apply the new knowledge through individual worksheets, problems, or exercises with teacher support.",
-                    example: "Complete practice problems with gradual release of responsibility"
-                },
-                {
-                    title: "Group Project Activity",
-                    description: "Students work collaboratively to apply concepts in a creative or problem-solving task.",
-                    example: "Create a group poster, model, or presentation demonstrating understanding"
-                },
-                {
-                    title: "Real-World Application",
-                    description: "Students use the new knowledge to solve authentic problems or complete realistic tasks.",
-                    example: "Apply math concepts to calculate real measurements or budget scenarios"
-                }
-            ],
-            assessment: [
-                {
-                    title: "Exit Ticket Quiz",
-                    description: "Quick 3-5 question formative assessment to gauge understanding before students leave.",
-                    example: "Answer key questions on index cards or digital form"
-                },
-                {
-                    title: "Performance Task",
-                    description: "Students demonstrate understanding through a practical application or demonstration.",
-                    example: "Solve a problem, create something, or perform a skill"
-                },
-                {
-                    title: "Rubric-Based Assessment",
-                    description: "Use a detailed rubric to assess students' work across multiple criteria.",
-                    example: "Evaluate projects or presentations using clear success criteria"
-                }
-            ]
-        };
+            }
+            return cookieValue;
+        }
 
         // Show success message
         function showSuccessMessage(message) {
@@ -752,20 +696,138 @@
             }, 4000);
         }
 
-        // Get CSRF token
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
+        // Get current form data
+        function getFormData() {
+            return {
+                subject: document.getElementById('subject').value,
+                gradeLevel: document.getElementById('grade-level').value,
+                quarter: document.getElementById('quarter').value,
+                duration: document.getElementById('duration-input').value,
+                population: document.getElementById('population').value,
+                learningObjectives: document.getElementById('learning-objectives').value,
+                subjectMatter: document.getElementById('subject-matter').value,
+                materialsNeeded: document.getElementById('materials-needed').value,
+                introduction: document.getElementById('introduction').value,
+                instruction: document.querySelector('input[name="instruction"]:checked')?.value || '',
+                application: document.getElementById('application').value,
+                evaluation: document.querySelector('input[name="evaluation"]:checked')?.value || '',
+                assessment: document.getElementById('assessment').value
+            };
+        }
+
+        // AI Suggestions API call
+        async function getAISuggestions(section, formData) {
+            try {
+                const response = await fetch('/get-ai-suggestions/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify({
+                        section: section,
+                        form_data: formData
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
+
+                const data = await response.json();
+                return data.suggestions || [];
+            } catch (error) {
+                console.error('AI Suggestions error:', error);
+                return [];
             }
-            return cookieValue;
+        }
+
+        // Enhanced AI Suggestions Modal with API integration
+        document.querySelectorAll('.ai-suggest-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const section = this.dataset.section;
+                
+                // Show loading state
+                aiSuggestionsContent.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="loader-spiral mx-auto"></div>
+                        <p class="text-gray-600 mt-4">AI is analyzing your inputs...</p>
+                    </div>
+                `;
+                
+                aiSuggestionsModal.classList.remove('hidden');
+
+                try {
+                    // Get current form data
+                    const formData = getFormData();
+                    
+                    // Fetch AI suggestions from your backend
+                    const suggestions = await getAISuggestions(section, formData);
+                    
+                    if (suggestions.length === 0) {
+                        aiSuggestionsContent.innerHTML = `
+                            <div class="text-center py-8">
+                                <p class="text-gray-600">No suggestions available at the moment.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    aiSuggestionsContent.innerHTML = `
+                        <div class="mb-4">
+                            <h4 class="text-lg font-semibold text-gray-900 capitalize">${section} Suggestions</h4>
+                            <p class="text-sm text-gray-600 mt-1">AI-generated suggestions based on your inputs</p>
+                        </div>
+                        ${suggestions.map(suggestion => `
+                            <div class="ai-suggestion-card border border-gray-200 rounded-lg p-4 hover:border-purple-400 transition">
+                                <h5 class="font-semibold text-gray-900 mb-2">${suggestion.title}</h5>
+                                <p class="text-sm text-gray-700 mb-2">${suggestion.description}</p>
+                                ${suggestion.example ? `<p class="text-xs text-gray-500 italic">Example: ${suggestion.example}</p>` : ''}
+                                <button class="mt-3 text-sm bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition" onclick="useSuggestion('${section}', '${suggestion.title.replace(/'/g, "\\'")}', \`${suggestion.description.replace(/`/g, '\\`')}\`)">
+                                    Use This Suggestion
+                                </button>
+                            </div>
+                        `).join('')}
+                    `;
+                } catch (error) {
+                    aiSuggestionsContent.innerHTML = `
+                        <div class="text-center py-8">
+                            <p class="text-red-600">Error loading suggestions. Please try again.</p>
+                        </div>
+                    `;
+                }
+            });
+        });
+
+        function useSuggestion(section, title, description) {
+            // Apply suggestion based on section
+            switch(section) {
+                case 'introduction':
+                    document.getElementById('introduction').value = 'custom';
+                    document.getElementById('introduction-custom').value = description;
+                    document.getElementById('introduction-custom').classList.add('active');
+                    break;
+                case 'instruction':
+                    const instructionCustom = document.getElementById('instruction-custom');
+                    instructionCustom.value = description;
+                    instructionCustom.classList.add('active');
+                    // Check custom radio button
+                    document.querySelector('input[name="instruction"][value="custom"]').checked = true;
+                    break;
+                case 'application':
+                    document.getElementById('application').value = 'custom';
+                    document.getElementById('application-custom').value = description;
+                    document.getElementById('application-custom').classList.add('active');
+                    break;
+                case 'assessment':
+                    document.getElementById('assessment').value = 'custom';
+                    document.getElementById('assessment-custom').value = description;
+                    document.getElementById('assessment-custom').classList.add('active');
+                    break;
+            }
+            
+            showSuccessMessage(`"${title}" suggestion applied to ${section}!`);
+            aiSuggestionsModal.classList.add('hidden');
         }
 
         // Mobile sidebar functionality
@@ -841,37 +903,6 @@
         const closeAiModalFooter = document.getElementById('close-ai-modal-footer');
         const aiSuggestionsContent = document.getElementById('ai-suggestions-content');
 
-        document.querySelectorAll('.ai-suggest-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const section = this.dataset.section;
-                const suggestions = aiSuggestions[section] || [];
-                
-                aiSuggestionsContent.innerHTML = `
-                    <div class="mb-4">
-                        <h4 class="text-lg font-semibold text-gray-900 capitalize">${section} Suggestions</h4>
-                        <p class="text-sm text-gray-600 mt-1">Select a suggestion to use in your lesson plan</p>
-                    </div>
-                    ${suggestions.map(suggestion => `
-                        <div class="ai-suggestion-card border border-gray-200 rounded-lg p-4 hover:border-purple-400 transition">
-                            <h5 class="font-semibold text-gray-900 mb-2">${suggestion.title}</h5>
-                            <p class="text-sm text-gray-700 mb-2">${suggestion.description}</p>
-                            <p class="text-xs text-gray-500 italic">Example: ${suggestion.example}</p>
-                            <button class="mt-3 text-sm bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition" onclick="useSuggestion('${section}', '${suggestion.title}')">
-                                Use This Suggestion
-                            </button>
-                        </div>
-                    `).join('')}
-                `;
-                
-                aiSuggestionsModal.classList.remove('hidden');
-            });
-        });
-
-        function useSuggestion(section, title) {
-            showSuccessMessage(`"${title}" suggestion applied to ${section}!`);
-            aiSuggestionsModal.classList.add('hidden');
-        }
-
         closeAiModal.addEventListener('click', () => aiSuggestionsModal.classList.add('hidden'));
         closeAiModalFooter.addEventListener('click', () => aiSuggestionsModal.classList.add('hidden'));
         aiSuggestionsModal.addEventListener('click', (e) => {
@@ -886,7 +917,7 @@
         const submitFromPreview = document.getElementById('submit-from-preview');
         const previewContent = document.getElementById('preview-content');
 
-        function getFormData() {
+        function getPreviewFormData() {
             // Helper to get readable label for selection
             function getReadableValue(elementId, value) {
                 const element = document.getElementById(elementId);
@@ -1038,7 +1069,7 @@
 
         if (previewBtn) {
             previewBtn.addEventListener('click', () => {
-                const formData = getFormData();
+                const formData = getPreviewFormData();
                 previewContent.innerHTML = generatePreview(formData);
                 previewModal.classList.remove('hidden');
                 document.body.style.overflow = 'hidden';

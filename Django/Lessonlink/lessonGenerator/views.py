@@ -166,6 +166,12 @@ def generate_lesson_plan(request):
 def lesson_plan_result(request):
     """Render the lesson plan result page"""
     lesson_plan = request.session.get('generated_lesson_plan', '')
+    
+    if not lesson_plan:
+        # If no lesson plan in session, redirect back to form
+        messages.error(request, 'No lesson plan found. Please generate a lesson plan first.')
+        return redirect('lesson_ai')
+    
     return render(request, 'lessonGenerator/lesson_plan.html', {
         'lesson_plan': lesson_plan
     })
@@ -188,7 +194,7 @@ def save_lesson_plan(request):
             }, status=400)
         
         # Check if user is a department head for auto-approval
-        is_department_head = request.user.role == 'Department Head'
+        is_department_head = hasattr(request.user, 'role') and request.user.role == 'Department Head'
         
         # If we have parsed JSON content, use it
         if parsed_content and isinstance(parsed_content, dict):
@@ -261,11 +267,14 @@ def save_lesson_plan(request):
             'draft_id': lesson_plan.id,
             'message': message,
             'auto_approved': is_department_head,
-            'user_role': request.user.role,
+            'user_role': request.user.role if hasattr(request.user, 'role') else 'Teacher',
             'redirect_url': '/drafts/department-head/' if is_department_head else '/drafts/'
         })
         
     except Exception as e:
+        import traceback
+        print(f"Error saving lesson plan: {str(e)}")
+        print(traceback.format_exc())
         return JsonResponse({
             'success': False,
             'error': f'Error saving lesson plan: {str(e)}'
@@ -505,3 +514,75 @@ def department_head_drafts(request):
         'draft_count': draft_plans.count(),
         'is_department_head': True
     })
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def get_ai_suggestions(request):
+    """Generate AI suggestions for specific lesson plan sections"""
+    try:
+        if model is None:
+            return JsonResponse({
+                'success': False,
+                'error': 'AI service not configured'
+            }, status=500)
+            
+        data = json.loads(request.body)
+        section = data.get('section')
+        form_data = data.get('form_data', {})
+        
+        if not section:
+            return JsonResponse({
+                'success': False,
+                'error': 'Section parameter required'
+            }, status=400)
+        
+        # Create context-aware prompt for suggestions
+        prompt = f"""
+        Analyze this lesson plan context and provide 3 targeted suggestions for the {section} section.
+        
+        CONTEXT:
+        Subject: {form_data.get('subject', 'Not specified')}
+        Grade Level: {form_data.get('gradeLevel', 'Not specified')}
+        Learning Objectives: {form_data.get('learningObjectives', 'Not specified')}
+        Subject Matter: {form_data.get('subjectMatter', 'Not specified')}
+        
+        Provide 3 specific, actionable suggestions for the {section} section that are appropriate for this context.
+        Return ONLY a JSON array with this exact format:
+        [
+            {{
+                "title": "Suggestion title",
+                "description": "Detailed suggestion description",
+                "example": "Concrete example or implementation idea"
+            }}
+        ]
+        """
+        
+        response = model.generate_content([
+            "You are an expert educational consultant. Provide specific, practical suggestions for lesson plan sections.",
+            prompt
+        ])
+        
+        # Extract JSON from response
+        import re
+        json_match = re.search(r'\[.*\]', response.text, re.DOTALL)
+        if json_match:
+            suggestions = json.loads(json_match.group())
+        else:
+            # Fallback if no JSON found
+            suggestions = [{
+                "title": "AI Suggestion",
+                "description": response.text[:200] + "...",
+                "example": "Based on your input context"
+            }]
+        
+        return JsonResponse({
+            'success': True,
+            'suggestions': suggestions
+        })
+        
+    except Exception as e:
+        print(f"AI suggestions error: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': f'Suggestion generation failed: {str(e)}'
+        }, status=500)

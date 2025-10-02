@@ -12,4 +12,5 @@ urlpatterns = [
     path('drafts/<int:draft_id>/edit/', views.edit_draft, name='edit_draft'),
     path('regenerate-lesson-content/', views.regenerate_lesson_content, name='regenerate_lesson_content'),
     path('drafts/<int:draft_id>/view/', views.view_draft, name='view_draft'),
+    path('get-ai-suggestions/', views.get_ai_suggestions, name='get_ai_suggestions'),
 ]

@@ -336,9 +336,15 @@
                     <a href="/" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 hover:shadow-lg transform hover:scale-105">
                         ✨ Create New Plan
                     </a>
+                    {% if user.is_authenticated %}
                     <button onclick="saveAsDraft()" class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:shadow-lg transform hover:scale-105">
                         💾 Save Draft
                     </button>
+                    {% else %}
+                    <a href="{% url 'login' %}?next={{ request.path }}" class="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:shadow-lg transform hover:scale-105">
+                        🔐 Login to Save
+                    </a>
+                    {% endif %}
                 </div>
                 
             </div>
@@ -745,8 +751,8 @@
             }, 150);
         }
 
-        // Enhanced save functionality with better user feedback
-        function saveAsDraft() {
+        // Enhanced save functionality with proper error handling
+        async function saveAsDraft() {
             const button = event.target;
             const originalText = button.innerHTML;
             
@@ -755,16 +761,26 @@
             button.disabled = true;
             button.classList.add('opacity-75');
 
-            fetch('/save-lesson-plan/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken'),
-                },
-                body: JSON.stringify({})
-            })
-            .then(response => response.json())
-            .then(data => {
+            try {
+                const response = await fetch('/save-lesson-plan/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify({})
+                });
+
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    // If not JSON, get the text to see what's wrong
+                    const text = await response.text();
+                    throw new Error(`Server returned HTML instead of JSON. Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
                 if (data.success) {
                     // Enhanced success notification
                     const successMsg = document.createElement('div');
@@ -776,7 +792,7 @@
                             </svg>
                             <div>
                                 <p class="font-bold">Success!</p>
-                                <p class="text-sm text-green-100">Lesson plan saved successfully</p>
+                                <p class="text-sm text-green-100">${data.message || 'Lesson plan saved successfully'}</p>
                             </div>
                         </div>
                     `;
@@ -790,24 +806,26 @@
                         successMsg.classList.add('translate-x-full');
                         setTimeout(() => {
                             successMsg.remove();
-                            if (data.draft_id) {
+                            if (data.redirect_url) {
+                                window.location.href = data.redirect_url;
+                            } else if (data.draft_id) {
                                 window.location.href = `/drafts/${data.draft_id}/edit/`;
+                            } else {
+                                window.location.href = '/drafts/';
                             }
                         }, 500);
                     }, 2500);
                 } else {
-                    showErrorMessage('Error: ' + data.error);
+                    showErrorMessage(data.error || 'An error occurred while saving the draft.');
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showErrorMessage('An error occurred while saving the draft.');
-            })
-            .finally(() => {
+            } catch (error) {
+                console.error('Save draft error:', error);
+                showErrorMessage('An error occurred while saving the draft. Please try again.');
+            } finally {
                 button.innerHTML = originalText;
                 button.disabled = false;
                 button.classList.remove('opacity-75');
-            });
+            }
         }
 
         // Enhanced error message function
