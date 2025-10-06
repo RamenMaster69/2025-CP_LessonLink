@@ -221,6 +221,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For developm
 # EMAIL_HOST_PASSWORD = 'your-app-password'
 # DEFAULT_FROM_EMAIL = 'LessonLink <noreply@lessonlink.com>'
 
-# API Keys
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyCVu9MK5Hx9HgJ_mbjTwQR7zM1SQKvJchA')
+# API Keys AIzaSyCVu9MK5Hx9HgJ_mbjTwQR7zM1SQKvJchA AIzaSyDsuqqHFzl6CdXEgC_CB699Uf620MwJktw
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyDsuqqHFzl6CdXEgC_CB699Uf620MwJktw')
 
