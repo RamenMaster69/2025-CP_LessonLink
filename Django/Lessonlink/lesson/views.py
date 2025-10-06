@@ -29,7 +29,15 @@ from django.shortcuts import redirect
 from .models import User, Schedule, Task, TaskNotification, SchoolRegistration
 from .serializers import ScheduleSerializer
 from django.db.models import Q
-
+from django.contrib.auth.decorators import user_passes_test 
+import csv
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib import colors
+import io
 
 logger = logging.getLogger(__name__)
 
@@ -140,15 +148,16 @@ def org_reg_1(request):
                 first_name = name_parts[0]
                 last_name = name_parts[1] if len(name_parts) > 1 else "Admin"
                 
+                # In org_reg_1 view - Update user creation
                 user = User.objects.create_user(
                     email=form_data['contact_email'],
-                    password=form_data['password'],  # This gets hashed automatically by CustomUserManager
+                    password=form_data['password'],
                     first_name=first_name,
                     last_name=last_name,
-                    role='Department Head',  # Default role for school admin
+                    role='Admin',  # Changed from 'Department Head' to 'Admin'
                     rank=form_data['position'],
-                    department='Administration',  # Default department
-                    school=school_registration  # Link to the school
+                    department='Administration',
+                    school=school_registration
                 )
                 
                 # Log both creations
@@ -1655,3 +1664,270 @@ def lesson_plan_detail(request, submission_id):
     except LessonPlanSubmission.DoesNotExist:
         messages.error(request, "Lesson plan not found.")
         return redirect('dashboard')
+
+# ======================================================ADMIN===============================================================================================
+# ==========================================================================================================================================================
+
+def is_admin(user):
+    """Check if user is admin"""
+    return user.is_authenticated and (user.role == 'Admin' or user.is_superuser)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_user_management(request):
+    """Admin user management - view all users in their school"""
+    user = request.user
+    
+    # Get users from admin's school only
+    users = User.objects.filter(school=user.school).select_related('school').order_by('role', 'last_name')
+    
+    # Apply filters
+    role_filter = request.GET.get('role', 'all')
+    status_filter = request.GET.get('status', 'all')
+    search_query = request.GET.get('search', '')
+    
+    if role_filter != 'all':
+        users = users.filter(role=role_filter)
+    
+    if status_filter != 'all':
+        users = users.filter(is_active=status_filter == 'active')
+    
+    if search_query:
+        users = users.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(department__icontains=search_query)
+        )
+    
+    context = {
+        'users': users,
+        'total_users': users.count(),
+        'active_users': users.filter(is_active=True).count(),
+        'inactive_users': users.filter(is_active=False).count(),
+        'role_choices': User.ROLE_CHOICES,
+        'user_school': user.school,
+    }
+    
+    return render(request, 'admin/admin_user_management.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_edit_user(request, user_id):
+    """Admin edit user details"""
+    admin_user = request.user
+    user_to_edit = get_object_or_404(User, id=user_id, school=admin_user.school)
+    
+    if request.method == 'POST':
+        # Update user fields
+        user_to_edit.first_name = request.POST.get('first_name', user_to_edit.first_name)
+        user_to_edit.last_name = request.POST.get('last_name', user_to_edit.last_name)
+        user_to_edit.role = request.POST.get('role', user_to_edit.role)
+        user_to_edit.department = request.POST.get('department', user_to_edit.department)
+        user_to_edit.rank = request.POST.get('rank', user_to_edit.rank)
+        user_to_edit.is_active = request.POST.get('is_active') == 'on'
+        
+        try:
+            user_to_edit.save()
+            
+            # Log the action
+            AdminLog.objects.create(
+                admin=admin_user,
+                action='user_modified',
+                target_user=user_to_edit,
+                description=f"Modified user {user_to_edit.email}",
+                ip_address=get_client_ip(request)
+            )
+            
+            messages.success(request, f"User {user_to_edit.email} updated successfully!")
+            return redirect('admin_user_management')
+            
+        except Exception as e:
+            messages.error(request, f"Error updating user: {str(e)}")
+    
+    return render(request, 'admin/admin_edit_user.html', {
+        'user_to_edit': user_to_edit,
+        'role_choices': User.ROLE_CHOICES,
+    })
+
+@login_required
+@user_passes_test(is_admin)
+def admin_reset_password(request, user_id):
+    """Admin reset user password"""
+    if request.method == 'POST':
+        admin_user = request.user
+        user_to_reset = get_object_or_404(User, id=user_id, school=admin_user.school)
+        
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        if new_password and new_password == confirm_password:
+            user_to_reset.set_password(new_password)
+            user_to_reset.save()
+            
+            # Log the action
+            AdminLog.objects.create(
+                admin=admin_user,
+                action='password_reset',
+                target_user=user_to_reset,
+                description=f"Password reset for {user_to_reset.email}",
+                ip_address=get_client_ip(request)
+            )
+            
+            messages.success(request, f"Password reset successfully for {user_to_reset.email}")
+        else:
+            messages.error(request, "Passwords do not match or are empty")
+    
+    return redirect('admin_user_management')
+
+@login_required
+@user_passes_test(is_admin)
+def admin_system_reports(request):
+    """Admin system reports and analytics"""
+    user = request.user
+    
+    # School-wide statistics
+    total_users = User.objects.filter(school=user.school).count()
+    teachers_count = User.objects.filter(school=user.school, role='Teacher').count()
+    dept_heads_count = User.objects.filter(school=user.school, role='Department Head').count()
+    student_teachers_count = User.objects.filter(school=user.school, role='Student Teacher').count()
+    
+    # Lesson plan statistics
+    total_lessons = LessonPlan.objects.filter(created_by__school=user.school).count()
+    approved_lessons = LessonPlan.objects.filter(created_by__school=user.school, status='final').count()
+    draft_lessons = LessonPlan.objects.filter(created_by__school=user.school, status='draft').count()
+    
+    # Recent admin activities
+    recent_logs = AdminLog.objects.filter(admin=user).select_related('target_user').order_by('-timestamp')[:10]
+    
+    context = {
+        'total_users': total_users,
+        'teachers_count': teachers_count,
+        'dept_heads_count': dept_heads_count,
+        'student_teachers_count': student_teachers_count,
+        'total_lessons': total_lessons,
+        'approved_lessons': approved_lessons,
+        'draft_lessons': draft_lessons,
+        'recent_logs': recent_logs,
+        'user_school': user.school,
+    }
+    
+    return render(request, 'admin/admin_system_reports.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_lesson_monitoring(request):
+    """Admin view all lesson plans in their school"""
+    user = request.user
+    
+    lesson_plans = LessonPlan.objects.filter(
+        created_by__school=user.school
+    ).select_related('created_by').order_by('-created_at')
+    
+    # Filter by status
+    status_filter = request.GET.get('status', 'all')
+    if status_filter != 'all':
+        lesson_plans = lesson_plans.filter(status=status_filter)
+    
+    # Search
+    search_query = request.GET.get('search', '')
+    if search_query:
+        lesson_plans = lesson_plans.filter(
+            Q(title__icontains=search_query) |
+            Q(created_by__first_name__icontains=search_query) |
+            Q(created_by__last_name__icontains=search_query)
+        )
+    
+    context = {
+        'lesson_plans': lesson_plans,
+        'total_lessons': lesson_plans.count(),
+        'user_school': user.school,
+    }
+    
+    return render(request, 'admin/admin_lesson_monitoring.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_export_reports(request, format_type):
+    """Export reports in CSV or PDF"""
+    user = request.user
+    
+    if format_type not in ['csv', 'pdf']:
+        messages.error(request, "Invalid export format")
+        return redirect('admin_system_reports')
+    
+    # Get users data
+    users = User.objects.filter(school=user.school).order_by('role', 'last_name')
+    
+    if format_type == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="{user.school.school_name}_users_report.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['Name', 'Email', 'Role', 'Department', 'Status', 'Last Login'])
+        
+        for user_obj in users:
+            writer.writerow([
+                user_obj.full_name,
+                user_obj.email,
+                user_obj.role,
+                user_obj.department,
+                'Active' if user_obj.is_active else 'Inactive',
+                user_obj.last_login.strftime('%Y-%m-%d %H:%M') if user_obj.last_login else 'Never'
+            ])
+        
+        return response
+    
+    elif format_type == 'pdf':
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+        
+        styles = getSampleStyleSheet()
+        title_style = styles['Heading1']
+        
+        # Title
+        title = Paragraph(f"User Report - {user.school.school_name}", title_style)
+        elements.append(title)
+        
+        # Table data
+        data = [['Name', 'Email', 'Role', 'Department', 'Status']]
+        for user_obj in users:
+            data.append([
+                user_obj.full_name,
+                user_obj.email,
+                user_obj.role,
+                user_obj.department,
+                'Active' if user_obj.is_active else 'Inactive'
+            ])
+        
+        # Create table
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        
+        elements.append(table)
+        doc.build(elements)
+        
+        response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{user.school.school_name}_users_report.pdf"'
+        
+        return response
+
+def get_client_ip(request):
+    """Get client IP address"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+

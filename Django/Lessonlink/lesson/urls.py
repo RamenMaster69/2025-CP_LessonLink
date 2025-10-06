@@ -67,6 +67,14 @@ urlpatterns = [
     path('faculty-management/', views.admin_dep_faculty_management, name='admin_faculty_management'),
     path('teacher_calendar/', views.teacher_calendar, name='teacher_calendar'),
     path('admin/school-registrations/', views.admin_school_registrations, name='admin_school_registrations'),
+
+    # Admin URLs
+    path('admin/user-management/', views.admin_user_management, name='admin_user_management'),
+    path('admin/edit-user/<int:user_id>/', views.admin_edit_user, name='admin_edit_user'),
+    path('admin/reset-password/<int:user_id>/', views.admin_reset_password, name='admin_reset_password'),
+    path('admin/system-reports/', views.admin_system_reports, name='admin_system_reports'),
+    path('admin/lesson-monitoring/', views.admin_lesson_monitoring, name='admin_lesson_monitoring'),
+    path('admin/export-reports/<str:format_type>/', views.admin_export_reports, name='admin_export_reports'),
     
     # Calendar API URLs - FIXED PATH (Option 1)
     path('calendar-api/', include('lessonlinkCalendar.urls')), 

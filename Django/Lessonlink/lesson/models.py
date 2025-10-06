@@ -46,6 +46,7 @@ class User(AbstractUser):
         ('Student Teacher', 'Student Teacher'),
         ('Teacher', 'Teacher'),
         ('Department Head', 'Department Head'),
+        ('Admin', 'Admin'),
     ]
 
     username = None
@@ -92,6 +93,43 @@ class User(AbstractUser):
             parts.append(self.middle_name)
         parts.append(self.last_name)
         return ' '.join(parts).strip()
+
+class AdminLog(models.Model):
+    ACTION_CHOICES = [
+        ('user_created', 'User Created'),
+        ('user_modified', 'User Modified'),
+        ('user_deactivated', 'User Deactivated'),
+        ('role_changed', 'Role Changed'),
+        ('lesson_approved', 'Lesson Approved'),
+        ('lesson_flagged', 'Lesson Flagged'),
+        ('password_reset', 'Password Reset'),
+        ('account_unlocked', 'Account Unlocked'),
+    ]
+    
+    admin = models.ForeignKey(User, on_delete=models.CASCADE, related_name='admin_actions')
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    target_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='admin_actions_against')
+    description = models.TextField()
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+    
+    def __str__(self):
+        return f"{self.admin.email} - {self.action} - {self.timestamp}"
+
+class SystemSettings(models.Model):
+    """System-wide settings that admins can configure"""
+    key = models.CharField(max_length=100, unique=True)
+    value = models.TextField()
+    description = models.TextField(blank=True)
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.key
+
 
 
 # Rest of your models remain the same...
