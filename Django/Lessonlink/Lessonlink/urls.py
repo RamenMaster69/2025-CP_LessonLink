@@ -4,7 +4,7 @@ from . import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('ombre/', admin.site.urls),
     path('', include('lesson.urls')),  # Include the lesson app URLs
     path('', include('lessonGenerator.urls')),
     path('calendar/', include('lessonlinkCalendar.urls')),

@@ -38,7 +38,7 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 import io
-
+from .models import AdminLog, SystemSettings
 logger = logging.getLogger(__name__)
 
 # School Registration Views
@@ -1672,6 +1672,15 @@ def is_admin(user):
     """Check if user is admin"""
     return user.is_authenticated and (user.role == 'Admin' or user.is_superuser)
 
+def get_client_ip(request):
+    """Get client IP address"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
 @login_required
 @user_passes_test(is_admin)
 def admin_user_management(request):
@@ -1700,11 +1709,18 @@ def admin_user_management(request):
             Q(department__icontains=search_query)
         )
     
+    # Calculate statistics
+    total_users = users.count()
+    active_users = users.filter(is_active=True).count()
+    inactive_users = users.filter(is_active=False).count()
+    departments_count = users.values_list('department', flat=True).distinct().count()
+    
     context = {
         'users': users,
-        'total_users': users.count(),
-        'active_users': users.filter(is_active=True).count(),
-        'inactive_users': users.filter(is_active=False).count(),
+        'total_users': total_users,
+        'active_users': active_users,
+        'inactive_users': inactive_users,
+        'departments_count': departments_count,
         'role_choices': User.ROLE_CHOICES,
         'user_school': user.school,
     }
@@ -1921,13 +1937,3 @@ def admin_export_reports(request, format_type):
         response['Content-Disposition'] = f'attachment; filename="{user.school.school_name}_users_report.pdf"'
         
         return response
-
-def get_client_ip(request):
-    """Get client IP address"""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
-

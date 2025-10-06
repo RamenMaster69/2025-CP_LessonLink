@@ -131,7 +131,6 @@ class SystemSettings(models.Model):
         return self.key
 
 
-
 # Rest of your models remain the same...
 class Schedule(models.Model):
     DAY_CHOICES = [
