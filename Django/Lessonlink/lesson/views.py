@@ -736,59 +736,86 @@ def login_view(request):
         return redirect_based_on_role(request.user)
 
     if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
 
-        if not email or not password:
-            messages.error(request, "Please fill in both email and password.")
-            return render(request, 'login.html', {
-                'email': email,
-                'error_message': "Please fill in both email and password.",
-                'show_error': True
-            })
+        # Initialize error tracking
+        errors = {}
+        show_error = False
 
-        # Try regular user authentication first
-        user = authenticate(request, username=email, password=password)
+        # Client-side validation errors
+        if not email:
+            errors['email'] = True
+            errors['email_message'] = "Email address is required"
+            show_error = True
         
-        print(f"DEBUG login: Regular auth result - {user}")
+        if not password:
+            errors['password'] = True
+            errors['password_message'] = "Password is required"
+            show_error = True
         
-        if user is not None:
-            print(f"DEBUG login: Regular user found - {user.email}, Role: {user.role}")
-            login(request, user)
-            messages.success(request, f"Welcome back, {user.first_name}!")
-            return redirect_based_on_role(user)
-        else:
-            # Try school admin login using school email
-            school_admin = try_school_admin_login(email, password)
-            print(f"DEBUG login: School admin result - {school_admin}")
+        # If basic validation passed, try authentication
+        if not errors:
+            # Try regular user authentication first
+            user = authenticate(request, username=email, password=password)
             
-            if school_admin:
-                print(f"DEBUG login: School admin found - {school_admin.email}, Role: {school_admin.role}")
-                login(request, school_admin)
-                messages.success(request, f"Welcome, {school_admin.first_name}!")
-                return redirect_based_on_role(school_admin)
+            print(f"DEBUG login: Regular auth result - {user}")
             
-            # Show appropriate error message
-            try:
-                # Check if email exists in User model
-                User.objects.get(email=email)
-                messages.error(request, "Invalid password. Please try again.")
-            except User.DoesNotExist:
-                # Check if email exists in SchoolRegistration
-                school_exists = SchoolRegistration.objects.filter(
-                    Q(contact_email=email) | Q(email=email)
-                ).exists()
+            if user is not None:
+                print(f"DEBUG login: Regular user found - {user.email}, Role: {user.role}")
+                login(request, user)
+                # REMOVE the welcome message here - it should be in the dashboard
+                return redirect_based_on_role(user)
+            else:
+                # Try school admin login using school email
+                school_admin = try_school_admin_login(email, password)
+                print(f"DEBUG login: School admin result - {school_admin}")
                 
-                if school_exists:
-                    messages.error(request, "Invalid password for this school account. Please try again.")
-                else:
-                    messages.error(request, "No account found with this email. Please register first.")
-            
-            return render(request, 'login.html', {
-                'email': email,
-                'show_error': True
-            })
+                if school_admin:
+                    print(f"DEBUG login: School admin found - {school_admin.email}, Role: {school_admin.role}")
+                    login(request, school_admin)
+                    # REMOVE the welcome message here too
+                    return redirect_based_on_role(school_admin)
+                
+                # Authentication failed - determine the exact reason
+                try:
+                    # Check if email exists in User model
+                    user_exists = User.objects.filter(email=email).exists()
+                    if user_exists:
+                        errors['authentication'] = True
+                        errors['authentication_message'] = "Invalid password. Please try again."
+                    else:
+                        # Check if email exists in SchoolRegistration
+                        school_exists = SchoolRegistration.objects.filter(
+                            Q(contact_email=email) | Q(email=email)
+                        ).exists()
+                        
+                        if school_exists:
+                            errors['authentication'] = True
+                            errors['authentication_message'] = "Invalid password for this school account. Please try again."
+                        else:
+                            errors['email'] = True
+                            errors['email_message'] = "No account found with this email. Please register first."
+                    
+                    show_error = True
+                    
+                except Exception as e:
+                    errors['authentication'] = True
+                    errors['authentication_message'] = "An error occurred during authentication. Please try again."
+                    show_error = True
 
+        # Prepare context for template
+        context = {
+            'email': email,
+            'show_error': show_error,
+        }
+        
+        # Add specific error flags and messages
+        context.update(errors)
+        
+        return render(request, 'login.html', context)
+
+    # GET request - render empty form
     return render(request, 'login.html')
 
     
@@ -918,6 +945,11 @@ def try_school_admin_login(email, password):
 def dashboard(request):
     user = request.user
     
+    # Add welcome message here instead of login
+    if not request.session.get('welcome_shown'):
+        messages.success(request, f"Welcome back, {user.first_name}!")
+        request.session['welcome_shown'] = True
+    
     # Get task statistics for dashboard
     total_tasks = Task.objects.filter(user=user).count()
     completed_tasks = Task.objects.filter(user=user, status='completed').count()
@@ -1043,6 +1075,12 @@ def Dep_Dash(request):
     if user.role != "Department Head":
         messages.error(request, "You are not allowed to access this page.")
         return redirect('login')
+    
+    # Add welcome message here instead of login
+    if not request.session.get('welcome_shown'):
+        messages.success(request, f"Welcome back, {user.first_name}!")
+        request.session['welcome_shown'] = True
+    
     return render(request, 'Dep_Dash.html', {'user': user})
 
 @login_required
@@ -1146,6 +1184,12 @@ def st_dash(request):
     if user.role != "Student Teacher":
         messages.error(request, "You are not allowed to access this page.")
         return redirect('login')
+    
+    # Add welcome message here instead of login
+    if not request.session.get('welcome_shown'):
+        messages.success(request, f"Welcome back, {user.first_name}!")
+        request.session['welcome_shown'] = True
+    
     return render(request, 'st_dash.html', {'user': user})
 
 def calendar(request):

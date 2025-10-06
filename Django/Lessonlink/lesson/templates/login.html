@@ -71,7 +71,7 @@
                             <i class="fas fa-envelope text-gray-400"></i>
                         </div>
                         <input type="email" id="email" name="email" value="{{ email|default:'' }}"
-                            class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 {% if email_error %}error-border{% endif %}"
+                            class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 {% if email %}error-border{% endif %}"
                             placeholder="Email Address" required autocomplete="email">
                         
                         <!-- Client-side email validation error -->
@@ -81,10 +81,10 @@
                         </div>
                         
                         <!-- Django validation error for email -->
-                        {% if show_error and email_error %}
+                        {% if show_error and email %}
                         <div class="text-red-500 text-sm mt-2 flex items-center">
                             <i class="fas fa-exclamation-circle mr-2"></i>
-                            {{ email_error_message }}
+                            {{ email_message }}
                         </div>
                         {% endif %}
                     </div>
@@ -95,7 +95,7 @@
                             <i class="fas fa-lock text-gray-400"></i>
                         </div>
                         <input type="password" id="password" name="password"
-                            class="input-focus block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 {% if password_error %}error-border{% endif %}"
+                            class="input-focus block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 {% if password %}error-border{% endif %}"
                             placeholder="Password" required autocomplete="current-password">
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                             <button type="button" class="text-gray-400 hover:text-gray-600"
@@ -111,13 +111,23 @@
                         </div>
                         
                         <!-- Django validation error for password -->
-                        {% if show_error and password_error %}
+                        {% if show_error and password %}
                         <div class="text-red-500 text-sm mt-2 flex items-center">
                             <i class="fas fa-exclamation-circle mr-2"></i>
-                            {{ password_error_message }}
+                            {{ password_message }}
                         </div>
                         {% endif %}
                     </div>
+
+                    <!-- Authentication Error Section -->
+                    {% if show_error and authentication %}
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                            <span class="text-red-700 text-sm">{{ authentication_message }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
 
                     <!-- Remember Me & Forgot Password -->
                     <div class="flex items-center justify-between">
@@ -295,9 +305,9 @@
 
         // Auto-focus on error fields if they exist on page load
         document.addEventListener('DOMContentLoaded', function() {
-            {% if email_error %}
+            {% if email %}
                 document.getElementById('email').focus();
-            {% elif password_error %}
+            {% elif password %}
                 document.getElementById('password').focus();
             {% endif %}
         });
