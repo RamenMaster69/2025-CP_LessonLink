@@ -55,6 +55,30 @@
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        .lesson-card {
+            transition: all 0.3s ease;
+        }
+
+        .lesson-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-approved {
+            background: linear-gradient(135deg, #d1fae5 0%, #34d399 100%);
+            color: #065f46;
+        }
+
+        .status-rejected {
+            background: linear-gradient(135deg, #fee2e2 0%, #f87171 100%);
+            color: #991b1b;
+        }
+
         .calendar-day {
             min-height: 120px;
             border: 1px solid #e5e7eb;
@@ -168,55 +192,62 @@
 
     <div class="flex pt-16">
         <!-- Sidebar - Fixed and sticky -->
-        <aside id="sidebar" class="w-72 bg-white/70 backdrop-blur-xl shadow-elevation-2 h-screen fixed top-16 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 border-r border-gray-200/50">
-    <nav class="p-6 space-y-3">
-        <!-- Enhanced Create Lesson Button -->
-        <button class="w-full flex items-center space-x-4 px-6 py-4 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-xl hover:shadow-neon font-semibold transition-all duration-300 transform hover:scale-105">
-            <i class="fas fa-plus text-lg"></i>
-            <span>Create New Lesson</span>
-        </button>
+        <aside id="sidebar" class="w-64 bg-white shadow-lg h-screen fixed top-16 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30">
+            <nav class="p-4 space-y-2">
+                <!-- Create Lesson Button -->
+                <button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] shadow-md transition-all">
+                    <i class="fas fa-plus text-lg"></i>
+                    <span class="font-medium">Create New Lesson</span>
+                </button>
 
-        <!-- Role-based Navigation -->
-        {% if user_role == 'admin' %}
-            <!-- Admin Links -->
-            <a href="{% url 'admin_dashboard' %}" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
-                <i class="fas fa-home w-5 text-lg"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="{% url 'admin_faculty_management' %}" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
-                <i class="fas fa-chalkboard-teacher w-5 text-lg"></i>
-                <span>Faculty Management</span>
-            </a>
-        {% elif user_role == 'department_head' %}
-            <!-- Department Head Links -->
-            <a href="{% url 'Dep_Dash' %}" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
-                <i class="fas fa-home w-5 text-lg"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="{% url 'Dep_Faculty' %}" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
-                <i class="fas fa-chalkboard-teacher w-5 text-lg"></i>
-                <span>Faculty Management</span>
-            </a>
-        {% else %}
-            <!-- Teacher Links -->
-            <a href="{% url 'dashboard' %}" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
-                <i class="fas fa-home w-5 text-lg"></i>
-                <span>Dashboard</span>
-            </a>
-        {% endif %}
+                <!-- Role-based Navigation -->
+                {% if user_role == 'admin' %}
+                    <!-- Admin Links -->
+                    <a href="{% url 'admin_dashboard' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                        <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span class="font-medium">Dashboard</span>
+                    </a>
+                    <a href="{% url 'admin_faculty_management' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                        <i class="fas fa-chalkboard-teacher text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span class="font-medium">Faculty Management</span>
+                    </a>
+                {% elif user_role == 'department_head' %}
+                    <!-- Department Head Links -->
+                    <a href="{% url 'Dep_Dash' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                        <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span class="font-medium">Dashboard</span>
+                    </a>
+                    <a href="{% url 'department_head_drafts' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                        <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span class="font-medium">My Lesson Plans</span>
+                    </a>
+                    <a href="{% url 'Dep_Pending' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                        <i class="fas fa-clock text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span class="font-medium">Pending Reviews</span>
+                    </a>
+                    <a href="{% url 'Dep_Faculty' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                        <i class="fas fa-users text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span class="font-medium">Faculty</span>
+                    </a>
+                {% else %}
+                    <!-- Teacher Links -->
+                    <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                        <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span class="font-medium">Dashboard</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                        <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span class="font-medium">My Lesson Plans</span>
+                    </a>
+                {% endif %}
 
-        <!-- Calendar Link (Common for all roles but goes to appropriate view based on user_role in context) -->
-        <a href="{% url 'dep_calendar' %}" class="nav-item active flex items-center space-x-4 px-6 py-4 text-[#11468F] bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl font-semibold border border-blue-200">
-            <i class="fas fa-calendar-alt w-5 text-lg"></i>
-            <span>Calendar</span>
-        </a>
-        
-        <a href="#" class="nav-item flex items-center space-x-4 px-6 py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300">
-            <i class="fas fa-tasks w-5 text-lg"></i>
-            <span>Tasks</span>
-        </a>
-    </nav>
-</aside>
+                <!-- Calendar Link (Active - Common for all roles) -->
+                <a href="{% url 'dep_calendar' %}" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                    <i class="fas fa-calendar-alt text-lg w-5"></i>
+                    <span class="font-medium">Calendar</span>
+                </a>
+            </nav>
+        </aside>
 
         <!-- Main Content -->
         <main class="flex-1 md:ml-72 p-6">
@@ -258,7 +289,7 @@
                         </div>
                         
                         <!-- Add Activity Button - Only show for admin and department_head -->
-                        {% if user_role != 'teacher' %}
+                        {% if user_role == 'admin' or user_role == 'department_head' %}
                         <button id="add-activity-btn-header"
                             class="px-4 py-2 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all font-medium shadow-md">
                             <i class="fas fa-plus mr-2"></i>Add Activity
@@ -292,7 +323,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-gray-900">Upcoming Activities</h3>
                     <!-- Add Activity Button - Only show for admin and department_head -->
-                    {% if user_role != 'teacher' %}
+                    {% if user_role == 'admin' or user_role == 'department_head' %}
                     <button id="add-activity-btn-secondary"
                         class="px-4 py-2 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all text-sm font-medium">
                         <i class="fas fa-plus mr-2"></i>Add Activity
@@ -310,7 +341,7 @@
     </div>
 
     <!-- Add Activity Modal - Only include for admin and department_head -->
-    {% if user_role != 'teacher' %}
+    {% if user_role == 'admin' or user_role == 'department_head' %}
     <div id="add-activity-modal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 hidden">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-xl shadow-2xl w-full max-w-md">
@@ -385,9 +416,15 @@
     // Calendar functionality - Dynamic permissions based on user role
     let currentDate = new Date();
     let activities = [];
-    const userRole = "{{ user_role }}"; // 'admin', 'Department Head', or 'teacher'
+    
+    // Normalize user role to lowercase and trim whitespace for consistent comparison
+    const userRole = "{{ user_role }}".toLowerCase().trim();
     const currentUserName = "{{ user.first_name }} {{ user.last_name }}";
     const currentUserId = {{ user.id }};
+    
+    // Debug log to check role
+    console.log("Current user role:", userRole);
+    console.log("Current user ID:", currentUserId);
 
     const categoryColors = {
         academic: '#3b82f6',
@@ -401,36 +438,43 @@
     };
 
     // Function to check if user can edit this activity
-// Function to check if user can edit this activity
-function canUserEditActivity(activity) {
-    console.log("User role for permission check:", userRole);
-    
-    // Handle all role possibilities
-    const isAdmin = userRole === 'admin' || userRole === 'Admin';
-    const isDepartmentHead = userRole === 'department_head' || userRole === 'Department Head';
-    const isTeacher = userRole === 'teacher' || userRole === 'Teacher';
-    const isStudentTeacher = userRole === 'student_teacher' || userRole === 'Student Teacher';
-    
-    if (isAdmin) {
-        return true; // Admin can edit everything
-    } else if (isDepartmentHead) {
-        // Department heads can only edit their own activities AND cannot edit admin activities
-        const isAdminActivity = activity.user && activity.user.is_superuser;
-        return activity.user.id === currentUserId && !isAdminActivity;
-    } else if (isTeacher || isStudentTeacher) {
-        return false; // Teachers and Student Teachers cannot edit anything (read-only)
-    } else {
-        return false; // Default: cannot edit
+    function canUserEditActivity(activity) {
+        console.log("Checking edit permission for activity:", activity.id, "User role:", userRole);
+        
+        // Normalize role checking - compare lowercase
+        const isAdmin = userRole === 'admin';
+        const isDepartmentHead = userRole === 'department_head';
+        const isTeacher = userRole === 'teacher';
+        const isStudentTeacher = userRole === 'student_teacher';
+        
+        if (isAdmin) {
+            console.log("User is admin - can edit");
+            return true; // Admin can edit everything
+        } else if (isDepartmentHead) {
+            // Department heads can only edit their own activities AND cannot edit admin activities
+            const isAdminActivity = activity.user && activity.user.is_superuser;
+            const isOwnActivity = activity.user && activity.user.id === currentUserId;
+            
+            console.log("Department head check - Own activity:", isOwnActivity, "Admin activity:", isAdminActivity);
+            return isOwnActivity && !isAdminActivity;
+        } else if (isTeacher || isStudentTeacher) {
+            console.log("User is teacher/student teacher - cannot edit");
+            return false; // Teachers and Student Teachers cannot edit anything (read-only)
+        } else {
+            console.log("Unknown role - cannot edit");
+            return false; // Default: cannot edit
+        }
     }
-}
 
-// Function to check if user can add activities
-function canUserAddActivities() {
-    const isTeacher = userRole === 'teacher' || userRole === 'Teacher';
-    const isStudentTeacher = userRole === 'student_teacher' || userRole === 'Student Teacher';
-    
-    return !isTeacher && !isStudentTeacher; // Only Admin and Department Head can add activities
-}
+    // Function to check if user can add activities
+    function canUserAddActivities() {
+        const isTeacher = userRole === 'teacher';
+        const isStudentTeacher = userRole === 'student_teacher';
+        
+        const canAdd = !isTeacher && !isStudentTeacher;
+        console.log("Can user add activities:", canAdd);
+        return canAdd; // Only Admin and Department Head can add activities
+    }
 
     // Load activities from database via AJAX
     async function loadActivities() {
@@ -438,6 +482,7 @@ function canUserAddActivities() {
             const response = await fetch("/calendar-api/activities/");
             if (response.ok) {
                 activities = await response.json();
+                console.log("Loaded activities:", activities.length);
             } else {
                 console.error('Failed to load activities');
                 activities = [];
@@ -608,8 +653,8 @@ function canUserAddActivities() {
         });
         
         return dayActivities.map(activity => {
-            const canEdit = activity.canEdit || canUserEditActivity(activity);
-            const canDelete = activity.canDelete || canUserEditActivity(activity);
+            const canEdit = canUserEditActivity(activity);
+            const canDelete = canUserEditActivity(activity);
             const isAdminActivity = activity.user && activity.user.is_superuser;
             const isCurrentUserActivity = activity.user && activity.user.id === currentUserId;
             
@@ -671,8 +716,8 @@ function canUserAddActivities() {
         }
         
         container.innerHTML = upcoming.map(activity => {
-            const canEdit = activity.canEdit || canUserEditActivity(activity);
-            const canDelete = activity.canDelete || canUserEditActivity(activity);
+            const canEdit = canUserEditActivity(activity);
+            const canDelete = canUserEditActivity(activity);
             const isAdminActivity = activity.user && activity.user.is_superuser;
             const isCurrentUserActivity = activity.user && activity.user.id === currentUserId;
             
