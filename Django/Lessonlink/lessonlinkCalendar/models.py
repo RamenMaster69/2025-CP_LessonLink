@@ -60,34 +60,56 @@ class CalendarActivity(models.Model):
         """Check if user can edit this activity"""
         print(f"DEBUG can_edit: User {request_user.email} (role: {request_user.role}), Activity by {self.user.email} (admin: {self.user.is_superuser})")
         
-        if request_user.is_superuser or getattr(request_user, 'role', '') == 'admin':
-            print("  -> Admin can edit")
+        # Admin can edit everything
+        if request_user.is_superuser or getattr(request_user, 'role', '') == 'Admin':
+            print("  -> Admin can edit everything")
             return True
         
-        # FIXED: Changed 'department_head' to 'Department Head' to match your actual roles
+        # Department Head can only edit their own activities (not admin activities)
         if getattr(request_user, 'role', '') == 'Department Head':
-            # Department heads can only edit their own activities AND cannot edit admin activities
             can_edit = (self.user.id == request_user.id) and not self.user.is_superuser
-            print(f"  -> Department head can edit: {can_edit}")
+            print(f"  -> Department Head can edit: {can_edit}")
             return can_edit
         
-        print("  -> Teacher cannot edit")
+        # Teacher CANNOT edit anything (read-only)
+        if getattr(request_user, 'role', '') == 'Teacher':
+            print("  -> Teacher cannot edit (read-only)")
+            return False
+        
+        # Student Teacher CANNOT edit anything (read-only)
+        if getattr(request_user, 'role', '') == 'Student Teacher':
+            print("  -> Student Teacher cannot edit (read-only)")
+            return False
+        
+        # Default: cannot edit
+        print("  -> Default: cannot edit")
         return False
     
     def can_delete(self, request_user):
         """Check if user can delete this activity"""
         print(f"DEBUG can_delete: User {request_user.email} (role: {request_user.role}), Activity by {self.user.email} (admin: {self.user.is_superuser})")
         
-        if request_user.is_superuser or getattr(request_user, 'role', '') == 'admin':
-            print("  -> Admin can delete")
+        # Admin can delete everything
+        if request_user.is_superuser or getattr(request_user, 'role', '') == 'Admin':
+            print("  -> Admin can delete everything")
             return True
         
-        # FIXED: Changed 'department_head' to 'Department Head' to match your actual roles
+        # Department Head can only delete their own activities (not admin activities)
         if getattr(request_user, 'role', '') == 'Department Head':
-            # Department heads can only delete their own activities AND cannot delete admin activities
             can_delete = (self.user.id == request_user.id) and not self.user.is_superuser
-            print(f"  -> Department head can delete: {can_delete}")
+            print(f"  -> Department Head can delete: {can_delete}")
             return can_delete
         
-        print("  -> Teacher cannot delete")
+        # Teacher CANNOT delete anything (read-only)
+        if getattr(request_user, 'role', '') == 'Teacher':
+            print("  -> Teacher cannot delete (read-only)")
+            return False
+        
+        # Student Teacher CANNOT delete anything (read-only)
+        if getattr(request_user, 'role', '') == 'Student Teacher':
+            print("  -> Student Teacher cannot delete (read-only)")
+            return False
+        
+        # Default: cannot delete
+        print("  -> Default: cannot delete")
         return False

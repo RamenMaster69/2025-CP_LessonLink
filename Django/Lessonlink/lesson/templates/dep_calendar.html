@@ -401,22 +401,36 @@
     };
 
     // Function to check if user can edit this activity
-    function canUserEditActivity(activity) {
-        if (userRole === 'admin') {
-            return true; // Admin can edit everything
-        } else if (userRole === 'Department Head') {
-            // Department heads can only edit their own activities AND cannot edit admin activities
-            const isAdminActivity = activity.user && activity.user.is_superuser;
-            return activity.user.id === currentUserId && !isAdminActivity;
-        } else {
-            return false; // Teachers can't edit anything
-        }
+// Function to check if user can edit this activity
+function canUserEditActivity(activity) {
+    console.log("User role for permission check:", userRole);
+    
+    // Handle all role possibilities
+    const isAdmin = userRole === 'admin' || userRole === 'Admin';
+    const isDepartmentHead = userRole === 'department_head' || userRole === 'Department Head';
+    const isTeacher = userRole === 'teacher' || userRole === 'Teacher';
+    const isStudentTeacher = userRole === 'student_teacher' || userRole === 'Student Teacher';
+    
+    if (isAdmin) {
+        return true; // Admin can edit everything
+    } else if (isDepartmentHead) {
+        // Department heads can only edit their own activities AND cannot edit admin activities
+        const isAdminActivity = activity.user && activity.user.is_superuser;
+        return activity.user.id === currentUserId && !isAdminActivity;
+    } else if (isTeacher || isStudentTeacher) {
+        return false; // Teachers and Student Teachers cannot edit anything (read-only)
+    } else {
+        return false; // Default: cannot edit
     }
+}
 
-    // Function to check if user can add activities
-    function canUserAddActivities() {
-        return userRole !== 'teacher' && userRole !== 'Student Teacher';
-    }
+// Function to check if user can add activities
+function canUserAddActivities() {
+    const isTeacher = userRole === 'teacher' || userRole === 'Teacher';
+    const isStudentTeacher = userRole === 'student_teacher' || userRole === 'Student Teacher';
+    
+    return !isTeacher && !isStudentTeacher; // Only Admin and Department Head can add activities
+}
 
     // Load activities from database via AJAX
     async function loadActivities() {
