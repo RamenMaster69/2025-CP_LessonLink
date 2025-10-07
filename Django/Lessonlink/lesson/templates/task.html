@@ -105,11 +105,6 @@
             animation: scaleIn 0.2s ease-out;
         }
 
-        /* Session Warning Modal */
-        .session-modal {
-            backdrop-filter: blur(8px);
-        }
-
         /* Task item styling */
         .task-item {
             transition: all 0.2s ease;
@@ -172,27 +167,6 @@
 </head>
 
 <body class="bg-gray-50 min-h-screen">
-    <!-- Session Warning Modal -->
-    <div id="session-warning-modal" class="fixed inset-0 bg-black bg-opacity-50 session-modal z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl transform transition-all">
-            <div class="text-center">
-                <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-2">Session Timeout Warning</h3>
-                <p class="text-gray-600 mb-6">You've been inactive for a while. Your session will expire in <span id="countdown" class="font-bold text-red-600">60</span> seconds.</p>
-                <div class="flex space-x-4">
-                    <button id="extend-session-btn" class="flex-1 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white px-6 py-3 rounded-lg font-semibold hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all">
-                        Stay Logged In
-                    </button>
-                    <button id="logout-now-btn" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-all">
-                        Logout Now
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Success Message Modal -->
     <div id="success-message-modal" class="fixed inset-0 bg-black bg-opacity-30 success-modal z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl message-bounce">
@@ -250,12 +224,6 @@
 
             <!-- Right side actions -->
             <div class="flex items-center space-x-1 md:space-x-4">
-                <!-- Session Timer Display -->
-                <div class="hidden md:flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-full">
-                    <i class="fas fa-clock text-gray-500 text-sm"></i>
-                    <span id="session-timer" class="text-sm text-gray-600">5:00</span>
-                </div>
-
                 <!-- Search - Hidden on small mobile -->
                 <div class="relative hidden lg:block">
                     <input type="text" placeholder="Search tasks..."
@@ -676,147 +644,8 @@
             });
         }
 
-        // Session Management System
-        class SessionManager {
-            constructor() {
-                this.sessionDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
-                this.warningTime = 60 * 1000; // 1 minute warning in milliseconds
-                this.lastActivity = Date.now();
-                this.sessionTimer = null;
-                this.warningTimer = null;
-                this.countdownTimer = null;
-                this.isWarningShown = false;
-                this.countdownSeconds = 60;
-                
-                this.init();
-            }
-
-            init() {
-                // Track user activity
-                this.trackActivity();
-                // Start session monitoring
-                this.startSessionMonitoring();
-                // Update timer display
-                this.updateTimerDisplay();
-            }
-
-            trackActivity() {
-                const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-                
-                events.forEach(event => {
-                    document.addEventListener(event, () => {
-                        this.resetActivity();
-                    }, true);
-                });
-            }
-
-            resetActivity() {
-                this.lastActivity = Date.now();
-                
-                // Hide warning modal if shown
-                if (this.isWarningShown) {
-                    this.hideWarningModal();
-                }
-                
-                // Reset timers
-                this.clearTimers();
-                this.startSessionMonitoring();
-            }
-
-            startSessionMonitoring() {
-                // Set timer for warning (4 minutes)
-                this.warningTimer = setTimeout(() => {
-                    this.showWarningModal();
-                }, this.sessionDuration - this.warningTime);
-
-                // Set timer for automatic logout (5 minutes)
-                this.sessionTimer = setTimeout(() => {
-                    this.logout();
-                }, this.sessionDuration);
-            }
-
-            showWarningModal() {
-                this.isWarningShown = true;
-                this.countdownSeconds = 60;
-                
-                const modal = document.getElementById('session-warning-modal');
-                modal.classList.remove('hidden');
-                
-                // Start countdown
-                this.startCountdown();
-            }
-
-            startCountdown() {
-                const countdownElement = document.getElementById('countdown');
-                countdownElement.textContent = this.countdownSeconds;
-                
-                this.countdownTimer = setInterval(() => {
-                    this.countdownSeconds--;
-                    countdownElement.textContent = this.countdownSeconds;
-                    
-                    if (this.countdownSeconds <= 0) {
-                        clearInterval(this.countdownTimer);
-                        this.logout();
-                    }
-                }, 1000);
-                
-                // Setup button handlers
-                document.getElementById('extend-session-btn').addEventListener('click', () => {
-                    this.resetActivity();
-                });
-                
-                document.getElementById('logout-now-btn').addEventListener('click', () => {
-                    this.logout();
-                });
-            }
-
-            hideWarningModal() {
-                this.isWarningShown = false;
-                const modal = document.getElementById('session-warning-modal');
-                modal.classList.add('hidden');
-            }
-
-            clearTimers() {
-                if (this.sessionTimer) {
-                    clearTimeout(this.sessionTimer);
-                    this.sessionTimer = null;
-                }
-                if (this.warningTimer) {
-                    clearTimeout(this.warningTimer);
-                    this.warningTimer = null;
-                }
-                if (this.countdownTimer) {
-                    clearInterval(this.countdownTimer);
-                    this.countdownTimer = null;
-                }
-            }
-
-            updateTimerDisplay() {
-                const timerElement = document.getElementById('session-timer');
-                if (!timerElement) return;
-                
-                setInterval(() => {
-                    const remainingTime = Math.max(0, this.sessionDuration - (Date.now() - this.lastActivity));
-                    const minutes = Math.floor(remainingTime / 60000);
-                    const seconds = Math.floor((remainingTime % 60000) / 1000);
-                    
-                    timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                }, 1000);
-            }
-
-            logout() {
-                // Clear all timers
-                this.clearTimers();
-                
-                // Redirect to logout URL (Django's default logout view)
-                window.location.href = "{% url 'logout' %}";
-            }
-        }
-
-        // Initialize the session manager when DOM is loaded
+        // Initialize functionality when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
-            const sessionManager = new SessionManager();
-            
             // Mobile menu functionality
             const mobileMenuBtn = document.getElementById('mobile-menu-btn');
             const sidebar = document.getElementById('sidebar');
