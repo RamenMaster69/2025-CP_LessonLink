@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Super User Dashboard - School Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .stats-card {
+            transition: transform 0.2s;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        .school-item {
+            border-left: 4px solid #ffc107;
+        }
+        .school-item.approved {
+            border-left-color: #198754;
+        }
+        .school-item.rejected {
+            border-left-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Super User Dashboard</a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3">Welcome, {{ request.user.username }}</span>
+                <a class="btn btn-outline-light btn-sm" href="{% url 'admin:index' %}">Admin Panel</a>
+                <a class="btn btn-outline-light btn-sm ms-2" href="{% url 'logout' %}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stats-card text-white bg-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Schools</h5>
+                        <h2 class="card-text">{{ total_schools }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card text-white bg-warning">
+                    <div class="card-body">
+                        <h5 class="card-title">Pending</h5>
+                        <h2 class="card-text">{{ pending_schools_count }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card text-white bg-success">
+                    <div class="card-body">
+                        <h5 class="card-title">Approved</h5>
+                        <h2 class="card-text">{{ approved_schools_count }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card text-white bg-danger">
+                    <div class="card-body">
+                        <h5 class="card-title">Rejected</h5>
+                        <h2 class="card-text">{{ rejected_schools_count }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2>School Management</h2>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Tabs for different views -->
+        <ul class="nav nav-tabs mb-3" id="schoolTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
+                    Pending <span class="badge bg-warning">{{ pending_schools_count }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approved" type="button" role="tab">
+                    Approved <span class="badge bg-success">{{ approved_schools_count }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="rejected-tab" data-bs-toggle="tab" data-bs-target="#rejected" type="button" role="tab">
+                    Rejected <span class="badge bg-danger">{{ rejected_schools_count }}</span>
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="schoolTabsContent">
+            <!-- Pending Schools Tab -->
+            <div class="tab-pane fade show active" id="pending" role="tabpanel">
+                {% if pending_schools %}
+                    <div class="list-group">
+                        {% for school in pending_schools %}
+                            <div class="list-group-item school-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ school.school_name }}</h5>
+                                    <small>{{ school.created_at|date:"M d, Y" }}</small>
+                                </div>
+                                <p class="mb-1"><strong>School ID:</strong> {{ school.school_id }}</p>
+                                <p class="mb-1"><strong>Email:</strong> {{ school.email }}</p>
+                                <p class="mb-1"><strong>Phone:</strong> {{ school.phone_number }}</p>
+                                <p class="mb-1"><strong>Address:</strong> {{ school.address }}</p>
+                                <p class="mb-1"><strong>Contact Person:</strong> {{ school.contact_person }}</p>
+                                <p class="mb-1"><strong>Contact Email:</strong> {{ school.contact_email }}</p>
+                                
+                                <div class="mt-3">
+                                    <form method="POST" action="{% url 'approve_school' school.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-success btn-sm">✓ Approve</button>
+                                    </form>
+                                    <form method="POST" action="{% url 'reject_school' school.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm">✗ Reject</button>
+                                    </form>
+                                    <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#schoolModal{{ school.id }}">
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Modal for school details -->
+                            <div class="modal fade" id="schoolModal{{ school.id }}" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">{{ school.school_name }} - Complete Details</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h6>School Information</h6>
+                                                    <p><strong>School Name:</strong> {{ school.school_name }}</p>
+                                                    <p><strong>School ID:</strong> {{ school.school_id }}</p>
+                                                    <p><strong>Year Established:</strong> {{ school.year_established }}</p>
+                                                    <p><strong>Email:</strong> {{ school.email }}</p>
+                                                    <p><strong>Phone:</strong> {{ school.phone_number }}</p>
+                                                    {% if school.website %}
+                                                        <p><strong>Website:</strong> {{ school.website }}</p>
+                                                    {% endif %}
+                                                    {% if school.facebook_page %}
+                                                        <p><strong>Facebook:</strong> {{ school.facebook_page }}</p>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6>Location</h6>
+                                                    <p><strong>Address:</strong> {{ school.address }}</p>
+                                                    <p><strong>Province:</strong> {{ school.province }}</p>
+                                                    <p><strong>Region:</strong> {{ school.region }}</p>
+                                                    
+                                                    <h6 class="mt-3">Contact Person</h6>
+                                                    <p><strong>Name:</strong> {{ school.contact_person }}</p>
+                                                    <p><strong>Position:</strong> {{ school.position }}</p>
+                                                    <p><strong>Email:</strong> {{ school.contact_email }}</p>
+                                                    <p><strong>Phone:</strong> {{ school.contact_phone }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="row mt-3">
+                                                <div class="col-12">
+                                                    <h6>Registration Details</h6>
+                                                    <p><strong>Registered:</strong> {{ school.created_at }}</p>
+                                                    <p><strong>Status:</strong> <span class="badge bg-warning">{{ school.get_status_display }}</span></p>
+                                                    {% if school.accuracy %}
+                                                        <p><strong>✓ Information Accuracy Certified</strong></p>
+                                                    {% endif %}
+                                                    {% if school.terms %}
+                                                        <p><strong>✓ Terms and Privacy Agreed</strong></p>
+                                                    {% endif %}
+                                                    {% if school.communications %}
+                                                        <p><strong>✓ Communications Consent Given</strong></p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form method="POST" action="{% url 'approve_school' school.id %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-success">Approve School</button>
+                                            </form>
+                                            <form method="POST" action="{% url 'reject_school' school.id %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger">Reject School</button>
+                                            </form>
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <h5>No pending schools for approval.</h5>
+                        <p class="mb-0">All schools have been processed.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Approved Schools Tab -->
+            <div class="tab-pane fade" id="approved" role="tabpanel">
+                {% if approved_schools %}
+                    <div class="list-group">
+                        {% for school in approved_schools %}
+                            <div class="list-group-item school-item approved">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ school.school_name }}</h5>
+                                    <small>Approved on {{ school.updated_at|date:"M d, Y" }}</small>
+                                </div>
+                                <p class="mb-1"><strong>School ID:</strong> {{ school.school_id }}</p>
+                                <p class="mb-1"><strong>Email:</strong> {{ school.email }}</p>
+                                <p class="mb-1"><strong>Phone:</strong> {{ school.phone_number }}</p>
+                                <p class="mb-1"><strong>Contact:</strong> {{ school.contact_person }}</p>
+                                {% if school.processed_by %}
+                                    <p class="mb-1"><strong>Approved by:</strong> {{ school.processed_by.get_full_name }}</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">No approved schools yet.</div>
+                {% endif %}
+            </div>
+
+            <!-- Rejected Schools Tab -->
+            <div class="tab-pane fade" id="rejected" role="tabpanel">
+                {% if rejected_schools %}
+                    <div class="list-group">
+                        {% for school in rejected_schools %}
+                            <div class="list-group-item school-item rejected">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ school.school_name }}</h5>
+                                    <small>Rejected on {{ school.updated_at|date:"M d, Y" }}</small>
+                                </div>
+                                <p class="mb-1"><strong>School ID:</strong> {{ school.school_id }}</p>
+                                <p class="mb-1"><strong>Email:</strong> {{ school.email }}</p>
+                                <p class="mb-1"><strong>Phone:</strong> {{ school.phone_number }}</p>
+                                {% if school.admin_notes %}
+                                    <p class="mb-1"><strong>Reason:</strong> {{ school.admin_notes }}</p>
+                                {% endif %}
+                                {% if school.processed_by %}
+                                    <p class="mb-1"><strong>Rejected by:</strong> {{ school.processed_by.get_full_name }}</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">No rejected schools.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

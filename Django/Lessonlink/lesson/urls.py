@@ -78,5 +78,16 @@ urlpatterns = [
     
     # Calendar API URLs - FIXED PATH (Option 1)
     path('calendar-api/', include('lessonlinkCalendar.urls')), 
+    
+    # ======================================================
+    # SUPER USER SCHOOL APPROVAL URLs
+    # ======================================================
+    path('super-user/', views.super_user_dashboard, name='super_user_dashboard'),
+    path('super-user/approve/<int:school_id>/', views.approve_school, name='approve_school'),
+    path('super-user/reject/<int:school_id>/', views.reject_school, name='reject_school'),
+    path('super-user/school/<int:school_id>/', views.super_user_school_detail, name='super_user_school_detail'),
+    
+    # AJAX validation endpoint (if not already present)
+    path('validate-school-id/', views.validate_school_id_ajax, name='validate_school_id_ajax'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

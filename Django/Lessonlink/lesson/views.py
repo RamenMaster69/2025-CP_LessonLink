@@ -830,17 +830,28 @@ def login_view(request):
     
 
 def redirect_based_on_role(user):
-    """Redirect user based on their role"""
-    if user.role == "Student Teacher":
+    """Redirect user based on their role - UPDATED TO CHECK SUPERUSER FIRST"""
+    print(f"DEBUG redirect_based_on_role: User {user.email} - Role: {user.role} - Superuser: {user.is_superuser}")
+    
+    # CHECK SUPERUSER FIRST - This is the fix!
+    if user.is_superuser:
+        print("  -> Redirecting to super_user_dashboard (SUPERUSER)")
+        return redirect('super_user_dashboard')
+    elif user.role == "Student Teacher":
+        print("  -> Redirecting to st_dash")
         return redirect('st_dash')
     elif user.role == "Department Head":
+        print("  -> Redirecting to Dep_Dash")
         return redirect('Dep_Dash')
-    elif user.role == "Teacher":  # ← ADD THIS CASE
+    elif user.role == "Teacher":
+        print("  -> Redirecting to dashboard")
         return redirect('dashboard')
     elif user.role in ["Admin", "Supervisor"]:
+        print("  -> Redirecting to admin_dashboard")
         return redirect('admin_dashboard')
     else:
-        return redirect('dashboard')  # Default to regular dashboard
+        print(f"  -> Unknown role '{user.role}', redirecting to dashboard")
+        return redirect('dashboard')
 
 def try_school_admin_login(email, password):
     """Try to authenticate as school admin using SchoolRegistration credentials"""
@@ -884,10 +895,14 @@ def try_school_admin_login(email, password):
 
 
 def redirect_based_on_role(user):
-    """Redirect user based on their role"""
+    """Redirect user based on their role - UPDATED TO CHECK SUPERUSER FIRST"""
     print(f"DEBUG redirect_based_on_role: User {user.email} - Role: {user.role} - Superuser: {user.is_superuser}")
     
-    if user.role == "Student Teacher":
+    # CHECK SUPERUSER FIRST - This is the fix!
+    if user.is_superuser:
+        print("  -> Redirecting to super_user_dashboard (SUPERUSER)")
+        return redirect('super_user_dashboard')  # This requires 'redirect' import
+    elif user.role == "Student Teacher":
         print("  -> Redirecting to st_dash")
         return redirect('st_dash')
     elif user.role == "Department Head":
@@ -896,12 +911,14 @@ def redirect_based_on_role(user):
     elif user.role == "Teacher":
         print("  -> Redirecting to dashboard")
         return redirect('dashboard')
-    elif user.role in ["Admin", "Supervisor"] or user.is_superuser:
+    elif user.role in ["Admin", "Supervisor"]:
         print("  -> Redirecting to admin_dashboard")
         return redirect('admin_dashboard')
     else:
         print(f"  -> Unknown role '{user.role}', redirecting to dashboard")
         return redirect('dashboard')
+
+        
 
 def try_school_admin_login(email, password):
     """Try to authenticate as school admin using SchoolRegistration credentials - ONLY APPROVED SCHOOLS"""
@@ -1026,6 +1043,114 @@ def profile(request):
         'user': user,
         'full_name': user.full_name
     })
+
+
+# ====================================================== SUPER USER SCHOOL APPROVAL ======================================================
+
+def is_superuser(user):
+    """Check if user is superuser"""
+    return user.is_authenticated and user.is_superuser
+
+@login_required
+@user_passes_test(is_superuser)
+def super_user_dashboard(request):
+    """Super user dashboard for managing school approvals"""
+    user = request.user
+    
+    # Get all schools for statistics
+    total_schools = SchoolRegistration.objects.count()
+    pending_schools = SchoolRegistration.objects.filter(status='pending')
+    approved_schools = SchoolRegistration.objects.filter(status='approved')
+    rejected_schools = SchoolRegistration.objects.filter(status='rejected')
+    
+    # Get recent activities
+    recent_approvals = SchoolRegistration.objects.filter(
+        status__in=['approved', 'rejected']
+    ).order_by('-updated_at')[:5]
+    
+    context = {
+        'pending_schools': pending_schools,
+        'approved_schools': approved_schools,
+        'rejected_schools': rejected_schools,
+        'recent_approvals': recent_approvals,
+        'total_schools': total_schools,
+        'pending_schools_count': pending_schools.count(),
+        'approved_schools_count': approved_schools.count(),
+        'rejected_schools_count': rejected_schools.count(),
+    }
+    return render(request, 'super_user.html', context)
+
+@login_required
+@user_passes_test(is_superuser)
+def approve_school(request, school_id):
+    """Approve a school registration"""
+    if request.method == 'POST':
+        try:
+            school = get_object_or_404(SchoolRegistration, id=school_id)
+            school.status = 'approved'
+            school.save()
+            
+            # Log the action
+            AdminLog.objects.create(
+                admin=request.user,
+                action='school_approved',
+                description=f"Approved school: {school.school_name} (ID: {school.school_id})",
+                ip_address=get_client_ip(request)
+            )
+            
+            messages.success(request, f'School "{school.school_name}" has been approved successfully!')
+            
+        except SchoolRegistration.DoesNotExist:
+            messages.error(request, "School not found.")
+        except Exception as e:
+            messages.error(request, f"Error approving school: {str(e)}")
+    
+    return redirect('super_user_dashboard')
+
+@login_required
+@user_passes_test(is_superuser)
+def reject_school(request, school_id):
+    """Reject a school registration"""
+    if request.method == 'POST':
+        try:
+            school = get_object_or_404(SchoolRegistration, id=school_id)
+            school.status = 'rejected'
+            school.save()
+            
+            # Log the action
+            AdminLog.objects.create(
+                admin=request.user,
+                action='school_rejected',
+                description=f"Rejected school: {school.school_name} (ID: {school.school_id})",
+                ip_address=get_client_ip(request)
+            )
+            
+            messages.success(request, f'School "{school.school_name}" has been rejected.')
+            
+        except SchoolRegistration.DoesNotExist:
+            messages.error(request, "School not found.")
+        except Exception as e:
+            messages.error(request, f"Error rejecting school: {str(e)}")
+    
+    return redirect('super_user_dashboard')
+
+@login_required
+@user_passes_test(is_superuser)
+def super_user_school_detail(request, school_id):
+    """View detailed school information"""
+    school = get_object_or_404(SchoolRegistration, id=school_id)
+    
+    # Get users associated with this school
+    school_users = User.objects.filter(school=school).order_by('role', 'last_name')
+    
+    context = {
+        'school': school,
+        'school_users': school_users,
+        'users_count': school_users.count(),
+    }
+    
+    return render(request, 'super_user_school_detail.html', context)
+
 
 @login_required      
 def lesson_planner(request):
