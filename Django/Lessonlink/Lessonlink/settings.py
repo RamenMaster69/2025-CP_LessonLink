@@ -40,8 +40,10 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',  # ✅ Move this BEFORE AutoLogoutMiddleware
+    'lesson.middleware.AutoLogoutMiddleware',  # ✅ Your middleware should come AFTER MessageMiddleware
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # ✅ REMOVED duplicate MessageMiddleware
 ]
 
 ROOT_URLCONF = 'Lessonlink.urls'
@@ -112,6 +114,8 @@ MESSAGE_TAGS = {
     messages.WARNING: 'warning',
     messages.ERROR: 'error',
 }
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # Password validation (already in default Django settings, but good to verify)
 AUTH_PASSWORD_VALIDATORS = [

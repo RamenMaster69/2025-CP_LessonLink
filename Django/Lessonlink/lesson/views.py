@@ -740,6 +740,17 @@ def registration_5(request):
     return render(request, 'registration/registration_5.html')
 
 def login_view(request):
+    print("🟢 LOGIN VIEW CALLED")
+    print(f"🟢 GET parameters: {request.GET}")
+    print(f"🟢 timeout parameter: {request.GET.get('timeout')}")
+    
+    # ✅ Check for timeout parameter and add to context
+    show_timeout_message = request.GET.get('timeout') == '1'
+    print(f"🟢 show_timeout_message: {show_timeout_message}")
+
+    # ✅ Check for timeout parameter and add to context
+    show_timeout_message = request.GET.get('timeout') == '1'
+    
     # If user is already logged in, redirect based on role
     if request.user.is_authenticated:
         return redirect_based_on_role(request.user)
@@ -748,84 +759,68 @@ def login_view(request):
         email = request.POST.get('email', '').strip()
         password = request.POST.get('password', '')
 
-        # Initialize error tracking
         errors = {}
         show_error = False
 
-        # Client-side validation errors
+        # Basic validation
         if not email:
             errors['email'] = True
             errors['email_message'] = "Email address is required"
             show_error = True
-        
+
         if not password:
             errors['password'] = True
             errors['password_message'] = "Password is required"
             show_error = True
-        
-        # If basic validation passed, try authentication
-        if not errors:
-            # Try regular user authentication first
-            user = authenticate(request, username=email, password=password)
-            
-            print(f"DEBUG login: Regular auth result - {user}")
-            
-            if user is not None:
-                print(f"DEBUG login: Regular user found - {user.email}, Role: {user.role}")
-                login(request, user)
-                # REMOVE the welcome message here - it should be in the dashboard
-                return redirect_based_on_role(user)
-            else:
-                # Try school admin login using school email
-                school_admin = try_school_admin_login(email, password)
-                print(f"DEBUG login: School admin result - {school_admin}")
-                
-                if school_admin:
-                    print(f"DEBUG login: School admin found - {school_admin.email}, Role: {school_admin.role}")
-                    login(request, school_admin)
-                    # REMOVE the welcome message here too
-                    return redirect_based_on_role(school_admin)
-                
-                # Authentication failed - determine the exact reason
-                try:
-                    # Check if email exists in User model
-                    user_exists = User.objects.filter(email=email).exists()
-                    if user_exists:
-                        errors['authentication'] = True
-                        errors['authentication_message'] = "Invalid password. Please try again."
-                    else:
-                        # Check if email exists in SchoolRegistration
-                        school_exists = SchoolRegistration.objects.filter(
-                            Q(contact_email=email) | Q(email=email)
-                        ).exists()
-                        
-                        if school_exists:
-                            errors['authentication'] = True
-                            errors['authentication_message'] = "Invalid password for this school account. Please try again."
-                        else:
-                            errors['email'] = True
-                            errors['email_message'] = "No account found with this email. Please register first."
-                    
-                    show_error = True
-                    
-                except Exception as e:
-                    errors['authentication'] = True
-                    errors['authentication_message'] = "An error occurred during authentication. Please try again."
-                    show_error = True
 
-        # Prepare context for template
+        if not errors:
+            # Regular user authentication
+            user = authenticate(request, username=email, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect_based_on_role(user)
+
+            # Try school admin authentication
+            school_admin = try_school_admin_login(email, password)
+            if school_admin:
+                login(request, school_admin)
+                return redirect_based_on_role(school_admin)
+
+            # Authentication failed - detect reason
+            try:
+                user_exists = User.objects.filter(email=email).exists()
+                if user_exists:
+                    errors['authentication'] = True
+                    errors['authentication_message'] = "Invalid password. Please try again."
+                else:
+                    school_exists = SchoolRegistration.objects.filter(
+                        Q(contact_email=email) | Q(email=email)
+                    ).exists()
+                    if school_exists:
+                        errors['authentication'] = True
+                        errors['authentication_message'] = "Invalid password for this school account. Please try again."
+                    else:
+                        errors['email'] = True
+                        errors['email_message'] = "No account found with this email. Please register first."
+                show_error = True
+            except Exception:
+                errors['authentication'] = True
+                errors['authentication_message'] = "An error occurred during authentication. Please try again."
+                show_error = True
+
+        # Render with errors
         context = {
-            'email': email,
+            'email': email, 
             'show_error': show_error,
+            'show_timeout_message': show_timeout_message  # ✅ Add this
         }
-        
-        # Add specific error flags and messages
         context.update(errors)
-        
         return render(request, 'login.html', context)
 
-    # GET request - render empty form
-    return render(request, 'login.html')
+    # GET request
+    context = {'show_timeout_message': show_timeout_message}  # ✅ Add this
+    return render(request, 'login.html', context)
+
 
     
 
