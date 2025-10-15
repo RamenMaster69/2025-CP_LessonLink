@@ -77,7 +77,9 @@ urlpatterns = [
     path('admin/export-reports/<str:format_type>/', views.admin_export_reports, name='admin_export_reports'),
     
     # Calendar API URLs - FIXED PATH (Option 1)
-    path('calendar-api/', include('lessonlinkCalendar.urls')), 
+    # path('calendar-api/', include('lessonlinkCalendar.urls')), 
+    path('calendar-api/', include(('lessonlinkCalendar.urls', 'lessonlinkCalendar'), namespace='lessonlinkcalendar_api')),
+
     
     # ======================================================
     # SUPER USER SCHOOL APPROVAL URLs

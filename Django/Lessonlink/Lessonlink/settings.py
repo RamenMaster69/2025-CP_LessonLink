@@ -32,7 +32,6 @@ INSTALLED_APPS = [
     'lessonGenerator',
     'lessonlinkCalendar',
 
-
 ]
 
 MIDDLEWARE = [
@@ -88,13 +87,16 @@ AUTHENTICATION_BACKENDS = [
 
 # Session Configuration
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Store sessions in database
-SESSION_COOKIE_AGE = 86400  # 24 hours
+
+# Automatically log out after 10 minutes of inactivity
+SESSION_COOKIE_AGE = 2  # 10 minutes = 600 seconds
+SESSION_SAVE_EVERY_REQUEST = True  # Reset the timer every time the user interacts
+
 SESSION_COOKIE_NAME = 'lessonlink_sessionid'
-SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
-# SESSION_COOKIE_SECURE = True  # REMOVE THIS LINE - it will be set conditionally below
-SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
-SESSION_SAVE_EVERY_REQUEST = False  # Only save session if modified
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keep session after browser close
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
 
 # Login/Logout URLs
 LOGIN_URL = 'login'
