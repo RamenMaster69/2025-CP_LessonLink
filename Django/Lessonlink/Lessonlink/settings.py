@@ -89,7 +89,7 @@ AUTHENTICATION_BACKENDS = [
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Store sessions in database
 
 # Automatically log out after 10 minutes of inactivity
-SESSION_COOKIE_AGE = 2  # 10 minutes = 600 seconds
+SESSION_COOKIE_AGE = 600  # 10 minutes = 600 seconds
 SESSION_SAVE_EVERY_REQUEST = True  # Reset the timer every time the user interacts
 
 SESSION_COOKIE_NAME = 'lessonlink_sessionid'
