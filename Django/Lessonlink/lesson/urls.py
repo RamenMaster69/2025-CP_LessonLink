@@ -91,5 +91,10 @@ urlpatterns = [
     
     # AJAX validation endpoint (if not already present)
     path('validate-school-id/', views.validate_school_id_ajax, name='validate_school_id_ajax'),
+       # School admin management URLs
+    path('school/<int:school_id>/register-admin/', views.register_school_admin, name='register_school_admin'),
+    path('school/<int:school_id>/admins/', views.school_admin_list, name='school_admin_list'),
+    path('school-admin/<int:admin_id>/deactivate/', views.deactivate_school_admin, name='deactivate_school_admin'),
+    path('school-admin/<int:admin_id>/activate/', views.activate_school_admin, name='activate_school_admin'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

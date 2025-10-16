@@ -94,6 +94,11 @@
                 </button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="register-admin-tab" data-bs-toggle="tab" data-bs-target="#register-admin" type="button" role="tab">
+                    Register Admins <span class="badge bg-info">{{ approved_schools_count }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
                 <button class="nav-link" id="rejected-tab" data-bs-toggle="tab" data-bs-target="#rejected" type="button" role="tab">
                     Rejected <span class="badge bg-danger">{{ rejected_schools_count }}</span>
                 </button>
@@ -233,6 +238,58 @@
                     </div>
                 {% else %}
                     <div class="alert alert-info">No approved schools yet.</div>
+                {% endif %}
+            </div>
+
+            <!-- Register Admins Tab -->
+            <div class="tab-pane fade" id="register-admin" role="tabpanel">
+                {% if approved_schools %}
+                    <div class="row">
+                        {% for school in approved_schools %}
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="card-title mb-0">{{ school.school_name }}</h6>
+                                        <span class="badge bg-success">Approved</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="card-text">
+                                            <strong>School ID:</strong> {{ school.school_id }}<br>
+                                            <strong>Email:</strong> {{ school.email }}<br>
+                                            <strong>Contact:</strong> {{ school.contact_person }}<br>
+                                            <strong>Current Admins:</strong> 
+                                            <span class="badge {% if school.admins.count == 0 %}bg-warning{% else %}bg-success{% endif %}">
+                                                {{ school.admins.count }}
+                                            </span>
+                                        </p>
+                                        
+                                        {% if school.admins.count == 0 %}
+                                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                                No admin registered for this school
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-footer">
+                                        <div class="btn-group w-100">
+                                            <a href="{% url 'register_school_admin' school.id %}" 
+                                               class="btn btn-primary btn-sm">
+                                                Register Admin
+                                            </a>
+                                            <a href="{% url 'school_admin_list' school.id %}" 
+                                               class="btn btn-info btn-sm">
+                                                View Admins
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <h5>No approved schools available</h5>
+                        <p class="mb-0">Approve some schools first to register admins for them.</p>
+                    </div>
                 {% endif %}
             </div>
 

@@ -39,6 +39,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 import io
 from .models import AdminLog, SystemSettings
+from .forms import SchoolAdminRegistrationForm
 logger = logging.getLogger(__name__)
 
 # School Registration Views
@@ -1058,6 +1059,16 @@ def super_user_dashboard(request):
     approved_schools = SchoolRegistration.objects.filter(status='approved')
     rejected_schools = SchoolRegistration.objects.filter(status='rejected')
     
+    # Get admin counts for approved schools
+    from .models import SchoolAdmin
+    approved_schools_with_admin_count = []
+    for school in approved_schools:
+        admin_count = SchoolAdmin.objects.filter(school=school, is_active=True).count()
+        approved_schools_with_admin_count.append({
+            'school': school,
+            'admin_count': admin_count
+        })
+    
     # Get recent activities
     recent_approvals = SchoolRegistration.objects.filter(
         status__in=['approved', 'rejected']
@@ -1066,6 +1077,7 @@ def super_user_dashboard(request):
     context = {
         'pending_schools': pending_schools,
         'approved_schools': approved_schools,
+        'approved_schools_with_admin_count': approved_schools_with_admin_count,  # Add this
         'rejected_schools': rejected_schools,
         'recent_approvals': recent_approvals,
         'total_schools': total_schools,
@@ -1280,6 +1292,157 @@ def teacher_calendar(request):
         'user_role': 'teacher'
     }
     return render(request, 'teacher_calendar.html', context)
+
+
+@login_required
+@user_passes_test(is_superuser)
+def register_school_admin(request, school_id):
+    """Register a new school admin for an approved school"""
+    school = get_object_or_404(SchoolRegistration, id=school_id, status='approved')
+    
+    if request.method == 'POST':
+        # Use manual form processing instead of form class temporarily
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        # Manual validation
+        errors = []
+        if not all([first_name, last_name, email, password, confirm_password]):
+            errors.append("All fields are required.")
+        
+        if password != confirm_password:
+            errors.append("Passwords do not match.")
+        
+        if User.objects.filter(email=email).exists():
+            errors.append("A user with this email already exists.")
+        
+        if len(password) < 8:
+            errors.append("Password must be at least 8 characters long.")
+        
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, 'register_school_admin.html', {
+                'school': school,
+                'first_name': first_name,
+                'last_name': last_name,
+                'email': email,
+            })
+        
+        try:
+            # Create user account
+            user = User.objects.create_user(
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                is_staff=True,
+                role='Admin',
+                department='Administration',
+                school=school
+            )
+            
+            # Create school admin relationship
+            from .models import SchoolAdmin
+            school_admin = SchoolAdmin.objects.create(
+                user=user,
+                school=school,
+                created_by=request.user
+            )
+            
+            # Log the action
+            AdminLog.objects.create(
+                admin=request.user,
+                action='school_admin_created',
+                description=f"Created school admin '{email}' for {school.school_name}",
+                ip_address=get_client_ip(request)
+            )
+            
+            messages.success(request, f"School admin '{email}' created successfully for {school.school_name}")
+            return redirect('super_user_dashboard')
+            
+        except Exception as e:
+            messages.error(request, f"Error creating school admin: {str(e)}")
+    
+    # GET request - show empty form
+    return render(request, 'register_school_admin.html', {
+        'school': school
+    })
+
+@login_required
+@user_passes_test(is_superuser)
+def school_admin_list(request, school_id):
+    """View all admins for a specific school"""
+    school = get_object_or_404(SchoolRegistration, id=school_id)
+    
+    # Get all school admins for this school
+    from .models import SchoolAdmin
+    admins = SchoolAdmin.objects.filter(school=school).select_related('user', 'created_by')
+    
+    return render(request, 'school_admin_list.html', {
+        'school': school,
+        'admins': admins
+    })
+
+@login_required
+@user_passes_test(is_superuser)
+def activate_school_admin(request, admin_id):
+    """Activate a school admin"""
+    if request.method == 'POST':
+        try:
+            from .models import SchoolAdmin
+            school_admin = get_object_or_404(SchoolAdmin, id=admin_id)
+            school_admin.is_active = True
+            school_admin.user.is_active = True
+            school_admin.user.save()
+            school_admin.save()
+            
+            # Log the action
+            AdminLog.objects.create(
+                admin=request.user,
+                action='school_admin_activated',
+                description=f"Activated school admin '{school_admin.user.username}' for {school_admin.school.school_name}",
+                ip_address=get_client_ip(request)
+            )
+            
+            messages.success(request, f"School admin '{school_admin.user.username}' has been activated.")
+            
+        except Exception as e:
+            messages.error(request, f"Error activating school admin: {str(e)}")
+    
+    return redirect('school_admin_list', school_id=school_admin.school.id)
+
+@login_required
+@user_passes_test(is_superuser)
+def deactivate_school_admin(request, admin_id):
+    """Deactivate a school admin"""
+    if request.method == 'POST':
+        try:
+            from .models import SchoolAdmin
+            school_admin = get_object_or_404(SchoolAdmin, id=admin_id)
+            school_admin.is_active = False
+            school_admin.user.is_active = False
+            school_admin.user.save()
+            school_admin.save()
+            
+            # Log the action
+            AdminLog.objects.create(
+                admin=request.user,
+                action='school_admin_deactivated',
+                description=f"Deactivated school admin '{school_admin.user.username}' from {school_admin.school.school_name}",
+                ip_address=get_client_ip(request)
+            )
+            
+            messages.success(request, f"School admin '{school_admin.user.username}' has been deactivated.")
+            
+        except Exception as e:
+            messages.error(request, f"Error deactivating school admin: {str(e)}")
+    
+    return redirect('school_admin_list', school_id=school_admin.school.id)
+
 
 
 
