@@ -26,7 +26,7 @@ class AutoLogoutMiddleware:
             print(f"🔵 User IS authenticated! Last activity was {elapsed:.1f} seconds ago")
 
             # Check if inactive for more than 2 seconds
-            if elapsed > 2:
+            if elapsed > 600:
                 print("⚠️⚠️⚠️ TIMEOUT! User inactive for >2 seconds ⚠️⚠️⚠️")
                 print(f"⚠️⚠️⚠️ Logging out user: {request.user.email} ⚠️⚠️⚠️")
                 
