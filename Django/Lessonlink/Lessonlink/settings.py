@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'lesson',
     'lessonGenerator',
     'lessonlinkCalendar',
+    'lessonlinkNotif',
 
 ]
 

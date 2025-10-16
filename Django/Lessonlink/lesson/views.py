@@ -41,6 +41,7 @@ import io
 from .models import AdminLog, SystemSettings
 from .forms import SchoolAdminRegistrationForm
 logger = logging.getLogger(__name__)
+from lessonlinkNotif.models import Notification
 
 # School Registration Views
 
@@ -1820,22 +1821,28 @@ def submit_lesson_plan(request, lesson_plan_id):
             success, message = lesson_plan.submit_for_approval(department_head)
             
             if success:
+                # Create submission notification for department head
+                from lessonlinkNotif.models import Notification
+                Notification.create_lesson_submitted_notification(
+                    LessonPlanSubmission.objects.get(
+                        lesson_plan=lesson_plan,
+                        submitted_to=department_head,
+                        status='submitted'
+                    )
+                )
+                
                 # Change lesson plan status to final when submitted
                 lesson_plan.status = LessonPlan.FINAL
                 lesson_plan.save()
                 messages.success(request, message)
                 
-                # Log the submission
-                print(f"SUBMISSION SUCCESS: Lesson '{lesson_plan.title}' submitted by {request.user.full_name} to {department_head.full_name}")
             else:
                 messages.error(request, message)
-                print(f"SUBMISSION FAILED: {message}")
                 
         except LessonPlan.DoesNotExist:
             messages.error(request, "Lesson plan not found or you don't have permission to submit it.")
         except Exception as e:
             messages.error(request, f"An error occurred: {str(e)}")
-            print(f"SUBMISSION ERROR: {str(e)}")
         
         return redirect('draft_list')
     
@@ -1903,12 +1910,24 @@ def review_lesson_plan(request, submission_id):
             if action == 'approve':
                 submission.status = 'approved'
                 submission.lesson_plan.status = LessonPlan.FINAL
+                
+                # Create approval notification
+                Notification.create_draft_status_notification(submission, approved=True)
+                
                 messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' approved successfully!")
             elif action == 'reject':
                 submission.status = 'rejected'
+                
+                # Create rejection notification
+                Notification.create_draft_status_notification(submission, approved=False)
+                
                 messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' rejected.")
             elif action == 'needs_revision':
                 submission.status = 'needs_revision'
+                
+                # Create needs revision notification
+                Notification.create_draft_status_notification(submission, approved=False)
+                
                 messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' returned for revision.")
             
             submission.review_notes = review_notes

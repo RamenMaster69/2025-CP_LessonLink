@@ -9,6 +9,7 @@ urlpatterns = [
     path('', include('lessonGenerator.urls')),
     # path('calendar/', include('lessonlinkCalendar.urls')),
     path('calendar/', include(('lessonlinkCalendar.urls', 'lessonlinkCalendar'), namespace='lessonlinkcalendar_main')),
+     path('notifications/', include('lessonlinkNotif.urls')),
 
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)  # Serve media files during development

@@ -254,49 +254,20 @@ tailwind.config = {
             </button>
 
             <!-- Notifications Dropdown -->
-            <div id="notification-dropdown"
-                class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
+            <div id="notification-dropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
                 <div class="p-4 border-b border-gray-100">
                     <div class="flex items-center justify-between">
                         <h3 class="font-semibold text-gray-900">Notifications</h3>
-                        <button class="text-purple-600 text-sm hover:text-purple-700">Mark all read</button>
+                        <button class="text-purple-600 text-sm hover:text-purple-700" onclick="markAllNotificationsAsRead()">
+                            Mark all read
+                        </button>
                     </div>
                 </div>
                 <div class="max-h-96 overflow-y-auto">
-                    <div class="p-4 hover:bg-gray-50 border-b border-gray-100">
-                        <div class="flex items-start space-x-3">
-                            <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                            <div class="flex-1">
-                                <p class="text-sm text-gray-900 font-medium">New lesson plan submitted</p>
-                                <p class="text-xs text-gray-500 mt-1">Grade 3A English lesson ready for review</p>
-                                <p class="text-xs text-gray-400 mt-1">2 minutes ago</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-4 hover:bg-gray-50 border-b border-gray-100">
-                        <div class="flex items-start space-x-3">
-                            <div class="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                            <div class="flex-1">
-                                <p class="text-sm text-gray-900 font-medium">Class schedule updated</p>
-                                <p class="text-xs text-gray-500 mt-1">Grade 2B math class moved to 11:30 AM</p>
-                                <p class="text-xs text-gray-400 mt-1">1 hour ago</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-4 hover:bg-gray-50 border-b border-gray-100">
-                        <div class="flex items-start space-x-3">
-                            <div class="w-2 h-2 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
-                            <div class="flex-1">
-                                <p class="text-sm text-gray-900 font-medium">Assignment reminder</p>
-                                <p class="text-xs text-gray-500 mt-1">5 students haven't submitted their homework</p>
-                                <p class="text-xs text-gray-400 mt-1">3 hours ago</p>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Notifications will be loaded here dynamically -->
                 </div>
                 <div class="p-4 border-t border-gray-100">
-                    <button
-                        class="w-full text-center text-purple-600 text-sm hover:text-purple-700 font-medium">
+                    <button class="w-full text-center text-purple-600 text-sm hover:text-purple-700 font-medium">
                         View all notifications
                     </button>
                 </div>
@@ -1161,6 +1132,204 @@ document.addEventListener('keydown', (e) => {
         addClassForm.reset();
     }
 });
+    // Notification system
+    function loadNotifications() {
+        fetch('/notifications/notifications/')
+            .then(response => response.json())
+            .then(data => {
+                updateNotificationBadge(data.unread_count);
+                updateNotificationDropdown(data.notifications);
+            })
+            .catch(error => {
+                console.error('Error loading notifications:', error);
+            });
+    }
+
+    function updateNotificationBadge(unreadCount) {
+        const badge = document.getElementById('notification-badge');
+        if (badge) {
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+    }
+
+    function updateNotificationDropdown(notifications) {
+        const dropdown = document.getElementById('notification-dropdown');
+        if (!dropdown) return;
+
+        const notificationsContainer = dropdown.querySelector('.max-h-96') || dropdown;
+        
+        if (notifications.length === 0) {
+            notificationsContainer.innerHTML = `
+                <div class="p-4 text-center text-gray-500">
+                    <i class="fas fa-bell-slash text-2xl mb-2"></i>
+                    <p>No notifications</p>
+                </div>
+            `;
+            return;
+        }
+
+        let notificationsHTML = '';
+        notifications.forEach(notification => {
+            const icon = getNotificationIcon(notification.type);
+            const timeAgo = getTimeAgo(notification.created_at);
+            const readClass = notification.is_read ? '' : 'bg-blue-50 border-l-4 border-l-blue-500';
+            
+            notificationsHTML += `
+                <div class="p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer ${readClass} notification-item" 
+                    data-notification-id="${notification.id}" 
+                    data-type="${notification.type}"
+                    data-lesson-plan-id="${notification.lesson_plan_id || ''}"
+                    data-submission-id="${notification.submission_id || ''}">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-2 h-2 ${getNotificationColor(notification.type)} rounded-full mt-2 flex-shrink-0"></div>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-900 font-medium">${notification.title}</p>
+                            <p class="text-xs text-gray-500 mt-1">${notification.message}</p>
+                            <p class="text-xs text-gray-400 mt-1">${timeAgo}</p>
+                        </div>
+                        ${!notification.is_read ? '<div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>' : ''}
+                    </div>
+                </div>
+            `;
+        });
+
+        // Clear existing content and add new notifications
+        const existingContent = notificationsContainer.querySelector('.border-b') ? notificationsContainer : notificationsContainer.querySelector('.max-h-96') || notificationsContainer;
+        existingContent.innerHTML = notificationsHTML;
+
+        // Add click handlers
+        document.querySelectorAll('.notification-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const notificationId = this.getAttribute('data-notification-id');
+                const type = this.getAttribute('data-type');
+                const lessonPlanId = this.getAttribute('data-lesson-plan-id');
+                const submissionId = this.getAttribute('data-submission-id');
+                
+                // Mark as read
+                markNotificationAsRead(notificationId);
+                
+                // Handle navigation based on notification type
+                handleNotificationClick(type, lessonPlanId, submissionId);
+            });
+        });
+    }
+
+    function getNotificationIcon(type) {
+        const icons = {
+            'draft_approved': 'fa-check-circle',
+            'draft_rejected': 'fa-times-circle',
+            'task_due_soon': 'fa-clock',
+            'upcoming_schedule': 'fa-calendar',
+            'lesson_submitted': 'fa-file-upload',
+            'general': 'fa-bell'
+        };
+        return icons[type] || 'fa-bell';
+    }
+
+    function getNotificationColor(type) {
+        const colors = {
+            'draft_approved': 'bg-green-500',
+            'draft_rejected': 'bg-red-500',
+            'task_due_soon': 'bg-yellow-500',
+            'upcoming_schedule': 'bg-blue-500',
+            'lesson_submitted': 'bg-purple-500',
+            'general': 'bg-gray-500'
+        };
+        return colors[type] || 'bg-gray-500';
+    }
+
+    function getTimeAgo(createdAt) {
+        // Simple time ago calculation - you can use a library like day.js for better formatting
+        return createdAt;
+    }
+
+    function markNotificationAsRead(notificationId) {
+        fetch(`/notifications/notifications/${notificationId}/read/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update UI
+                const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
+                if (notificationItem) {
+                    notificationItem.classList.remove('bg-blue-50', 'border-l-4', 'border-l-blue-500');
+                    const unreadDot = notificationItem.querySelector('.bg-blue-500');
+                    if (unreadDot) {
+                        unreadDot.remove();
+                    }
+                }
+                // Reload notification count
+                loadNotifications();
+            }
+        })
+        .catch(error => {
+            console.error('Error marking notification as read:', error);
+        });
+    }
+
+    function handleNotificationClick(type, lessonPlanId, submissionId) {
+        // Close notification dropdown
+        const dropdown = document.getElementById('notification-dropdown');
+        if (dropdown) {
+            dropdown.classList.add('hidden');
+        }
+
+        // Navigate based on notification type
+        switch(type) {
+            case 'draft_approved':
+            case 'draft_rejected':
+            case 'lesson_submitted':
+                if (submissionId) {
+                    window.location.href = `/lesson-plan-detail/${submissionId}/`;
+                } else if (lessonPlanId) {
+                    window.location.href = `/drafts/${lessonPlanId}/view/`;
+                }
+                break;
+            case 'task_due_soon':
+                window.location.href = '/task/';
+                break;
+            case 'upcoming_schedule':
+                window.location.href = '/schedule/';
+                break;
+            default:
+                // Do nothing for general notifications
+                break;
+        }
+    }
+
+    // CSRF token helper
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Load notifications when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadNotifications();
+        
+        // Reload notifications every 30 seconds
+        setInterval(loadNotifications, 30000);
+    });
 </script>
 </body>
 
