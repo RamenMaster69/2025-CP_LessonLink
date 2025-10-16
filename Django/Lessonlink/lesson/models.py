@@ -104,6 +104,9 @@ class AdminLog(models.Model):
         ('lesson_flagged', 'Lesson Flagged'),
         ('password_reset', 'Password Reset'),
         ('account_unlocked', 'Account Unlocked'),
+        ('school_admin_created', 'School Admin Created'), 
+        ('school_admin_deactivated', 'School Admin Deactivated'),  
+        ('school_admin_activated', 'School Admin Activated'),  
     ]
     
     admin = models.ForeignKey(User, on_delete=models.CASCADE, related_name='admin_actions')
@@ -131,7 +134,6 @@ class SystemSettings(models.Model):
         return self.key
 
 
-# Rest of your models remain the same...
 class Schedule(models.Model):
     DAY_CHOICES = [
         ('monday', 'Monday'),
@@ -316,18 +318,16 @@ class SchoolRegistration(models.Model):
     )
     
     year_established = models.PositiveIntegerField(
-        # null=True,
-        # blank=True,
         verbose_name="Year Established",
         help_text="Year the institution was established"
     )
 
     password = models.CharField(
-    max_length=128,
-    verbose_name="Admin Password",
-    help_text="Password for the school administrator account",
-    null=True,
-    blank=True
+        max_length=128,
+        verbose_name="Admin Password",
+        help_text="Password for the school administrator account",
+        null=True,
+        blank=True
     )
     
     # Contact Information
@@ -532,7 +532,67 @@ class SchoolRegistration(models.Model):
             self.admin_notes = notes
         self.save()
 
-# Add this to main/models.py
+
+class SchoolAdmin(models.Model):
+    """Model to manage school administrators for approved schools"""
+    user = models.OneToOneField(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='school_admin_profile'
+    )
+    school = models.ForeignKey(
+        SchoolRegistration, 
+        on_delete=models.CASCADE, 
+        related_name='admins'
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        related_name='created_school_admins'
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "School Admin"
+        verbose_name_plural = "School Admins"
+        indexes = [
+            models.Index(fields=['school', 'is_active']),
+            models.Index(fields=['created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.get_full_name()} - {self.school.school_name}"
+
+    @property
+    def full_name(self):
+        return self.user.get_full_name()
+
+    @property
+    def email(self):
+        return self.user.email
+
+    @property
+    def username(self):
+        return self.user.username
+
+    def deactivate(self):
+        """Deactivate the school admin"""
+        self.is_active = False
+        self.user.is_active = False
+        self.user.save()
+        self.save()
+
+    def activate(self):
+        """Activate the school admin"""
+        self.is_active = True
+        self.user.is_active = True
+        self.user.save()
+        self.save()
+
+
 class LessonPlanSubmission(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Draft'),
@@ -582,6 +642,8 @@ class LessonPlanSubmission(models.Model):
     
     def clean(self):
         """Validate that teacher and department head are in same school and department"""
+        from django.core.exceptions import ValidationError
+        
         if self.submitted_by and self.submitted_to:
             if self.submitted_by.school != self.submitted_to.school:
                 raise ValidationError("Teacher and Department Head must be in the same school.")
