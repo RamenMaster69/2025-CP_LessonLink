@@ -42,10 +42,29 @@ from .models import AdminLog, SystemSettings
 from .forms import SchoolAdminRegistrationForm
 logger = logging.getLogger(__name__)
 from lessonlinkNotif.models import Notification
+from django.http import HttpResponseForbidden
+from functools import wraps
 
 # School Registration Views
 
 from django.contrib.auth.hashers import make_password
+
+
+def restrict_user(usernames):
+    """
+    Decorator to restrict specific users from accessing views
+    Usage: @restrict_user(['dep_dash', 'other_user'])
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            if request.user.username in usernames:
+                return HttpResponseForbidden("Access denied. You are not authorized to view this page.")
+            return view_func(request, *args, **kwargs)
+        return _wrapped_view
+    return decorator
+
+
 
 def org_reg_1(request):
     """Handle school registration form - both GET and POST"""
@@ -966,6 +985,21 @@ def try_school_admin_login(email, password):
 
 @login_required
 def dashboard(request):
+    # ROLE-BASED REDIRECTS - ADD THIS
+    if hasattr(request, 'user') and request.user.is_authenticated:
+        user_role = request.user.role
+        
+        if user_role == "Department Head":
+            messages.info(request, "Redirected to Department Head dashboard")
+            return redirect('Dep_Dash')
+        elif user_role == "Student Teacher":
+            messages.info(request, "Redirected to Student Teacher dashboard")
+            return redirect('st_dash')
+        elif user_role in ["Admin", "Supervisor"]:
+            messages.info(request, "Redirected to Admin dashboard")
+            return redirect('admin_dashboard')
+        # Teachers will continue to the regular dashboard
+    
     user = request.user
     
     # Add welcome message here instead of login
@@ -1213,6 +1247,21 @@ def task(request):
 
 @login_required
 def Dep_Dash(request):
+    # ROLE-BASED REDIRECTS - ADD THIS
+    if hasattr(request, 'user') and request.user.is_authenticated:
+        user_role = request.user.role
+        
+        if user_role == "Student Teacher":
+            messages.info(request, "Redirected to Student Teacher dashboard")
+            return redirect('st_dash')
+        elif user_role == "Teacher":
+            messages.info(request, "Redirected to Teacher dashboard")
+            return redirect('dashboard')
+        elif user_role in ["Admin", "Supervisor"]:
+            messages.info(request, "Redirected to Admin dashboard")
+            return redirect('admin_dashboard')
+        # Department Heads will continue to their dashboard
+    
     user = request.user
     if user.role != "Department Head":
         messages.error(request, "You are not allowed to access this page.")
@@ -1497,6 +1546,21 @@ def admin_calendar(request):
 
 @login_required
 def admin_dashboard(request):
+    # ROLE-BASED REDIRECTS - ADD THIS
+    if hasattr(request, 'user') and request.user.is_authenticated:
+        user_role = request.user.role
+        
+        if user_role == "Department Head":
+            messages.info(request, "Redirected to Department Head dashboard")
+            return redirect('Dep_Dash')
+        elif user_role == "Student Teacher":
+            messages.info(request, "Redirected to Student Teacher dashboard")
+            return redirect('st_dash')
+        elif user_role == "Teacher":
+            messages.info(request, "Redirected to Teacher dashboard")
+            return redirect('dashboard')
+        # Admins and Supervisors will continue to the admin dashboard
+    
     """Enhanced admin dashboard with real data"""
     user = request.user
     
@@ -1596,6 +1660,7 @@ def admin_dashboard(request):
     }
     
     return render(request, 'admin_dashboard.html', context)
+
 
 # def system_admin()
 
