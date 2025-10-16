@@ -229,17 +229,25 @@
                         <i class="fas fa-users text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                         <span class="font-medium">Faculty</span>
                     </a>
-                {% else %}
+                    {% else %}
                     <!-- Teacher Links -->
-                    <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                        <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                        <i class="fas fa-home text-lg w-5"></i>
                         <span class="font-medium">Dashboard</span>
                     </a>
                     <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                         <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                        <span class="font-medium">My Lesson Plans</span>
+                        <span class="font-medium">Drafts</span>
                     </a>
-                {% endif %}
+                    <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                        <i class="fas fa-tasks text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span class="font-medium">Tasks</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                        <i class="fas fa-clock text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span class="font-medium">Schedule</span>
+                    </a>
+                    {% endif %}
 
                 <!-- Calendar Link (Active - Common for all roles) -->
                 <a href="{% url 'dep_calendar' %}" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
