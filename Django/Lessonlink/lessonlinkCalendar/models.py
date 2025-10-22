@@ -3,6 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from datetime import date, timedelta
 from lesson.models import SchoolRegistration
 
 class CalendarActivity(models.Model):
@@ -113,3 +114,75 @@ class CalendarActivity(models.Model):
         # Default: cannot delete
         print("  -> Default: cannot delete")
         return False
+
+
+class ZamboangaEvent(models.Model):
+    """Automatic annual Zamboanga events that work forever"""
+    CATEGORY_CHOICES = [
+        ('festival', 'Festival'),
+        ('cultural', 'Cultural'),
+        ('holiday', 'Holiday'),
+        ('sports', 'Sports'),
+        ('government', 'Government'),
+        ('religious', 'Religious'),
+    ]
+    
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    start_month = models.PositiveIntegerField(help_text="Month (1-12)")
+    start_day = models.PositiveIntegerField(help_text="Day of month (1-31)")
+    duration_days = models.PositiveIntegerField(default=1, help_text="How many days the event lasts")
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    location = models.CharField(max_length=300, default='Zamboanga City')
+    organizer = models.CharField(max_length=200, blank=True)
+    is_annual = models.BooleanField(default=True, help_text="Event repeats every year automatically")
+    is_active = models.BooleanField(default=True, help_text="Show this event in the calendar")
+    notes = models.TextField(blank=True, help_text="Additional information about the event")
+    
+    class Meta:
+        ordering = ['start_month', 'start_day']
+        verbose_name_plural = "Zamboanga Events"
+    
+    def __str__(self):
+        return f"{self.title} (Annual)"
+    
+    def clean(self):
+        """Validate the event data"""
+        if self.start_month < 1 or self.start_month > 12:
+            raise ValidationError('Start month must be between 1 and 12.')
+        
+        if self.start_day < 1 or self.start_day > 31:
+            raise ValidationError('Start day must be between 1 and 31.')
+        
+        if self.duration_days < 1:
+            raise ValidationError('Duration must be at least 1 day.')
+    
+    def get_dates_for_year(self, year=None):
+        """Calculate actual dates for any given year"""
+        if year is None:
+            year = timezone.now().year
+        
+        try:
+            start_date = date(year, self.start_month, self.start_day)
+            end_date = start_date + timedelta(days=self.duration_days - 1)
+            return start_date, end_date
+        except ValueError as e:
+            # Handle invalid dates (e.g., February 30)
+            raise ValidationError(f"Invalid date combination: {e}")
+    
+    @property
+    def next_occurrence(self):
+        """Get the next occurrence of this event"""
+        current_year = timezone.now().year
+        start_date, end_date = self.get_dates_for_year(current_year)
+        
+        # If event has already passed this year, show next year
+        if end_date < timezone.now().date():
+            start_date, end_date = self.get_dates_for_year(current_year + 1)
+        
+        return start_date, end_date
+    
+    def save(self, *args, **kwargs):
+        """Validate before saving"""
+        self.clean()
+        super().save(*args, **kwargs)

@@ -6,26 +6,36 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 import json
 from .models import CalendarActivity
+from .services import ZamboangaEventsService  # ADD THIS IMPORT
 
 @login_required
 @csrf_exempt
 @require_http_methods(["GET"])
 def get_calendar_activities(request):
-    """Get activities for the same school with proper permissions"""
+    """Get activities for the same school with proper permissions + Zamboanga events"""
     user = request.user
     
     print(f"=== GET CALENDAR ACTIVITIES ===")
     print(f"User: {user.email}, Role: {user.role}, School: {user.school}")
     
-    # Get activities based on user's school
+    # Get query parameter to optionally exclude external events
+    include_external = request.GET.get('include_external', 'true').lower() == 'true'
+    
+    # Get local activities based on user's school
     if user.school:
         # Show activities from the same school only (NO DEPARTMENT FILTERING)
         activities = CalendarActivity.objects.filter(school=user.school)
-        print(f"Activities found for school '{user.school}': {activities.count()}")
+        print(f"Local activities found for school '{user.school}': {activities.count()}")
     else:
         # For users without school (admin), show all activities
         activities = CalendarActivity.objects.all()
-        print(f"Admin view - showing all activities: {activities.count()}")
+        print(f"Admin view - showing all local activities: {activities.count()}")
+    
+    # Get Zamboanga events if requested
+    external_events = []
+    if include_external:
+        external_events = ZamboangaEventsService.get_zamboanga_events()
+        print(f"External Zamboanga events found: {len(external_events)}")
     
     # Debug: List all activities found with details
     print("=== ACTIVITIES FOUND ===")
@@ -33,6 +43,8 @@ def get_calendar_activities(request):
         print(f"  - '{activity.title}' by {activity.user.email} (School: {activity.school})")
     
     activities_data = []
+    
+    # Add local activities
     for activity in activities:
         can_edit = activity.can_edit(user)
         can_delete = activity.can_delete(user)
@@ -55,17 +67,41 @@ def get_calendar_activities(request):
             'startDate': start_date,
             'endDate': end_date,
             'category': activity.category,
-            'author': f"{activity.user.first_name} {activity.user.last_name}",  # FIXED: self.user to activity.user
+            'author': f"{activity.user.first_name} {activity.user.last_name}",
             'user': {
                 'id': activity.user.id,
                 'is_superuser': activity.user.is_superuser,
                 'username': activity.user.email
             },
             'canEdit': can_edit,
-            'canDelete': can_delete
+            'canDelete': can_delete,
+            'isExternal': False,  # Mark as local activity
+            'source': 'local'
         })
     
-    print(f"Returning {len(activities_data)} activities to frontend")
+    # Add external Zamboanga events
+    for event in external_events:
+        activities_data.append({
+            'id': event['id'],
+            'title': event['title'],
+            'description': event.get('description', ''),
+            'startDate': event['start_date'],
+            'endDate': event.get('end_date', event['start_date']),
+            'category': event['category'],
+            'author': event.get('author', 'Zamboanga Events'),
+            'user': {
+                'id': None,
+                'is_superuser': False,
+                'username': 'external_event'
+            },
+            'canEdit': False,  # External events cannot be edited
+            'canDelete': False,  # External events cannot be deleted
+            'isExternal': True,  # Mark as external event
+            'source': event.get('source', 'external'),
+            'location': event.get('location', 'Zamboanga City')
+        })
+    
+    print(f"Returning {len(activities_data)} total activities ({len(external_events)} external) to frontend")
     print("===============================")
     
     return JsonResponse(activities_data, safe=False)
@@ -154,7 +190,9 @@ def add_calendar_activity(request):
                     'username': activity.user.email
                 },
                 'canEdit': True,  # User can edit their own activity
-                'canDelete': True  # User can delete their own activity
+                'canDelete': True,  # User can delete their own activity
+                'isExternal': False,  # This is a local activity
+                'source': 'local'
             }
         })
         

@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import User, Schedule, Task, SchoolRegistration
+from lessonlinkCalendar.models import ZamboangaEvent  # ADD THIS IMPORT
 
 
 @admin.register(User)
@@ -91,5 +92,26 @@ class SchoolRegistrationAdmin(admin.ModelAdmin):
         }),
         ('Status & Timestamps', {
             'fields': ('status', 'created_at', 'updated_at')
+        }),
+    )
+
+
+@admin.register(ZamboangaEvent)
+class ZamboangaEventAdmin(admin.ModelAdmin):
+    list_display = ['title', 'start_month', 'start_day', 'duration_days', 'category', 'is_active']
+    list_filter = ['category', 'is_active', 'is_annual']
+    search_fields = ['title', 'description']
+    list_editable = ['is_active']
+    
+    fieldsets = (
+        ('Event Details', {
+            'fields': ('title', 'description', 'category', 'organizer', 'location')
+        }),
+        ('Date Information', {
+            'fields': ('start_month', 'start_day', 'duration_days'),
+            'description': 'Event will automatically occur on these dates every year'
+        }),
+        ('Settings', {
+            'fields': ('is_annual', 'is_active', 'notes')
         }),
     )
