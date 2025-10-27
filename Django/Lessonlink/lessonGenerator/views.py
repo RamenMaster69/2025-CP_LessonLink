@@ -1,4 +1,4 @@
-from lesson.models import LessonPlanSubmission  # Add this line
+# views.py
 import json
 import google.generativeai as genai
 from django.conf import settings
@@ -7,9 +7,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import LessonPlan
 from django.contrib import messages
 import re
+from .models import LessonPlan, LessonPlanSubmission
 from .ai_instructions import LESSON_PLANNER_SYSTEM_INSTRUCTION
 
 # Configure the Gemini API
@@ -73,9 +73,9 @@ def generate_lesson_plan(request):
         
         print("Form data prepared:", form_data)  # Debugging
         
-        # Format the prompt for the AI
+        # Format the prompt for the AI with MELC focus
         prompt = f"""
-        Create a comprehensive lesson plan based on these details:
+        Create a comprehensive MELC-aligned lesson plan based on these details:
 
         SUBJECT: {form_data['subject']}
         GRADE LEVEL: {form_data['grade_level']}
@@ -91,7 +91,9 @@ def generate_lesson_plan(request):
         EVALUATION: {form_data['evaluation']}
         ASSESSMENT: {form_data['assessment']}
 
-        Please generate a complete lesson plan using the specified JSON format.
+        Generate this as a complete MELC-aligned lesson plan following DepEd Philippines standards.
+        Include appropriate MELC codes, content standards, performance standards, and learning competencies.
+        Ensure integration of values education and cross-curricular connections.
         """
         
         print("Sending prompt to AI")  # Debugging
@@ -168,19 +170,22 @@ def lesson_plan_result(request):
     lesson_plan = request.session.get('generated_lesson_plan', '')
     
     if not lesson_plan:
-        # If no lesson plan in session, redirect back to form
         messages.error(request, 'No lesson plan found. Please generate a lesson plan first.')
         return redirect('lesson_ai')
     
+    # Process markdown in the view
+    import markdown
+    lesson_plan_html = markdown.markdown(lesson_plan, extensions=['extra', 'nl2br'])
+    
     return render(request, 'lessonGenerator/lesson_plan.html', {
-        'lesson_plan': lesson_plan
+        'lesson_plan': lesson_plan_html
     })
 
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
 def save_lesson_plan(request):
-    """Save the generated lesson plan as a draft with parsed sections"""
+    """Save the generated lesson plan as a draft with parsed sections including MELC data"""
     try:
         # Get data from session
         generated_content = request.session.get('generated_lesson_plan', '')
@@ -202,6 +207,8 @@ def save_lesson_plan(request):
             metadata = parsed_content.get('metadata', {})
             procedure = parsed_content.get('procedure', {})
             subject_matter = parsed_content.get('subject_matter', {})
+            melc_alignment = parsed_content.get('melc_alignment', {})
+            integration = parsed_content.get('integration', {})
             
             lesson_plan = LessonPlan(
                 title=parsed_content.get('title', f"{metadata.get('subject', 'Untitled')} - {metadata.get('grade_level', '')}"),
@@ -220,6 +227,14 @@ def save_lesson_plan(request):
                 assessment=procedure.get('assessment', {}).get('content', ''),
                 generated_content=generated_content,
                 created_by=request.user,
+                # MELC Alignment fields
+                melc_code=melc_alignment.get('melc_code', ''),
+                content_standard=melc_alignment.get('content_standard', ''),
+                performance_standard=melc_alignment.get('performance_standard', ''),
+                learning_competency=melc_alignment.get('learning_competency', ''),
+                # Integration fields
+                values_integration=integration.get('values_education', ''),
+                cross_curricular=integration.get('cross_curricular', ''),
                 # Auto-approve for department heads
                 status=LessonPlan.FINAL if is_department_head else LessonPlan.DRAFT,
                 auto_approved=is_department_head
@@ -304,6 +319,9 @@ def parse_population(population_str):
 
 def format_subject_matter(subject_matter_dict):
     """Format subject matter dictionary into a string"""
+    if isinstance(subject_matter_dict, str):
+        return subject_matter_dict
+    
     parts = []
     if subject_matter_dict.get('topic'):
         parts.append(f"Topic: {subject_matter_dict['topic']}")
@@ -311,15 +329,13 @@ def format_subject_matter(subject_matter_dict):
         parts.append(f"Key Concepts: {subject_matter_dict['key_concepts']}")
     if subject_matter_dict.get('vocabulary'):
         parts.append(f"Vocabulary: {subject_matter_dict['vocabulary']}")
+    if subject_matter_dict.get('references'):
+        parts.append(f"References: {subject_matter_dict['references']}")
     return '\n'.join(parts)
-
-# Keep the rest of your views.py functions unchanged
 
 @login_required
 def draft_list(request):
     """Display list of saved drafts with submission status"""
-    from lesson.models import LessonPlanSubmission  # Import here to avoid circular imports
-    
     # Get all drafts for the user
     drafts = LessonPlan.objects.filter(created_by=request.user).order_by('-created_at')
     
@@ -362,7 +378,7 @@ def draft_list(request):
     rejected_count = user_submissions.filter(status='rejected').count()
     
     return render(request, 'lessonGenerator/draft_list.html', {
-        'draft_data': draft_data,  # Changed from 'drafts' to 'draft_data'
+        'draft_data': draft_data,
         'draft_count': draft_count,
         'submitted_count': submitted_count,
         'approved_count': approved_count,
@@ -392,12 +408,21 @@ def edit_draft(request, draft_id):
         draft.evaluation = request.POST.get('evaluation', draft.evaluation)
         draft.assessment = request.POST.get('assessment', draft.assessment)
         draft.generated_content = request.POST.get('generated_content', draft.generated_content)
+        
+        # Update MELC fields if provided
+        draft.melc_code = request.POST.get('melc_code', draft.melc_code)
+        draft.content_standard = request.POST.get('content_standard', draft.content_standard)
+        draft.performance_standard = request.POST.get('performance_standard', draft.performance_standard)
+        draft.learning_competency = request.POST.get('learning_competency', draft.learning_competency)
+        draft.values_integration = request.POST.get('values_integration', draft.values_integration)
+        draft.cross_curricular = request.POST.get('cross_curricular', draft.cross_curricular)
+        
         draft.save()
         
         messages.success(request, 'Draft updated successfully!')
         
         # Redirect based on user role
-        if request.user.role == 'Department Head':
+        if hasattr(request.user, 'role') and request.user.role == 'Department Head':
             return redirect('department_head_drafts')
         else:
             return redirect('draft_list')
@@ -426,9 +451,9 @@ def regenerate_lesson_content(request):
                 'error': 'Invalid JSON data received.'
             }, status=400)
         
-        # Format the prompt for the AI (same as before)
+        # Format the prompt for the AI with MELC focus
         prompt = f"""
-        Create a comprehensive lesson plan based on these details:
+        Create a comprehensive MELC-aligned lesson plan based on these details:
 
         SUBJECT: {data.get('subject', '').strip()}
         GRADE LEVEL: {data.get('grade_level', '').strip()}
@@ -444,7 +469,8 @@ def regenerate_lesson_content(request):
         EVALUATION: {data.get('evaluation', '').strip()}
         ASSESSMENT: {data.get('assessment', '').strip()}
 
-        Please generate a complete lesson plan using the specified format.
+        Generate this as a complete MELC-aligned lesson plan following DepEd Philippines standards.
+        Include appropriate MELC codes, content standards, performance standards, and learning competencies.
         """
         
         # Generate the lesson plan using Gemini
@@ -477,7 +503,6 @@ def view_draft(request, draft_id):
     draft = get_object_or_404(LessonPlan, id=draft_id, created_by=request.user)
     
     # Get submission status if exists
-    from lesson.models import LessonPlanSubmission
     latest_submission = LessonPlanSubmission.objects.filter(
         lesson_plan=draft
     ).order_by('-submission_date').first()
@@ -490,7 +515,7 @@ def view_draft(request, draft_id):
 @login_required
 def department_head_drafts(request):
     """Display list of department head's lesson plans (auto-approved)"""
-    if request.user.role != 'Department Head':
+    if hasattr(request.user, 'role') and request.user.role != 'Department Head':
         messages.error(request, "Access denied. Department heads only.")
         return redirect('draft_list')
     
@@ -536,9 +561,9 @@ def get_ai_suggestions(request):
                 'error': 'Section parameter required'
             }, status=400)
         
-        # Create context-aware prompt for suggestions
+        # Create context-aware prompt for suggestions with MELC focus
         prompt = f"""
-        Analyze this lesson plan context and provide 3 targeted suggestions for the {section} section.
+        Analyze this lesson plan context and provide 3 targeted MELC-aligned suggestions for the {section} section.
         
         CONTEXT:
         Subject: {form_data.get('subject', 'Not specified')}
@@ -546,19 +571,20 @@ def get_ai_suggestions(request):
         Learning Objectives: {form_data.get('learningObjectives', 'Not specified')}
         Subject Matter: {form_data.get('subjectMatter', 'Not specified')}
         
-        Provide 3 specific, actionable suggestions for the {section} section that are appropriate for this context.
+        Provide 3 specific, actionable MELC-aligned suggestions for the {section} section that are appropriate for this context.
+        Focus on DepEd Philippines standards and curriculum alignment.
         Return ONLY a JSON array with this exact format:
         [
             {{
-                "title": "Suggestion title",
-                "description": "Detailed suggestion description",
-                "example": "Concrete example or implementation idea"
+                "title": "MELC-aligned suggestion title",
+                "description": "Detailed suggestion description with MELC focus",
+                "example": "Concrete example or implementation idea aligned with DepEd standards"
             }}
         ]
         """
         
         response = model.generate_content([
-            "You are an expert educational consultant. Provide specific, practical suggestions for lesson plan sections.",
+            "You are an expert educational consultant specialized in DepEd Philippines curriculum. Provide specific, practical MELC-aligned suggestions for lesson plan sections.",
             prompt
         ])
         
@@ -570,9 +596,9 @@ def get_ai_suggestions(request):
         else:
             # Fallback if no JSON found
             suggestions = [{
-                "title": "AI Suggestion",
+                "title": "MELC-Aligned Suggestion",
                 "description": response.text[:200] + "...",
-                "example": "Based on your input context"
+                "example": "Based on DepEd curriculum standards"
             }]
         
         return JsonResponse({

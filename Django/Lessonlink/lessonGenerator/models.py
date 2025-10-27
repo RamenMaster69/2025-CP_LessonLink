@@ -1,8 +1,8 @@
 # models.py
-import re  # ✅ Added this
+import re
 from django.db import models
-from django.conf import settings  # ✅ Changed from django.contrib.auth.models import User
-
+from django.conf import settings
+from django.core.exceptions import ValidationError
 
 class LessonPlan(models.Model):
     DRAFT = 'draft'
@@ -12,24 +12,41 @@ class LessonPlan(models.Model):
         (FINAL, 'Final'),
     ]
 
+    # Basic Information
     title = models.CharField(max_length=200)
     subject = models.CharField(max_length=100)
     grade_level = models.CharField(max_length=50)
     quarter = models.CharField(max_length=50, blank=True)
-    duration = models.IntegerField()  # in minutes
-    population = models.IntegerField()  # number of students
+    duration = models.IntegerField(help_text="Duration in minutes")
+    population = models.IntegerField(help_text="Number of students")
+    
+    # Lesson Content
     learning_objectives = models.TextField()
     subject_matter = models.TextField()
     materials_needed = models.TextField()
+    
+    # Procedure Sections
     introduction = models.TextField()
     instruction = models.TextField()
     application = models.TextField()
     evaluation = models.TextField()
     assessment = models.TextField()
-    generated_content = models.TextField()  # AI-generated content
+    
+    # MELC Alignment Fields
+    melc_code = models.CharField(max_length=50, blank=True)
+    content_standard = models.TextField(blank=True)
+    performance_standard = models.TextField(blank=True)
+    learning_competency = models.TextField(blank=True)
+    
+    # Integration Fields
+    values_integration = models.TextField(blank=True)
+    cross_curricular = models.TextField(blank=True)
+    
+    # System Fields
+    generated_content = models.TextField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=DRAFT)
     auto_approved = models.BooleanField(default=False, help_text="Automatically approved for department heads")
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # ✅ Changed from User to settings.AUTH_USER_MODEL
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -37,18 +54,20 @@ class LessonPlan(models.Model):
         return f"{self.subject} - {self.grade_level} - {self.title}"
 
     def parse_generated_content(self):
-        """Parse the AI-generated content into sections and subsections"""
+        """Parse the AI-generated content into sections and subsections including MELC data"""
         sections = {}
         content = self.generated_content
 
         # Define patterns for each main section
         patterns = {
             'metadata': r'## Metadata\s*\n(.*?)(?=##|$)',
+            'melc_alignment': r'## MELC Alignment\s*\n(.*?)(?=##|$)',
             'learning_objectives': r'## Learning Objectives\s*\n(.*?)(?=##|$)',
             'subject_matter': r'## Subject Matter\s*\n(.*?)(?=##|$)',
             'materials_needed': r'## Materials Needed\s*\n(.*?)(?=##|$)',
             'lesson_procedure': r'## Lesson Procedure\s*\n(.*?)(?=##|$)',
             'differentiation': r'## Differentiation\s*\n(.*?)(?=##|$)',
+            'integration': r'## Integration\s*\n(.*?)(?=##|$)',
         }
 
         for section, pattern in patterns.items():
@@ -58,28 +77,41 @@ class LessonPlan(models.Model):
             else:
                 sections[section] = ""
 
-        # Parse Lesson Procedure subsections
-        lesson_procedure = sections.get('lesson_procedure', '')
-        procedure_subsections = {
-            'introduction': r'### A\. Introduction\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
-            'instruction': r'### B\. Instruction/Direct Teaching\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
-            'application': r'### C\. Guided Practice/Application\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
-            'evaluation': r'### D\. Independent Practice/Evaluation\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
-            'assessment': r'### E\. Assessment\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
+        # Parse MELC Alignment fields
+        melc_alignment = sections.get('melc_alignment', '')
+        melc_patterns = {
+            'melc_code': r'\*\*MELC Code:\*\*\s*([^\n]+)',
+            'content_standard': r'\*\*Content Standard:\*\*\s*([^\n]+)',
+            'performance_standard': r'\*\*Performance Standard:\*\*\s*([^\n]+)',
+            'learning_competency': r'\*\*Learning Competency:\*\*\s*([^\n]+)',
         }
 
-        procedure_data = {}
-        for subsection, pattern in procedure_subsections.items():
-            match = re.search(pattern, lesson_procedure, re.DOTALL | re.IGNORECASE)
+        melc_data = {}
+        for field, pattern in melc_patterns.items():
+            match = re.search(pattern, melc_alignment, re.IGNORECASE)
             if match:
-                procedure_data[subsection] = {
-                    'time': match.group(1).strip(),
-                    'content': match.group(2).strip()
-                }
+                melc_data[field] = match.group(1).strip()
             else:
-                procedure_data[subsection] = {'time': '', 'content': ''}
+                melc_data[field] = ""
 
-        sections['procedure_subsections'] = procedure_data
+        sections['melc_fields'] = melc_data
+
+        # Parse Integration fields
+        integration = sections.get('integration', '')
+        integration_patterns = {
+            'values_education': r'\*\*Values Education:\*\*\s*([^\n]+)',
+            'cross_curricular': r'\*\*Cross-curricular:\*\*\s*([^\n]+)',
+        }
+
+        integration_data = {}
+        for field, pattern in integration_patterns.items():
+            match = re.search(pattern, integration, re.IGNORECASE)
+            if match:
+                integration_data[field] = match.group(1).strip()
+            else:
+                integration_data[field] = ""
+
+        sections['integration_fields'] = integration_data
 
         # Parse Metadata fields
         metadata = sections.get('metadata', '')
@@ -111,6 +143,29 @@ class LessonPlan(models.Model):
         materials_list = re.findall(r'\*\s*(.*?)(?=\n\*|\n\n|$)', materials, re.DOTALL)
         sections['materials_list'] = [mat.strip() for mat in materials_list if mat.strip()]
 
+        # Parse Lesson Procedure subsections
+        lesson_procedure = sections.get('lesson_procedure', '')
+        procedure_subsections = {
+            'introduction': r'### A\. Introduction\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
+            'instruction': r'### B\. Instruction/Direct Teaching\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
+            'application': r'### C\. Guided Practice/Application\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
+            'evaluation': r'### D\. Independent Practice/Evaluation\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
+            'assessment': r'### E\. Assessment\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
+        }
+
+        procedure_data = {}
+        for subsection, pattern in procedure_subsections.items():
+            match = re.search(pattern, lesson_procedure, re.DOTALL | re.IGNORECASE)
+            if match:
+                procedure_data[subsection] = {
+                    'time': match.group(1).strip(),
+                    'content': match.group(2).strip()
+                }
+            else:
+                procedure_data[subsection] = {'time': '', 'content': ''}
+
+        sections['procedure_subsections'] = procedure_data
+
         # Parse Differentiation subsections
         differentiation = sections.get('differentiation', '')
         diff_subsections = {
@@ -132,7 +187,7 @@ class LessonPlan(models.Model):
         return sections
 
     def update_from_parsed_content(self):
-        """Update model fields from parsed content"""
+        """Update model fields from parsed content including MELC data"""
         parsed = self.parse_generated_content()
 
         # Update metadata fields if they exist in parsed content
@@ -158,25 +213,35 @@ class LessonPlan(models.Model):
                 except (ValueError, TypeError):
                     pass
 
-        # Update procedure subsections if they exist
-        procedure_subsections = parsed.get('procedure_subsections', {})
-        if procedure_subsections:
-            # Map these to your existing fields or create new ones if needed
-            pass
+        # Update MELC fields
+        melc_fields = parsed.get('melc_fields', {})
+        if melc_fields:
+            self.melc_code = melc_fields.get('melc_code', self.melc_code)
+            self.content_standard = melc_fields.get('content_standard', self.content_standard)
+            self.performance_standard = melc_fields.get('performance_standard', self.performance_standard)
+            self.learning_competency = melc_fields.get('learning_competency', self.learning_competency)
+
+        # Update Integration fields
+        integration_fields = parsed.get('integration_fields', {})
+        if integration_fields:
+            self.values_integration = integration_fields.get('values_education', self.values_integration)
+            self.cross_curricular = integration_fields.get('cross_curricular', self.cross_curricular)
 
         return parsed
 
-    # Add this method to your LessonPlan model in lessonGenerator app
     def submit_for_approval(self, department_head):
         """Submit this lesson plan to a department head for approval"""
-        from lesson.models import LessonPlanSubmission  # Import here to avoid circular import
+        # Import here to avoid circular import
+        from .models import LessonPlanSubmission
         
         # Validate that teacher and department head are in same school and department
-        if self.created_by.school != department_head.school:
-            return False, f"Department Head {department_head.full_name} is not in your school ({self.created_by.school})."
+        if hasattr(self.created_by, 'school') and hasattr(department_head, 'school'):
+            if self.created_by.school != department_head.school:
+                return False, f"Department Head {getattr(department_head, 'full_name', department_head.username)} is not in your school ({self.created_by.school})."
         
-        if self.created_by.department != department_head.department:
-            return False, f"Department Head {department_head.full_name} is not in your department ({self.created_by.department})."
+        if hasattr(self.created_by, 'department') and hasattr(department_head, 'department'):
+            if self.created_by.department != department_head.department:
+                return False, f"Department Head {getattr(department_head, 'full_name', department_head.username)} is not in your department ({self.created_by.department})."
         
         # Check if already submitted
         existing_submission = LessonPlanSubmission.objects.filter(
@@ -195,7 +260,7 @@ class LessonPlan(models.Model):
                 submitted_to=department_head,
                 status='submitted'
             )
-            return True, f"Lesson plan submitted successfully to {department_head.full_name}!"
+            return True, f"Lesson plan submitted successfully to {getattr(department_head, 'full_name', department_head.username)}!"
         except ValidationError as e:
             return False, str(e)
         except Exception as e:
@@ -209,11 +274,13 @@ class LessonPlan(models.Model):
         if parsed and parsed.get('metadata_fields'):
             return {
                 'metadata': parsed.get('metadata_fields', {}),
+                'melc_alignment': parsed.get('melc_fields', {}),
                 'learning_objectives': parsed.get('learning_objectives_list', []),
                 'subject_matter': parsed.get('subject_matter', ''),
                 'materials': parsed.get('materials_list', []),
                 'procedure': parsed.get('procedure_subsections', {}),
-                'differentiation': parsed.get('differentiation_subsections', {})
+                'differentiation': parsed.get('differentiation_subsections', {}),
+                'integration': parsed.get('integration_fields', {})
             }
         
         # Fallback to model fields
@@ -225,6 +292,12 @@ class LessonPlan(models.Model):
                 'duration': self.duration,
                 'class_size': self.population
             },
+            'melc_alignment': {
+                'melc_code': self.melc_code,
+                'content_standard': self.content_standard,
+                'performance_standard': self.performance_standard,
+                'learning_competency': self.learning_competency
+            },
             'learning_objectives': self.learning_objectives.split('\n') if self.learning_objectives else [],
             'subject_matter': self.subject_matter,
             'materials': self.materials_needed.split('\n') if self.materials_needed else [],
@@ -234,13 +307,15 @@ class LessonPlan(models.Model):
                 'application': {'content': self.application},
                 'evaluation': {'content': self.evaluation},
                 'assessment': {'content': self.assessment}
+            },
+            'integration': {
+                'values_education': self.values_integration,
+                'cross_curricular': self.cross_curricular
             }
         }
     
     def get_latest_submission(self):
         """Get the latest submission for this lesson plan"""
-        from lesson.models import LessonPlanSubmission  # Import here to avoid circular import
-        
         try:
             return LessonPlanSubmission.objects.filter(
                 lesson_plan=self
@@ -248,7 +323,29 @@ class LessonPlan(models.Model):
         except LessonPlanSubmission.DoesNotExist:
             return None
 
-    # Add this property to the LessonPlan class
     @property
     def latest_submission(self):
         return self.get_latest_submission()
+
+
+class LessonPlanSubmission(models.Model):
+    STATUS_CHOICES = [
+        ('submitted', 'Submitted'),
+        ('approved', 'Approved'),
+        ('needs_revision', 'Needs Revision'),
+        ('rejected', 'Rejected'),
+    ]
+    
+    lesson_plan = models.ForeignKey(LessonPlan, on_delete=models.CASCADE, related_name='submissions')
+    submitted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='submitted_plans')
+    submitted_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_submissions')
+    submission_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='submitted')
+    feedback = models.TextField(blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-submission_date']
+    
+    def __str__(self):
+        return f"{self.lesson_plan.title} - {self.status}"
