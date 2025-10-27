@@ -58,11 +58,6 @@
         .dropdown-enter {
             animation: scaleIn 0.2s ease-out;
         }
-
-        /* Session Warning Modal */
-        .session-modal {
-            backdrop-filter: blur(8px);
-        }
         
         /* Loading spinner for upload */
         .upload-spinner {
@@ -80,51 +75,70 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Fix for proper spacing with fixed header */
+        /* FIXED: Proper spacing with fixed header and fixed messages */
         .main-content {
-            padding-top: 100px; /* Increased to account for header height */
+            padding-top: 90px; /* Space for fixed header */
         }
         
-        .messages-section {
-            padding-top: 90px; /* Extra space between header and messages */
-            padding-bottom: 10px; /* Space between messages and main content */
+        /* FIXED: Messages now use fixed positioning */
+        .messages-container {
+            position: fixed;
+            top: 80px; /* Below the header */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            width: 100%;
+            max-width: 1280px; /* max-w-7xl */
+            padding: 0 1rem;
+        }
+        
+        .alert {
+            animation: slideDown 0.3s ease-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Auto-hide animation */
+        .alert.hiding {
+            animation: slideUp 0.3s ease-out forwards;
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
         }
         
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .main-content {
-                padding-top: 90px;
+                padding-top: 80px;
             }
             
-            .messages-section {
-                padding-top: 80px;
-                padding-bottom: 12px;
+            .messages-container {
+                top: 70px;
+                padding: 0 1rem;
             }
         }
     </style>
 </head>
 
 <body class="bg-gray-100 min-h-screen">
-    <!-- Session Warning Modal -->
-    <div id="session-warning-modal" class="fixed inset-0 bg-black bg-opacity-50 session-modal z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl transform transition-all">
-            <div class="text-center">
-                <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-2">Session Timeout Warning</h3>
-                <p class="text-gray-600 mb-6">You've been inactive for a while. Your session will expire in <span id="countdown" class="font-bold text-red-600">60</span> seconds.</p>
-                <div class="flex space-x-4">
-                    <button id="extend-session-btn" class="flex-1 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white px-6 py-3 rounded-lg font-semibold hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all">
-                        Stay Logged In
-                    </button>
-                    <button id="logout-now-btn" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-all">
-                        Logout Now
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Header -->
     <header class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-40">
@@ -141,12 +155,6 @@
 
                 <!-- Right side actions -->
                 <div class="flex items-center space-x-4">
-                    <!-- Session Timer Display -->
-                    <div class="hidden md:flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-full">
-                        <i class="fas fa-clock text-gray-500 text-sm"></i>
-                        <span id="session-timer" class="text-sm text-gray-600">5:00</span>
-                    </div>
-
                     <!-- Search -->
                     <div class="relative hidden md:block">
                         <input type="text" placeholder="Search"
@@ -180,15 +188,20 @@
         </div>
     </header>
 
-    <!-- Messages Section -->
+    <!-- FIXED: Messages Container with Fixed Positioning -->
     {% if messages %}
-    <div class="messages-section">
-        <div class="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
+    <div class="messages-container">
+        <div id="messages-wrapper">
             {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} bg-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-100 border border-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-400 text-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-700 px-4 py-3 rounded-lg mb-4 shadow-sm">
-                <div class="flex items-start">
-                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %} mt-0.5 mr-3"></i>
-                    <span>{{ message }}</span>
+            <div class="alert alert-{{ message.tags }} bg-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-100 border border-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-400 text-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-700 px-4 py-3 rounded-lg mb-4">
+                <div class="flex items-start justify-between">
+                    <div class="flex items-start">
+                        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %} mt-0.5 mr-3"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.classList.add('hiding'); setTimeout(() => this.parentElement.parentElement.remove(), 300);" class="ml-4 text-gray-500 hover:text-gray-700 transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             </div>
             {% endfor %}
@@ -595,6 +608,18 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize session manager
             const sessionManager = new SessionManager();
+            
+            // Auto-hide messages after 5 seconds
+            const messagesWrapper = document.getElementById('messages-wrapper');
+            if (messagesWrapper) {
+                const alerts = messagesWrapper.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    setTimeout(() => {
+                        alert.classList.add('hiding');
+                        setTimeout(() => alert.remove(), 300);
+                    }, 5000);
+                });
+            }
             
             // Get all necessary elements
             const editBtn = document.getElementById('edit-btn');
