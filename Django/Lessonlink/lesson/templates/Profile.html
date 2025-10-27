@@ -756,6 +756,19 @@
                         // Update the profile image preview
                         updateProfileImage(data.image_url);
                         
+                        // Broadcast the update to other pages
+                        const updateData = {
+                            imageUrl: data.image_url,
+                            timestamp: Date.now()
+                        };
+                        localStorage.setItem('profilePictureUpdated', JSON.stringify(updateData));
+                        
+                        // Also trigger storage event for same-tab updates
+                        window.dispatchEvent(new StorageEvent('storage', {
+                            key: 'profilePictureUpdated',
+                            newValue: JSON.stringify(updateData)
+                        }));
+                        
                         // Show success message
                         showMessage('Profile picture uploaded successfully!', 'success');
                     } else {
@@ -872,6 +885,8 @@
             });
         }
     });
+
+    
 </script>
 </body>
 </html>

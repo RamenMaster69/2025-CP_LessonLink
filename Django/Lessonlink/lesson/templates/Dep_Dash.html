@@ -693,6 +693,74 @@
             console.error('Error marking all notifications as read:', error);
         });
     }
+
+    // Function to update header profile images when profile picture changes
+    function updateHeaderProfileImages(imageUrl) {
+        // Update header button image
+        const headerProfileImg = document.getElementById('header-profile-img');
+        const headerProfileIcon = document.getElementById('header-profile-icon');
+        const headerProfileBtn = document.getElementById('profile-btn');
+        
+        if (headerProfileImg) {
+            headerProfileImg.src = imageUrl;
+        } else if (headerProfileIcon) {
+            // Replace icon with image
+            headerProfileIcon.remove();
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.alt = 'Profile Picture';
+            img.className = 'w-full h-full object-cover';
+            img.id = 'header-profile-img';
+            headerProfileBtn.appendChild(img);
+        } else {
+            // Create new image
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.alt = 'Profile Picture';
+            img.className = 'w-full h-full object-cover';
+            img.id = 'header-profile-img';
+            headerProfileBtn.innerHTML = '';
+            headerProfileBtn.appendChild(img);
+        }
+        
+        // Update dropdown image
+        const dropdownProfileImg = document.getElementById('dropdown-profile-img');
+        const dropdownContainer = document.querySelector('#profile-dropdown .w-12.h-12.rounded-full');
+        
+        if (dropdownProfileImg) {
+            dropdownProfileImg.src = imageUrl;
+        } else if (dropdownContainer) {
+            // Replace icon with image in dropdown
+            dropdownContainer.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.alt = 'Profile Picture';
+            img.className = 'w-full h-full object-cover';
+            img.id = 'dropdown-profile-img';
+            dropdownContainer.appendChild(img);
+        }
+    }
+
+    // Listen for profile picture updates from other pages
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if there's a stored profile picture update
+        const recentProfileUpdate = localStorage.getItem('profilePictureUpdated');
+        if (recentProfileUpdate) {
+            const updateData = JSON.parse(recentProfileUpdate);
+            if (updateData.timestamp && Date.now() - updateData.timestamp < 5000) { // 5 seconds
+                updateHeaderProfileImages(updateData.imageUrl);
+            }
+            localStorage.removeItem('profilePictureUpdated');
+        }
+        
+        // Listen for storage events (if profile is updated in another tab)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'profilePictureUpdated') {
+                const updateData = JSON.parse(e.newValue);
+                updateHeaderProfileImages(updateData.imageUrl);
+            }
+        });
+    });
     </script>
 </body>
 
