@@ -1285,7 +1285,41 @@ def Dep_Dash(request):
         messages.success(request, f"Welcome back, {user.first_name}!")
         request.session['welcome_shown'] = True
     
-    return render(request, 'Dep_Dash.html', {'user': user})
+    # Get dynamic statistics for department head dashboard
+    
+    # 1. Pending Reviews - Count from pending submissions
+    pending_reviews_count = LessonPlanSubmission.objects.filter(
+        submitted_to=user,
+        status='submitted'
+    ).count()
+    
+    # 2. Total Faculty - Count from faculty in same department and school
+    total_faculty_count = User.objects.filter(
+        department=user.department,
+        school=user.school,
+        role__in=['Teacher', 'Student Teacher'],
+        is_active=True
+    ).count()
+    
+    # 3. My Lesson Plans - Count lesson plans created by department head
+    from lessonGenerator.models import LessonPlan
+    my_lesson_plans_count = LessonPlan.objects.filter(
+        created_by=user
+    ).count()
+    
+    # 4. Pending Lesson Plan Reviews - Get actual pending submissions for the card
+    pending_submissions = LessonPlanSubmission.objects.filter(
+        submitted_to=user,
+        status='submitted'
+    ).select_related('lesson_plan', 'submitted_by').order_by('submission_date')[:3]
+    
+    return render(request, 'Dep_Dash.html', {
+        'user': user,
+        'pending_reviews_count': pending_reviews_count,
+        'total_faculty_count': total_faculty_count,
+        'my_lesson_plans_count': my_lesson_plans_count,
+        'pending_submissions': pending_submissions
+    })
 
 @login_required
 def Dep_Faculty(request):
@@ -1296,22 +1330,51 @@ def Dep_Faculty(request):
         messages.error(request, "You are not allowed to access this page.")
         return redirect("dashboard")
 
-    # Get all teachers and student teachers in the same department
+    # Get all teachers and student teachers in the same department and school
     faculty_members = User.objects.filter(
         department=user.department,
         school=user.school,
-        role__in=["Teacher", "Student Teacher"]
+        role__in=["Teacher", "Student Teacher"],
+        is_active=True
     ).order_by("role", "last_name")
 
-    # Stats
+    # Calculate real-time statistics
     total_faculty = faculty_members.count()
-    active_teachers = faculty_members.filter(role="Teacher").count()  # if you have a status field, add .filter(status="Active")
+    active_teachers = faculty_members.filter(role="Teacher").count()
     student_teachers = faculty_members.filter(role="Student Teacher").count()
-    pending_reviews = 0  # placeholder until you add LessonPlan or similar model
+    
+    # Calculate pending reviews for each faculty member
+    from lessonGenerator.models import LessonPlan
+    from .models import LessonPlanSubmission
+    
+    # Get total pending reviews for the department
+    pending_reviews = LessonPlanSubmission.objects.filter(
+        submitted_to=user,
+        status='submitted'
+    ).count()
+
+    # Add additional statistics to each faculty member
+    faculty_with_stats = []
+    for member in faculty_members:
+        # Get pending reviews for this faculty member
+        member_pending_reviews = LessonPlanSubmission.objects.filter(
+            submitted_by=member,
+            status='submitted'
+        ).count()
+        
+        # Get last active time (use last_login if available, otherwise use date_joined)
+        last_active = member.last_login if member.last_login else member.date_joined
+        
+        faculty_with_stats.append({
+            'user': member,
+            'pending_reviews': member_pending_reviews,
+            'last_active': last_active,
+            'is_active': member.is_active and member.last_login and (timezone.now() - member.last_login).days < 30
+        })
 
     return render(request, "Dep_Faculty.html", {
         "user": user,
-        "faculty_members": faculty_members,
+        "faculty_members": faculty_with_stats,
         "department": user.department,
         "total_faculty": total_faculty,
         "active_teachers": active_teachers,

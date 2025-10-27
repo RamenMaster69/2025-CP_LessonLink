@@ -64,6 +64,17 @@
             animation: fadeIn 0.5s ease-out;
         }
 
+        /* Real-time update animation */
+        @keyframes pulseUpdate {
+            0% { background-color: transparent; }
+            50% { background-color: rgba(59, 130, 246, 0.1); }
+            100% { background-color: transparent; }
+        }
+
+        .updating {
+            animation: pulseUpdate 1s ease-in-out;
+        }
+
         /* Print Styles */
         @media print {
             * {
@@ -310,8 +321,8 @@
             <!-- Page Header -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900 mb-2">English Department Faculty</h1>
-                    <p class="text-gray-600">View and manage English department faculty members</p>
+                    <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ department }} Department Faculty</h1>
+                    <p class="text-gray-600">View and manage {{ department }} department faculty members</p>
                 </div>
                 <div class="flex space-x-3 mt-4 sm:mt-0">
                     <button class="bg-white text-gray-700 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors flex items-center space-x-2">
@@ -325,13 +336,15 @@
                 </div>
             </div>
 
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div class="bg-white rounded-lg shadow-sm border p-6">
+            <!-- Dynamic Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="stats-cards">
+                <!-- Total Faculty Card -->
+                <div class="bg-white rounded-lg shadow-sm border p-6" id="total-faculty-card">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-600 text-sm font-medium">Total Faculty</p>
-                            <p class="text-3xl font-bold text-gray-900">8</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ total_faculty }}</p>
+                            <p class="text-xs text-gray-500 mt-1">Active members in department</p>
                         </div>
                         <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                             <i class="fas fa-users text-blue-600 text-xl"></i>
@@ -339,11 +352,13 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-lg shadow-sm border p-6">
+                <!-- Pending Reviews Card -->
+                <div class="bg-white rounded-lg shadow-sm border p-6" id="pending-reviews-card">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-600 text-sm font-medium">Pending Reviews</p>
-                            <p class="text-3xl font-bold text-gray-900">7</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ pending_reviews }}</p>
+                            <p class="text-xs text-gray-500 mt-1">Awaiting your review</p>
                         </div>
                         <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
                             <i class="fas fa-exclamation-triangle text-yellow-600 text-xl"></i>
@@ -351,11 +366,13 @@
                     </div>
                 </div>
                 
-                <div class="bg-white rounded-lg shadow-sm border p-6">
+                <!-- Active Teachers Card -->
+                <div class="bg-white rounded-lg shadow-sm border p-6" id="active-teachers-card">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-600 text-sm font-medium">Active Teachers</p>
-                            <p class="text-3xl font-bold text-gray-900">5</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ active_teachers }}</p>
+                            <p class="text-xs text-gray-500 mt-1">Full-time teaching staff</p>
                         </div>
                         <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                             <i class="fas fa-chalkboard-teacher text-green-600 text-xl"></i>
@@ -363,11 +380,13 @@
                     </div>
                 </div>
                 
-                <div class="bg-white rounded-lg shadow-sm border p-6">
+                <!-- Student Teachers Card -->
+                <div class="bg-white rounded-lg shadow-sm border p-6" id="student-teachers-card">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-600 text-sm font-medium">Student Teachers</p>
-                            <p class="text-3xl font-bold text-gray-900">3</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ student_teachers }}</p>
+                            <p class="text-xs text-gray-500 mt-1">Currently training</p>
                         </div>
                         <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                             <i class="fas fa-user-graduate text-purple-600 text-xl"></i>
@@ -381,8 +400,12 @@
                 <!-- Table Header -->
                 <div class="px-6 py-4 border-b border-gray-200">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-4 sm:mb-0">English Department Members</h2>
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4 sm:mb-0">{{ department }} Department Members</h2>
                         <div class="flex items-center space-x-3">
+                            <button id="refresh-btn" class="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-sync-alt"></i>
+                                <span>Refresh</span>
+                            </button>
                             <button id="print-btn" class="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                                 <i class="fas fa-print"></i>
                                 <span>Print</span>
@@ -404,71 +427,88 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider no-print">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-    {% for member in faculty_members %}
-    <tr class="hover:bg-gray-50 fade-in">
-        <!-- Avatar + Name -->
-        <td class="px-6 py-4 whitespace-nowrap">
-            <div class="flex items-center">
-                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center no-print">
-                    <span class="text-blue-600 font-semibold">
-                        {{ member.first_name|first }}{{ member.last_name|first }}
-                    </span>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm font-medium text-gray-900">
-                        {{ member.first_name }} {{ member.last_name }}
-                    </p>
-                    <p class="text-sm text-gray-500">{{ member.email }}</p>
-                </div>
-            </div>
-        </td>
+                        <tbody class="bg-white divide-y divide-gray-200" id="faculty-table-body">
+                            {% for member_data in faculty_members %}
+                            {% with member=member_data.user %}
+                            <tr class="hover:bg-gray-50 fade-in faculty-row" data-user-id="{{ member.id }}">
+                                <!-- Avatar + Name -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center no-print">
+                                            <span class="text-blue-600 font-semibold">
+                                                {{ member.first_name|first }}{{ member.last_name|first }}
+                                            </span>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm font-medium text-gray-900">
+                                                {{ member.first_name }} {{ member.last_name }}
+                                            </p>
+                                            <p class="text-sm text-gray-500">{{ member.email }}</p>
+                                        </div>
+                                    </div>
+                                </td>
 
-        <!-- Role -->
-        <td class="px-6 py-4 whitespace-nowrap">
-            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
-                {% if member.role == 'Teacher' %} bg-purple-100 text-purple-800 
-                {% elif member.role == 'Student Teacher' %} bg-pink-100 text-pink-800 
-                {% else %} bg-blue-100 text-blue-800 {% endif %}">
-                {{ member.role }}
-            </span>
-        </td>
+                                <!-- Role -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                                        {% if member.role == 'Teacher' %} bg-purple-100 text-purple-800 
+                                        {% elif member.role == 'Student Teacher' %} bg-pink-100 text-pink-800 
+                                        {% else %} bg-blue-100 text-blue-800 {% endif %}">
+                                        {{ member.role }}
+                                    </span>
+                                </td>
 
-        <!-- Status (you can change to real data if you track status) -->
-        <td class="px-6 py-4 whitespace-nowrap">
-            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                Active
-            </span>
-        </td>
+                                <!-- Status -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                                        {% if member_data.is_active %} bg-green-100 text-green-800 
+                                        {% else %} bg-gray-100 text-gray-800 {% endif %}">
+                                        {% if member_data.is_active %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                </td>
 
-        <!-- Last seen (dummy placeholder, replace if you track last_login) -->
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ member.last_login|default:"N/A" }}
-        </td>
+                                <!-- Last Active -->
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {% if member_data.last_active %}
+                                        {{ member_data.last_active|timesince }} ago
+                                    {% else %}
+                                        Never
+                                    {% endif %}
+                                </td>
 
-        <!-- Pending requests (dummy placeholder, change if you track requests) -->
-        <td class="px-6 py-4 whitespace-nowrap">
-            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                0 pending
-            </span>
-        </td>
+                                <!-- Pending Reviews -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                                        {% if member_data.pending_reviews > 0 %} bg-yellow-100 text-yellow-800 
+                                        {% else %} bg-gray-100 text-gray-800 {% endif %}">
+                                        {{ member_data.pending_reviews }} pending
+                                    </span>
+                                </td>
 
-        <!-- Actions -->
-        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
-            <button class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-ellipsis-v"></i>
-            </button>
-        </td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
-            No faculty members found in your department.
-        </td>
-    </tr>
-    {% endfor %}
-</tbody>
-
+                                <!-- Actions -->
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
+                                    <div class="flex items-center space-x-2">
+                                        <button class="text-blue-600 hover:text-blue-800 transition-colors" title="View Profile">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="text-green-600 hover:text-green-800 transition-colors" title="Send Message">
+                                            <i class="fas fa-envelope"></i>
+                                        </button>
+                                        <button class="text-gray-400 hover:text-gray-600 transition-colors" title="More Options">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endwith %}
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                                    No faculty members found in your department.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -483,7 +523,8 @@
         <div class="print-header">
             <h1>LessonLink - Faculty Management</h1>
             <h2>Western Mindanao State University</h2>
-            <p>English Department Faculty Report</p>
+            <p>{{ department }} Department Faculty Report</p>
+            <p>Generated by: {{ user.first_name }} {{ user.last_name }}, {{ department }} Department Head</p>
         </div>
         
         <table class="print-table">
@@ -504,7 +545,7 @@
         
         <div class="print-footer">
             <p>Generated on: <span id="print-date"></span></p>
-            <p>Report generated by: Viktor Greg Lim, English Department Head</p>
+            <p>Total Faculty: {{ total_faculty }} | Active Teachers: {{ active_teachers }} | Student Teachers: {{ student_teachers }} | Pending Reviews: {{ pending_reviews }}</p>
         </div>
     </div>
 
@@ -568,6 +609,48 @@
                 notificationDropdown.classList.add('hidden');
             }
         });
+
+        // Real-time data refresh functionality
+        const refreshBtn = document.getElementById('refresh-btn');
+        const statsCards = document.getElementById('stats-cards');
+
+        async function refreshFacultyData() {
+            try {
+                // Show loading state
+                refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Refreshing...</span>';
+                refreshBtn.disabled = true;
+
+                // Add updating animation to stats cards
+                statsCards.querySelectorAll('> div').forEach(card => {
+                    card.classList.add('updating');
+                });
+
+                // Simulate API call to refresh data
+                // In a real application, you would make an AJAX call to your backend
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Reload the page to get fresh data
+                window.location.reload();
+
+            } catch (error) {
+                console.error('Error refreshing data:', error);
+                // Reset button state
+                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i><span>Refresh</span>';
+                refreshBtn.disabled = false;
+                
+                // Remove updating animation
+                statsCards.querySelectorAll('> div').forEach(card => {
+                    card.classList.remove('updating');
+                });
+
+                alert('Error refreshing data. Please try again.');
+            }
+        }
+
+        refreshBtn.addEventListener('click', refreshFacultyData);
+
+        // Auto-refresh data every 5 minutes
+        setInterval(refreshFacultyData, 5 * 60 * 1000);
 
         // Print functionality
         const printBtn = document.getElementById('print-btn');
@@ -672,7 +755,51 @@
                     el.style.transform = 'translateY(0)';
                 }, index * 100);
             });
+
+            // Initialize real-time updates
+            initializeRealTimeUpdates();
         });
+
+        // Real-time updates simulation
+        function initializeRealTimeUpdates() {
+            // Simulate real-time updates for demonstration
+            // In production, you would use WebSockets or Server-Sent Events
+            
+            // Update "Last Active" times every minute
+            setInterval(() => {
+                const lastActiveCells = document.querySelectorAll('td:nth-child(4)');
+                lastActiveCells.forEach(cell => {
+                    // This is a simulation - in real app, you'd get actual data from server
+                    const currentText = cell.textContent;
+                    if (currentText.includes('minute') || currentText.includes('hour')) {
+                        // Just update the relative time display
+                        // In real app, you'd make an API call to get actual last active times
+                    }
+                });
+            }, 60000);
+
+            // Simulate occasional status changes
+            setInterval(() => {
+                const statusSpans = document.querySelectorAll('td:nth-child(3) span');
+                statusSpans.forEach(span => {
+                    // 1% chance to toggle status for demo purposes
+                    if (Math.random() < 0.01) {
+                        const isActive = span.classList.contains('bg-green-100');
+                        if (isActive) {
+                            span.classList.remove('bg-green-100', 'text-green-800');
+                            span.classList.add('bg-gray-100', 'text-gray-800');
+                            span.textContent = 'Inactive';
+                        } else {
+                            span.classList.remove('bg-gray-100', 'text-gray-800');
+                            span.classList.add('bg-green-100', 'text-green-800');
+                            span.textContent = 'Active';
+                        }
+                        span.classList.add('updating');
+                        setTimeout(() => span.classList.remove('updating'), 1000);
+                    }
+                });
+            }, 30000);
+        }
 
         // Show notification badge after page load (simulate new notifications)
         setTimeout(() => {
@@ -692,6 +819,17 @@
             setTimeout(() => {
                 printableSection.style.display = 'none';
             }, 100);
+        });
+
+        // Faculty row click handlers
+        document.addEventListener('click', (e) => {
+            const row = e.target.closest('.faculty-row');
+            if (row && !e.target.closest('button')) {
+                const userId = row.dataset.userId;
+                // Navigate to faculty profile or show details
+                console.log('View faculty details for user:', userId);
+                // In real app: window.location.href = `/faculty/${userId}/`;
+            }
         });
     </script>
 </body>
