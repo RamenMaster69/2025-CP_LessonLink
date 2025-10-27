@@ -232,18 +232,6 @@ tailwind.config = {
 
     <!-- Right side actions -->
     <div class="flex items-center space-x-2 md:space-x-4">
-        <!-- Search -->
-        <div class="relative hidden md:block">
-            <input type="text" placeholder="Search lessons..."
-                class="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
-            <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-        </div>
-
-        <!-- Mobile search button -->
-        <button class="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-            <i class="fas fa-search text-lg"></i>
-        </button>
-
         <!-- Notifications -->
         <div class="relative">
             <button id="notification-btn"
@@ -292,13 +280,13 @@ tailwind.config = {
                             <i class="fas fa-user text-white text-lg"></i>
                         </div>
                         <div>
-                            <p class="font-semibold text-gray-900">John Doe</p>
-                            <p class="text-sm text-gray-500">Teacher</p>
+                            <p class="font-semibold text-gray-900">{{ user.first_name }} {{ user.middle_name }} {{ user.last_name }}</p>
+                            <p class="text-sm text-gray-500">{{ user.role }}</p>
                         </div>
                     </div>
                 </div>
                 <div class="py-2">
-                    <a href="#"
+                    <a href="{% url 'profile' %}"
                         class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
                         <i class="fas fa-user w-4"></i>
                         <span>My Profile</span>
