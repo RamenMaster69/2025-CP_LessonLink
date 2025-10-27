@@ -165,7 +165,7 @@
                             </div>
                         </div>
                         <div class="py-2">
-                            <a href="#"
+                            <a href="{% url 'profile' %}"
                                 class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
                                 <i class="fas fa-user w-4 text-gray-500"></i>
                                 <span>My Profile</span>
@@ -190,40 +190,48 @@
     </header>
 
     <div class="flex pt-16">
-        <!-- Sidebar - Fixed and sticky -->
-        <aside id="sidebar"
-            class="w-64 bg-white shadow-lg h-screen fixed top-20 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
-            <nav class="p-4 space-y-2">
-                <!-- Create Lesson Button -->
-                <button id="create-lesson-btn"
-                    class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
-                    <i class="fas fa-plus text-lg"></i>
-                    <span class="font-medium">Create Lesson</span>
-                </button>
+       <!-- Sidebar - Fixed and sticky -->
+<aside id="sidebar"
+    class="w-64 bg-white shadow-lg h-screen fixed top-20 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
+    <nav class="p-4 space-y-2">
+        <!-- Create Lesson Button -->
+        <a href="{% url 'lesson_ai' %}">
+            <button
+                class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
+                <i class="fas fa-plus text-lg"></i>
+                <span class="font-medium">Create Lesson</span>
+            </button>
+        </a>
 
-                <!-- Navigation Items -->
-                <a href="#"
-                    class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
-                    <i class="fas fa-home text-lg w-5"></i>
-                    <span class="font-medium">Dashboard</span>
-                </a>
-                <a href="#" id="drafts-link"
-                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                    <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                    <span>Drafts</span>
-                </a>
-                <a href="#" id="tasks-link"
-                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                    <i class="fas fa-tasks text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                    <span>Tasks</span>
-                </a>
-                <a href="#" id="schedule-link"
-                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                    <i class="fas fa-calendar-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                    <span>Schedule</span>
-                </a>
-            </nav>
-        </aside>
+        <!-- Navigation Items -->
+        <a href="{% url 'dashboard' %}"
+            class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+            <i class="fas fa-home text-lg w-5"></i>
+            <span class="font-medium">Dashboard</span>
+        </a>
+        <a href="{% url 'draft_list' %}" id="drafts-link"
+            class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+            <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+            <span>Drafts</span>
+        </a>
+        <a href="{% url 'task' %}" id="tasks-link"
+            class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+            <i class="fas fa-tasks text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+            <span>Tasks</span>
+        </a>
+        <a href="{% url 'schedule' %}" id="schedule-link"
+            class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+            <i class="fas fa-calendar-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+            <span>Schedule</span>
+        </a>
+        <!-- CALENDAR LINK - ADD THIS -->
+        <a href="{% url 'dep_calendar' %}" id="calendar-link"
+            class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+            <i class="fas fa-calendar text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+            <span>Calendar</span>
+        </a>
+    </nav>
+</aside>
 
         <!-- Overlay for mobile -->
         <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
@@ -259,11 +267,13 @@
                         Viktor Greg!</h3>
                     <p class="text-white/80 mb-6 text-sm md:text-base max-w-md">Ready to create amazing lessons with AI
                         assistance? Let's make learning exciting today!</p>
-                    <a href=""><button
+                    <a href="{% url 'lesson_ai' %}">
+                        <button
                             class="bg-white text-[#11468F] px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl inline-flex items-center space-x-2">
                             <i class="fas fa-plus"></i>
                             <span>Start New Lesson Plan</span>
-                        </button></a>
+                        </button>
+                    </a>
                 </div>
             </div>
 
@@ -312,7 +322,7 @@
                             <h3 class="text-xl font-bold text-gray-900">Recent Lesson Plans</h3>
                             <p class="text-gray-500 text-sm">Your latest teaching materials</p>
                         </div>
-                        <a href=""
+                        <a href="{% url 'draft_list' %}"
                             class="text-purple-600 hover:text-purple-700 font-medium text-sm bg-purple-50 px-3 py-2 rounded-lg hover:bg-purple-100 transition-colors">
                             View All
                         </a>
@@ -496,30 +506,11 @@
             // Prevent dropdowns from closing when clicking inside them
             profileDropdown.addEventListener('click', (e) => e.stopPropagation());
             
-            // Sidebar navigation functionality
+            // Sidebar navigation functionality - REMOVED since we're using proper hrefs now
             const createLessonBtn = document.getElementById('create-lesson-btn');
             const draftsLink = document.getElementById('drafts-link');
             const tasksLink = document.getElementById('tasks-link');
             const scheduleLink = document.getElementById('schedule-link');
-            
-            createLessonBtn.addEventListener('click', () => {
-                alert('Opening lesson creation wizard...');
-            });
-            
-            draftsLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                alert('Opening drafts page...');
-            });
-            
-            tasksLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                alert('Opening tasks page...');
-            });
-            
-            scheduleLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                alert('Opening schedule page...');
-            });
             
             // Utility functions
             function toggleDropdown(dropdown) {
