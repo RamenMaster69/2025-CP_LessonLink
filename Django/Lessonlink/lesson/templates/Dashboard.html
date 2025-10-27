@@ -121,6 +121,7 @@
                     </div>
                 </div>
 
+                <!-- Profile Dropdown -->
                 <!-- Profile Button in Header -->
                 <div class="relative">
                     <button id="profile-btn"
@@ -134,28 +135,27 @@
                         <i class="fas fa-user text-gray-500" id="header-profile-icon"></i>
                         {% endif %}
                     </button>
-                </div>
 
-                <!-- Profile Dropdown -->
-                <div id="profile-dropdown" class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
-                    <div class="p-4 border-b border-gray-100">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-                                {% if user.profile_picture %}
-                                <img src="{{ user.profile_picture.url }}" 
-                                    alt="Profile Picture" 
-                                    class="w-full h-full object-cover"
-                                    id="dropdown-profile-img">
-                                {% else %}
-                                <i class="fas fa-user-tie text-white"></i>
-                                {% endif %}
-                            </div>
-                            <div>
-                                <p class="font-semibold text-gray-900">{{ user.full_name }}</p>
-                                <p class="text-sm text-gray-500">{{ user.role }}</p>
+                    <!-- Profile Dropdown - Moved INSIDE the same relative container -->
+                    <div id="profile-dropdown" class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50 dropdown-enter">
+                        <div class="p-4 border-b border-gray-100">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                                    {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" 
+                                        alt="Profile Picture" 
+                                        class="w-full h-full object-cover"
+                                        id="dropdown-profile-img">
+                                    {% else %}
+                                    <i class="fas fa-user-tie text-white"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900">{{ user.full_name }}</p>
+                                    <p class="text-sm text-gray-500">{{ user.role }}</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
                         <div class="py-2">
                             <a href="{% url 'profile' %}"
                                 class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">

@@ -133,21 +133,21 @@
                     </div>
                 </div>
 
-                    <div class="relative">
-                        <button id="profile-btn"
-                            class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
-                            {% if user.profile_picture %}
-                            <img src="{{ user.profile_picture.url }}" 
-                                alt="Profile Picture" 
-                                class="w-full h-full object-cover"
-                                id="header-profile-img">
-                            {% else %}
-                            <i class="fas fa-user text-gray-500" id="header-profile-icon"></i>
-                            {% endif %}
-                        </button>
-                    </div>
+                <!-- Profile Button and Dropdown - Fixed structure -->
+                <div class="relative">
+                    <button id="profile-btn"
+                        class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                        {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" 
+                            alt="Profile Picture" 
+                            class="w-full h-full object-cover"
+                            id="header-profile-img">
+                        {% else %}
+                        <i class="fas fa-user text-gray-500" id="header-profile-icon"></i>
+                        {% endif %}
+                    </button>
 
-                    <!-- Profile Dropdown -->
+                    <!-- Profile Dropdown - Now properly nested inside the same container -->
                     <div id="profile-dropdown" class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
                         <div class="p-4 border-b border-gray-100">
                             <div class="flex items-center space-x-3">
