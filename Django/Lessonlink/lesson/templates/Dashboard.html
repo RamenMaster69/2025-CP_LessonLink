@@ -270,6 +270,7 @@
 
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
+                <!-- Total Lessons Card - Counts all lesson plans -->
                 <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-100">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -278,9 +279,10 @@
                         <!-- <span class="text-green-500 text-sm font-medium">+12%</span> -->
                     </div>
                     <h3 class="text-gray-600 font-medium text-sm mb-1">Total Lessons</h3>
-                    <p class="text-3xl font-bold text-gray-900">24</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ total_lesson_plans }}</p>
                 </div>
 
+                <!-- Drafts Card - Counts only draft status lesson plans -->
                 <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-100">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
@@ -289,18 +291,19 @@
                         <!-- <span class="text-blue-500 text-sm font-medium">5 active</span> -->
                     </div>
                     <h3 class="text-gray-600 font-medium text-sm mb-1">Drafts</h3>
-                    <p class="text-3xl font-bold text-gray-900">8</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ draft_lesson_plans }}</p>
                 </div>
 
+                <!-- Tasks Card - Counts user's tasks (replaces Prep Time) -->
                 <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-100">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-clock text-purple-600 text-lg"></i>
+                            <i class="fas fa-tasks text-purple-600 text-lg"></i>
                         </div>
-                        <span class="text-gray-400 text-sm">avg/lesson</span>
+                        <span class="text-gray-400 text-sm">pending</span>
                     </div>
-                    <h3 class="text-gray-600 font-medium text-sm mb-1">Prep Time</h3>
-                    <p class="text-3xl font-bold text-gray-900">2.5h</p>
+                    <h3 class="text-gray-600 font-medium text-sm mb-1">Tasks</h3>
+                    <p class="text-3xl font-bold text-gray-900">{{ total_tasks }}</p>
                 </div>
             </div>
 
@@ -320,71 +323,38 @@
                     </div>
 
                     <div class="space-y-4">
+                        {% for lesson_plan in recent_lesson_plans %}
                         <div
                             class="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:border-purple-200 transition-colors">
                             <div
                                 class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-                                <span class="text-white font-bold">E</span>
+                                <span class="text-white font-bold">{{ lesson_plan.subject|first|upper }}</span>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <h4 class="font-semibold text-gray-900 truncate">Introduction to English Grammar</h4>
-                                <p class="text-gray-500 text-sm">Grade 2 • Created 2 days ago</p>
+                                <h4 class="font-semibold text-gray-900 truncate">{{ lesson_plan.title }}</h4>
+                                <p class="text-gray-500 text-sm">{{ lesson_plan.grade_level }} • Created {{ lesson_plan.created_at|timesince }} ago</p>
                                 <div class="flex items-center mt-2 space-x-4">
-                                    <span class="text-xs text-gray-400">45 min duration</span>
+                                    <span class="text-xs text-gray-400">{{ lesson_plan.duration }} min duration</span>
                                     <span class="text-xs text-gray-400">•</span>
-                                    <span class="text-xs text-gray-400">Interactive activities</span>
+                                    <span class="text-xs text-gray-400">{{ lesson_plan.population }} students</span>
                                 </div>
                             </div>
-                            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                                Complete
+                            <span class="px-3 py-1 {% if lesson_plan.status == 'final' %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %} rounded-full text-sm font-medium">
+                                {{ lesson_plan.get_status_display }}
                             </span>
                         </div>
-
-                        <div
-                            class="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:border-purple-200 transition-colors">
-                            <div
-                                class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-                                <span class="text-white font-bold">M</span>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="font-semibold text-gray-900 truncate">Basic Mathematics Operations</h4>
-                                <p class="text-gray-500 text-sm">Grade 1 • Created 1 week ago</p>
-                                <div class="flex items-center mt-2 space-x-4">
-                                    <span class="text-xs text-gray-400">30 min duration</span>
-                                    <span class="text-xs text-gray-400">•</span>
-                                    <span class="text-xs text-gray-400">Visual aids included</span>
-                                </div>
-                            </div>
-                            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
-                                In Progress
-                            </span>
+                        {% empty %}
+                        <div class="text-center py-8">
+                            <i class="fas fa-file-alt text-3xl text-gray-300 mb-3"></i>
+                            <p class="text-gray-500">No lesson plans yet. Create your first one!</p>
                         </div>
-
-                        <div
-                            class="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:border-purple-200 transition-colors">
-                            <div
-                                class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-                                <span class="text-white font-bold">S</span>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="font-semibold text-gray-900 truncate">Science Experiments for Kids</h4>
-                                <p class="text-gray-500 text-sm">Grade 3 • Created 3 days ago</p>
-                                <div class="flex items-center mt-2 space-x-4">
-                                    <span class="text-xs text-gray-400">60 min duration</span>
-                                    <span class="text-xs text-gray-400">•</span>
-                                    <span class="text-xs text-gray-400">Hands-on learning</span>
-                                </div>
-                            </div>
-                            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                                Complete
-                            </span>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
 
                 <!-- Right Column -->
                 <div class="space-y-6">
-                    <!-- Upcoming Classes -->
+                    <!-- Today's Classes -->
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                         <div class="flex items-center justify-between mb-6">
                             <div>
@@ -394,44 +364,27 @@
                         </div>
 
                         <div class="space-y-4">
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            {% for schedule in todays_schedule %}
+                            <div class="flex items-center justify-between p-3 {% if forloop.first %}bg-gray-50{% else %}border border-gray-200{% endif %} rounded-lg">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                                        <span class="text-white font-semibold text-sm">3A</span>
+                                        <span class="text-white font-semibold text-sm">{{ schedule.subject|slice:":2"|upper }}</span>
                                     </div>
                                     <div>
-                                        <h4 class="font-semibold text-gray-900 text-sm">Grade 3A</h4>
-                                        <p class="text-gray-500 text-xs">English • 9:00 AM</p>
+                                        <h4 class="font-semibold text-gray-900 text-sm">{{ schedule.subject }}</h4>
+                                        <p class="text-gray-500 text-xs">{{ schedule.get_day_display }} • {{ schedule.time }}</p>
                                     </div>
                                 </div>
-                                <span class="text-green-600 text-sm font-medium">Next</span>
+                                <span class="text-{% if forloop.first %}green{% else %}gray{% endif %}-600 text-sm font-medium">
+                                    {% if forloop.first %}Next{% else %}Later{% endif %}
+                                </span>
                             </div>
-
-                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
-                                        <span class="text-white font-semibold text-sm">2B</span>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-semibold text-gray-900 text-sm">Grade 2B</h4>
-                                        <p class="text-gray-500 text-xs">Math • 11:00 AM</p>
-                                    </div>
-                                </div>
-                                <span class="text-gray-400 text-sm">Later</span>
+                            {% empty %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-calendar-day text-xl text-gray-300 mb-2"></i>
+                                <p class="text-gray-500 text-sm">No classes scheduled for today</p>
                             </div>
-
-                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
-                                        <span class="text-white font-semibold text-sm">1A</span>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-semibold text-gray-900 text-sm">Grade 1A</h4>
-                                        <p class="text-gray-500 text-xs">Science • 2:00 PM</p>
-                                    </div>
-                                </div>
-                                <span class="text-gray-400 text-sm">Later</span>
-                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>

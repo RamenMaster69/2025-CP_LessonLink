@@ -1007,26 +1007,39 @@ def dashboard(request):
         messages.success(request, f"Welcome back, {user.first_name}!")
         request.session['welcome_shown'] = True
     
+    # Get lesson plan statistics for dashboard
+    from lessonGenerator.models import LessonPlan
+    
+    # Total Lesson Plans (all lesson plans for the user)
+    total_lesson_plans = LessonPlan.objects.filter(created_by=user).count()
+    
+    # Draft Lesson Plans (only those with draft status)
+    draft_lesson_plans = LessonPlan.objects.filter(created_by=user, status='draft').count()
+    
     # Get task statistics for dashboard
     total_tasks = Task.objects.filter(user=user).count()
-    completed_tasks = Task.objects.filter(user=user, status='completed').count()
-    pending_tasks = total_tasks - completed_tasks
     
-    # Get upcoming tasks (next 7 days)
-    upcoming_date = timezone.now().date() + timezone.timedelta(days=7)
-    upcoming_tasks = Task.objects.filter(
-        user=user, 
-        status='pending',
-        due_date__lte=upcoming_date
-    ).order_by('due_date')[:5]
+    # Get recent lesson plans (5 most recent)
+    recent_lesson_plans = LessonPlan.objects.filter(created_by=user).order_by('-created_at')[:5]
+    
+    # Get today's schedule
+    from django.utils import timezone
+    import datetime
+    
+    # Get the current day name (e.g., 'monday', 'tuesday')
+    today = timezone.now().strftime('%A').lower()
+    
+    # Get today's schedule for the user
+    todays_schedule = Schedule.objects.filter(user=user, day=today).order_by('time')
     
     return render(request, 'dashboard.html', {
         'user': user,
         'full_name': user.full_name,
         'total_tasks': total_tasks,
-        'completed_tasks': completed_tasks,
-        'pending_tasks': pending_tasks,
-        'upcoming_tasks': upcoming_tasks
+        'total_lesson_plans': total_lesson_plans,
+        'draft_lesson_plans': draft_lesson_plans,
+        'recent_lesson_plans': recent_lesson_plans,
+        'todays_schedule': todays_schedule
     })
 
 def lesson_plan(request):
