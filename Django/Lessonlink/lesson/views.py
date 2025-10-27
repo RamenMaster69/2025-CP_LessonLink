@@ -1020,14 +1020,21 @@ def dashboard(request):
     # Get recent lesson plans (5 most recent)
     recent_lesson_plans = LessonPlan.objects.filter(created_by=user).order_by('-created_at')[:5]
     
-    # Get today's schedule
+    # FIXED: Use timezone-aware today calculation
     from django.utils import timezone
-    import datetime
+    import pytz
     
-    # Get the current day name (e.g., 'monday', 'tuesday')
-    today = timezone.now().strftime('%A').lower()
+    # Method A: Use the timezone from settings
+    today = timezone.localtime(timezone.now()).strftime('%A').lower()
     
-    # Get today's schedule for the user
+    # Or Method B: Force a specific timezone (if you're in Philippines)
+    # manila_tz = pytz.timezone('Asia/Manila')
+    # today = timezone.now().astimezone(manila_tz).strftime('%A').lower()
+    
+    print(f"DEBUG: Server time: {timezone.now()}")
+    print(f"DEBUG: Local time: {timezone.localtime(timezone.now())}")
+    print(f"DEBUG: Today for filtering: {today}")
+    
     todays_schedule = Schedule.objects.filter(user=user, day=today).order_by('time')
     
     return render(request, 'dashboard.html', {
@@ -1037,7 +1044,8 @@ def dashboard(request):
         'total_lesson_plans': total_lesson_plans,
         'draft_lesson_plans': draft_lesson_plans,
         'recent_lesson_plans': recent_lesson_plans,
-        'todays_schedule': todays_schedule
+        'todays_schedule': todays_schedule,
+        'today_display': timezone.localtime(timezone.now()).strftime('%A')  # For display
     })
 
 def lesson_plan(request):

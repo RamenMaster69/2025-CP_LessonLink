@@ -368,13 +368,22 @@
                                     </div>
                                     <div>
                                         <h4 class="font-semibold text-gray-900 text-sm">{{ schedule.subject }}</h4>
-                                        <p class="text-gray-500 text-xs">{{ schedule.get_day_display }} • {{ schedule.time }}</p>
-                                    </div>
+                                        <p class="text-gray-500 text-xs">{{ today_display }} • {{ schedule.time }}</p>                                    </div>
                                 </div>
                                 <span class="text-{% if forloop.first %}green{% else %}gray{% endif %}-600 text-sm font-medium">
                                     {% if forloop.first %}Next{% else %}Later{% endif %}
                                 </span>
+                                
                             </div>
+                            <!-- Debug Section (remove after testing)
+<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+    <h4 class="font-semibold text-blue-900">Debug Info:</h4>
+    <p class="text-sm text-blue-800">Today: {% now "l" %}</p>
+    <p class="text-sm text-blue-800">Schedule count: {{ todays_schedule|length }}</p>
+    {% for schedule in todays_schedule %}
+    <p class="text-sm text-blue-800">Schedule {{ forloop.counter }}: {{ schedule.subject }} (Stored day: {{ schedule.day }}, Display: {{ schedule.get_day_display }})</p>
+    {% endfor %}
+</div> -->
                             {% empty %}
                             <div class="text-center py-4">
                                 <i class="fas fa-calendar-day text-xl text-gray-300 mb-2"></i>
