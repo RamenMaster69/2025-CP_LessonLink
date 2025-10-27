@@ -44,6 +44,8 @@ logger = logging.getLogger(__name__)
 from lessonlinkNotif.models import Notification
 from django.http import HttpResponseForbidden
 from functools import wraps
+from django.conf import settings
+from django.core.files.storage import default_storage
 
 # School Registration Views
 
@@ -314,19 +316,28 @@ def upload_profile_picture(request):
             # Generate unique filename
             file_extension = profile_picture.name.split('.')[-1].lower()
             if file_extension not in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
-                file_extension = 'jpg'  # Default extension
+                file_extension = 'jpg'
             
-            filename = f"profile_pictures/user_{user.id}_{uuid.uuid4().hex}.{file_extension}"
+            import time
+            timestamp = int(time.time())
+            filename = f"profile_pictures/user_{user.id}_{timestamp}.{file_extension}"
             
             # Save the file
             path = default_storage.save(filename, profile_picture)
             
-            # Update user's profile picture
-            user.profile_picture = path
+            # Update user's profile picture - save the relative path
+            user.profile_picture.name = path  # This should be the relative path
             user.save()
             
-            # Return the URL for the image
-            image_url = user.profile_picture.url
+            # Get the absolute URL for the image
+            from django.contrib.sites.shortcuts import get_current_site
+            current_site = get_current_site(request)
+            
+            # Construct the full URL
+            image_url = f"http://{current_site.domain}{settings.MEDIA_URL}{path}"
+            
+            # For development, you can also use relative URL
+            # image_url = f"{settings.MEDIA_URL}{path}?v={timestamp}"
             
             return JsonResponse({
                 'success': True, 
