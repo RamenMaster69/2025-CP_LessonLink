@@ -180,6 +180,65 @@
                         <i class="fas fa-bell text-lg"></i>
                         <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
                     </button>
+                    
+                    <!-- Notification Dropdown -->
+                    <div id="notification-dropdown"
+                        class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
+                        <div class="p-4 border-b border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-semibold text-gray-900">Notifications</h3>
+                                <span class="text-xs bg-red-500 text-white px-2 py-1 rounded-full">3 New</span>
+                            </div>
+                        </div>
+                        <div class="max-h-96 overflow-y-auto">
+                            <!-- Notification Item 1 -->
+                            <a href="#" class="block px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-gray-900">New lesson plan submitted</p>
+                                        <p class="text-xs text-gray-600 mt-1">John Doe submitted a lesson plan for review</p>
+                                        <p class="text-xs text-gray-400 mt-1">2 hours ago</p>
+                                    </div>
+                                </div>
+                            </a>
+                            
+                            <!-- Notification Item 2 -->
+                            <a href="#" class="block px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-gray-900">Activity reminder</p>
+                                        <p class="text-xs text-gray-600 mt-1">Department meeting tomorrow at 10:00 AM</p>
+                                        <p class="text-xs text-gray-400 mt-1">5 hours ago</p>
+                                    </div>
+                                </div>
+                            </a>
+                            
+                            <!-- Notification Item 3 -->
+                            <a href="#" class="block px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-gray-900">New comment on your lesson</p>
+                                        <p class="text-xs text-gray-600 mt-1">Admin commented on "Introduction to Physics"</p>
+                                        <p class="text-xs text-gray-400 mt-1">1 day ago</p>
+                                    </div>
+                                </div>
+                            </a>
+                            
+                            <!-- No more notifications -->
+                            <div class="px-4 py-3 text-center text-gray-400 text-sm">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                You're all caught up!
+                            </div>
+                        </div>
+                        <div class="p-3 border-t border-gray-100">
+                            <a href="#" class="block text-center text-sm text-purple-600 hover:text-purple-700 font-medium">
+                                View all notifications
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Profile -->
@@ -262,13 +321,6 @@
                         <i class="fas fa-chart-bar text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                         <span class="font-medium">Reports & Analytics</span>
                     </a>
-                    <!-- <a href="{% url 'Dep_Pending' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                        <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                        <span class="font-medium">Pending Reviews</span>
-                        {% if pending_submissions > 0 %}
-                        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">{{ pending_submissions }}</span>
-                        {% endif %}
-                    </a> -->
 
                 {% elif user_role == 'department_head' %}
                     <!-- Department Head Links - Reordered to match your image -->
@@ -319,20 +371,22 @@
                     </a>
                 {% endif %}
 
-                <!-- Calendar Link (Active - Common for all roles) - REMOVED FROM HERE -->
-                <!-- This section has been moved into the respective role blocks above -->
-
-                <!-- Common Links for All Roles (Only with working URLs) -->
-                <!-- <div class="pt-4 border-t border-gray-200">
-                    <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                        <i class="fas fa-user text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                        <span class="font-medium">Profile</span>
+                <!-- Calendar Link (Active - Common for all roles) -->
+                {% if user_role == 'admin' %}
+                    <!-- Admin Calendar -->
+                    <a href="{% url 'admin_calendar' %}" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                        <i class="fas fa-calendar-alt text-lg w-5"></i>
+                        <span class="font-medium">Calendar</span>
                     </a>
-                    <a href="{% url 'logout' %}" class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors group">
-                        <i class="fas fa-sign-out-alt text-lg w-5"></i>
-                        <span class="font-medium">Logout</span>
+                {% elif user_role == 'department_head' %}
+                    <!-- Department Head Calendar - Already included above -->
+                {% else %}
+                    <!-- Teacher & Student Teacher Calendar - AT THE BOTTOM (NO LINE) -->
+                    <a href="{% url 'teacher_calendar' %}" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                        <i class="fas fa-calendar-alt text-lg w-5"></i>
+                        <span class="font-medium">Calendar</span>
                     </a>
-                </div> -->
+                {% endif %}
             </nav>
         </aside>
 
@@ -348,7 +402,7 @@
                             {% elif user_role == 'department_head' %}
                                 Department Calendar
                             {% else %}
-                                Calendar View
+                                Teacher View
                             {% endif %}
                         </h2>
                         <p class="text-gray-600">
@@ -1018,7 +1072,49 @@
         }
     });
 
-        // DEBUG FUNCTION - Add this to test Zamboanga events
+    // Profile dropdown toggle
+    document.getElementById('profile-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const dropdown = document.getElementById('profile-dropdown');
+        dropdown.classList.toggle('hidden');
+        
+        // Close notification dropdown if open
+        const notificationDropdown = document.getElementById('notification-dropdown');
+        if (notificationDropdown) {
+            notificationDropdown.classList.add('hidden');
+        }
+    });
+    
+    // Notification dropdown toggle
+    document.getElementById('notification-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const dropdown = document.getElementById('notification-dropdown');
+        dropdown.classList.toggle('hidden');
+        
+        // Close profile dropdown if open
+        const profileDropdown = document.getElementById('profile-dropdown');
+        profileDropdown.classList.add('hidden');
+    });
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+        const profileBtn = document.getElementById('profile-btn');
+        const profileDropdown = document.getElementById('profile-dropdown');
+        const notificationBtn = document.getElementById('notification-btn');
+        const notificationDropdown = document.getElementById('notification-dropdown');
+        
+        // Close profile dropdown if clicking outside
+        if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+            profileDropdown.classList.add('hidden');
+        }
+        
+        // Close notification dropdown if clicking outside
+        if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+            notificationDropdown.classList.add('hidden');
+        }
+    });
+
+    // DEBUG FUNCTION - Add this to test Zamboanga events
     async function debugZamboangaEvents() {
         try {
             console.log("=== DEBUG ZAMBOANGA EVENTS ===");
@@ -1049,9 +1145,6 @@
     
     // Call debug function after page loads
     setTimeout(debugZamboangaEvents, 2000);
-    
-    // Initialize calendar
-    loadActivities();
     
     // Initialize calendar
     loadActivities();

@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -133,208 +132,219 @@
     </style>
 </head>
 
-<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-screen">
-    <!-- Enhanced Header with glassmorphism -->
-    <header class="bg-white/70 backdrop-blur-xl border-b border-white/20 fixed top-0 left-0 right-0 z-40 shadow-elevation-1">
-        <div class="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
-            <!-- Mobile menu button -->
-            <button id="mobile-menu-btn" class="md:hidden p-2 sm:p-3 text-purple-600 hover:bg-purple-50 rounded-xl transition-all duration-300">
-                <i class="fas fa-bars text-lg"></i>
-            </button>
-
-            <!-- Enhanced Logo -->
-            <div class="flex items-center space-x-2 sm:space-x-4">
-                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-xl shadow-lg flex items-center justify-center">
-                    <i class="fas fa-graduation-cap text-white text-sm sm:text-base"></i>
-                </div>
-                <div>
-                    <h1 class="text-lg sm:text-xl font-bold gradient-text">LessonLink</h1>
-                    <p class="text-xs text-gray-500 hidden lg:block font-medium">Western Mindanao State University</p>
-                </div>
-            </div>
-
-            <!-- Enhanced Right side actions -->
-            <div class="flex items-center space-x-2 sm:space-x-4">
-                <!-- Enhanced Search - Hidden on small screens -->
-                <div class="relative hidden lg:block">
-                    <input type="text" placeholder="Search everything..." 
-                        class="w-48 xl:w-64 px-4 py-2.5 bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 placeholder-gray-500 text-sm">
-                    <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
-                </div>
-
-                <!-- Mobile search -->
-                <button class="lg:hidden p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-300">
-                    <i class="fas fa-search text-base sm:text-lg"></i>
-                </button>
-
-                <!-- Enhanced Notifications -->
-                <div class="relative">
-                    <button id="notification-btn" class="relative p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-300 group">
-                        <i class="fas fa-bell group-hover:animate-bounce-soft text-base sm:text-lg"></i>
-                        <span id="notification-badge" class="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center">
-                            <span class="text-white text-xs font-bold">{{ pending_submissions|default:0 }}</span>
-                        </span>
-                    </button>
-
-                    <!-- Enhanced Notifications Dropdown -->
-                    <div id="notification-dropdown" class="absolute right-0 mt-3 w-[90vw] sm:w-96 max-w-md bg-white/95 backdrop-blur-xl rounded-2xl shadow-elevation-3 border border-gray-100 hidden z-50">
-                        <div class="p-4 sm:p-6 border-b border-gray-100">
-                            <div class="flex items-center justify-between">
-                                <h3 class="font-bold text-base sm:text-lg text-gray-800">Notifications</h3>
-                                <button class="text-purple-600 text-xs sm:text-sm hover:text-purple-700 font-semibold px-2 sm:px-3 py-1 rounded-lg hover:bg-purple-50 transition-all duration-300">Mark all read</button>
-                            </div>
-                        </div>
-                        <div class="max-h-96 overflow-y-auto">
-                            {% if pending_submissions > 0 %}
-                            <div class="p-3 sm:p-4 hover:bg-blue-50 border-b border-gray-50 transition-all duration-300">
-                                <div class="flex items-start space-x-3 sm:space-x-4">
-                                    <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-blue-500 rounded-full mt-2 status-indicator flex-shrink-0"></div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-xs sm:text-sm font-semibold text-gray-800">{{ pending_submissions }} Pending Lesson Submissions</p>
-                                        <p class="text-xs text-gray-500 mt-1">Review lesson plans awaiting approval</p>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                            {% if recent_lessons %}
-                            <div class="p-3 sm:p-4 hover:bg-green-50 border-b border-gray-50 transition-all duration-300">
-                                <div class="flex items-start space-x-3 sm:space-x-4">
-                                    <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full mt-2 status-indicator flex-shrink-0"></div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-xs sm:text-sm font-semibold text-gray-800">{{ recent_lessons|length }} New Lessons Created</p>
-                                        <p class="text-xs text-gray-500 mt-1">Recent lesson plan activity</p>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                            {% if recent_users %}
-                            <div class="p-3 sm:p-4 hover:bg-yellow-50 transition-all duration-300">
-                                <div class="flex items-start space-x-3 sm:space-x-4">
-                                    <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-yellow-500 rounded-full mt-2 status-indicator flex-shrink-0"></div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-xs sm:text-sm font-semibold text-gray-800">{{ recent_users|length }} New User{% if recent_users|length > 1 %}s{% endif %}</p>
-                                        <p class="text-xs text-gray-500 mt-1">Recent user registrations</p>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
-                        <div class="p-3 sm:p-4 border-t border-gray-100">
-                            <button class="w-full text-center text-purple-600 text-xs sm:text-sm hover:text-purple-700 font-semibold py-2 rounded-lg hover:bg-purple-50 transition-all duration-300">
-                                View all notifications
-                            </button>
-                        </div>
+<body class="bg-gray-50 min-h-screen">
+    <div class="flex">
+        <!-- Updated Sidebar with Dashboard as active -->
+        <aside class="w-64 bg-white shadow-lg h-screen fixed top-0 left-0 z-40">
+            <div class="p-6 border-b">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-crown text-white"></i>
                     </div>
-                </div>
-
-                <!-- Enhanced Profile -->
-                <div class="relative">
-                    <button id="profile-btn" class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center hover:shadow-neon transition-all duration-300 transform hover:scale-110">
-                        <i class="fas fa-user text-white text-xs sm:text-sm"></i>
-                    </button>
-
-                    <!-- Enhanced Profile Dropdown -->
-                    <div id="profile-dropdown" class="absolute right-0 mt-3 w-[90vw] sm:w-64 max-w-xs bg-white/95 backdrop-blur-xl rounded-2xl shadow-elevation-3 border border-gray-100 hidden z-50">
-                        <div class="p-4 sm:p-6 border-b border-gray-100">
-                            <div class="flex items-center space-x-3 sm:space-x-4">
-                                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg flex-shrink-0">
-                                    <i class="fas fa-user text-white text-sm sm:text-base"></i>
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <p class="font-bold text-gray-800 text-sm sm:text-base truncate">{{ user.full_name }}</p>
-                                    <p class="text-xs sm:text-sm text-gray-500 truncate">{{ user.email }}</p>
-                                    <p class="text-xs text-purple-600 font-medium">{{ user.role }}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="py-2 sm:py-3">
-                            <a href="#" class="flex items-center space-x-3 sm:space-x-4 px-4 sm:px-6 py-2 sm:py-3 text-gray-700 hover:bg-gray-50 transition-all duration-300">
-                                <i class="fas fa-cog w-4 text-gray-500 text-sm"></i>
-                                <span class="font-medium text-sm sm:text-base">Settings</span>
-                            </a>
-                            <hr class="my-2 border-gray-100">
-                            <a href="{% url 'logout' %}" class="flex items-center space-x-3 sm:space-x-4 px-4 sm:px-6 py-2 sm:py-3 text-red-600 hover:bg-red-50 transition-all duration-300">
-                                <i class="fas fa-sign-out-alt w-4 text-sm"></i>
-                                <span class="font-medium text-sm sm:text-base">Logout</span>
-                            </a>
-                        </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900">Admin Panel</h2>
+                        <p class="text-xs text-gray-600">{{ user.school.school_name }}</p>
                     </div>
                 </div>
             </div>
-        </div>
-    </header>
-
-    <div class="flex pt-14 sm:pt-16">
-        <!-- Enhanced Sidebar with better design -->
-        <aside id="sidebar" class="w-72 bg-white/70 backdrop-blur-xl shadow-elevation-2 h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] fixed top-14 sm:top-16 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 border-r border-gray-200/50 overflow-y-auto">
-            <nav class="p-4 sm:p-6 space-y-2 sm:space-y-3">
-                <!-- Enhanced Create Lesson Button -->
-                <a href="{% url 'lesson_planner' %}" class="w-full flex items-center space-x-3 sm:space-x-4 px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-xl hover:shadow-neon font-semibold transition-all duration-300 transform hover:scale-105 text-sm sm:text-base">
-                    <i class="fas fa-plus text-base sm:text-lg"></i>
-                    <span>Create New Lesson</span>
-                </a>
-
-                <!-- Enhanced Navigation Items -->
-                <a href="{% url 'admin_dashboard' %}" class="nav-item active flex items-center space-x-3 sm:space-x-4 px-4 sm:px-6 py-3 sm:py-4 text-[#11468F] bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl font-semibold border border-blue-200 text-sm sm:text-base">
-                    <i class="fas fa-home w-5 text-base sm:text-lg"></i>
+            
+            <nav class="p-4 space-y-2">
+                <a href="{% url 'admin_dashboard' %}" 
+                class="flex items-center space-x-3 px-4 py-3 bg-blue-50 text-blue-700 rounded-lg border border-blue-200">
+                    <i class="fas fa-home w-5"></i>
                     <span>Dashboard</span>
                 </a>
                 
-                <a href="{% url 'admin_user_management' %}" class="nav-item flex items-center space-x-3 sm:space-x-4 px-4 sm:px-6 py-3 sm:py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300 text-sm sm:text-base">
-                    <i class="fas fa-chalkboard-teacher w-5 text-base sm:text-lg"></i>
+                <a href="{% url 'admin_user_management' %}" 
+                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg">
+                    <i class="fas fa-users w-5"></i>
                     <span>User Management</span>
                 </a>
                 
-                <!-- Reports and Analytics Link -->
-                <a href="{% url 'admin_system_reports' %}" class="nav-item flex items-center space-x-3 sm:space-x-4 px-4 sm:px-6 py-3 sm:py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300 text-sm sm:text-base">
-                    <i class="fas fa-chart-bar w-5 text-base sm:text-lg"></i>
+                <a href="{% url 'admin_system_reports' %}" 
+                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg">
+                    <i class="fas fa-chart-bar w-5"></i>
                     <span>Reports & Analytics</span>
                 </a>
                 
-                <a href="{% url 'admin_calendar' %}" class="nav-item flex items-center space-x-3 sm:space-x-4 px-4 sm:px-6 py-3 sm:py-4 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all duration-300 text-sm sm:text-base">
-                    <i class="fas fa-calendar-alt w-5 text-base sm:text-lg"></i>
-                    <span>Calendar</span>
+                <a href="{% url 'admin_calendar' %}" 
+                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg">
+                    <i class="fas fa-calendar-alt w-5"></i>
+                    <span>School Calendar</span>
+                </a>
+                
+                <hr class="my-4">
+                
+                <!-- LOGOUT BUTTON -->
+                <a href="{% url 'logout' %}" 
+                class="flex items-center space-x-3 px-4 py-3 text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors duration-200">
+                    <i class="fas fa-sign-out-alt w-5"></i>
+                    <span class="font-medium">Logout</span>
                 </a>
             </nav>
         </aside>
 
-        <!-- Overlay for mobile -->
-        <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden backdrop-blur-sm"></div>
+        <!-- Main Content -->
+        <main class="flex-1 p-6 ml-64">
+            <!-- Enhanced Header -->
+            <header class="bg-white rounded-xl shadow-elevation-1 mb-6">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <!-- Mobile menu button -->
+                    <button id="mobile-menu-btn" class="md:hidden p-2 text-purple-600 hover:bg-purple-50 rounded-xl transition-all duration-300">
+                        <i class="fas fa-bars text-lg"></i>
+                    </button>
 
-        <!-- Enhanced Main Content -->
-        <main class="flex-1 p-4 sm:p-6 lg:p-8 md:ml-72 w-full md:w-auto overflow-x-hidden">
+                    <!-- Enhanced Logo -->
+                    <div class="flex items-center space-x-4">
+                        <div>
+                            <h1 class="text-xl font-bold gradient-text">LessonLink</h1>
+                            <p class="text-xs text-gray-500 font-medium">Western Mindanao State University</p>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Right side actions -->
+                    <div class="flex items-center space-x-4">
+                        <!-- Enhanced Search -->
+                        <div class="relative hidden lg:block">
+                            <input type="text" placeholder="Search everything..." 
+                                class="w-64 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 placeholder-gray-500 text-sm">
+                            <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
+                        </div>
+
+                        <!-- Mobile search -->
+                        <button class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-300">
+                            <i class="fas fa-search text-lg"></i>
+                        </button>
+
+                        <!-- Enhanced Notifications -->
+                        <div class="relative">
+                            <button id="notification-btn" class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-300 group">
+                                <i class="fas fa-bell group-hover:animate-bounce-soft text-lg"></i>
+                                <span id="notification-badge" class="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white text-xs font-bold">{{ pending_submissions|default:0 }}</span>
+                                </span>
+                            </button>
+
+                            <!-- Enhanced Notifications Dropdown -->
+                            <div id="notification-dropdown" class="absolute right-0 mt-3 w-96 max-w-md bg-white rounded-2xl shadow-elevation-3 border border-gray-100 hidden z-50">
+                                <div class="p-6 border-b border-gray-100">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="font-bold text-lg text-gray-800">Notifications</h3>
+                                        <button class="text-purple-600 text-sm hover:text-purple-700 font-semibold px-3 py-1 rounded-lg hover:bg-purple-50 transition-all duration-300">Mark all read</button>
+                                    </div>
+                                </div>
+                                <div class="max-h-96 overflow-y-auto">
+                                    {% if pending_submissions > 0 %}
+                                    <div class="p-4 hover:bg-blue-50 border-b border-gray-50 transition-all duration-300">
+                                        <div class="flex items-start space-x-4">
+                                            <div class="w-3 h-3 bg-blue-500 rounded-full mt-2 status-indicator flex-shrink-0"></div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-semibold text-gray-800">{{ pending_submissions }} Pending Lesson Submissions</p>
+                                                <p class="text-xs text-gray-500 mt-1">Review lesson plans awaiting approval</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if recent_lessons %}
+                                    <div class="p-4 hover:bg-green-50 border-b border-gray-50 transition-all duration-300">
+                                        <div class="flex items-start space-x-4">
+                                            <div class="w-3 h-3 bg-green-500 rounded-full mt-2 status-indicator flex-shrink-0"></div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-semibold text-gray-800">{{ recent_lessons|length }} New Lessons Created</p>
+                                                <p class="text-xs text-gray-500 mt-1">Recent lesson plan activity</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if recent_users %}
+                                    <div class="p-4 hover:bg-yellow-50 transition-all duration-300">
+                                        <div class="flex items-start space-x-4">
+                                            <div class="w-3 h-3 bg-yellow-500 rounded-full mt-2 status-indicator flex-shrink-0"></div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-semibold text-gray-800">{{ recent_users|length }} New User{% if recent_users|length > 1 %}s{% endif %}</p>
+                                                <p class="text-xs text-gray-500 mt-1">Recent user registrations</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="p-4 border-t border-gray-100">
+                                    <button class="w-full text-center text-purple-600 text-sm hover:text-purple-700 font-semibold py-2 rounded-lg hover:bg-purple-50 transition-all duration-300">
+                                        View all notifications
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Enhanced Profile -->
+                        <div class="relative">
+                            <button id="profile-btn" class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center hover:shadow-neon transition-all duration-300 transform hover:scale-110">
+                                <i class="fas fa-user text-white text-sm"></i>
+                            </button>
+
+                            <!-- Enhanced Profile Dropdown -->
+                            <div id="profile-dropdown" class="absolute right-0 mt-3 w-64 max-w-xs bg-white rounded-2xl shadow-elevation-3 border border-gray-100 hidden z-50">
+                                <div class="p-6 border-b border-gray-100">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg flex-shrink-0">
+                                            <i class="fas fa-user text-white text-base"></i>
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="font-bold text-gray-800 text-base truncate">{{ user.full_name }}</p>
+                                            <p class="text-sm text-gray-500 truncate">{{ user.email }}</p>
+                                            <p class="text-xs text-purple-600 font-medium">{{ user.role }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="py-3">
+                                    <a href="#" class="flex items-center space-x-4 px-6 py-3 text-gray-700 hover:bg-gray-50 transition-all duration-300">
+                                        <i class="fas fa-cog w-4 text-gray-500 text-sm"></i>
+                                        <span class="font-medium text-base">Settings</span>
+                                    </a>
+                                    <hr class="my-2 border-gray-100">
+                                    <a href="{% url 'logout' %}" class="flex items-center space-x-4 px-6 py-3 text-red-600 hover:bg-red-50 transition-all duration-300">
+                                        <i class="fas fa-sign-out-alt w-4 text-sm"></i>
+                                        <span class="font-medium text-base">Logout</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
             <!-- Enhanced Welcome Header -->
-            <div class="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 rounded-2xl p-6 sm:p-8 text-white mb-6 sm:mb-8 shadow-elevation-3 relative overflow-hidden">
+            <div class="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 rounded-2xl p-8 text-white mb-8 shadow-elevation-3 relative overflow-hidden">
                 <div class="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
                 <div class="relative z-10">
                     <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
                         <div class="w-full lg:w-auto">
-                            <h2 class="text-2xl sm:text-3xl font-bold mb-2 sm:mb-3">Welcome back, {{ SchoolRegistration.school_name }}!</h2>
-                            <p class="text-base sm:text-xl opacity-90 mb-4 sm:mb-6">
+                            <h2 class="text-3xl font-bold mb-3">Welcome back, {{ SchoolRegistration.school_name }}!</h2>
+                            <p class="text-xl opacity-90 mb-6">
                                 {% if school %}
                                     Managing {{ school.school_name }}
                                 {% else %}
                                     System Administration Dashboard
                                 {% endif %}
                             </p>
-                            <div class="flex flex-col sm:flex-row gap-3 sm:space-x-4 sm:gap-0">
-                                <a href="{% url 'admin_user_management' %}" class="bg-white/20 backdrop-blur-sm text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold hover:bg-white/30 transition-all duration-300 border border-white/30 text-center text-sm sm:text-base">
-                                    <i class="fas fa-building mr-2 sm:mr-3"></i>
+                            <div class="flex space-x-4">
+                                <a href="{% url 'admin_user_management' %}" class="bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/30 transition-all duration-300 border border-white/30">
+                                    <i class="fas fa-building mr-3"></i>
                                     Manage {% if school %}Faculty{% else %}Schools{% endif %}
                                 </a>
                                 {% if pending_submissions > 0 %}
-                                <a href="{% url 'Dep_Pending' %}" class="bg-red-500 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold hover:bg-red-600 transition-all duration-300 text-center text-sm sm:text-base">
-                                    <i class="fas fa-file-alt mr-2 sm:mr-3"></i>
+                                <a href="{% url 'Dep_Pending' %}" class="bg-red-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-red-600 transition-all duration-300">
+                                    <i class="fas fa-file-alt mr-3"></i>
                                     Review Lessons ({{ pending_submissions }})
                                 </a>
                                 {% endif %}
                             </div>
                         </div>
                         <div class="hidden lg:block flex-shrink-0">
-                            <div class="w-24 h-24 xl:w-32 xl:h-32 bg-white/10 rounded-full flex items-center justify-center">
-                                <i class="fas fa-tachometer-alt text-5xl xl:text-6xl text-white/80"></i>
+                            <div class="w-32 h-32 bg-white/10 rounded-full flex items-center justify-center">
+                                <i class="fas fa-tachometer-alt text-6xl text-white/80"></i>
                             </div>
                         </div>
                     </div>
@@ -342,41 +352,41 @@
             </div>
 
             <!-- Enhanced Key Metrics -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <!-- Total Users Card -->
-                <div class="metric-card bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-gray-200/50 shadow-elevation-2">
+                <div class="metric-card bg-white rounded-2xl p-6 border border-gray-200/50 shadow-elevation-2">
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
-                            <h3 class="text-xs sm:text-sm text-gray-600 font-semibold mb-1">
+                            <h3 class="text-sm text-gray-600 font-semibold mb-1">
                                 {% if school %}Total Users{% else %}Total Schools{% endif %}
                             </h3>
-                            <p class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
+                            <p class="text-3xl font-bold text-gray-900 mb-2">
                                 {% if school %}{{ total_users }}{% else %}{{ total_schools }}{% endif %}
                             </p>
                             <div class="flex items-center text-green-600">
                                 <i class="fas fa-arrow-up text-xs mr-1"></i>
-                                <span class="text-xs sm:text-sm font-medium">{{ user_growth }}</span>
+                                <span class="text-sm font-medium">{{ user_growth }}</span>
                             </div>
                         </div>
-                        <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center flex-shrink-0 ml-3">
-                            <i class="fas {% if school %}fa-users{% else %}fa-university{% endif %} text-xl sm:text-2xl text-blue-600"></i>
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center flex-shrink-0 ml-3">
+                            <i class="fas {% if school %}fa-users{% else %}fa-university{% endif %} text-2xl text-blue-600"></i>
                         </div>
                     </div>
                 </div>
 
                 <!-- Teachers/Institutions Card -->
-                <div class="metric-card bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-gray-200/50 shadow-elevation-2">
+                <div class="metric-card bg-white rounded-2xl p-6 border border-gray-200/50 shadow-elevation-2">
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
-                            <h3 class="text-xs sm:text-sm text-gray-600 font-semibold mb-1">
+                            <h3 class="text-sm text-gray-600 font-semibold mb-1">
                                 {% if school %}Teachers{% else %}Approved Schools{% endif %}
                             </h3>
-                            <p class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
+                            <p class="text-3xl font-bold text-gray-900 mb-2">
                                 {% if school %}{{ teachers_count }}{% else %}{{ approved_schools }}{% endif %}
                             </p>
                             <div class="flex items-center text-green-600">
                                 <i class="fas fa-arrow-up text-xs mr-1"></i>
-                                <span class="text-xs sm:text-sm font-medium">
+                                <span class="text-sm font-medium">
                                     {% if school %}
                                         {{ dept_heads_count }} Dept Heads
                                     {% else %}
@@ -385,73 +395,73 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-2xl flex items-center justify-center flex-shrink-0 ml-3">
-                            <i class="fas {% if school %}fa-chalkboard-teacher{% else %}fa-check-circle{% endif %} text-xl sm:text-2xl text-yellow-600"></i>
+                        <div class="w-16 h-16 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-2xl flex items-center justify-center flex-shrink-0 ml-3">
+                            <i class="fas {% if school %}fa-chalkboard-teacher{% else %}fa-check-circle{% endif %} text-2xl text-yellow-600"></i>
                         </div>
                     </div>
                 </div>
 
                 <!-- Total Lessons Card -->
-                <div class="metric-card bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-gray-200/50 shadow-elevation-2">
+                <div class="metric-card bg-white rounded-2xl p-6 border border-gray-200/50 shadow-elevation-2">
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
-                            <h3 class="text-xs sm:text-sm text-gray-600 font-semibold mb-1">Total Lessons</h3>
-                            <p class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">{{ total_lessons }}</p>
+                            <h3 class="text-sm text-gray-600 font-semibold mb-1">Total Lessons</h3>
+                            <p class="text-3xl font-bold text-gray-900 mb-2">{{ total_lessons }}</p>
                             <div class="flex items-center text-green-600">
                                 <i class="fas fa-arrow-up text-xs mr-1"></i>
-                                <span class="text-xs sm:text-sm font-medium">{{ lesson_growth }}</span>
+                                <span class="text-sm font-medium">{{ lesson_growth }}</span>
                             </div>
                         </div>
-                        <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center flex-shrink-0 ml-3">
-                            <i class="fas fa-book-open text-xl sm:text-2xl text-green-600"></i>
+                        <div class="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center flex-shrink-0 ml-3">
+                            <i class="fas fa-book-open text-2xl text-green-600"></i>
                         </div>
                     </div>
                 </div>
 
                 <!-- System Status Card -->
-                <div class="metric-card bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-gray-200/50 shadow-elevation-2">
+                <div class="metric-card bg-white rounded-2xl p-6 border border-gray-200/50 shadow-elevation-2">
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
-                            <h3 class="text-xs sm:text-sm text-gray-600 font-semibold mb-1">
+                            <h3 class="text-sm text-gray-600 font-semibold mb-1">
                                 {% if school %}Approved Lessons{% else %}System Uptime{% endif %}
                             </h3>
-                            <p class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
+                            <p class="text-3xl font-bold text-gray-900 mb-2">
                                 {% if school %}{{ approved_lessons }}{% else %}99.8%{% endif %}
                             </p>
                             <div class="flex items-center text-green-600">
                                 <div class="w-2 h-2 bg-green-500 rounded-full mr-2 status-indicator"></div>
-                                <span class="text-xs sm:text-sm font-medium">
+                                <span class="text-sm font-medium">
                                     {% if school %}{{ draft_lessons }} drafts{% else %}Excellent{% endif %}
                                 </span>
                             </div>
                         </div>
-                        <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center flex-shrink-0 ml-3">
-                            <i class="fas {% if school %}fa-check-circle{% else %}fa-server{% endif %} text-xl sm:text-2xl text-purple-600"></i>
+                        <div class="w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center flex-shrink-0 ml-3">
+                            <i class="fas {% if school %}fa-check-circle{% else %}fa-server{% endif %} text-2xl text-purple-600"></i>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Enhanced Recent Activity -->
-                <div class="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-elevation-2">
-                    <div class="p-4 sm:p-6 border-b border-gray-100">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                            <h3 class="text-lg sm:text-xl font-bold text-gray-800">Recent System Activity</h3>
-                            <button class="text-purple-600 hover:text-purple-700 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-lg hover:bg-purple-50 transition-all duration-300">View All</button>
+                <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200/50 shadow-elevation-2">
+                    <div class="p-6 border-b border-gray-100">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xl font-bold text-gray-800">Recent System Activity</h3>
+                            <button class="text-purple-600 hover:text-purple-700 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-purple-50 transition-all duration-300">View All</button>
                         </div>
                     </div>
-                    <div class="p-4 sm:p-6">
-                        <div class="space-y-4 sm:space-y-6">
+                    <div class="p-6">
+                        <div class="space-y-6">
                             {% if recent_lessons %}
                                 {% for lesson in recent_lessons %}
-                                <div class="flex items-start space-x-3 sm:space-x-4 p-3 sm:p-4 bg-blue-50 rounded-xl border border-blue-200">
-                                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                                        <i class="fas fa-book-open text-white text-sm sm:text-base"></i>
+                                <div class="flex items-start space-x-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                                        <i class="fas fa-book-open text-white text-base"></i>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="font-semibold text-gray-800 text-sm sm:text-base">New Lesson: {{ lesson.title }}</p>
-                                        <p class="text-xs sm:text-sm text-gray-600 mt-1">Created by {{ lesson.created_by.get_full_name }} in {{ lesson.subject }}</p>
+                                        <p class="font-semibold text-gray-800 text-base">New Lesson: {{ lesson.title }}</p>
+                                        <p class="text-sm text-gray-600 mt-1">Created by {{ lesson.created_by.get_full_name }} in {{ lesson.subject }}</p>
                                         <p class="text-xs text-blue-600 mt-2 font-medium">{{ lesson.created_at|timesince }} ago</p>
                                     </div>
                                 </div>
@@ -460,13 +470,13 @@
 
                             {% if recent_users %}
                                 {% for user in recent_users %}
-                                <div class="flex items-start space-x-3 sm:space-x-4 p-3 sm:p-4 bg-green-50 rounded-xl border border-green-200">
-                                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                                        <i class="fas fa-user-plus text-white text-sm sm:text-base"></i>
+                                <div class="flex items-start space-x-4 p-4 bg-green-50 rounded-xl border border-green-200">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                                        <i class="fas fa-user-plus text-white text-base"></i>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="font-semibold text-gray-800 text-sm sm:text-base">New {{ user.role }}: {{ user.get_full_name }}</p>
-                                        <p class="text-xs sm:text-sm text-gray-600 mt-1">{{ user.department }} • {{ user.email }}</p>
+                                        <p class="font-semibold text-gray-800 text-base">New {{ user.role }}: {{ user.get_full_name }}</p>
+                                        <p class="text-sm text-gray-600 mt-1">{{ user.department }} • {{ user.email }}</p>
                                         <p class="text-xs text-green-600 mt-2 font-medium">{{ user.date_joined|timesince }} ago</p>
                                     </div>
                                 </div>
@@ -484,32 +494,32 @@
                 </div>
 
                 <!-- Enhanced Quick Actions -->
-                <div class="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-elevation-2">
-                    <div class="p-4 sm:p-6 border-b border-gray-100">
+                <div class="bg-white rounded-2xl border border-gray-200/50 shadow-elevation-2">
+                    <div class="p-6 border-b border-gray-100">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-lg sm:text-xl font-bold text-gray-800">Quick Actions</h3>
+                            <h3 class="text-xl font-bold text-gray-800">Quick Actions</h3>
                             <div class="flex items-center space-x-2">
-                                <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full status-indicator"></div>
-                                <span class="text-xs sm:text-sm font-semibold text-green-600">Ready</span>
+                                <div class="w-3 h-3 bg-green-500 rounded-full status-indicator"></div>
+                                <span class="text-sm font-semibold text-green-600">Ready</span>
                             </div>
                         </div>
                     </div>
-                    <div class="p-4 sm:p-6">
-                        <div class="space-y-3 sm:space-y-4">
-                            <a href="{% url 'lesson_planner' %}" class="flex items-center justify-between p-3 sm:p-4 bg-blue-50 rounded-xl border border-blue-200 hover:bg-blue-100 transition-all duration-300">
-                                <div class="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-                                    <div class="w-3 h-3 sm:w-4 sm:h-4 bg-blue-500 rounded-full status-indicator flex-shrink-0"></div>
-                                    <span class="font-semibold text-gray-800 text-sm sm:text-base truncate">Create Lesson</span>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            <a href="{% url 'lesson_planner' %}" class="flex items-center justify-between p-4 bg-blue-50 rounded-xl border border-blue-200 hover:bg-blue-100 transition-all duration-300">
+                                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                                    <div class="w-4 h-4 bg-blue-500 rounded-full status-indicator flex-shrink-0"></div>
+                                    <span class="font-semibold text-gray-800 text-base truncate">Create Lesson</span>
                                 </div>
                                 <div class="flex-shrink-0 ml-2">
                                     <i class="fas fa-arrow-right text-blue-600 text-sm"></i>
                                 </div>
                             </a>
                             
-                            <a href="{% url 'admin_user_management' %}" class="flex items-center justify-between p-3 sm:p-4 bg-green-50 rounded-xl border border-green-200 hover:bg-green-100 transition-all duration-300">
-                                <div class="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-                                    <div class="w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded-full status-indicator flex-shrink-0"></div>
-                                    <span class="font-semibold text-gray-800 text-sm sm:text-base truncate">Manage Faculty</span>
+                            <a href="{% url 'admin_user_management' %}" class="flex items-center justify-between p-4 bg-green-50 rounded-xl border border-green-200 hover:bg-green-100 transition-all duration-300">
+                                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                                    <div class="w-4 h-4 bg-green-500 rounded-full status-indicator flex-shrink-0"></div>
+                                    <span class="font-semibold text-gray-800 text-base truncate">Manage Faculty</span>
                                 </div>
                                 <div class="flex-shrink-0 ml-2">
                                     <i class="fas fa-arrow-right text-green-600 text-sm"></i>
@@ -517,10 +527,10 @@
                             </a>
                             
                             {% if pending_submissions > 0 %}
-                            <a href="{% url 'Dep_Pending' %}" class="flex items-center justify-between p-3 sm:p-4 bg-red-50 rounded-xl border border-red-200 hover:bg-red-100 transition-all duration-300">
-                                <div class="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-                                    <div class="w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded-full status-indicator flex-shrink-0"></div>
-                                    <span class="font-semibold text-gray-800 text-sm sm:text-base truncate">Review Lessons</span>
+                            <a href="{% url 'Dep_Pending' %}" class="flex items-center justify-between p-4 bg-red-50 rounded-xl border border-red-200 hover:bg-red-100 transition-all duration-300">
+                                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                                    <div class="w-4 h-4 bg-red-500 rounded-full status-indicator flex-shrink-0"></div>
+                                    <span class="font-semibold text-gray-800 text-base truncate">Review Lessons</span>
                                 </div>
                                 <div class="flex-shrink-0 ml-2">
                                     <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">{{ pending_submissions }}</span>
@@ -528,76 +538,15 @@
                             </a>
                             {% endif %}
                             
-                            <a href="{% url 'admin_calendar' %}" class="flex items-center justify-between p-3 sm:p-4 bg-purple-50 rounded-xl border border-purple-200 hover:bg-purple-100 transition-all duration-300">
-                                <div class="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-                                    <div class="w-3 h-3 sm:w-4 sm:h-4 bg-purple-500 rounded-full status-indicator flex-shrink-0"></div>
-                                    <span class="font-semibold text-gray-800 text-sm sm:text-base truncate">View Calendar</span>
+                            <a href="{% url 'admin_calendar' %}" class="flex items-center justify-between p-4 bg-purple-50 rounded-xl border border-purple-200 hover:bg-purple-100 transition-all duration-300">
+                                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                                    <div class="w-4 h-4 bg-purple-500 rounded-full status-indicator flex-shrink-0"></div>
+                                    <span class="font-semibold text-gray-800 text-base truncate">View Calendar</span>
                                 </div>
                                 <div class="flex-shrink-0 ml-2">
                                     <i class="fas fa-arrow-right text-purple-600 text-sm"></i>
                                 </div>
                             </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Enhanced Analytics Section -->
-            <div class="mt-6 sm:mt-8 grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
-                <!-- Usage Analytics -->
-                <div class="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-elevation-2">
-                    <div class="p-4 sm:p-6 border-b border-gray-100">
-                        <h3 class="text-lg sm:text-xl font-bold text-gray-800">Usage Analytics</h3>
-                        <p class="text-xs sm:text-sm text-gray-600 mt-1">System usage overview</p>
-                    </div>
-                    <div class="p-4 sm:p-6 chart-container">
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs sm:text-sm font-medium text-gray-600">Lessons Created</span>
-                                <span class="text-base sm:text-lg font-bold text-gray-900">{{ total_lessons }}</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2.5 sm:h-3">
-                                <div class="bg-gradient-to-r from-green-500 to-teal-500 h-2.5 sm:h-3 rounded-full" style="width: {% widthratio approved_lessons total_lessons 100 %}%"></div>
-                            </div>
-                            <div class="flex justify-between text-xs text-gray-500">
-                                <span>Approved: {{ approved_lessons }}</span>
-                                <span>Drafts: {{ draft_lessons }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- User Distribution -->
-                <div class="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-elevation-2">
-                    <div class="p-4 sm:p-6 border-b border-gray-100">
-                        <h3 class="text-lg sm:text-xl font-bold text-gray-800">User Distribution</h3>
-                        <p class="text-xs sm:text-sm text-gray-600 mt-1">Active users by role</p>
-                    </div>
-                    <div class="p-4 sm:p-6 chart-container">
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs sm:text-sm font-medium text-gray-600">Teachers</span>
-                                <span class="text-base sm:text-lg font-bold text-gray-900">{{ teachers_count }}</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2.5 sm:h-3">
-                                <div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-2.5 sm:h-3 rounded-full" style="width: {% widthratio teachers_count total_users 100 %}%"></div>
-                            </div>
-                            
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs sm:text-sm font-medium text-gray-600">Department Heads</span>
-                                <span class="text-base sm:text-lg font-bold text-gray-900">{{ dept_heads_count }}</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2.5 sm:h-3">
-                                <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2.5 sm:h-3 rounded-full" style="width: {% widthratio dept_heads_count total_users 100 %}%"></div>
-                            </div>
-                            
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs sm:text-sm font-medium text-gray-600">Student Teachers</span>
-                                <span class="text-base sm:text-lg font-bold text-gray-900">{{ student_teachers_count }}</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2.5 sm:h-3">
-                                <div class="bg-gradient-to-r from-green-500 to-emerald-500 h-2.5 sm:h-3 rounded-full" style="width: {% widthratio student_teachers_count total_users 100 %}%"></div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -616,11 +565,11 @@
                 error: 'bg-red-500'
             };
             
-            notification.className = `fixed top-20 sm:top-24 right-4 sm:right-6 p-3 sm:p-4 rounded-xl text-white z-50 ${colors[type]} shadow-elevation-3 animate-slide-up backdrop-blur-sm max-w-[90vw] sm:max-w-md`;
+            notification.className = `fixed top-24 right-6 p-4 rounded-xl text-white z-50 ${colors[type]} shadow-elevation-3 animate-slide-up backdrop-blur-sm max-w-md`;
             notification.innerHTML = `
-                <div class="flex items-center space-x-2 sm:space-x-3">
-                    <i class="fas fa-info-circle text-sm sm:text-base"></i>
-                    <span class="font-medium text-sm sm:text-base">${message}</span>
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-info-circle text-base"></i>
+                    <span class="font-medium text-base">${message}</span>
                 </div>
             `;
             
@@ -634,25 +583,6 @@
 
         // Initialize when DOM loads
         document.addEventListener('DOMContentLoaded', () => {
-            // Mobile menu toggle with enhanced animations
-            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            
-            mobileMenuBtn.addEventListener('click', () => {
-                sidebar.classList.toggle('-translate-x-full');
-                overlay.classList.toggle('hidden');
-                mobileMenuBtn.querySelector('i').classList.toggle('fa-bars');
-                mobileMenuBtn.querySelector('i').classList.toggle('fa-times');
-            });
-            
-            overlay.addEventListener('click', () => {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
-                mobileMenuBtn.querySelector('i').classList.add('fa-bars');
-                mobileMenuBtn.querySelector('i').classList.remove('fa-times');
-            });
-            
             // Enhanced notification dropdown
             const notificationBtn = document.getElementById('notification-btn');
             const notificationDropdown = document.getElementById('notification-dropdown');
@@ -733,16 +663,6 @@
                     }, 100);
                 });
             }, 10000);
-
-            // Close mobile menu when window is resized to desktop
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 768) {
-                    sidebar.classList.remove('-translate-x-full');
-                    overlay.classList.add('hidden');
-                    mobileMenuBtn.querySelector('i').classList.add('fa-bars');
-                    mobileMenuBtn.querySelector('i').classList.remove('fa-times');
-                }
-            });
         });
     </script>
 </body>

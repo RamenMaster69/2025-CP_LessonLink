@@ -24,12 +24,6 @@
             <span>User Management</span>
         </a>
         
-        <!-- <a href="{% url 'admin_lesson_monitoring' %}" 
-           class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg">
-            <i class="fas fa-book-open w-5"></i>
-            <span>Lesson Monitoring</span>
-        </a> -->
-        
         <a href="{% url 'admin_system_reports' %}" 
            class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <i class="fas fa-chart-bar w-5"></i>
@@ -42,18 +36,14 @@
             <span>School Calendar</span>
         </a>
         
-        <hr class="my-4">
+        <hr class="my-4 border-gray-200">
         
-        <!-- <a href="{% url 'profile' %}" 
-           class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg">
-            <i class="fas fa-user w-5"></i>
-            <span>My Profile</span>
-        </a> -->
         
-        <!-- <a href="{% url 'logout' %}" 
-           class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg">
+        <!-- LOGOUT BUTTON - CLEARLY VISIBLE -->
+        <a href="{% url 'logout' %}" 
+           class="flex items-center space-x-3 px-4 py-3 text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors duration-200 mt-4">
             <i class="fas fa-sign-out-alt w-5"></i>
-            <span>Logout</span>
-        </a> -->
+            <span class="font-medium">Logout</span>
+        </a>
     </nav>
 </aside>

@@ -1614,7 +1614,38 @@ def st_dash(request):
         messages.success(request, f"Welcome back, {user.first_name}!")
         request.session['welcome_shown'] = True
     
-    return render(request, 'st_dash.html', {'user': user})
+    # Get lesson plan statistics for dashboard - SAME AS DASHBOARD
+    from lessonGenerator.models import LessonPlan
+    
+    # Total Lesson Plans (all lesson plans for the user)
+    total_lesson_plans = LessonPlan.objects.filter(created_by=user).count()
+    
+    # Draft Lesson Plans (only those with draft status)
+    draft_lesson_plans = LessonPlan.objects.filter(created_by=user, status='draft').count()
+    
+    # Get task statistics for dashboard
+    total_tasks = Task.objects.filter(user=user).count()
+    
+    # Get recent lesson plans (5 most recent)
+    recent_lesson_plans = LessonPlan.objects.filter(created_by=user).order_by('-created_at')[:5]
+    
+    # Get today's schedule - SAME AS DASHBOARD
+    from django.utils import timezone
+    import pytz
+    
+    today = timezone.localtime(timezone.now()).strftime('%A').lower()
+    todays_schedule = Schedule.objects.filter(user=user, day=today).order_by('time')
+    
+    return render(request, 'st_dash.html', {
+        'user': user,
+        'full_name': user.full_name,
+        'total_tasks': total_tasks,
+        'total_lesson_plans': total_lesson_plans,
+        'draft_lesson_plans': draft_lesson_plans,
+        'recent_lesson_plans': recent_lesson_plans,
+        'todays_schedule': todays_schedule,
+        'today_display': timezone.localtime(timezone.now()).strftime('%A')  # For display
+    })
 
 def calendar(request):
     return render(request, 'calendar.html')

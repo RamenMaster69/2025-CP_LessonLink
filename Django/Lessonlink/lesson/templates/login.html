@@ -60,7 +60,7 @@
                 {% endfor %}
                 {% endif %}
 
-                <!-- ✅ ADD THIS - Timeout Message -->
+                <!-- Timeout Message -->
                 {% if show_timeout_message %}
                 <div class="mb-4 p-4 rounded-lg bg-yellow-100 border border-yellow-300 text-yellow-700">
                 <div class="flex">
@@ -74,64 +74,74 @@
                 </div>
                 {% endif %}
 
-
-
                 <form class="space-y-6" method="POST" action="{% url 'login' %}"
                     onsubmit="return validateForm(event)">
                     
-                    <!-- CSRF Token - Make sure this is included -->
+                    <!-- CSRF Token -->
                     {% csrf_token %}
 
-                    <!-- Email -->
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-envelope text-gray-400"></i>
+                    <!-- Email Field Container -->
+                    <div>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-envelope text-gray-400"></i>
+                            </div>
+                            <input type="email" id="email" name="email" value="{{ email|default:'' }}"
+                                class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 {% if email %}error-border{% endif %}"
+                                placeholder="Email Address" required autocomplete="email">
                         </div>
-                        <input type="email" id="email" name="email" value="{{ email|default:'' }}"
-                            class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 {% if email %}error-border{% endif %}"
-                            placeholder="Email Address" required autocomplete="email">
                         
                         <!-- Client-side email validation error -->
-                        <div id="emailError" class="hidden text-red-500 text-sm mt-2 flex items-center">
-                            <i class="fas fa-exclamation-circle mr-2"></i>
-                            <span id="emailErrorText">Please enter a valid email address</span>
+                        <div id="emailError" class="hidden bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
+                            <div class="flex items-start">
+                                <i class="fas fa-exclamation-triangle text-red-500 mr-2 mt-0.5"></i>
+                                <span id="emailErrorText" class="text-red-700 text-sm flex-1">Please enter a valid email address</span>
+                            </div>
                         </div>
                         
                         <!-- Django validation error for email -->
                         {% if show_error and email %}
-                        <div class="text-red-500 text-sm mt-2 flex items-center">
-                            <i class="fas fa-exclamation-circle mr-2"></i>
-                            {{ email_message }}
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
+                            <div class="flex items-start">
+                                <i class="fas fa-exclamation-triangle text-red-500 mr-2 mt-0.5"></i>
+                                <span class="text-red-700 text-sm flex-1">{{ email_message }}</span>
+                            </div>
                         </div>
                         {% endif %}
                     </div>
 
-                    <!-- Password -->
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-lock text-gray-400"></i>
-                        </div>
-                        <input type="password" id="password" name="password"
-                            class="input-focus block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 {% if password %}error-border{% endif %}"
-                            placeholder="Password" required autocomplete="current-password">
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                            <button type="button" class="text-gray-400 hover:text-gray-600"
-                                onclick="togglePassword('password')">
-                                <i class="fas fa-eye" id="togglePassword"></i>
-                            </button>
+                    <!-- Password Field Container -->
+                    <div>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-lock text-gray-400"></i>
+                            </div>
+                            <input type="password" id="password" name="password"
+                                class="input-focus block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 {% if password %}error-border{% endif %}"
+                                placeholder="Password" required autocomplete="current-password">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <button type="button" class="text-gray-400 hover:text-gray-600"
+                                    onclick="togglePassword('password')">
+                                    <i class="fas fa-eye" id="togglePassword"></i>
+                                </button>
+                            </div>
                         </div>
                         
                         <!-- Client-side password validation error -->
-                        <div id="passwordError" class="hidden text-red-500 text-sm mt-2 flex items-center">
-                            <i class="fas fa-exclamation-circle mr-2"></i>
-                            <span id="passwordErrorText">Please enter your password</span>
+                        <div id="passwordError" class="hidden text-red-500 text-sm mt-2">
+                            <div class="flex items-center">
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                                <span id="passwordErrorText">Please enter your password</span>
+                            </div>
                         </div>
                         
                         <!-- Django validation error for password -->
                         {% if show_error and password %}
-                        <div class="text-red-500 text-sm mt-2 flex items-center">
-                            <i class="fas fa-exclamation-circle mr-2"></i>
-                            {{ password_message }}
+                        <div class="text-red-500 text-sm mt-2">
+                            <div class="flex items-center">
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                                <span>{{ password_message }}</span>
+                            </div>
                         </div>
                         {% endif %}
                     </div>
@@ -169,7 +179,7 @@
                         <i id="loadingSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
                     </button>
 
-                    <!-- Account Status Messages (for specific account issues) -->
+                    <!-- Account Status Messages -->
                     {% if show_error and account_status_error %}
                     <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                         <div class="flex items-center">
@@ -238,10 +248,14 @@
             const errorElement = document.getElementById(elementId);
             const textElement = document.getElementById(elementId + 'Text');
             
+            if (errorElement) {
+                errorElement.classList.remove('hidden');
+            }
+            
             if (textElement) {
                 textElement.textContent = message;
+                textElement.style.display = 'block';
             }
-            errorElement.classList.remove('hidden');
             
             if (inputField) {
                 inputField.classList.add('error-border');
@@ -250,7 +264,10 @@
         }
 
         function hideError(elementId, inputField = null) {
-            document.getElementById(elementId).classList.add('hidden');
+            const errorElement = document.getElementById(elementId);
+            if (errorElement) {
+                errorElement.classList.add('hidden');
+            }
             if (inputField) {
                 inputField.classList.remove('error-border');
             }
