@@ -195,7 +195,7 @@
         <!-- Sidebar -->
         <aside id="sidebar" class="w-64 bg-white shadow-lg h-[calc(100vh-4rem)] fixed overflow-y-auto">
             <nav class="p-4 pt-8 space-y-2">
-                <a href="{% url 'lesson_planner' %}">
+                <a href="{% url 'lesson_ai' %}">
                     <button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] shadow-md transition-all">
                         <i class="fas fa-plus text-lg"></i>
                         <span class="font-medium">Create Lesson</span>
@@ -205,7 +205,7 @@
                 <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
                     <i class="fas fa-home text-lg w-5"></i><span>Dashboard</span>
                 </a>
-                <a href="{% url 'draft' %}" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
                     <i class="fas fa-file-alt text-lg w-5"></i><span class="font-medium">Drafts</span>
                 </a>
                 <a href="{% url 'task' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
@@ -214,7 +214,7 @@
                 <a href="{% url 'schedule' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
                     <i class="fas fa-clock text-lg w-5"></i><span>Schedule</span>
                 </a>
-                <a href="{% url 'calendar' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
+                <a href="{% url 'dep_calendar' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
                     <i class="fas fa-calendar text-lg w-5"></i><span>Calendar</span>
                 </a>
             </nav>
