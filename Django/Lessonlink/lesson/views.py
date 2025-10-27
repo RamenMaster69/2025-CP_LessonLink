@@ -280,15 +280,16 @@ def validate_school_id_ajax(request):
 # User Registration and Authentication Views
 @login_required
 def upload_profile_picture(request):
+    """Handle profile picture upload via AJAX"""
     if request.method == 'POST' and request.FILES.get('profile_picture'):
         profile_picture = request.FILES['profile_picture']
         
         # Validate file type
-        allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
+        allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
         if profile_picture.content_type not in allowed_types:
             return JsonResponse({
                 'success': False, 
-                'message': 'Invalid file type. Please upload JPG, PNG, or GIF.'
+                'message': 'Invalid file type. Please upload JPG, PNG, GIF, or WebP.'
             })
         
         # Validate file size (max 5MB)
@@ -306,42 +307,27 @@ def upload_profile_picture(request):
                 try:
                     if default_storage.exists(user.profile_picture.name):
                         default_storage.delete(user.profile_picture.name)
-                except:
-                    pass  # Continue even if deletion fails
-            
-            # Process and resize image using PIL
-            image = Image.open(profile_picture)
-            
-            # Convert to RGB if necessary (for PNG with transparency)
-            if image.mode in ('RGBA', 'LA', 'P'):
-                background = Image.new('RGB', image.size, (255, 255, 255))
-                if image.mode == 'P':
-                    image = image.convert('RGBA')
-                background.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
-                image = background
-            
-            # Resize image to max 500x500 while maintaining aspect ratio
-            max_size = (500, 500)
-            image.thumbnail(max_size, Image.Resampling.LANCZOS)
+                except Exception as e:
+                    print(f"Error deleting old profile picture: {e}")
+                    # Continue with upload even if deletion fails
             
             # Generate unique filename
             file_extension = profile_picture.name.split('.')[-1].lower()
+            if file_extension not in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+                file_extension = 'jpg'  # Default extension
+            
             filename = f"profile_pictures/user_{user.id}_{uuid.uuid4().hex}.{file_extension}"
             
-            # Save processed image to BytesIO
-            output = BytesIO()
-            image.save(output, format='JPEG', quality=90, optimize=True)
-            output.seek(0)
-            
-            # Save to storage
-            path = default_storage.save(filename, ContentFile(output.read()))
+            # Save the file
+            path = default_storage.save(filename, profile_picture)
             
             # Update user's profile picture
             user.profile_picture = path
             user.save()
             
             # Return the URL for the image
-            image_url = default_storage.url(path)
+            image_url = user.profile_picture.url
+            
             return JsonResponse({
                 'success': True, 
                 'image_url': image_url,
@@ -349,13 +335,14 @@ def upload_profile_picture(request):
             })
             
         except Exception as e:
+            logger.error(f"Error uploading profile picture: {str(e)}")
             return JsonResponse({
                 'success': False, 
                 'message': f'Error processing image: {str(e)}'
             })
     
     return JsonResponse({'success': False, 'message': 'Invalid request'})
-
+    
 def landing(request):
     return render(request, 'landing.html')
 

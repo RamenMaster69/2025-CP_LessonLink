@@ -46,6 +46,7 @@ urlpatterns = [
     path('logout/', logout_view, name='logout'),
     path('dashboard/', dashboard, name='dashboard'),
     path('profile/', profile, name='profile'),
+    path('upload-profile-picture/', views.upload_profile_picture, name='upload_profile_picture'),
     path('lesson_planner/', lesson_planner, name='lesson_planner'),
     path('lesson_plan/', lesson_plan, name='lesson_plan'),
     path('draft/', draft, name='draft'),

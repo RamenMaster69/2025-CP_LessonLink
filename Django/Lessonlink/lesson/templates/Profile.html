@@ -444,404 +444,434 @@
     </main>
 
     <script>
-        // Session Management System
-        class SessionManager {
-            constructor() {
-                this.sessionDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
-                this.warningTime = 60 * 1000; // 1 minute warning in milliseconds
-                this.lastActivity = Date.now();
-                this.sessionTimer = null;
-                this.warningTimer = null;
-                this.countdownTimer = null;
-                this.isWarningShown = false;
-                this.countdownSeconds = 60;
-                
-                this.init();
+    // Session Management System
+    class SessionManager {
+        constructor() {
+            this.sessionDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
+            this.warningTime = 60 * 1000; // 1 minute warning in milliseconds
+            this.lastActivity = Date.now();
+            this.sessionTimer = null;
+            this.warningTimer = null;
+            this.countdownTimer = null;
+            this.isWarningShown = false;
+            this.countdownSeconds = 60;
+            
+            this.init();
+        }
+
+        init() {
+            // Track user activity
+            this.trackActivity();
+            // Start session monitoring
+            this.startSessionMonitoring();
+            // Update timer display
+            this.updateTimerDisplay();
+        }
+
+        trackActivity() {
+            const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+            
+            events.forEach(event => {
+                document.addEventListener(event, () => {
+                    this.resetActivity();
+                }, true);
+            });
+        }
+
+        resetActivity() {
+            this.lastActivity = Date.now();
+            
+            // Hide warning modal if shown
+            if (this.isWarningShown) {
+                this.hideWarningModal();
             }
+            
+            // Reset timers
+            this.clearTimers();
+            this.startSessionMonitoring();
+        }
 
-            init() {
-                // Track user activity
-                this.trackActivity();
-                // Start session monitoring
-                this.startSessionMonitoring();
-                // Update timer display
-                this.updateTimerDisplay();
+        startSessionMonitoring() {
+            // Set timer for warning (4 minutes)
+            this.warningTimer = setTimeout(() => {
+                this.showWarningModal();
+            }, this.sessionDuration - this.warningTime);
+
+            // Set timer for automatic logout (5 minutes)
+            this.sessionTimer = setTimeout(() => {
+                this.logout();
+            }, this.sessionDuration);
+        }
+
+        showWarningModal() {
+            this.isWarningShown = true;
+            this.countdownSeconds = 60;
+            
+            const modal = document.getElementById('session-warning-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                // Start countdown
+                this.startCountdown();
             }
+        }
 
-            trackActivity() {
-                const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-                
-                events.forEach(event => {
-                    document.addEventListener(event, () => {
-                        this.resetActivity();
-                    }, true);
-                });
+        startCountdown() {
+            const countdownElement = document.getElementById('countdown');
+            if (countdownElement) {
+                countdownElement.textContent = this.countdownSeconds;
             }
-
-            resetActivity() {
-                this.lastActivity = Date.now();
-                
-                // Hide warning modal if shown
-                if (this.isWarningShown) {
-                    this.hideWarningModal();
-                }
-                
-                // Reset timers
-                this.clearTimers();
-                this.startSessionMonitoring();
-            }
-
-            startSessionMonitoring() {
-                // Set timer for warning (4 minutes)
-                this.warningTimer = setTimeout(() => {
-                    this.showWarningModal();
-                }, this.sessionDuration - this.warningTime);
-
-                // Set timer for automatic logout (5 minutes)
-                this.sessionTimer = setTimeout(() => {
-                    this.logout();
-                }, this.sessionDuration);
-            }
-
-            showWarningModal() {
-                this.isWarningShown = true;
-                this.countdownSeconds = 60;
-                
-                const modal = document.getElementById('session-warning-modal');
-                if (modal) {
-                    modal.classList.remove('hidden');
-                    // Start countdown
-                    this.startCountdown();
-                }
-            }
-
-            startCountdown() {
-                const countdownElement = document.getElementById('countdown');
+            
+            this.countdownTimer = setInterval(() => {
+                this.countdownSeconds--;
                 if (countdownElement) {
                     countdownElement.textContent = this.countdownSeconds;
                 }
                 
-                this.countdownTimer = setInterval(() => {
-                    this.countdownSeconds--;
-                    if (countdownElement) {
-                        countdownElement.textContent = this.countdownSeconds;
-                    }
-                    
-                    if (this.countdownSeconds <= 0) {
-                        clearInterval(this.countdownTimer);
-                        this.logout();
-                    }
-                }, 1000);
-                
-                // Setup button handlers (only add listeners once)
-                const extendBtn = document.getElementById('extend-session-btn');
-                const logoutBtn = document.getElementById('logout-now-btn');
-                
-                if (extendBtn && !extendBtn.hasAttribute('data-listener')) {
-                    extendBtn.setAttribute('data-listener', 'true');
-                    extendBtn.addEventListener('click', () => {
-                        this.resetActivity();
-                    });
-                }
-                
-                if (logoutBtn && !logoutBtn.hasAttribute('data-listener')) {
-                    logoutBtn.setAttribute('data-listener', 'true');
-                    logoutBtn.addEventListener('click', () => {
-                        this.logout();
-                    });
-                }
-            }
-
-            hideWarningModal() {
-                this.isWarningShown = false;
-                const modal = document.getElementById('session-warning-modal');
-                if (modal) {
-                    modal.classList.add('hidden');
-                }
-            }
-
-            clearTimers() {
-                if (this.sessionTimer) {
-                    clearTimeout(this.sessionTimer);
-                    this.sessionTimer = null;
-                }
-                if (this.warningTimer) {
-                    clearTimeout(this.warningTimer);
-                    this.warningTimer = null;
-                }
-                if (this.countdownTimer) {
+                if (this.countdownSeconds <= 0) {
                     clearInterval(this.countdownTimer);
-                    this.countdownTimer = null;
+                    this.logout();
                 }
+            }, 1000);
+            
+            // Setup button handlers (only add listeners once)
+            const extendBtn = document.getElementById('extend-session-btn');
+            const logoutBtn = document.getElementById('logout-now-btn');
+            
+            if (extendBtn && !extendBtn.hasAttribute('data-listener')) {
+                extendBtn.setAttribute('data-listener', 'true');
+                extendBtn.addEventListener('click', () => {
+                    this.resetActivity();
+                });
             }
-
-            updateTimerDisplay() {
-                const timerElement = document.getElementById('session-timer');
-                if (!timerElement) return;
-                
-                const updateTimer = () => {
-                    const remainingTime = Math.max(0, this.sessionDuration - (Date.now() - this.lastActivity));
-                    const minutes = Math.floor(remainingTime / 60000);
-                    const seconds = Math.floor((remainingTime % 60000) / 1000);
-                    
-                    timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                };
-                
-                // Update immediately
-                updateTimer();
-                
-                // Update every second
-                setInterval(updateTimer, 1000);
-            }
-
-            logout() {
-                // Clear all timers
-                this.clearTimers();
-                
-                // Get the logout URL - you'll need to replace this with your actual logout URL
-                // Since we can't use Django template tags in this context, use a hardcoded path
-                window.location.href = "/logout/";
+            
+            if (logoutBtn && !logoutBtn.hasAttribute('data-listener')) {
+                logoutBtn.setAttribute('data-listener', 'true');
+                logoutBtn.addEventListener('click', () => {
+                    this.logout();
+                });
             }
         }
 
-        // Initialize everything when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initialize session manager
-            const sessionManager = new SessionManager();
+        hideWarningModal() {
+            this.isWarningShown = false;
+            const modal = document.getElementById('session-warning-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        clearTimers() {
+            if (this.sessionTimer) {
+                clearTimeout(this.sessionTimer);
+                this.sessionTimer = null;
+            }
+            if (this.warningTimer) {
+                clearTimeout(this.warningTimer);
+                this.warningTimer = null;
+            }
+            if (this.countdownTimer) {
+                clearInterval(this.countdownTimer);
+                this.countdownTimer = null;
+            }
+        }
+
+        updateTimerDisplay() {
+            const timerElement = document.getElementById('session-timer');
+            if (!timerElement) return;
             
-            // Auto-hide messages after 5 seconds
-            const messagesWrapper = document.getElementById('messages-wrapper');
-            if (messagesWrapper) {
-                const alerts = messagesWrapper.querySelectorAll('.alert');
-                alerts.forEach(alert => {
-                    setTimeout(() => {
-                        alert.classList.add('hiding');
-                        setTimeout(() => alert.remove(), 300);
-                    }, 5000);
-                });
-            }
-            
-            // Get all necessary elements
-            const editBtn = document.getElementById('edit-btn');
-            const saveSection = document.getElementById('save-section');
-            const cancelBtn = document.getElementById('cancel-btn');
-            const inputs = document.querySelectorAll('input:not([type="hidden"]), textarea');
-            const uploadBtn = document.getElementById('upload-profile-pic');
-            const profilePicInput = document.getElementById('profile-picture-input');
-            const profilePicField = document.getElementById('profile_picture');
-            const profileForm = document.getElementById('profile-form');
-            const spinner = document.querySelector('.upload-spinner');
-
-            let originalValues = {};
-            let isEditMode = false;
-
-            // Store original values
-            inputs.forEach(input => {
-                originalValues[input.name] = input.value;
-            });
-
-            // Edit button functionality
-            if (editBtn) {
-                editBtn.addEventListener('click', () => {
-                    isEditMode = true;
-                    
-                    // Enable all inputs except email
-                    inputs.forEach(input => {
-                        if (input.name !== 'email') {
-                            input.removeAttribute('readonly');
-                            input.classList.remove('bg-gray-50');
-                            input.classList.add('bg-white');
-                        }
-                    });
-
-                    // Show save section and hide edit button
-                    if (saveSection) saveSection.classList.remove('hidden');
-                    editBtn.classList.add('hidden');
-
-                    // Show profile picture upload button
-                    if (uploadBtn) uploadBtn.style.display = 'flex';
-                });
-            }
-
-            // Cancel button functionality
-            if (cancelBtn) {
-                cancelBtn.addEventListener('click', () => {
-                    isEditMode = false;
-                    
-                    // Restore original values and make inputs readonly again
-                    inputs.forEach(input => {
-                        input.value = originalValues[input.name] || '';
-                        input.setAttribute('readonly', true);
-                        input.classList.add('bg-gray-50');
-                        input.classList.remove('bg-white');
-                    });
-
-                    // Hide save section and show edit button
-                    if (saveSection) saveSection.classList.add('hidden');
-                    if (editBtn) editBtn.classList.remove('hidden');
-
-                    // Hide profile picture upload button
-                    if (uploadBtn) uploadBtn.style.display = 'none';
-                    
-                    // Reset profile picture field
-                    if (profilePicField) profilePicField.value = '';
-                    
-                    // Restore original profile image if it exists
-                    const profilePreview = document.getElementById('profile-preview');
-                    if (profilePreview && profilePreview.dataset.originalSrc) {
-                        profilePreview.src = profilePreview.dataset.originalSrc;
-                    }
-                });
-            }
-
-            // Profile picture upload button click
-            if (uploadBtn) {
-                uploadBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    if (profilePicInput) {
-                        profilePicInput.click();
-                    }
-                });
-            }
-
-            // Profile picture input change handler
-            if (profilePicInput) {
-                profilePicInput.addEventListener('change', (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-
-                    // Validate file type
-                    if (!file.type.match('image.*')) {
-                        alert('Please select an image file (jpg, png, gif, etc.)');
-                        return;
-                    }
-                    
-                    // Validate file size (max 5MB)
-                    if (file.size > 5 * 1024 * 1024) {
-                        alert('Please select an image smaller than 5MB');
-                        return;
-                    }
-                    
-                    // Show loading spinner
-                    if (uploadBtn) uploadBtn.style.display = 'none';
-                    if (spinner) spinner.classList.remove('hidden');
-                    
-                    // Create FormData to send the file
-                    const formData = new FormData();
-                    formData.append('profile_picture', file);
-                    
-                    // Get CSRF token from the form
-                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-                    if (csrfToken) {
-                        formData.append('csrfmiddlewaretoken', csrfToken.value);
-                    }
-                    
-                    // Send AJAX request to upload the image
-                    fetch('/upload-profile-picture/', {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                        }
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            // Update the hidden field with the image URL
-                            if (profilePicField) {
-                                profilePicField.value = data.image_url;
-                            }
-                            
-                            // Update the profile image preview
-                            updateProfileImage(data.image_url);
-                            
-                            // Show success message
-                            console.log('Profile picture uploaded successfully!');
-                        } else {
-                            alert('Error uploading image: ' + (data.message || 'Unknown error'));
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error uploading image. Please try again.');
-                    })
-                    .finally(() => {
-                        // Hide spinner and show upload button again
-                        if (spinner) spinner.classList.add('hidden');
-                        if (uploadBtn) uploadBtn.style.display = 'flex';
-                    });
-                });
-            }
-
-            // Function to update profile image display
-            function updateProfileImage(imageUrl) {
-                const profileContainer = document.querySelector('.w-32.h-32.rounded-full.overflow-hidden');
-                const profilePreview = document.getElementById('profile-preview');
-                const profileIcon = document.getElementById('profile-icon');
+            const updateTimer = () => {
+                const remainingTime = Math.max(0, this.sessionDuration - (Date.now() - this.lastActivity));
+                const minutes = Math.floor(remainingTime / 60000);
+                const seconds = Math.floor((remainingTime % 60000) / 1000);
                 
-                if (profileContainer) {
-                    if (profilePreview) {
-                        // Store original source for cancel functionality
-                        if (!profilePreview.dataset.originalSrc) {
-                            profilePreview.dataset.originalSrc = profilePreview.src;
-                        }
-                        profilePreview.src = imageUrl;
-                    } else if (profileIcon) {
-                        // Replace the icon with the image
-                        profileIcon.remove();
-                        const img = document.createElement('img');
-                        img.src = imageUrl;
-                        img.className = 'w-full h-full object-cover';
-                        img.id = 'profile-preview';
-                        profileContainer.appendChild(img);
-                    } else {
-                        // Create new image element
-                        profileContainer.innerHTML = '';
-                        const img = document.createElement('img');
-                        img.src = imageUrl;
-                        img.className = 'w-full h-full object-cover';
-                        img.id = 'profile-preview';
-                        profileContainer.appendChild(img);
-                    }
-                }
-            }
+                timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            };
+            
+            // Update immediately
+            updateTimer();
+            
+            // Update every second
+            setInterval(updateTimer, 1000);
+        }
 
-            // Initialize - hide upload button when not in edit mode
-            if (uploadBtn) {
-                uploadBtn.style.display = 'none';
-            }
+        logout() {
+            // Clear all timers
+            this.clearTimers();
+            
+            // Get the logout URL - you'll need to replace this with your actual logout URL
+            // Since we can't use Django template tags in this context, use a hardcoded path
+            window.location.href = "/logout/";
+        }
+    }
 
-            // Handle form submission
-            if (profileForm) {
-                profileForm.addEventListener('submit', (e) => {
-                    // Let the form submit normally
-                    console.log('Form submitted');
-                });
-            }
+    // Initialize everything when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize session manager
+        const sessionManager = new SessionManager();
+        
+        // Auto-hide messages after 5 seconds
+        const messagesWrapper = document.getElementById('messages-wrapper');
+        if (messagesWrapper) {
+            const alerts = messagesWrapper.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.classList.add('hiding');
+                    setTimeout(() => alert.remove(), 300);
+                }, 5000);
+            });
+        }
+        
+        // Get all necessary elements
+        const editBtn = document.getElementById('edit-btn');
+        const saveSection = document.getElementById('save-section');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const inputs = document.querySelectorAll('input:not([type="hidden"]), textarea');
+        const uploadBtn = document.getElementById('upload-profile-pic');
+        const profilePicInput = document.getElementById('profile-picture-input');
+        const profileForm = document.getElementById('profile-form');
+        const spinner = document.querySelector('.upload-spinner');
 
-            // Handle notification button
-            const notificationBtn = document.getElementById('notification-btn');
-            if (notificationBtn) {
-                notificationBtn.addEventListener('click', () => {
-                    // Add notification functionality here if needed
-                    console.log('Notifications clicked');
-                });
-            }
+        let originalValues = {};
+        let isEditMode = false;
 
-            // Handle profile button
-            const profileBtn = document.getElementById('profile-btn');
-            if (profileBtn) {
-                profileBtn.addEventListener('click', () => {
-                    // Add profile dropdown functionality here if needed
-                    console.log('Profile button clicked');
-                });
-            }
+        // Store original values
+        inputs.forEach(input => {
+            originalValues[input.name] = input.value;
         });
-    </script>
+
+        // Edit button functionality
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                isEditMode = true;
+                
+                // Enable all inputs except email
+                inputs.forEach(input => {
+                    if (input.name !== 'email') {
+                        input.removeAttribute('readonly');
+                        input.classList.remove('bg-gray-50');
+                        input.classList.add('bg-white');
+                    }
+                });
+
+                // Show save section and hide edit button
+                if (saveSection) saveSection.classList.remove('hidden');
+                editBtn.classList.add('hidden');
+
+                // Show profile picture upload button
+                if (uploadBtn) uploadBtn.style.display = 'flex';
+            });
+        }
+
+        // Cancel button functionality
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                isEditMode = false;
+                
+                // Restore original values and make inputs readonly again
+                inputs.forEach(input => {
+                    input.value = originalValues[input.name] || '';
+                    input.setAttribute('readonly', true);
+                    input.classList.add('bg-gray-50');
+                    input.classList.remove('bg-white');
+                });
+
+                // Hide save section and show edit button
+                if (saveSection) saveSection.classList.add('hidden');
+                if (editBtn) editBtn.classList.remove('hidden');
+
+                // Hide profile picture upload button
+                if (uploadBtn) uploadBtn.style.display = 'none';
+                
+                // Restore original profile image if it exists
+                const profilePreview = document.getElementById('profile-preview');
+                if (profilePreview && profilePreview.dataset.originalSrc) {
+                    profilePreview.src = profilePreview.dataset.originalSrc;
+                    profilePreview.style.display = 'block';
+                }
+                const profileIcon = document.getElementById('profile-icon');
+                if (profileIcon && profileIcon.dataset.originalDisplay) {
+                    profileIcon.style.display = profileIcon.dataset.originalDisplay;
+                }
+            });
+        }
+
+        // Profile picture upload button click
+        if (uploadBtn) {
+            uploadBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (profilePicInput) {
+                    profilePicInput.click();
+                }
+            });
+        }
+
+        // Profile picture input change handler
+        if (profilePicInput) {
+            profilePicInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                // Validate file type
+                if (!file.type.match('image.*')) {
+                    alert('Please select an image file (jpg, png, gif, etc.)');
+                    return;
+                }
+                
+                // Validate file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Please select an image smaller than 5MB');
+                    return;
+                }
+                
+                // Show loading spinner
+                if (uploadBtn) uploadBtn.style.display = 'none';
+                if (spinner) spinner.classList.remove('hidden');
+                
+                // Create FormData to send the file
+                const formData = new FormData();
+                formData.append('profile_picture', file);
+                
+                // Get CSRF token from the form
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (csrfToken) {
+                    formData.append('csrfmiddlewaretoken', csrfToken.value);
+                }
+                
+                // Send AJAX request to upload the image
+                fetch('/upload-profile-picture/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Update the profile image preview
+                        updateProfileImage(data.image_url);
+                        
+                        // Show success message
+                        showMessage('Profile picture uploaded successfully!', 'success');
+                    } else {
+                        showMessage('Error uploading image: ' + (data.message || 'Unknown error'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showMessage('Error uploading image. Please try again.', 'error');
+                })
+                .finally(() => {
+                    // Hide spinner and show upload button again
+                    if (spinner) spinner.classList.add('hidden');
+                    if (uploadBtn) uploadBtn.style.display = 'flex';
+                    // Clear the file input
+                    profilePicInput.value = '';
+                });
+            });
+        }
+
+        // Function to update profile image display
+        function updateProfileImage(imageUrl) {
+            const profileContainer = document.querySelector('.w-32.h-32.rounded-full.overflow-hidden');
+            const profilePreview = document.getElementById('profile-preview');
+            const profileIcon = document.getElementById('profile-icon');
+            
+            if (profileContainer) {
+                // Hide the icon
+                if (profileIcon) {
+                    if (!profileIcon.dataset.originalDisplay) {
+                        profileIcon.dataset.originalDisplay = profileIcon.style.display;
+                    }
+                    profileIcon.style.display = 'none';
+                }
+                
+                if (profilePreview) {
+                    // Store original source for cancel functionality
+                    if (!profilePreview.dataset.originalSrc) {
+                        profilePreview.dataset.originalSrc = profilePreview.src;
+                    }
+                    profilePreview.src = imageUrl;
+                    profilePreview.style.display = 'block';
+                } else {
+                    // Create new image element
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+                    img.className = 'w-full h-full object-cover';
+                    img.id = 'profile-preview';
+                    profileContainer.appendChild(img);
+                }
+                
+                // Also update the header profile picture
+                updateHeaderProfileImage(imageUrl);
+            }
+        }
+
+        // Function to update header profile image
+        function updateHeaderProfileImage(imageUrl) {
+            const headerProfileImg = document.querySelector('#profile-btn img');
+            const headerProfileIcon = document.querySelector('#profile-btn i');
+            
+            if (headerProfileImg) {
+                headerProfileImg.src = imageUrl;
+            } else if (headerProfileIcon) {
+                // Replace icon with image
+                headerProfileIcon.remove();
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.alt = 'Profile Picture';
+                img.className = 'w-full h-full object-cover';
+                document.querySelector('#profile-btn').appendChild(img);
+            }
+        }
+
+        // Function to show messages
+        function showMessage(message, type) {
+            // You can implement a toast notification system here
+            // For now, using alert as fallback
+            if (type === 'success') {
+                alert('✓ ' + message);
+            } else {
+                alert('✗ ' + message);
+            }
+        }
+
+        // Initialize - hide upload button when not in edit mode
+        if (uploadBtn) {
+            uploadBtn.style.display = 'none';
+        }
+
+        // Handle form submission
+        if (profileForm) {
+            profileForm.addEventListener('submit', (e) => {
+                // Let the form submit normally
+                console.log('Form submitted with updated data');
+            });
+        }
+
+        // Handle notification button
+        const notificationBtn = document.getElementById('notification-btn');
+        if (notificationBtn) {
+            notificationBtn.addEventListener('click', () => {
+                // Add notification functionality here if needed
+                console.log('Notifications clicked');
+            });
+        }
+
+        // Handle profile button
+        const profileBtn = document.getElementById('profile-btn');
+        if (profileBtn) {
+            profileBtn.addEventListener('click', () => {
+                // Add profile dropdown functionality here if needed
+                console.log('Profile button clicked');
+            });
+        }
+    });
+</script>
 </body>
 </html>
