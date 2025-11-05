@@ -40,8 +40,36 @@ def extract_text_from_file(file_path, file_type):
         elif file_type in ['.docx', '.doc']:
             doc = docx.Document(file_path)
             text = ""
+            
+            # First, extract all regular paragraphs
             for paragraph in doc.paragraphs:
-                text += paragraph.text + "\n"
+                if paragraph.text.strip():
+                    text += paragraph.text + "\n"
+            
+            # Then, extract tables if they exist
+            if hasattr(doc, 'tables') and doc.tables:
+                text += "\n" + "="*50 + "\n"
+                text += "TABLE CONTENT:\n"
+                text += "="*50 + "\n"
+                
+                for table_num, table in enumerate(doc.tables, 1):
+                    text += f"\nTable {table_num}:\n"
+                    text += "-" * 30 + "\n"
+                    
+                    for row_num, row in enumerate(table.rows):
+                        row_data = []
+                        for cell in row.cells:
+                            # Get text from each cell
+                            cell_text = cell.text.strip()
+                            if cell_text:
+                                row_data.append(cell_text)
+                            else:
+                                row_data.append("")
+                        
+                        # Join cells with pipe separator for table format
+                        text += " | ".join(row_data) + "\n"
+                    
+                    text += "-" * 30 + "\n"
             
         elif file_type in ['.jpg', '.jpeg', '.png']:
             # OCR for images
