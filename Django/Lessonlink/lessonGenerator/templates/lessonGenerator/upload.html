@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload File - Lesson Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .upload-area { 
+            border: 2px dashed #ccc; 
+            padding: 40px; 
+            text-align: center; 
+            margin: 20px 0; 
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover { 
+            border-color: #007bff; 
+            background-color: #f8f9fa; 
+        }
+        .upload-area.dragover { 
+            border-color: #007bff; 
+            background-color: #e3f2fd; 
+        }
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        .file-list { margin-top: 30px; }
+        .file-item { padding: 10px; border: 1px solid #ddd; margin: 5px 0; border-radius: 5px; }
+        .btn { 
+            background: #007bff; 
+            color: white; 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            margin-top: 10px;
+        }
+        .uploading { opacity: 0.7; pointer-events: none; }
+        .file-name {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload File for Lesson Generation</h1>
+    
+    <div class="upload-area" id="uploadArea">
+        <p>📁 Drag and drop your file here or click to browse</p>
+        <p><small>Supported formats: PDF, DOC, DOCX, TXT, JPG, PNG</small></p>
+        
+        <form method="post" enctype="multipart/form-data" id="uploadForm">
+            {% csrf_token %}
+            
+            <!-- Custom file input that's visible -->
+            <div class="file-input-wrapper">
+                <button type="button" class="btn" id="browseButton">Choose File</button>
+                <input type="file" name="file" id="fileInput" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png">
+            </div>
+            
+            <div id="fileName" class="file-name"></div>
+            
+            <button type="submit" class="btn" id="uploadButton" style="display: none;">Upload and Extract Text</button>
+        </form>
+    </div>
+
+    {% if recent_files %}
+    <div class="file-list">
+        <h3>Recent Files</h3>
+        {% for file in recent_files %}
+        <div class="file-item">
+            <strong>{{ file.filename }}</strong> - {{ file.uploaded_at|date:"M d, Y H:i" }}
+            <a href="{% url 'file_detail' file.id %}">View Text</a>
+            <a href="{% url 'create_lesson_from_file' file.id %}">Create Lesson</a>
+            <a href="{% url 'delete_file' file.id %}" onclick="return confirm('Delete this file?')" style="color: red;">Delete</a>
+        </div>
+        {% endfor %}
+        <a href="{% url 'file_list' %}">View All Files</a>
+    </div>
+    {% endif %}
+
+    <div style="margin-top: 20px;">
+        <a href="{% url 'lesson_ai' %}">← Back to Lesson Generator</a>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const browseButton = document.getElementById('browseButton');
+        const uploadForm = document.getElementById('uploadForm');
+        const uploadButton = document.getElementById('uploadButton');
+        const fileName = document.getElementById('fileName');
+        
+        let isProcessing = false;
+
+        // Click on browse button
+        browseButton.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Click anywhere in upload area (except buttons)
+        uploadArea.addEventListener('click', (e) => {
+            // Only trigger if clicking on the upload area background or text
+            if (e.target === uploadArea || e.target.tagName === 'P') {
+                fileInput.click();
+            }
+        });
+
+        // Handle file selection
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                fileName.textContent = `Selected: ${file.name}`;
+                uploadButton.style.display = 'inline-block';
+            }
+        });
+
+        // Manual form submission
+        uploadButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            if (fileInput.files.length > 0 && !isProcessing) {
+                // Show loading state
+                isProcessing = true;
+                uploadArea.classList.add('uploading');
+                uploadButton.textContent = 'Uploading...';
+                browseButton.disabled = true;
+                
+                // Submit the form
+                uploadForm.submit();
+            }
+        });
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length > 0 && !isProcessing) {
+                const file = e.dataTransfer.files[0];
+                fileInput.files = e.dataTransfer.files;
+                fileName.textContent = `Selected: ${file.name}`;
+                uploadButton.style.display = 'inline-block';
+            }
+        });
+
+        // Reset processing state if page reloads
+        window.addEventListener('load', () => {
+            isProcessing = false;
+            uploadArea.classList.remove('uploading');
+            uploadButton.textContent = 'Upload and Extract Text';
+            browseButton.disabled = false;
+        });
+    </script>
+</body>
+</html>

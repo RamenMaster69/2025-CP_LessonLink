@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Files - Lesson Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .file-item { padding: 15px; border: 1px solid #ddd; margin: 10px 0; border-radius: 5px; }
+        .btn { background: #007bff; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .empty-state { text-align: center; padding: 40px; color: #666; }
+    </style>
+</head>
+<body>
+    <h1>My Uploaded Files</h1>
+    
+    <div style="margin-bottom: 20px;">
+        <a href="{% url 'upload_file' %}" class="btn">Upload New File</a>
+        <a href="{% url 'lesson_ai' %}" style="margin-left: 10px;">← Back to Lesson Generator</a>
+    </div>
+
+    {% if files %}
+        {% for file in files %}
+        <div class="file-item">
+            <strong>{{ file.filename }}</strong>
+            <div style="font-size: 0.9em; color: #666;">
+                Type: {{ file.file_type }} | 
+                Uploaded: {{ file.uploaded_at|date:"M d, Y H:i" }} |
+                Text Length: {{ file.extracted_text|length }} characters
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="{% url 'file_detail' file.id %}" class="btn">View Text</a>
+                <a href="{% url 'create_lesson_from_file' file.id %}" class="btn" style="background: #28a745;">Create Lesson</a>
+                <a href="{% url 'delete_file' file.id %}" onclick="return confirm('Delete this file?')" style="color: red; margin-left: 10px;">Delete</a>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <h3>No files uploaded yet</h3>
+            <p>Upload your first file to get started with lesson generation!</p>
+            <a href="{% url 'upload_file' %}" class="btn">Upload Your First File</a>
+        </div>
+    {% endif %}
+</body>
+</html>

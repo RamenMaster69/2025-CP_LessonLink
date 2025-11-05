@@ -1,5 +1,6 @@
 # views.py
 import json
+import os
 import google.generativeai as genai
 from django.conf import settings
 from django.http import JsonResponse
@@ -9,8 +10,10 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 import re
-from .models import LessonPlan, LessonPlanSubmission
+from .models import LessonPlan, LessonPlanSubmission, UploadedFile
+from .forms import FileUploadForm, LessonPlanFromFileForm
 from .ai_instructions import LESSON_PLANNER_SYSTEM_INSTRUCTION
+from .utils import extract_text_from_file, generate_lesson_prompt_from_text
 
 # Configure the Gemini API
 try:
@@ -23,6 +26,219 @@ except Exception as e:
 def lesson_ai(request):
     """Render the main page with the lesson plan form"""
     return render(request, 'lessonGenerator/lesson_ai.html')
+
+# FILE UPLOAD VIEWS
+@login_required
+def upload_file(request):
+    """Handle file uploads and text extraction"""
+    if request.method == 'POST':
+        form = FileUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            uploaded_file = form.save(commit=False)
+            
+            # Set the uploaded by user
+            uploaded_file.uploaded_by = request.user
+            
+            # Get file extension
+            file_name = uploaded_file.file.name
+            file_ext = os.path.splitext(file_name)[1].lower()
+            uploaded_file.file_type = file_ext
+            
+            uploaded_file.save()
+            
+            # Extract text
+            file_path = os.path.join(settings.MEDIA_ROOT, uploaded_file.file.name)
+            extracted_text = extract_text_from_file(file_path, file_ext)
+            
+            # Save extracted text
+            uploaded_file.extracted_text = extracted_text
+            uploaded_file.save()
+            
+            messages.success(request, f"File uploaded successfully! Extracted {len(extracted_text)} characters of text.")
+            return redirect('file_detail', file_id=uploaded_file.id)
+    else:
+        form = FileUploadForm()
+    
+    # Get recent uploads for current user
+    recent_files = UploadedFile.objects.filter(uploaded_by=request.user).order_by('-uploaded_at')[:5]
+    
+    return render(request, 'lessonGenerator/upload.html', {
+        'form': form,
+        'recent_files': recent_files
+    })
+
+@login_required
+def file_detail(request, file_id):
+    """View uploaded file details and extracted text"""
+    uploaded_file = get_object_or_404(UploadedFile, id=file_id, uploaded_by=request.user)
+    
+    return render(request, 'lessonGenerator/file_detail.html', {
+        'file': uploaded_file
+    })
+
+@login_required
+def create_lesson_from_file(request, file_id):
+    """Create a lesson plan from an uploaded file"""
+    uploaded_file = get_object_or_404(UploadedFile, id=file_id, uploaded_by=request.user)
+    
+    if request.method == 'POST':
+        form = LessonPlanFromFileForm(request.POST)
+        if form.is_valid():
+            # Create lesson plan from file
+            lesson_plan = LessonPlan.create_from_file(
+                file_instance=uploaded_file,
+                user=request.user,
+                title=form.cleaned_data['title'],
+                subject=form.cleaned_data['subject'],
+                grade_level=form.cleaned_data['grade_level'],
+                duration=form.cleaned_data['duration'],
+                population=form.cleaned_data['population']
+            )
+            
+            # Store file content in session for AI generation
+            request.session['file_content'] = uploaded_file.extracted_text
+            request.session['file_lesson_data'] = {
+                'title': form.cleaned_data['title'],
+                'subject': form.cleaned_data['subject'],
+                'grade_level': form.cleaned_data['grade_level'],
+                'duration': form.cleaned_data['duration'],
+                'population': form.cleaned_data['population'],
+                'file_id': file_id
+            }
+            request.session.modified = True
+            
+            messages.success(request, "Lesson plan created from file! You can now generate AI content.")
+            return redirect('generate_from_file', lesson_id=lesson_plan.id)
+    else:
+        # Pre-fill form with suggested data from filename
+        filename = uploaded_file.filename()
+        suggested_title = os.path.splitext(filename)[0].replace('_', ' ').title()
+        form = LessonPlanFromFileForm(initial={
+            'title': suggested_title,
+            'subject': 'General',  # Default subject
+            'grade_level': 'Grade 7',  # Default grade level
+            'duration': 60,  # Default duration
+            'population': 30  # Default class size
+        })
+    
+    return render(request, 'lessonGenerator/create_lesson_from_file.html', {
+        'form': form,
+        'file': uploaded_file
+    })
+
+@login_required
+def generate_from_file(request, lesson_id):
+    """Generate AI content for a lesson plan created from a file"""
+    lesson_plan = get_object_or_404(LessonPlan, id=lesson_id, created_by=request.user)
+    file_content = request.session.get('file_content', '')
+    file_lesson_data = request.session.get('file_lesson_data', {})
+    
+    if not file_content:
+        messages.error(request, "No file content found. Please upload a file first.")
+        return redirect('upload_file')
+    
+    if request.method == 'POST':
+        try:
+            if model is None:
+                messages.error(request, 'AI service is not configured properly.')
+                return redirect('file_detail', file_id=file_lesson_data.get('file_id'))
+            
+            # Generate prompt from file content
+            prompt = generate_lesson_prompt_from_text(
+                text=file_content,
+                subject=file_lesson_data.get('subject', ''),
+                grade_level=file_lesson_data.get('grade_level', ''),
+                duration=file_lesson_data.get('duration', 60)
+            )
+            
+            # Generate lesson plan using AI
+            response = model.generate_content([
+                LESSON_PLANNER_SYSTEM_INSTRUCTION,
+                prompt
+            ])
+            
+            # Update lesson plan with generated content
+            lesson_plan.generated_content = response.text
+            lesson_plan.update_from_parsed_content()  # This will parse and update all fields
+            lesson_plan.save()
+            
+            # Clear session data
+            if 'file_content' in request.session:
+                del request.session['file_content']
+            if 'file_lesson_data' in request.session:
+                del request.session['file_lesson_data']
+            
+            messages.success(request, "AI content generated successfully!")
+            return redirect('view_draft', draft_id=lesson_plan.id)
+            
+        except Exception as e:
+            messages.error(request, f"Error generating AI content: {str(e)}")
+    
+    return render(request, 'lessonGenerator/generate_from_file.html', {
+        'lesson_plan': lesson_plan,
+        'file_content_preview': file_content[:500] + '...' if len(file_content) > 500 else file_content,
+        'file_lesson_data': file_lesson_data
+    })
+
+@login_required
+def file_list(request):
+    """List all uploaded files for the current user"""
+    files = UploadedFile.objects.filter(uploaded_by=request.user).order_by('-uploaded_at')
+    return render(request, 'lessonGenerator/file_list.html', {
+        'files': files
+    })
+
+@login_required
+def delete_file(request, file_id):
+    """Delete an uploaded file"""
+    uploaded_file = get_object_or_404(UploadedFile, id=file_id, uploaded_by=request.user)
+    
+    if request.method == 'POST':
+        # Delete the actual file from filesystem
+        if os.path.isfile(uploaded_file.file.path):
+            os.remove(uploaded_file.file.path)
+        uploaded_file.delete()
+        messages.success(request, "File deleted successfully!")
+        return redirect('file_list')
+    
+    return render(request, 'lessonGenerator/delete_file.html', {
+        'file': uploaded_file
+    })
+
+# API view for AJAX file upload
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def api_upload(request):
+    """Handle AJAX file uploads"""
+    if request.FILES.get('file'):
+        form = FileUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            uploaded_file = form.save(commit=False)
+            uploaded_file.uploaded_by = request.user
+            
+            file_ext = os.path.splitext(uploaded_file.file.name)[1].lower()
+            uploaded_file.file_type = file_ext
+            uploaded_file.save()
+            
+            # Extract text
+            file_path = os.path.join(settings.MEDIA_ROOT, uploaded_file.file.name)
+            extracted_text = extract_text_from_file(file_path, file_ext)
+            
+            uploaded_file.extracted_text = extracted_text
+            uploaded_file.save()
+            
+            return JsonResponse({
+                'success': True,
+                'file_id': uploaded_file.id,
+                'filename': uploaded_file.filename(),
+                'text_preview': extracted_text[:500] + '...' if len(extracted_text) > 500 else extracted_text,
+                'file_type': file_ext
+            })
+    
+    return JsonResponse({'success': False, 'error': 'Invalid file'})
+
+# EXISTING VIEWS (keep all your existing views below)
 
 @csrf_exempt
 @require_http_methods(["POST"])

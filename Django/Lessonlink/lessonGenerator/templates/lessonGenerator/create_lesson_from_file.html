@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Lesson from File - Lesson Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .btn { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Create Lesson Plan from {{ file.filename }}</h1>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="id_title">Lesson Title:</label>
+            {{ form.title }}
+        </div>
+        
+        <div class="form-group">
+            <label for="id_subject">Subject:</label>
+            {{ form.subject }}
+        </div>
+        
+        <div class="form-group">
+            <label for="id_grade_level">Grade Level:</label>
+            {{ form.grade_level }}
+        </div>
+        
+        <div class="form-group">
+            <label for="id_duration">Duration (minutes):</label>
+            {{ form.duration }}
+        </div>
+        
+        <div class="form-group">
+            <label for="id_population">Class Size:</label>
+            {{ form.population }}
+        </div>
+        
+        <button type="submit" class="btn">Create Lesson Plan</button>
+        <a href="{% url 'file_detail' file.id %}" style="margin-left: 10px;">Cancel</a>
+    </form>
+</body>
+</html>

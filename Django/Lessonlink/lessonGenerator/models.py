@@ -1,8 +1,35 @@
 # models.py
 import re
+import os
+import uuid
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
+
+# Add this function for file uploads
+def upload_to(instance, filename):
+    ext = filename.split('.')[-1]
+    filename = f"{uuid.uuid4().hex}.{ext}"
+    return os.path.join('uploads', filename)
+
+class UploadedFile(models.Model):
+    file = models.FileField(upload_to=upload_to)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    extracted_text = models.TextField(blank=True, null=True)
+    file_type = models.CharField(max_length=10, blank=True)
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    
+    # Link to lesson plan if this file is used for lesson generation
+    lesson_plan = models.ForeignKey('LessonPlan', on_delete=models.SET_NULL, null=True, blank=True, related_name='source_files')
+    
+    def __str__(self):
+        return f"{self.file.name} - {self.uploaded_at}"
+    
+    def filename(self):
+        return os.path.basename(self.file.name)
+    
+    class Meta:
+        ordering = ['-uploaded_at']
 
 class LessonPlan(models.Model):
     DRAFT = 'draft'
@@ -49,6 +76,9 @@ class LessonPlan(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # New field to track if this was generated from a file
+    generated_from_file = models.ForeignKey(UploadedFile, on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_lesson_plans')
 
     def __str__(self):
         return f"{self.subject} - {self.grade_level} - {self.title}"
@@ -326,6 +356,30 @@ class LessonPlan(models.Model):
     @property
     def latest_submission(self):
         return self.get_latest_submission()
+
+    def create_from_file(file_instance, user, title, subject, grade_level, duration, population):
+        """Create a lesson plan from an uploaded file"""
+        lesson_plan = LessonPlan(
+            title=title,
+            subject=subject,
+            grade_level=grade_level,
+            duration=duration,
+            population=population,
+            created_by=user,
+            generated_from_file=file_instance,
+            # Set default values for required fields
+            learning_objectives="To be generated from file content",
+            subject_matter="To be generated from file content",
+            materials_needed="To be generated",
+            introduction="To be generated",
+            instruction="To be generated",
+            application="To be generated",
+            evaluation="To be generated",
+            assessment="To be generated",
+            generated_content=f"Lesson plan generated from file: {file_instance.filename()}\n\nExtracted content:\n{file_instance.extracted_text[:1000]}..."
+        )
+        lesson_plan.save()
+        return lesson_plan
 
 
 class LessonPlanSubmission(models.Model):
