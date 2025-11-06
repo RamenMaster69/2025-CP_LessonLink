@@ -653,3 +653,40 @@ class LessonPlanSubmission(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
+
+class Exemplar(models.Model):
+    FILE_TYPES = [
+        ('pdf', 'PDF'),
+        ('doc', 'Word Document'),
+        ('docx', 'Word Document'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='exemplars')
+    name = models.CharField(max_length=255)
+    file = models.FileField(upload_to='exemplars/')
+    file_type = models.CharField(max_length=10, choices=FILE_TYPES)
+    file_size = models.BigIntegerField()  # Size in bytes
+    extracted_text = models.TextField(blank=True, null=True)
+    upload_date = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-upload_date']
+    
+    def __str__(self):
+        return f"{self.name} - {self.user.email}"
+    
+    def get_file_size_display(self):
+        """Return human-readable file size"""
+        if self.file_size < 1024:
+            return f"{self.file_size} B"
+        elif self.file_size < 1024 * 1024:
+            return f"{self.file_size / 1024:.2f} KB"
+        else:
+            return f"{self.file_size / (1024 * 1024):.2f} MB"
+    
+    def delete(self, *args, **kwargs):
+        """Delete the actual file when model is deleted"""
+        if self.file:
+            if os.path.isfile(self.file.path):
+                os.remove(self.file.path)
+        super().delete(*args, **kwargs)

@@ -46,6 +46,14 @@ from django.http import HttpResponseForbidden
 from functools import wraps
 from django.conf import settings
 from django.core.files.storage import default_storage
+import PyPDF2
+from docx import Document
+from django.core.files.base import ContentFile
+from django.views.decorators.http import require_http_methods
+from .models import Exemplar
+from .serializers import ExemplarSerializer
+import mammoth
+import tempfile
 
 # School Registration Views
 
@@ -2420,3 +2428,196 @@ def admin_export_reports(request, format_type):
         response['Content-Disposition'] = f'attachment; filename="{user.school.school_name}_users_report.pdf"'
         
         return response
+
+
+@login_required
+def Dep_exemplar(request):
+    """Render the exemplar management page"""
+    user = request.user
+    
+    # Only allow Department Head
+    if user.role != "Department Head":
+        messages.error(request, "You are not allowed to access this page.")
+        return redirect("dashboard")
+    
+    return render(request, "Dep_exemplar.html")
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def upload_exemplar(request):
+    """Handle exemplar file upload and processing"""
+    try:
+        if 'file' not in request.FILES:
+            return JsonResponse({
+                'success': False, 
+                'message': 'No file provided'
+            }, status=400)
+        
+        file = request.FILES['file']
+        user = request.user
+        
+        # Validate file type
+        allowed_types = ['application/pdf', 'application/msword', 
+                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+        if file.content_type not in allowed_types:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Invalid file type. Please upload PDF or Word documents only.'
+            }, status=400)
+        
+        # Validate file size (max 10MB)
+        max_size = 10 * 1024 * 1024  # 10MB
+        if file.size > max_size:
+            return JsonResponse({
+                'success': False, 
+                'message': 'File too large. Please upload files smaller than 10MB.'
+            }, status=400)
+        
+        # Determine file type
+        file_type = 'pdf' if file.content_type == 'application/pdf' else 'docx'
+        
+        # Extract text content
+        extracted_text = extract_text_from_file(file, file_type)
+        
+        # Save the exemplar
+        exemplar = Exemplar.objects.create(
+            user=user,
+            name=file.name,
+            file=file,
+            file_type=file_type,
+            file_size=file.size,
+            extracted_text=extracted_text
+        )
+        
+        # Serialize the response
+        serializer = ExemplarSerializer(exemplar)
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Exemplar uploaded successfully!',
+            'exemplar': serializer.data
+        })
+        
+    except Exception as e:
+        logger.error(f"Error uploading exemplar: {str(e)}")
+        return JsonResponse({
+            'success': False, 
+            'message': f'Error processing file: {str(e)}'
+        }, status=500)
+
+def extract_text_from_file(file, file_type):
+    """Extract text from PDF or Word documents"""
+    try:
+        if file_type == 'pdf':
+            return extract_text_from_pdf(file)
+        else:  # Word document
+            return extract_text_from_word(file)
+    except Exception as e:
+        logger.error(f"Error extracting text from file: {str(e)}")
+        return "Text extraction failed."
+
+def extract_text_from_pdf(file):
+    """Extract text from PDF file"""
+    try:
+        # Create a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+            for chunk in file.chunks():
+                temp_file.write(chunk)
+            temp_file_path = temp_file.name
+        
+        # Extract text using PyPDF2
+        text = ""
+        with open(temp_file_path, 'rb') as pdf_file:
+            pdf_reader = PyPDF2.PdfReader(pdf_file)
+            for page in pdf_reader.pages:
+                text += page.extract_text() + "\n\n"
+        
+        # Clean up temporary file
+        os.unlink(temp_file_path)
+        
+        return text.strip()
+        
+    except Exception as e:
+        logger.error(f"PDF text extraction error: {str(e)}")
+        return "PDF text extraction failed."
+
+def extract_text_from_word(file):
+    """Extract text from Word document"""
+    try:
+        # For .docx files using python-docx
+        if file.name.endswith('.docx'):
+            document = Document(file)
+            text = ""
+            for paragraph in document.paragraphs:
+                text += paragraph.text + "\n"
+            return text.strip()
+        
+        # For .doc files, you might need additional libraries
+        else:
+            # Fallback: try using mammoth for both .doc and .docx
+            result = mammoth.extract_raw_text(file)
+            return result.value.strip()
+            
+    except Exception as e:
+        logger.error(f"Word text extraction error: {str(e)}")
+        return "Word document text extraction failed."
+
+@login_required
+def get_exemplars(request):
+    """Get all exemplars for the current user"""
+    try:
+        exemplars = Exemplar.objects.filter(user=request.user).order_by('-upload_date')
+        serializer = ExemplarSerializer(exemplars, many=True)
+        
+        return JsonResponse({
+            'success': True,
+            'exemplars': serializer.data
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching exemplars: {str(e)}")
+        return JsonResponse({
+            'success': False, 
+            'message': 'Error fetching exemplars'
+        }, status=500)
+
+@csrf_exempt
+@require_http_methods(["DELETE"])
+@login_required
+def delete_exemplar(request, exemplar_id):
+    """Delete an exemplar"""
+    try:
+        exemplar = get_object_or_404(Exemplar, id=exemplar_id, user=request.user)
+        exemplar_name = exemplar.name
+        exemplar.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Exemplar "{exemplar_name}" deleted successfully!'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error deleting exemplar: {str(e)}")
+        return JsonResponse({
+            'success': False, 
+            'message': 'Error deleting exemplar'
+        }, status=500)
+
+@login_required
+def get_exemplar_text(request, exemplar_id):
+    """Get the extracted text of an exemplar"""
+    try:
+        exemplar = get_object_or_404(Exemplar, id=exemplar_id, user=request.user)
+        
+        return JsonResponse({
+            'success': True,
+            'text': exemplar.extracted_text or 'No text content available.'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching exemplar text: {str(e)}")
+        return JsonResponse({
+            'success': False, 
+            'message': 'Error fetching exemplar content'
+        }, status=500)

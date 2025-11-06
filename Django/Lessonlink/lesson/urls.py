@@ -103,4 +103,11 @@ path('school/<int:school_id>/admins/', views.school_admin_list, name='school_adm
 path('school-admin/<int:admin_id>/deactivate/', views.deactivate_school_admin, name='deactivate_school_admin'),
 path('school-admin/<int:admin_id>/activate/', views.activate_school_admin, name='activate_school_admin'),
 
+path('dep_exemplar/', views.Dep_exemplar, name='Dep_exemplar'),
+path('api/exemplars/upload/', views.upload_exemplar, name='upload_exemplar'),
+path('api/exemplars/', views.get_exemplars, name='get_exemplars'),
+path('api/exemplars/<int:exemplar_id>/delete/', views.delete_exemplar, name='delete_exemplar'),
+path('api/exemplars/<int:exemplar_id>/text/', views.get_exemplar_text, name='get_exemplar_text'),
+
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

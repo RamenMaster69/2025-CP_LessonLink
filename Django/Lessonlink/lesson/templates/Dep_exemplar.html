@@ -237,13 +237,37 @@
         let exemplars = [];
         let currentExemplar = null;
 
-        // Initialize
-        updateUI();
+        // Initialize - load exemplars from backend
+        document.addEventListener('DOMContentLoaded', function() {
+            loadExemplars();
+        });
+
+        // Load exemplars from backend
+        async function loadExemplars() {
+            try {
+                const response = await fetch('/api/exemplars/', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    exemplars = data.exemplars;
+                    updateUI();
+                } else {
+                    console.error('Error loading exemplars:', data.message);
+                }
+            } catch (error) {
+                console.error('Error loading exemplars:', error);
+            }
+        }
 
         // File input handler
         fileInput.addEventListener('change', handleFile);
 
-        // Drag and drop on document
+        // Drag and drop handlers
         document.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadZone.classList.remove('hidden');
@@ -279,60 +303,34 @@
             loading.classList.remove('hidden');
 
             try {
-                let extractedText = '';
-                
-                if (file.type === 'application/pdf') {
-                    extractedText = await processPDF(file);
-                } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
-                           file.type === 'application/msword') {
-                    extractedText = await processWord(file);
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('/api/exemplars/upload/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCSRFToken(),
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Reload exemplars to get the updated list
+                    await loadExemplars();
+                    alert('Exemplar uploaded successfully!');
+                } else {
+                    alert('Error uploading file: ' + data.message);
                 }
 
-                // Create exemplar object
-                const exemplar = {
-                    id: Date.now(),
-                    name: file.name,
-                    size: file.size,
-                    type: file.type,
-                    date: new Date().toLocaleDateString(),
-                    text: extractedText
-                };
-
-                exemplars.push(exemplar);
-                updateUI();
-                loading.classList.add('hidden');
-
-                // Show success message
-                alert('Exemplar uploaded successfully!');
             } catch (error) {
-                console.error('Error processing file:', error);
-                alert('Error processing file. Please try again.');
+                console.error('Error uploading file:', error);
+                alert('Error uploading file. Please try again.');
+            } finally {
                 loading.classList.add('hidden');
-                updateUI();
+                fileInput.value = '';
             }
-
-            fileInput.value = '';
-        }
-
-        async function processPDF(file) {
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-            let text = '';
-
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const content = await page.getTextContent();
-                const pageText = content.items.map(item => item.str).join(' ');
-                text += pageText + '\n\n';
-            }
-
-            return text.trim();
-        }
-
-        async function processWord(file) {
-            const arrayBuffer = await file.arrayBuffer();
-            const result = await mammoth.extractRawText({ arrayBuffer });
-            return result.value.trim();
         }
 
         function updateUI() {
@@ -349,9 +347,8 @@
 
         function renderExemplarCards() {
             exemplarCards.innerHTML = exemplars.map(exemplar => {
-                const fileIcon = exemplar.type === 'application/pdf' ? 'fa-file-pdf' : 'fa-file-word';
-                const fileColor = exemplar.type === 'application/pdf' ? 'text-red-500' : 'text-blue-500';
-                const fileSizeKB = (exemplar.size / 1024).toFixed(2);
+                const fileIcon = exemplar.file_type === 'pdf' ? 'fa-file-pdf' : 'fa-file-word';
+                const fileColor = exemplar.file_type === 'pdf' ? 'text-red-500' : 'text-blue-500';
 
                 return `
                     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
@@ -369,30 +366,62 @@
                             </div>
                         </div>
                         <h4 class="font-semibold text-gray-900 mb-1 truncate">${exemplar.name}</h4>
-                        <p class="text-sm text-gray-500">${fileSizeKB} KB</p>
-                        <p class="text-xs text-gray-400 mt-1">${exemplar.date}</p>
+                        <p class="text-sm text-gray-500">${exemplar.file_size_display}</p>
+                        <p class="text-xs text-gray-400 mt-1">${exemplar.upload_date_display}</p>
                     </div>
                 `;
             }).join('');
         }
 
-        window.viewExemplar = function(id) {
-            const exemplar = exemplars.find(e => e.id === id);
-            if (!exemplar) return;
+        window.viewExemplar = async function(id) {
+            try {
+                const response = await fetch(`/api/exemplars/${id}/text/`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const exemplar = exemplars.find(e => e.id === id);
+                    if (!exemplar) return;
 
-            currentExemplar = exemplar;
-            fileName.textContent = exemplar.name;
-            const fileSizeKB = (exemplar.size / 1024).toFixed(2);
-            fileInfo.textContent = `${fileSizeKB} KB • ${exemplar.date}`;
+                    currentExemplar = exemplar;
+                    fileName.textContent = exemplar.name;
+                    fileInfo.textContent = `${exemplar.file_size_display} • ${exemplar.upload_date_display}`;
 
-            displayText(exemplar.text);
-            preview.classList.remove('hidden');
+                    displayText(data.text);
+                    preview.classList.remove('hidden');
+                } else {
+                    alert('Error loading exemplar content: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error loading exemplar text:', error);
+                alert('Error loading exemplar content.');
+            }
         };
 
-        window.deleteExemplar = function(id) {
+        window.deleteExemplar = async function(id) {
             if (confirm('Are you sure you want to delete this exemplar?')) {
-                exemplars = exemplars.filter(e => e.id !== id);
-                updateUI();
+                try {
+                    const response = await fetch(`/api/exemplars/${id}/delete/`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRFToken': getCSRFToken(),
+                            'Content-Type': 'application/json',
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Remove from local array and update UI
+                        exemplars = exemplars.filter(e => e.id !== id);
+                        updateUI();
+                        alert(data.message);
+                    } else {
+                        alert('Error deleting exemplar: ' + data.message);
+                    }
+                } catch (error) {
+                    console.error('Error deleting exemplar:', error);
+                    alert('Error deleting exemplar.');
+                }
             }
         };
 
@@ -426,7 +455,7 @@
         // Copy text
         copyText.addEventListener('click', () => {
             if (!currentExemplar) return;
-            navigator.clipboard.writeText(currentExemplar.text).then(() => {
+            navigator.clipboard.writeText(currentExemplar.extracted_text).then(() => {
                 const originalText = copyText.innerHTML;
                 copyText.innerHTML = '<i class="fas fa-check mr-2"></i>Copied!';
                 setTimeout(() => {
@@ -438,7 +467,7 @@
         // Download text
         downloadText.addEventListener('click', () => {
             if (!currentExemplar) return;
-            const blob = new Blob([currentExemplar.text], { type: 'text/plain' });
+            const blob = new Blob([currentExemplar.extracted_text], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -448,6 +477,23 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         });
+
+        // CSRF token helper function
+        function getCSRFToken() {
+            const name = 'csrftoken';
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
 
         // Mobile menu
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
