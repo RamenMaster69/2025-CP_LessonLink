@@ -213,7 +213,12 @@
                 <a href="{% url 'department_head_drafts' %}"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                    <span>My Lesson Plans</span>
+                    <span>Lesson Plans</span>
+                </a>
+                <a href="{% url 'Dep_exemplar' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Exemplar</span>
                 </a>
                 <a href="{% url 'dep_calendar' %}"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group]">
@@ -240,25 +245,37 @@
         <main class="flex-1 p-6 md:p-8 ml-0 md:ml-0">
 
             <!-- Welcome Message -->
-{% if messages %}
-    {% for message in messages %}
-        {% if message.tags == 'success' and 'Welcome back' in message.message %}
-        <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg animate-fade-in">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-check-circle text-green-500 text-lg"></i>
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags == 'success' and 'Welcome back' in message.message %}
+                    <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg animate-fade-in">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-check-circle text-green-500 text-lg"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-green-700 font-medium">{{ message }}</p>
+                            </div>
+                            <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-green-500 hover:text-green-700">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            <!--Welcome Banner-->
+            <div class="">
+                <div class="bg-gradient-to-r from-[#11468F] via-[#5a4ab5] to-[#9E5EFF] rounded-xl p-8 shadow-lg mb-8">
+                    <div class="text-white">
+                        <h2 class="text-3xl font-bold mb-2">Welcome back, {{ user.first_name }}!</h2>
+                        <p class="text-white/90 text-lg mb-6">Here's what's happening with your department today.</p>
+                        <a href="{% url 'Dep_exemplar' %}"><button class="bg-white text-[#11468F] px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors shadow-md">
+                            + Add Exemplar
+                        </button></a>
+                    </div>
                 </div>
-                <div class="ml-3">
-                    <p class="text-green-700 font-medium">{{ message }}</p>
-                </div>
-                <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-green-500 hover:text-green-700">
-                    <i class="fas fa-times"></i>
-                </button>
             </div>
-        </div>
-        {% endif %}
-    {% endfor %}
-{% endif %}
             <!-- Dashboard Stats -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <!-- Pending Reviews Card - Dynamic from pending submissions -->

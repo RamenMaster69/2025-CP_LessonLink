@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LessonLink - Document Upload</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9) translateY(-10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .sidebar-transition {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .dropdown-enter {
+            animation: scaleIn 0.2s ease-out;
+        }
+        .upload-zone {
+            transition: all 0.3s ease;
+        }
+        .upload-zone.dragover {
+            background-color: #f0f5ff;
+            border-color: #11468F;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-40">
+        <div class="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
+            <button id="mobile-menu-btn" class="md:hidden p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
+                <i class="fas fa-bars text-lg"></i>
+            </button>
+
+            <div class="flex items-center space-x-3 flex-1 md:flex-none">
+                <div class="w-10 h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
+                <div class="hidden sm:block">
+                    <h1 class="text-xl font-bold text-gray-900">LessonLink</h1>
+                    <p class="text-sm text-gray-500 hidden lg:block">Western Mindanao State University</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 md:space-x-4">
+                <button class="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <i class="fas fa-search text-lg"></i>
+                </button>
+
+                <div class="relative">
+                    <button id="notification-btn" class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                    </button>
+                </div>
+
+                <div class="relative">
+                    <button id="profile-btn" class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                        <i class="fas fa-user text-gray-500"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex pt-16">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-white shadow-lg h-screen fixed md:static -translate-x-full md:translate-x-0 sidebar-transition z-30">
+            <nav class="p-4 space-y-2">
+                <a href="#"><button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] shadow-md">
+                    <i class="fas fa-plus text-lg"></i>
+                    <span class="font-medium">Create Lesson</span>
+                </button></a>
+
+                <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'department_head_drafts' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Lesson Plans</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                    <i class="fas fa-file-alt text-lg w-5"></i>
+                    <span class="font-medium">Exemplar</span>
+                </a>
+                <a href="{% url 'dep_calendar' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-calendar text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Calendar</span>
+                </a>
+                <a href="{% url 'Dep_Pending' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-clock text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Pending Reviews</span>
+                </a>
+                <a href="{% url 'Dep_Faculty' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-users text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Faculty</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 md:p-8">
+            <!-- Welcome Banner -->
+            <div class="bg-gradient-to-r from-[#11468F] via-[#5a4ab5] to-[#9E5EFF] rounded-xl p-8 shadow-lg mb-8">
+                <div class="text-white">
+                    <h2 class="text-3xl font-bold mb-2">Welcome back, Viktor Greg!</h2>
+                    <p class="text-white/90 text-lg mb-6">Upload your exemplar documents to get started.</p>
+                    <label for="file-upload" class="inline-block bg-white text-[#11468F] px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors shadow-md cursor-pointer">
+                        <i class="fas fa-upload mr-2"></i>Add Exemplar
+                    </label>
+                    <input id="file-upload" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="hidden">
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="bg-white rounded-xl p-12 shadow-sm border border-gray-200 mb-8 text-center">
+                <div class="flex flex-col items-center space-y-4">
+                    <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-folder-open text-gray-400 text-4xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">No Exemplars Yet</h3>
+                        <p class="text-gray-500">There is no exemplar. Upload one to get started.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exemplar List -->
+            <div id="exemplar-list" class="hidden space-y-4 mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-900">My Exemplars</h3>
+                    <span id="exemplar-count" class="text-sm text-gray-500">0 documents</span>
+                </div>
+                <div id="exemplar-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Cards will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Upload Zone (Hidden initially, shown during drag) -->
+            <div id="upload-zone" class="hidden upload-zone bg-white rounded-xl p-8 shadow-sm border-2 border-dashed border-gray-300 mb-8 text-center">
+                <div class="flex flex-col items-center space-y-4">
+                    <div class="w-20 h-20 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full flex items-center justify-center">
+                        <i class="fas fa-cloud-upload-alt text-white text-3xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xl font-semibold text-gray-900 mb-2">Drop your files here</p>
+                        <p class="text-gray-500">or click the button above to browse</p>
+                    </div>
+                    <div class="flex items-center space-x-2 text-sm text-gray-400">
+                        <i class="fas fa-file-pdf text-red-500"></i>
+                        <span>PDF</span>
+                        <span>•</span>
+                        <i class="fas fa-file-word text-blue-500"></i>
+                        <span>Word</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading" class="hidden bg-white rounded-xl p-8 shadow-sm border border-gray-200 mb-8">
+                <div class="flex items-center justify-center space-x-3">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#11468F]"></div>
+                    <p class="text-gray-700 font-medium">Processing document...</p>
+                </div>
+            </div>
+
+            <!-- Document Preview Modal -->
+            <div id="document-preview" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                    <!-- Document Header -->
+                    <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                        <div class="flex items-center space-x-4">
+                            <div id="file-icon" class="w-12 h-12 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-lg flex items-center justify-center">
+                                <i class="fas fa-file-alt text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 id="file-name" class="text-lg font-semibold text-gray-900"></h3>
+                                <p id="file-info" class="text-sm text-gray-500"></p>
+                            </div>
+                        </div>
+                        <button id="close-preview" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+
+                    <!-- Document Content -->
+                    <div class="p-6 overflow-y-auto max-h-[60vh]">
+                        <div id="document-content" class="prose max-w-none bg-gray-50 rounded-lg p-6">
+                            <!-- Content will be inserted here -->
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
+                        <button id="copy-text" class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                            <i class="fas fa-copy mr-2"></i>Copy Text
+                        </button>
+                        <button id="download-text" class="px-4 py-2 text-white bg-gradient-to-r from-[#11468F] to-[#9E5EFF] hover:from-[#0d3a7a] hover:to-[#8c4de6] rounded-lg transition-colors">
+                            <i class="fas fa-download mr-2"></i>Download as TXT
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        const fileInput = document.getElementById('file-upload');
+        const uploadZone = document.getElementById('upload-zone');
+        const emptyState = document.getElementById('empty-state');
+        const exemplarList = document.getElementById('exemplar-list');
+        const exemplarCards = document.getElementById('exemplar-cards');
+        const exemplarCount = document.getElementById('exemplar-count');
+        const loading = document.getElementById('loading');
+        const preview = document.getElementById('document-preview');
+        const documentContent = document.getElementById('document-content');
+        const fileName = document.getElementById('file-name');
+        const fileInfo = document.getElementById('file-info');
+        const closePreview = document.getElementById('close-preview');
+        const copyText = document.getElementById('copy-text');
+        const downloadText = document.getElementById('download-text');
+
+        let exemplars = [];
+        let currentExemplar = null;
+
+        // Initialize
+        updateUI();
+
+        // File input handler
+        fileInput.addEventListener('change', handleFile);
+
+        // Drag and drop on document
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('hidden');
+            uploadZone.classList.add('dragover');
+        });
+
+        document.addEventListener('dragleave', (e) => {
+            if (e.target === document) {
+                uploadZone.classList.add('hidden');
+                uploadZone.classList.remove('dragover');
+            }
+        });
+
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('hidden');
+            uploadZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFile();
+            }
+        });
+
+        async function handleFile() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            // Show loading
+            emptyState.classList.add('hidden');
+            exemplarList.classList.add('hidden');
+            uploadZone.classList.add('hidden');
+            loading.classList.remove('hidden');
+
+            try {
+                let extractedText = '';
+                
+                if (file.type === 'application/pdf') {
+                    extractedText = await processPDF(file);
+                } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
+                           file.type === 'application/msword') {
+                    extractedText = await processWord(file);
+                }
+
+                // Create exemplar object
+                const exemplar = {
+                    id: Date.now(),
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    date: new Date().toLocaleDateString(),
+                    text: extractedText
+                };
+
+                exemplars.push(exemplar);
+                updateUI();
+                loading.classList.add('hidden');
+
+                // Show success message
+                alert('Exemplar uploaded successfully!');
+            } catch (error) {
+                console.error('Error processing file:', error);
+                alert('Error processing file. Please try again.');
+                loading.classList.add('hidden');
+                updateUI();
+            }
+
+            fileInput.value = '';
+        }
+
+        async function processPDF(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+            let text = '';
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                const pageText = content.items.map(item => item.str).join(' ');
+                text += pageText + '\n\n';
+            }
+
+            return text.trim();
+        }
+
+        async function processWord(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const result = await mammoth.extractRawText({ arrayBuffer });
+            return result.value.trim();
+        }
+
+        function updateUI() {
+            if (exemplars.length === 0) {
+                emptyState.classList.remove('hidden');
+                exemplarList.classList.add('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                exemplarList.classList.remove('hidden');
+                exemplarCount.textContent = `${exemplars.length} document${exemplars.length !== 1 ? 's' : ''}`;
+                renderExemplarCards();
+            }
+        }
+
+        function renderExemplarCards() {
+            exemplarCards.innerHTML = exemplars.map(exemplar => {
+                const fileIcon = exemplar.type === 'application/pdf' ? 'fa-file-pdf' : 'fa-file-word';
+                const fileColor = exemplar.type === 'application/pdf' ? 'text-red-500' : 'text-blue-500';
+                const fileSizeKB = (exemplar.size / 1024).toFixed(2);
+
+                return `
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-lg flex items-center justify-center">
+                                <i class="fas ${fileIcon} text-white text-xl"></i>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="viewExemplar(${exemplar.id})" class="p-2 text-gray-400 hover:text-[#11468F] hover:bg-gray-100 rounded-lg transition-colors" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="deleteExemplar(${exemplar.id})" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <h4 class="font-semibold text-gray-900 mb-1 truncate">${exemplar.name}</h4>
+                        <p class="text-sm text-gray-500">${fileSizeKB} KB</p>
+                        <p class="text-xs text-gray-400 mt-1">${exemplar.date}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.viewExemplar = function(id) {
+            const exemplar = exemplars.find(e => e.id === id);
+            if (!exemplar) return;
+
+            currentExemplar = exemplar;
+            fileName.textContent = exemplar.name;
+            const fileSizeKB = (exemplar.size / 1024).toFixed(2);
+            fileInfo.textContent = `${fileSizeKB} KB • ${exemplar.date}`;
+
+            displayText(exemplar.text);
+            preview.classList.remove('hidden');
+        };
+
+        window.deleteExemplar = function(id) {
+            if (confirm('Are you sure you want to delete this exemplar?')) {
+                exemplars = exemplars.filter(e => e.id !== id);
+                updateUI();
+            }
+        };
+
+        function displayText(text) {
+            const paragraphs = text.split('\n\n').filter(p => p.trim());
+            documentContent.innerHTML = paragraphs
+                .map(p => `<p class="mb-4 text-gray-800 leading-relaxed">${escapeHtml(p)}</p>`)
+                .join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Close preview
+        closePreview.addEventListener('click', () => {
+            preview.classList.add('hidden');
+            currentExemplar = null;
+        });
+
+        // Close modal on background click
+        preview.addEventListener('click', (e) => {
+            if (e.target === preview) {
+                preview.classList.add('hidden');
+                currentExemplar = null;
+            }
+        });
+
+        // Copy text
+        copyText.addEventListener('click', () => {
+            if (!currentExemplar) return;
+            navigator.clipboard.writeText(currentExemplar.text).then(() => {
+                const originalText = copyText.innerHTML;
+                copyText.innerHTML = '<i class="fas fa-check mr-2"></i>Copied!';
+                setTimeout(() => {
+                    copyText.innerHTML = originalText;
+                }, 2000);
+            });
+        });
+
+        // Download text
+        downloadText.addEventListener('click', () => {
+            if (!currentExemplar) return;
+            const blob = new Blob([currentExemplar.text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentExemplar.name.replace(/\.[^/.]+$/, '') + '.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // Mobile menu
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+        });
+    </script>
+</body>
+</html>

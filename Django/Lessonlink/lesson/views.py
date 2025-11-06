@@ -1327,6 +1327,9 @@ def Dep_Dash(request):
         'pending_submissions': pending_submissions
     })
 
+def Dep_exemplar(request):
+    return render(request, "Dep_exemplar.html")
+
 @login_required
 def Dep_Faculty(request):
     user = request.user

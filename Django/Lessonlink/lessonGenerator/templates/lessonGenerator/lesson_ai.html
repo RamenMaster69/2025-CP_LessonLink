@@ -208,8 +208,14 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 lesson-plan-section">
                 <!-- Form Fields -->
                 <form id="lesson-plan-form" class="space-y-4 sm:space-y-6">
-                    <!-- Row 1: Subject and Grade Level -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <!-- Lesson Title -->
+                    <div>
+                        <label for="lesson-title" class="block text-sm font-medium text-gray-700 mb-2">Lesson Title</label>
+                        <input type="text" id="lesson-title" name="lesson_title" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter the title of your lesson plan" required>
+                    </div>
+
+                    <!-- Row 1: Subject, Grade Level, and MELC Code -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                         <div>
                             <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
                             <select id="subject" name="subject" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
@@ -240,190 +246,41 @@
                                 <option value="10th Grade">10th Grade</option>
                             </select>
                         </div>
-                    </div>
-
-                    <!-- Row 2: Quarter and Duration -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div>
-                            <label for="quarter" class="block text-sm font-medium text-gray-700 mb-2">Quarter</label>
-                            <select id="quarter" name="quarter" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                                <option value="">Select Quarter</option>
-                                <option value="1st Quarter">1st Quarter</option>
-                                <option value="2nd Quarter">2nd Quarter</option>
-                                <option value="3rd Quarter">3rd Quarter</option>
-                                <option value="4th Quarter">4th Quarter</option>
+                            <label for="melc-code" class="block text-sm font-medium text-gray-700 mb-2">MELC Code</label>
+                            <select id="melc-code" name="melc_code" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                <option value="">Select MELC Code</option>
+                                <option value="MELC-MATH-001">MELC-MATH-001: Number Sense</option>
+                                <option value="MELC-MATH-002">MELC-MATH-002: Operations & Algebra</option>
+                                <option value="MELC-MATH-003">MELC-MATH-003: Geometry & Measurement</option>
+                                <option value="MELC-SCI-001">MELC-SCI-001: Scientific Inquiry</option>
+                                <option value="MELC-SCI-002">MELC-SCI-002: Life Sciences</option>
+                                <option value="MELC-SCI-003">MELC-SCI-003: Physical Sciences</option>
+                                <option value="MELC-ENG-001">MELC-ENG-001: Reading Comprehension</option>
+                                <option value="MELC-ENG-002">MELC-ENG-002: Writing Skills</option>
+                                <option value="MELC-ENG-003">MELC-ENG-003: Oral Communication</option>
+                                <option value="MELC-HIST-001">MELC-HIST-001: Historical Analysis</option>
+                                <option value="MELC-HIST-002">MELC-HIST-002: Cultural Understanding</option>
+                                <option value="MELC-ART-001">MELC-ART-001: Creative Expression</option>
+                                <option value="MELC-MUSIC-001">MELC-MUSIC-001: Musical Skills</option>
+                                <option value="MELC-PE-001">MELC-PE-001: Physical Fitness</option>
                             </select>
                         </div>
-                        <div>
-                            <label for="duration-input" class="block text-sm font-medium text-gray-700 mb-2">Duration (minutes)</label>
-                            <input type="number" id="duration-input" name="duration" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g. 60" required>
-                        </div>
                     </div>
 
-                    <!-- Population -->
+                    <!-- Learning Objectives - Three Input Fields -->
                     <div>
-                        <label for="population" class="block text-sm font-medium text-gray-700 mb-2">Population</label>
-                        <input type="number" id="population" name="population" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g. 40" required>
-                    </div>
-
-                    <!-- Learning Objectives -->
-                    <div>
-                        <label for="learning-objectives" class="block text-sm font-medium text-gray-700 mb-2">Learning Objectives</label>
-                        <textarea id="learning-objectives" name="learning_objectives" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-20 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="At the end of the lesson, student will be able to learn..." required></textarea>
-                    </div>
-
-                    <!-- Subject Matter and Materials Needed -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                        <div>
-                            <label for="subject-matter" class="block text-sm font-medium text-gray-700 mb-2">Subject Matter</label>
-                            <textarea id="subject-matter" name="subject_matter" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-20 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Key concepts and topic to be covered" required></textarea>
-                        </div>
-                        <div>
-                            <label for="materials-needed" class="block text-sm font-medium text-gray-700 mb-2">Materials Needed</label>
-                            <textarea id="materials-needed" name="materials_needed" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-20 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Lists of materials, resources, and tools..." required></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Lesson Procedure -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-4">Lesson Procedure</label>
-                        <div class="space-y-6">
-                            
-                            <!-- Introduction Section -->
-                            <div class="border border-gray-200 rounded-lg p-4 bg-white">
-                                <div class="flex justify-between items-center mb-3">
-                                    <label class="block text-sm font-medium text-gray-700">Introduction (5 minutes)</label>
-                                    <button type="button" class="ai-suggest-btn text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full transition" data-section="introduction">
-                                        ✨ AI Suggestions
-                                    </button>
-                                </div>
-                                <select id="introduction" name="introduction" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                                    <option value="">Select Introduction Method</option>
-                                    <option value="hook">Hook/Attention Grabber</option>
-                                    <option value="review">Review of Previous Lesson</option>
-                                    <option value="connection">Real-world Connection</option>
-                                    <option value="question">Question-based Opening</option>
-                                    <option value="story">Story/Anecdote</option>
-                                    <option value="activity">Interactive Activity</option>
-                                    <option value="custom">Custom (Write Your Own)</option>
-                                </select>
-                                <textarea id="introduction-custom" class="custom-textarea w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-2 focus:ring-2 focus:ring-blue-500" placeholder="Describe your custom introduction approach..." rows="3"></textarea>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Learning Objectives</label>
+                        <div class="space-y-3">
+                            <div>
+                                <input type="text" id="learning-objective-1" name="learning_objective_1" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="At the end of the lesson, students will be able to..." required>
                             </div>
-
-                            <!-- Instruction Section -->
-                            <div class="border border-gray-200 rounded-lg p-4 bg-white">
-                                <div class="flex justify-between items-center mb-3">
-                                    <label class="block text-sm font-medium text-gray-700">Instruction (25 minutes)</label>
-                                    <button type="button" class="ai-suggest-btn text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full transition" data-section="instruction">
-                                        ✨ AI Suggestions
-                                    </button>
-                                </div>
-                                <div class="space-y-2">
-                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
-                                        <input type="radio" id="instr-direct" name="instruction" value="direct" class="mr-2" required>
-                                        <label for="instr-direct" class="cursor-pointer text-sm">Direct Instruction (Teacher-led lecture)</label>
-                                    </div>
-                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
-                                        <input type="radio" id="instr-demo" name="instruction" value="demonstration" class="mr-2">
-                                        <label for="instr-demo" class="cursor-pointer text-sm">Demonstration & Modeling</label>
-                                    </div>
-                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
-                                        <input type="radio" id="instr-discovery" name="instruction" value="discovery" class="mr-2">
-                                        <label for="instr-discovery" class="cursor-pointer text-sm">Guided Discovery</label>
-                                    </div>
-                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
-                                        <input type="radio" id="instr-multimedia" name="instruction" value="multimedia" class="mr-2">
-                                        <label for="instr-multimedia" class="cursor-pointer text-sm">Multimedia Presentation</label>
-                                    </div>
-                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
-                                        <input type="radio" id="instr-discussion" name="instruction" value="discussion" class="mr-2">
-                                        <label for="instr-discussion" class="cursor-pointer text-sm">Interactive Discussion</label>
-                                    </div>
-                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
-                                        <input type="radio" id="instr-handson" name="instruction" value="handson" class="mr-2">
-                                        <label for="instr-handson" class="cursor-pointer text-sm">Hands-on Exploration</label>
-                                    </div>
-                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
-                                        <input type="radio" id="instr-custom" name="instruction" value="custom" class="mr-2">
-                                        <label for="instr-custom" class="cursor-pointer text-sm">Custom Method</label>
-                                    </div>
-                                </div>
-                                <textarea id="instruction-custom" class="custom-textarea w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="Describe your custom instruction method..." rows="3"></textarea>
+                            <div>
+                                <input type="text" id="learning-objective-2" name="learning_objective_2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Additional learning objective..." required>
                             </div>
-
-                            <!-- Application Section -->
-                            <div class="border border-gray-200 rounded-lg p-4 bg-white">
-                                <div class="flex justify-between items-center mb-3">
-                                    <label class="block text-sm font-medium text-gray-700">Application (20 minutes)</label>
-                                    <button type="button" class="ai-suggest-btn text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full transition" data-section="application">
-                                        ✨ AI Suggestions
-                                    </button>
-                                </div>
-                                <select id="application" name="application" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                                    <option value="">Select Application Activity</option>
-                                    <option value="individual">Individual Practice</option>
-                                    <option value="group">Group Work/Collaboration</option>
-                                    <option value="problem">Problem-Solving Activity</option>
-                                    <option value="lab">Lab/Experiment</option>
-                                    <option value="project">Creative Project</option>
-                                    <option value="realworld">Real-world Application Task</option>
-                                    <option value="custom">Custom Activity</option>
-                                </select>
-                                <textarea id="application-custom" class="custom-textarea w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-2 focus:ring-2 focus:ring-blue-500" placeholder="Describe your custom application activity..." rows="3"></textarea>
+                            <div>
+                                <input type="text" id="learning-objective-3" name="learning_objective_3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Additional learning objective..." required>
                             </div>
-
-                            <!-- Evaluation Section -->
-                            <div class="border border-gray-200 rounded-lg p-4 bg-white">
-                                <label class="block text-sm font-medium text-gray-700 mb-3">Evaluation (5 minutes)</label>
-                                <div class="space-y-2">
-                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
-                                        <input type="radio" id="eval-oral" name="evaluation" value="oral" class="mr-2" required>
-                                        <label for="eval-oral" class="cursor-pointer text-sm">Oral Questioning</label>
-                                    </div>
-                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
-                                        <input type="radio" id="eval-quiz" name="evaluation" value="quiz" class="mr-2">
-                                        <label for="eval-quiz" class="cursor-pointer text-sm">Quick Quiz/Exit Ticket</label>
-                                    </div>
-                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
-                                        <input type="radio" id="eval-peer" name="evaluation" value="peer" class="mr-2">
-                                        <label for="eval-peer" class="cursor-pointer text-sm">Peer Assessment</label>
-                                    </div>
-                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
-                                        <input type="radio" id="eval-self" name="evaluation" value="self" class="mr-2">
-                                        <label for="eval-self" class="cursor-pointer text-sm">Self-Assessment Checklist</label>
-                                    </div>
-                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
-                                        <input type="radio" id="eval-observation" name="evaluation" value="observation" class="mr-2">
-                                        <label for="eval-observation" class="cursor-pointer text-sm">Observation & Feedback</label>
-                                    </div>
-                                    <div class="radio-option border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
-                                        <input type="radio" id="eval-digital" name="evaluation" value="digital" class="mr-2">
-                                        <label for="eval-digital" class="cursor-pointer text-sm">Digital Poll/Kahoot</label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Assessment Section -->
-                            <div class="border border-gray-200 rounded-lg p-4 bg-white">
-                                <div class="flex justify-between items-center mb-3">
-                                    <label class="block text-sm font-medium text-gray-700">Assessment (5 minutes)</label>
-                                    <button type="button" class="ai-suggest-btn text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full transition" data-section="assessment">
-                                        ✨ AI Suggestions
-                                    </button>
-                                </div>
-                                <select id="assessment" name="assessment" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                                    <option value="">Select Assessment Method</option>
-                                    <option value="written">Written Test/Quiz</option>
-                                    <option value="performance">Performance Task</option>
-                                    <option value="portfolio">Portfolio Assessment</option>
-                                    <option value="rubric">Rubric-based Evaluation</option>
-                                    <option value="formative">Formative Observation</option>
-                                    <option value="summative">Summative Project</option>
-                                    <option value="custom">Custom Assessment</option>
-                                </select>
-                                <textarea id="assessment-custom" class="custom-textarea w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-2 focus:ring-2 focus:ring-blue-500" placeholder="Describe your custom assessment method..." rows="3"></textarea>
-                            </div>
-
                         </div>
                     </div>
 
@@ -699,19 +556,13 @@
         // Get current form data
         function getFormData() {
             return {
+                lessonTitle: document.getElementById('lesson-title').value,
                 subject: document.getElementById('subject').value,
                 gradeLevel: document.getElementById('grade-level').value,
-                quarter: document.getElementById('quarter').value,
-                duration: document.getElementById('duration-input').value,
-                population: document.getElementById('population').value,
-                learningObjectives: document.getElementById('learning-objectives').value,
-                subjectMatter: document.getElementById('subject-matter').value,
-                materialsNeeded: document.getElementById('materials-needed').value,
-                introduction: document.getElementById('introduction').value,
-                instruction: document.querySelector('input[name="instruction"]:checked')?.value || '',
-                application: document.getElementById('application').value,
-                evaluation: document.querySelector('input[name="evaluation"]:checked')?.value || '',
-                assessment: document.getElementById('assessment').value
+                melcCode: document.getElementById('melc-code').value,
+                learningObjective1: document.getElementById('learning-objective-1').value,
+                learningObjective2: document.getElementById('learning-objective-2').value,
+                learningObjective3: document.getElementById('learning-objective-3').value
             };
         }
 
@@ -857,58 +708,6 @@
             });
         }
 
-        // Custom textarea toggle for dropdown/radio selections
-        document.getElementById('introduction').addEventListener('change', function() {
-            const customTextarea = document.getElementById('introduction-custom');
-            if (this.value === 'custom') {
-                customTextarea.classList.add('active');
-            } else {
-                customTextarea.classList.remove('active');
-            }
-        });
-
-        document.getElementById('application').addEventListener('change', function() {
-            const customTextarea = document.getElementById('application-custom');
-            if (this.value === 'custom') {
-                customTextarea.classList.add('active');
-            } else {
-                customTextarea.classList.remove('active');
-            }
-        });
-
-        document.getElementById('assessment').addEventListener('change', function() {
-            const customTextarea = document.getElementById('assessment-custom');
-            if (this.value === 'custom') {
-                customTextarea.classList.add('active');
-            } else {
-                customTextarea.classList.remove('active');
-            }
-        });
-
-        // Radio button custom option for instruction
-        document.querySelectorAll('input[name="instruction"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                const customTextarea = document.getElementById('instruction-custom');
-                if (this.value === 'custom') {
-                    customTextarea.classList.add('active');
-                } else {
-                    customTextarea.classList.remove('active');
-                }
-            });
-        });
-
-        // AI Suggestions Modal
-        const aiSuggestionsModal = document.getElementById('ai-suggestions-modal');
-        const closeAiModal = document.getElementById('close-ai-modal');
-        const closeAiModalFooter = document.getElementById('close-ai-modal-footer');
-        const aiSuggestionsContent = document.getElementById('ai-suggestions-content');
-
-        closeAiModal.addEventListener('click', () => aiSuggestionsModal.classList.add('hidden'));
-        closeAiModalFooter.addEventListener('click', () => aiSuggestionsModal.classList.add('hidden'));
-        aiSuggestionsModal.addEventListener('click', (e) => {
-            if (e.target === aiSuggestionsModal) aiSuggestionsModal.classList.add('hidden');
-        });
-
         // Preview Modal
         const previewBtn = document.getElementById('preview-btn');
         const previewModal = document.getElementById('preview-modal');
@@ -928,53 +727,14 @@
                 return value;
             }
 
-            // Get instruction method
-            const instructionRadio = document.querySelector('input[name="instruction"]:checked');
-            let instructionValue = instructionRadio ? instructionRadio.value : '';
-            if (instructionValue === 'custom') {
-                instructionValue = document.getElementById('instruction-custom').value || 'Custom method';
-            } else {
-                const labels = {
-                    'direct': 'Direct Instruction (Teacher-led lecture)',
-                    'demonstration': 'Demonstration & Modeling',
-                    'discovery': 'Guided Discovery',
-                    'multimedia': 'Multimedia Presentation',
-                    'discussion': 'Interactive Discussion',
-                    'handson': 'Hands-on Exploration'
-                };
-                instructionValue = labels[instructionValue] || instructionValue;
-            }
-
-            // Get evaluation method
-            const evaluationRadio = document.querySelector('input[name="evaluation"]:checked');
-            let evaluationValue = evaluationRadio ? evaluationRadio.value : '';
-            const evalLabels = {
-                'oral': 'Oral Questioning',
-                'quiz': 'Quick Quiz/Exit Ticket',
-                'peer': 'Peer Assessment',
-                'self': 'Self-Assessment Checklist',
-                'observation': 'Observation & Feedback',
-                'digital': 'Digital Poll/Kahoot'
-            };
-            evaluationValue = evalLabels[evaluationValue] || evaluationValue;
-
             return {
+                lessonTitle: document.getElementById('lesson-title').value,
                 subject: document.getElementById('subject').value,
                 gradeLevel: document.getElementById('grade-level').value,
-                quarter: document.getElementById('quarter').value,
-                duration: document.getElementById('duration-input').value,
-                population: document.getElementById('population').value,
-                learningObjectives: document.getElementById('learning-objectives').value,
-                subjectMatter: document.getElementById('subject-matter').value,
-                materialsNeeded: document.getElementById('materials-needed').value,
-                introduction: getReadableValue('introduction', document.getElementById('introduction').value) + 
-                    (document.getElementById('introduction').value === 'custom' ? ': ' + document.getElementById('introduction-custom').value : ''),
-                instruction: instructionValue,
-                application: getReadableValue('application', document.getElementById('application').value) +
-                    (document.getElementById('application').value === 'custom' ? ': ' + document.getElementById('application-custom').value : ''),
-                evaluation: evaluationValue,
-                assessment: getReadableValue('assessment', document.getElementById('assessment').value) +
-                    (document.getElementById('assessment').value === 'custom' ? ': ' + document.getElementById('assessment-custom').value : '')
+                melcCode: getReadableValue('melc-code', document.getElementById('melc-code').value),
+                learningObjective1: document.getElementById('learning-objective-1').value,
+                learningObjective2: document.getElementById('learning-objective-2').value,
+                learningObjective3: document.getElementById('learning-objective-3').value
             };
         }
 
@@ -982,7 +742,7 @@
             return `
                 <div class="space-y-6">
                     <div class="text-center border-b border-gray-200 pb-4">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Lesson Plan</h3>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">${data.lessonTitle || 'Lesson Plan'}</h3>
                         <p class="text-gray-600">${data.subject} - ${data.gradeLevel}</p>
                     </div>
                     
@@ -998,68 +758,23 @@
                                 <span class="text-sm text-gray-900">${data.gradeLevel || 'Not specified'}</span>
                             </div>
                             <div>
-                                <span class="text-sm font-medium text-gray-600 block">Quarter</span>
-                                <span class="text-sm text-gray-900">${data.quarter || 'Not specified'}</span>
-                            </div>
-                            <div>
-                                <span class="text-sm font-medium text-gray-600 block">Duration</span>
-                                <span class="text-sm text-gray-900">${data.duration ? data.duration + ' minutes' : 'Not specified'}</span>
-                            </div>
-                            <div>
-                                <span class="text-sm font-medium text-gray-600 block">Population</span>
-                                <span class="text-sm text-gray-900">${data.population ? data.population + ' students' : 'Not specified'}</span>
+                                <span class="text-sm font-medium text-gray-600 block">MELC Code</span>
+                                <span class="text-sm text-gray-900">${data.melcCode || 'Not specified'}</span>
                             </div>
                         </div>
                     </div>
                     
                     <div>
                         <h4 class="font-semibold text-gray-900 mb-3">Learning Objectives</h4>
-                        <div class="bg-white border border-gray-200 rounded-lg p-4">
-                            <p class="text-sm text-gray-700 leading-relaxed">${data.learningObjectives || 'No learning objectives specified'}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <h4 class="font-semibold text-gray-900 mb-3">Subject Matter</h4>
-                            <div class="bg-white border border-gray-200 rounded-lg p-4 h-full">
-                                <p class="text-sm text-gray-700 leading-relaxed">${data.subjectMatter || 'No subject matter specified'}</p>
-                            </div>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold text-gray-900 mb-3">Materials Needed</h4>
-                            <div class="bg-white border border-gray-200 rounded-lg p-4 h-full">
-                                <p class="text-sm text-gray-700 leading-relaxed">${data.materialsNeeded || 'No materials specified'}</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <h4 class="font-semibold text-gray-900 mb-3">Lesson Procedure</h4>
                         <div class="space-y-3">
-                            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
-                                <h5 class="font-medium text-blue-900 mb-2">Introduction (5 minutes)</h5>
-                                <p class="text-sm text-blue-800 leading-relaxed">${data.introduction || 'No introduction content specified'}</p>
+                            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                                <p class="text-sm text-gray-700 leading-relaxed">${data.learningObjective1 || 'No learning objective specified'}</p>
                             </div>
-                            
-                            <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
-                                <h5 class="font-medium text-green-900 mb-2">Instruction (25 minutes)</h5>
-                                <p class="text-sm text-green-800 leading-relaxed">${data.instruction || 'No instruction content specified'}</p>
+                            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                                <p class="text-sm text-gray-700 leading-relaxed">${data.learningObjective2 || 'No learning objective specified'}</p>
                             </div>
-                            
-                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
-                                <h5 class="font-medium text-yellow-900 mb-2">Application (20 minutes)</h5>
-                                <p class="text-sm text-yellow-800 leading-relaxed">${data.application || 'No application content specified'}</p>
-                            </div>
-                            
-                            <div class="bg-purple-50 border-l-4 border-purple-400 p-4 rounded-r-lg">
-                                <h5 class="font-medium text-purple-900 mb-2">Evaluation (5 minutes)</h5>
-                                <p class="text-sm text-purple-800 leading-relaxed">${data.evaluation || 'No evaluation content specified'}</p>
-                            </div>
-                            
-                            <div class="bg-pink-50 border-l-4 border-pink-400 p-4 rounded-r-lg">
-                                <h5 class="font-medium text-pink-900 mb-2">Assessment (5 minutes)</h5>
-                                <p class="text-sm text-pink-800 leading-relaxed">${data.assessment || 'No assessment content specified'}</p>
+                            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                                <p class="text-sm text-gray-700 leading-relaxed">${data.learningObjective3 || 'No learning objective specified'}</p>
                             </div>
                         </div>
                     </div>
@@ -1103,27 +818,14 @@
             document.getElementById('loading-overlay').classList.remove('hidden');
             
             // Gather form data with proper values
-            const instructionRadio = document.querySelector('input[name="instruction"]:checked');
-            const evaluationRadio = document.querySelector('input[name="evaluation"]:checked');
-            
             const formData = {
+                lesson_title: document.getElementById('lesson-title').value,
                 subject: document.getElementById('subject').value,
                 grade_level: document.getElementById('grade-level').value,
-                quarter: document.getElementById('quarter').value,
-                duration: document.getElementById('duration-input').value,
-                population: document.getElementById('population').value,
-                learning_objectives: document.getElementById('learning-objectives').value,
-                subject_matter: document.getElementById('subject-matter').value,
-                materials_needed: document.getElementById('materials-needed').value,
-                introduction: document.getElementById('introduction').value === 'custom' ? 
-                    document.getElementById('introduction-custom').value : document.getElementById('introduction').value,
-                instruction: instructionRadio ? (instructionRadio.value === 'custom' ? 
-                    document.getElementById('instruction-custom').value : instructionRadio.value) : '',
-                application: document.getElementById('application').value === 'custom' ?
-                    document.getElementById('application-custom').value : document.getElementById('application').value,
-                evaluation: evaluationRadio ? evaluationRadio.value : '',
-                assessment: document.getElementById('assessment').value === 'custom' ?
-                    document.getElementById('assessment-custom').value : document.getElementById('assessment').value,
+                melc_code: document.getElementById('melc-code').value,
+                learning_objective_1: document.getElementById('learning-objective-1').value,
+                learning_objective_2: document.getElementById('learning-objective-2').value,
+                learning_objective_3: document.getElementById('learning-objective-3').value
             };
             
             try {
