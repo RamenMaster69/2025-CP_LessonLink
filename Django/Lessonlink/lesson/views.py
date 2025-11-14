@@ -2442,11 +2442,69 @@ def Dep_exemplar(request):
     
     return render(request, "Dep_exemplar.html")
 
+@login_required
+def get_department_exemplars(request):
+    """Get exemplars for teacher's department"""
+    try:
+        user = request.user
+        
+        # For teachers, get exemplars from their department head in the same department and school
+        if user.role == 'Teacher':
+            # Get department head for the same department and school
+            department_head = User.objects.filter(
+                role='Department Head',
+                department=user.department,
+                school=user.school,
+                is_active=True
+            ).first()
+            
+            if department_head:
+                # Get exemplars uploaded by department head for this department
+                exemplars = Exemplar.objects.filter(
+                    user=department_head,
+                    department=user.department
+                ).order_by('-upload_date')
+                
+                serializer = ExemplarSerializer(exemplars, many=True)
+                
+                return JsonResponse({
+                    'success': True,
+                    'exemplars': serializer.data
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'No department head found for your department.'
+                }, status=404)
+        
+        # For department heads, get their own exemplars
+        elif user.role == 'Department Head':
+            exemplars = Exemplar.objects.filter(user=user).order_by('-upload_date')
+            serializer = ExemplarSerializer(exemplars, many=True)
+            
+            return JsonResponse({
+                'success': True,
+                'exemplars': serializer.data
+            })
+        
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Access denied. Teachers and Department Heads only.'
+            }, status=403)
+            
+    except Exception as e:
+        logger.error(f"Error fetching department exemplars: {str(e)}")
+        return JsonResponse({
+            'success': False, 
+            'message': 'Error fetching exemplars'
+        }, status=500)
+
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
 def upload_exemplar(request):
-    """Handle exemplar file upload and processing"""
+    """Handle exemplar file upload and processing - UPDATED TO INCLUDE DEPARTMENT"""
     try:
         if 'file' not in request.FILES:
             return JsonResponse({
@@ -2480,14 +2538,15 @@ def upload_exemplar(request):
         # Extract text content
         extracted_text = extract_text_from_file(file, file_type)
         
-        # Save the exemplar
+        # Save the exemplar with department information
         exemplar = Exemplar.objects.create(
             user=user,
             name=file.name,
             file=file,
             file_type=file_type,
             file_size=file.size,
-            extracted_text=extracted_text
+            extracted_text=extracted_text,
+            department=user.department  # Add department from user
         )
         
         # Serialize the response
@@ -2621,3 +2680,4 @@ def get_exemplar_text(request, exemplar_id):
             'success': False, 
             'message': 'Error fetching exemplar content'
         }, status=500)
+

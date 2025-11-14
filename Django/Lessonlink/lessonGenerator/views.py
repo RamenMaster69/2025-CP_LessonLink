@@ -10,7 +10,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 import re
 from .models import LessonPlan, LessonPlanSubmission
-from .ai_instructions import LESSON_PLANNER_SYSTEM_INSTRUCTION
+from .ai_instructions import LESSON_PLANNER_SYSTEM_INSTRUCTION, EXEMPLAR_REFERENCE_INSTRUCTION
 
 # Configure the Gemini API
 try:
@@ -46,7 +46,7 @@ def generate_lesson_plan(request):
                 'error': 'Invalid JSON data received.'
             }, status=400)
         
-        # Extract form data with validation
+        # Extract form data with validation - MATCHING THE ACTUAL FORM FIELDS
         required_fields = ['subject', 'grade_level', 'learning_objectives']
         for field in required_fields:
             if field not in data or not data[field].strip():
@@ -59,8 +59,8 @@ def generate_lesson_plan(request):
             'subject': data.get('subject', '').strip(),
             'grade_level': data.get('grade_level', '').strip(),
             'quarter': data.get('quarter', '').strip(),
-            'duration': data.get('duration', '').strip(),
-            'population': data.get('population', '').strip(),
+            'duration': data.get('duration', '60').strip(),  # Default to 60 minutes
+            'population': data.get('population', '30').strip(),  # Default to 30 students
             'learning_objectives': data.get('learning_objectives', '').strip(),
             'subject_matter': data.get('subject_matter', '').strip(),
             'materials_needed': data.get('materials_needed', '').strip(),
@@ -69,39 +69,73 @@ def generate_lesson_plan(request):
             'application': data.get('application', '').strip(),
             'evaluation': data.get('evaluation', '').strip(),
             'assessment': data.get('assessment', '').strip(),
+            'selected_exemplar': data.get('selected_exemplar', '').strip(),  # Add exemplar reference
         }
         
         print("Form data prepared:", form_data)  # Debugging
         
-        # Format the prompt for the AI with MELC focus
+        # Get exemplar content if selected
+        exemplar_content = ""
+        exemplar_name = ""
+        if form_data['selected_exemplar']:
+            try:
+                from lesson.models import Exemplar
+                exemplar = Exemplar.objects.get(id=form_data['selected_exemplar'])
+                exemplar_content = exemplar.extracted_text
+                exemplar_name = exemplar.name
+                print(f"Exemplar content loaded: {len(exemplar_content)} characters from {exemplar_name}")  # Debugging
+            except Exemplar.DoesNotExist:
+                print("Selected exemplar not found")
+            except Exception as e:
+                print(f"Error loading exemplar: {str(e)}")
+        
+        # Format the prompt for the AI - MATCHING THE FORM STRUCTURE
         prompt = f"""
         Create a comprehensive MELC-aligned lesson plan based on these details:
 
         SUBJECT: {form_data['subject']}
         GRADE LEVEL: {form_data['grade_level']}
-        QUARTER: {form_data['quarter']}
+        QUARTER: {form_data['quarter'] or 'Not specified'}
         DURATION: {form_data['duration']} minutes
         CLASS SIZE: {form_data['population']} students
-        LEARNING OBJECTIVES: {form_data['learning_objectives']}
-        SUBJECT MATTER: {form_data['subject_matter']}
-        MATERIALS NEEDED: {form_data['materials_needed']}
-        INTRODUCTION: {form_data['introduction']}
-        INSTRUCTION: {form_data['instruction']}
-        APPLICATION: {form_data['application']}
-        EVALUATION: {form_data['evaluation']}
-        ASSESSMENT: {form_data['assessment']}
+        
+        LEARNING OBJECTIVES:
+        {form_data['learning_objectives']}
+        
+        SUBJECT MATTER: {form_data['subject_matter'] or 'To be developed based on MELC standards'}
+        MATERIALS NEEDED: {form_data['materials_needed'] or 'To be specified based on lesson requirements'}
+        INTRODUCTION: {form_data['introduction'] or 'To be developed based on MELC alignment'}
+        INSTRUCTION: {form_data['instruction'] or 'To be developed based on direct teaching methods'}
+        APPLICATION: {form_data['application'] or 'To be developed for guided practice'}
+        EVALUATION: {form_data['evaluation'] or 'To be developed for independent practice'}
+        ASSESSMENT: {form_data['assessment'] or 'To be developed for formal assessment'}
+
+        {'REFERENCE EXEMPLAR: ' + exemplar_name if exemplar_name else ''}
+        {'EXEMPLAR CONTENT FOR REFERENCE: ' + exemplar_content if exemplar_content else ''}
 
         Generate this as a complete MELC-aligned lesson plan following DepEd Philippines standards.
-        Include appropriate MELC codes, content standards, performance standards, and learning competencies.
-        Ensure integration of values education and cross-curricular connections.
+        Use the learning objectives provided to create specific, measurable outcomes.
+        {'Use the reference exemplar as a guide for structure, depth, and quality standards while maintaining originality.' if exemplar_content else ''}
         """
         
         print("Sending prompt to AI")  # Debugging
+        print(f"Exemplar provided: {bool(exemplar_content)}")  # Debugging
         
         # Generate the lesson plan using Gemini
         try:
+            # Check if exemplar is provided
+            has_exemplar = bool(form_data['selected_exemplar'] and exemplar_content)
+            
+            # Use appropriate system instruction
+            if has_exemplar:
+                system_instruction = LESSON_PLANNER_SYSTEM_INSTRUCTION + "\n\n" + EXEMPLAR_REFERENCE_INSTRUCTION
+                print("Using enhanced system instruction with exemplar guidance")  # Debugging
+            else:
+                system_instruction = LESSON_PLANNER_SYSTEM_INSTRUCTION
+                print("Using standard system instruction")  # Debugging
+            
             response = model.generate_content([
-                LESSON_PLANNER_SYSTEM_INSTRUCTION,
+                system_instruction,
                 prompt
             ])
             
@@ -123,7 +157,10 @@ def generate_lesson_plan(request):
                     
                     return JsonResponse({
                         'success': True,
-                        'lesson_plan': lesson_data.get('markdown_output', '')
+                        'lesson_plan': lesson_data.get('markdown_output', ''),
+                        'exemplar_used': has_exemplar,
+                        'exemplar_id': form_data['selected_exemplar'] if has_exemplar else None,
+                        'exemplar_name': exemplar_name if has_exemplar else None
                     })
                 else:
                     # Fallback: if no JSON found, treat as markdown
@@ -134,7 +171,10 @@ def generate_lesson_plan(request):
                     
                     return JsonResponse({
                         'success': True,
-                        'lesson_plan': response.text
+                        'lesson_plan': response.text,
+                        'exemplar_used': has_exemplar,
+                        'exemplar_id': form_data['selected_exemplar'] if has_exemplar else None,
+                        'exemplar_name': exemplar_name if has_exemplar else None
                     })
                     
             except json.JSONDecodeError as json_error:
@@ -146,7 +186,10 @@ def generate_lesson_plan(request):
                 
                 return JsonResponse({
                     'success': True,
-                    'lesson_plan': response.text
+                    'lesson_plan': response.text,
+                    'exemplar_used': has_exemplar,
+                    'exemplar_id': form_data['selected_exemplar'] if has_exemplar else None,
+                    'exemplar_name': exemplar_name if has_exemplar else None
                 })
             
         except Exception as ai_error:

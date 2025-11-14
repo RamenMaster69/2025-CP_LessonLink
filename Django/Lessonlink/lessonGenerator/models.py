@@ -54,7 +54,7 @@ class LessonPlan(models.Model):
         return f"{self.subject} - {self.grade_level} - {self.title}"
 
     def parse_generated_content(self):
-        """Parse the AI-generated content into sections and subsections including MELC data"""
+        """Parse the AI-generated content into sections and subsections including MELC and exemplar data"""
         sections = {}
         content = self.generated_content
 
@@ -68,6 +68,7 @@ class LessonPlan(models.Model):
             'lesson_procedure': r'## Lesson Procedure\s*\n(.*?)(?=##|$)',
             'differentiation': r'## Differentiation\s*\n(.*?)(?=##|$)',
             'integration': r'## Integration\s*\n(.*?)(?=##|$)',
+            'exemplar_notes': r'## Exemplar Notes\s*\n(.*?)(?=##|$)',  # Add exemplar notes
         }
 
         for section, pattern in patterns.items():
@@ -76,6 +77,27 @@ class LessonPlan(models.Model):
                 sections[section] = match.group(1).strip()
             else:
                 sections[section] = ""
+
+        # Parse Metadata fields - ADD EXEMPLAR REFERENCE
+        metadata = sections.get('metadata', '')
+        metadata_patterns = {
+            'subject': r'\*\*Subject:\*\*\s*([^\n]+)',
+            'grade_level': r'\*\*Grade Level:\*\*\s*([^\n]+)',
+            'quarter': r'\*\*Quarter:\*\*\s*([^\n]+)',
+            'duration': r'\*\*Duration:\*\*\s*([^\n]+)',
+            'class_size': r'\*\*Class Size:\*\*\s*([^\n]+)',
+            'exemplar_referenced': r'\*\*Exemplar Referenced:\*\*\s*([^\n]+)',  # Add exemplar reference
+        }
+
+        metadata_data = {}
+        for field, pattern in metadata_patterns.items():
+            match = re.search(pattern, metadata, re.IGNORECASE)
+            if match:
+                metadata_data[field] = match.group(1).strip()
+            else:
+                metadata_data[field] = ""
+
+        sections['metadata_fields'] = metadata_data
 
         # Parse MELC Alignment fields
         melc_alignment = sections.get('melc_alignment', '')
@@ -113,25 +135,23 @@ class LessonPlan(models.Model):
 
         sections['integration_fields'] = integration_data
 
-        # Parse Metadata fields
-        metadata = sections.get('metadata', '')
-        metadata_patterns = {
-            'subject': r'\*\*Subject:\*\*\s*([^\n]+)',
-            'grade_level': r'\*\*Grade Level:\*\*\s*([^\n]+)',
-            'quarter': r'\*\*Quarter:\*\*\s*([^\n]+)',
-            'duration': r'\*\*Duration:\*\*\s*([^\n]+)',
-            'class_size': r'\*\*Class Size:\*\*\s*([^\n]+)',
+        # Parse Exemplar Notes fields
+        exemplar_notes = sections.get('exemplar_notes', '')
+        exemplar_patterns = {
+            'used_as_reference': r'\*\*Used as Reference:\*\*\s*([^\n]+)',
+            'structural_influence': r'\*\*Structural Influence:\*\*\s*([^\n]+)',
+            'quality_standards': r'\*\*Quality Standards:\*\*\s*([^\n]+)',
         }
 
-        metadata_data = {}
-        for field, pattern in metadata_patterns.items():
-            match = re.search(pattern, metadata, re.IGNORECASE)
+        exemplar_data = {}
+        for field, pattern in exemplar_patterns.items():
+            match = re.search(pattern, exemplar_notes, re.IGNORECASE)
             if match:
-                metadata_data[field] = match.group(1).strip()
+                exemplar_data[field] = match.group(1).strip()
             else:
-                metadata_data[field] = ""
+                exemplar_data[field] = ""
 
-        sections['metadata_fields'] = metadata_data
+        sections['exemplar_fields'] = exemplar_data
 
         # Parse Learning Objectives as list items
         objectives = sections.get('learning_objectives', '')
@@ -143,7 +163,7 @@ class LessonPlan(models.Model):
         materials_list = re.findall(r'\*\s*(.*?)(?=\n\*|\n\n|$)', materials, re.DOTALL)
         sections['materials_list'] = [mat.strip() for mat in materials_list if mat.strip()]
 
-        # Parse Lesson Procedure subsections
+        # Parse Lesson Procedure subsections - ADD EXEMPLAR INFLUENCE
         lesson_procedure = sections.get('lesson_procedure', '')
         procedure_subsections = {
             'introduction': r'### A\. Introduction\s*\(([^)]+)\)\s*\n(.*?)(?=###|$)',
@@ -157,12 +177,18 @@ class LessonPlan(models.Model):
         for subsection, pattern in procedure_subsections.items():
             match = re.search(pattern, lesson_procedure, re.DOTALL | re.IGNORECASE)
             if match:
+                content = match.group(2).strip()
+                # Extract exemplar influence if present
+                exemplar_influence_match = re.search(r'\*\*Exemplar Influence:\*\*\s*(.*?)(?=\n\n|\n\*|\n###|$)', content, re.DOTALL | re.IGNORECASE)
+                exemplar_influence = exemplar_influence_match.group(1).strip() if exemplar_influence_match else ""
+                
                 procedure_data[subsection] = {
                     'time': match.group(1).strip(),
-                    'content': match.group(2).strip()
+                    'content': content,
+                    'exemplar_influence': exemplar_influence
                 }
             else:
-                procedure_data[subsection] = {'time': '', 'content': ''}
+                procedure_data[subsection] = {'time': '', 'content': '', 'exemplar_influence': ''}
 
         sections['procedure_subsections'] = procedure_data
 

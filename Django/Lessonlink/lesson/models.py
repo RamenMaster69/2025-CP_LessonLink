@@ -668,6 +668,8 @@ class Exemplar(models.Model):
     file_size = models.BigIntegerField()  # Size in bytes
     extracted_text = models.TextField(blank=True, null=True)
     upload_date = models.DateTimeField(auto_now_add=True)
+    # Add department field to filter exemplars by department
+    department = models.CharField(max_length=100, blank=True, null=True)
     
     class Meta:
         ordering = ['-upload_date']

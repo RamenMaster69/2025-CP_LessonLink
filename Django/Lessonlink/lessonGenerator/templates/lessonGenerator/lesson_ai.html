@@ -214,7 +214,7 @@
                         <input type="text" id="lesson-title" name="lesson_title" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter the title of your lesson plan" required>
                     </div>
 
-                    <!-- Row 1: Subject, Grade Level, and MELC Code -->
+                    <!-- Row 1: Subject, Grade Level, and Exemplar Selector -->
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                         <div>
                             <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
@@ -247,24 +247,12 @@
                             </select>
                         </div>
                         <div>
-                            <label for="melc-code" class="block text-sm font-medium text-gray-700 mb-2">MELC Code</label>
-                            <select id="melc-code" name="melc_code" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                                <option value="">Select MELC Code</option>
-                                <option value="MELC-MATH-001">MELC-MATH-001: Number Sense</option>
-                                <option value="MELC-MATH-002">MELC-MATH-002: Operations & Algebra</option>
-                                <option value="MELC-MATH-003">MELC-MATH-003: Geometry & Measurement</option>
-                                <option value="MELC-SCI-001">MELC-SCI-001: Scientific Inquiry</option>
-                                <option value="MELC-SCI-002">MELC-SCI-002: Life Sciences</option>
-                                <option value="MELC-SCI-003">MELC-SCI-003: Physical Sciences</option>
-                                <option value="MELC-ENG-001">MELC-ENG-001: Reading Comprehension</option>
-                                <option value="MELC-ENG-002">MELC-ENG-002: Writing Skills</option>
-                                <option value="MELC-ENG-003">MELC-ENG-003: Oral Communication</option>
-                                <option value="MELC-HIST-001">MELC-HIST-001: Historical Analysis</option>
-                                <option value="MELC-HIST-002">MELC-HIST-002: Cultural Understanding</option>
-                                <option value="MELC-ART-001">MELC-ART-001: Creative Expression</option>
-                                <option value="MELC-MUSIC-001">MELC-MUSIC-001: Musical Skills</option>
-                                <option value="MELC-PE-001">MELC-PE-001: Physical Fitness</option>
+                            <label for="exemplar-select" class="block text-sm font-medium text-gray-700 mb-2">Select Exemplar (Optional)</label>
+                            <select id="exemplar-select" name="selected_exemplar" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">No exemplar selected</option>
+                                <!-- Exemplars will be loaded dynamically -->
                             </select>
+                            <p class="text-xs text-gray-500 mt-1">Choose an exemplar uploaded by your department head as reference</p>
                         </div>
                     </div>
 
@@ -553,132 +541,163 @@
             }, 4000);
         }
 
-        // Get current form data
+        // Get current form data - UPDATED FOR NEW FORM STRUCTURE
         function getFormData() {
             return {
-                lessonTitle: document.getElementById('lesson-title').value,
                 subject: document.getElementById('subject').value,
-                gradeLevel: document.getElementById('grade-level').value,
-                melcCode: document.getElementById('melc-code').value,
-                learningObjective1: document.getElementById('learning-objective-1').value,
-                learningObjective2: document.getElementById('learning-objective-2').value,
-                learningObjective3: document.getElementById('learning-objective-3').value
+                grade_level: document.getElementById('grade-level').value,
+                learning_objectives: [
+                    document.getElementById('learning-objective-1').value,
+                    document.getElementById('learning-objective-2').value,
+                    document.getElementById('learning-objective-3').value
+                ].filter(obj => obj.trim() !== '').join('\n'),
+                selected_exemplar: document.getElementById('exemplar-select').value
             };
         }
 
-        // AI Suggestions API call
-        async function getAISuggestions(section, formData) {
-            try {
-                const response = await fetch('/get-ai-suggestions/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                    },
-                    body: JSON.stringify({
-                        section: section,
-                        form_data: formData
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                return data.suggestions || [];
-            } catch (error) {
-                console.error('AI Suggestions error:', error);
-                return [];
-            }
+        // Get form data for submission - UPDATED
+        function getSubmissionFormData() {
+            return {
+                subject: document.getElementById('subject').value,
+                grade_level: document.getElementById('grade-level').value,
+                learning_objectives: [
+                    document.getElementById('learning-objective-1').value,
+                    document.getElementById('learning-objective-2').value,
+                    document.getElementById('learning-objective-3').value
+                ].filter(obj => obj.trim() !== '').join('\n'),
+                selected_exemplar: document.getElementById('exemplar-select').value,
+                // Add default values for other required fields
+                quarter: '',
+                duration: '60',
+                population: '30',
+                subject_matter: '',
+                materials_needed: '',
+                introduction: '',
+                instruction: '',
+                application: '',
+                evaluation: '',
+                assessment: ''
+            };
         }
 
-        // Enhanced AI Suggestions Modal with API integration
-        document.querySelectorAll('.ai-suggest-btn').forEach(btn => {
-            btn.addEventListener('click', async function() {
-                const section = this.dataset.section;
-                
-                // Show loading state
-                aiSuggestionsContent.innerHTML = `
-                    <div class="text-center py-8">
-                        <div class="loader-spiral mx-auto"></div>
-                        <p class="text-gray-600 mt-4">AI is analyzing your inputs...</p>
+        // Get preview form data - UPDATED
+        function getPreviewFormData() {
+            const formData = getFormData();
+            
+            return {
+                subject: formData.subject,
+                gradeLevel: formData.grade_level,
+                learningObjectives: formData.learning_objectives,
+                selectedExemplar: formData.selected_exemplar ? 'Yes' : 'No',
+                exemplarCount: document.getElementById('exemplar-select').options.length - 1
+            };
+        }
+
+        // Generate preview content - UPDATED
+        function generatePreview(data) {
+            const learningObjectives = data.learningObjectives.split('\n').filter(obj => obj.trim() !== '');
+            
+            return `
+                <div class="space-y-6">
+                    <div class="text-center border-b border-gray-200 pb-4">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">${data.subject || 'Lesson Plan'} - ${data.gradeLevel || ''}</h3>
+                        <p class="text-gray-600">Preview</p>
                     </div>
-                `;
-                
-                aiSuggestionsModal.classList.remove('hidden');
-
-                try {
-                    // Get current form data
-                    const formData = getFormData();
                     
-                    // Fetch AI suggestions from your backend
-                    const suggestions = await getAISuggestions(section, formData);
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="font-semibold text-gray-900 mb-3">Lesson Details</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-sm font-medium text-gray-600 block">Subject</span>
+                                <span class="text-sm text-gray-900">${data.subject || 'Not specified'}</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600 block">Grade Level</span>
+                                <span class="text-sm text-gray-900">${data.gradeLevel || 'Not specified'}</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600 block">Exemplar Selected</span>
+                                <span class="text-sm text-gray-900">${data.selectedExemplar || 'No'}</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600 block">Available Exemplars</span>
+                                <span class="text-sm text-gray-900">${data.exemplarCount || '0'}</span>
+                            </div>
+                        </div>
+                    </div>
                     
-                    if (suggestions.length === 0) {
-                        aiSuggestionsContent.innerHTML = `
-                            <div class="text-center py-8">
-                                <p class="text-gray-600">No suggestions available at the moment.</p>
-                            </div>
-                        `;
-                        return;
-                    }
+                    <div>
+                        <h4 class="font-semibold text-gray-900 mb-3">Learning Objectives</h4>
+                        <div class="space-y-3">
+                            ${learningObjectives.map((objective, index) => `
+                                <div class="bg-white border border-gray-200 rounded-lg p-4">
+                                    <p class="text-sm text-gray-700 leading-relaxed">${objective || 'No learning objective specified'}</p>
+                                </div>
+                            `).join('')}
+                            ${learningObjectives.length === 0 ? `
+                                <div class="bg-white border border-gray-200 rounded-lg p-4">
+                                    <p class="text-sm text-gray-700 leading-relaxed">No learning objectives specified</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
 
-                    aiSuggestionsContent.innerHTML = `
-                        <div class="mb-4">
-                            <h4 class="text-lg font-semibold text-gray-900 capitalize">${section} Suggestions</h4>
-                            <p class="text-sm text-gray-600 mt-1">AI-generated suggestions based on your inputs</p>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-sm text-blue-700">This is a preview. The AI will generate a complete lesson plan based on your inputs.</p>
                         </div>
-                        ${suggestions.map(suggestion => `
-                            <div class="ai-suggestion-card border border-gray-200 rounded-lg p-4 hover:border-purple-400 transition">
-                                <h5 class="font-semibold text-gray-900 mb-2">${suggestion.title}</h5>
-                                <p class="text-sm text-gray-700 mb-2">${suggestion.description}</p>
-                                ${suggestion.example ? `<p class="text-xs text-gray-500 italic">Example: ${suggestion.example}</p>` : ''}
-                                <button class="mt-3 text-sm bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition" onclick="useSuggestion('${section}', '${suggestion.title.replace(/'/g, "\\'")}', \`${suggestion.description.replace(/`/g, '\\`')}\`)">
-                                    Use This Suggestion
-                                </button>
-                            </div>
-                        `).join('')}
-                    `;
-                } catch (error) {
-                    aiSuggestionsContent.innerHTML = `
-                        <div class="text-center py-8">
-                            <p class="text-red-600">Error loading suggestions. Please try again.</p>
-                        </div>
-                    `;
-                }
-            });
+                    </div>
+                </div>
+            `;
+        }
+
+        // Load department exemplars when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDepartmentExemplars();
         });
 
-        function useSuggestion(section, title, description) {
-            // Apply suggestion based on section
-            switch(section) {
-                case 'introduction':
-                    document.getElementById('introduction').value = 'custom';
-                    document.getElementById('introduction-custom').value = description;
-                    document.getElementById('introduction-custom').classList.add('active');
-                    break;
-                case 'instruction':
-                    const instructionCustom = document.getElementById('instruction-custom');
-                    instructionCustom.value = description;
-                    instructionCustom.classList.add('active');
-                    // Check custom radio button
-                    document.querySelector('input[name="instruction"][value="custom"]').checked = true;
-                    break;
-                case 'application':
-                    document.getElementById('application').value = 'custom';
-                    document.getElementById('application-custom').value = description;
-                    document.getElementById('application-custom').classList.add('active');
-                    break;
-                case 'assessment':
-                    document.getElementById('assessment').value = 'custom';
-                    document.getElementById('assessment-custom').value = description;
-                    document.getElementById('assessment-custom').classList.add('active');
-                    break;
+        async function loadDepartmentExemplars() {
+            try {
+                const response = await fetch('/api/exemplars/department/', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                const exemplarSelect = document.getElementById('exemplar-select');
+                
+                if (data.success && data.exemplars.length > 0) {
+                    // Clear existing options except the first one
+                    exemplarSelect.innerHTML = '<option value="">No exemplar selected</option>';
+                    
+                    // Add exemplar options
+                    data.exemplars.forEach(exemplar => {
+                        const option = document.createElement('option');
+                        option.value = exemplar.id;
+                        option.textContent = `${exemplar.name} (${exemplar.file_size_display})`;
+                        exemplarSelect.appendChild(option);
+                    });
+                    
+                    // Show success message if this is the first load
+                    if (!window.exemplarsLoaded) {
+                        showSuccessMessage(`Loaded ${data.exemplars.length} exemplar(s) from your department head`);
+                        window.exemplarsLoaded = true;
+                    }
+                } else {
+                    exemplarSelect.innerHTML = '<option value="">No exemplars available</option>';
+                    if (data.message) {
+                        console.warn('No exemplars:', data.message);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading exemplars:', error);
+                document.getElementById('exemplar-select').innerHTML = '<option value="">Error loading exemplars</option>';
             }
-            
-            showSuccessMessage(`"${title}" suggestion applied to ${section}!`);
-            aiSuggestionsModal.classList.add('hidden');
         }
 
         // Mobile sidebar functionality
@@ -716,72 +735,6 @@
         const submitFromPreview = document.getElementById('submit-from-preview');
         const previewContent = document.getElementById('preview-content');
 
-        function getPreviewFormData() {
-            // Helper to get readable label for selection
-            function getReadableValue(elementId, value) {
-                const element = document.getElementById(elementId);
-                if (element.tagName === 'SELECT') {
-                    const option = element.querySelector(`option[value="${value}"]`);
-                    return option ? option.textContent : value;
-                }
-                return value;
-            }
-
-            return {
-                lessonTitle: document.getElementById('lesson-title').value,
-                subject: document.getElementById('subject').value,
-                gradeLevel: document.getElementById('grade-level').value,
-                melcCode: getReadableValue('melc-code', document.getElementById('melc-code').value),
-                learningObjective1: document.getElementById('learning-objective-1').value,
-                learningObjective2: document.getElementById('learning-objective-2').value,
-                learningObjective3: document.getElementById('learning-objective-3').value
-            };
-        }
-
-        function generatePreview(data) {
-            return `
-                <div class="space-y-6">
-                    <div class="text-center border-b border-gray-200 pb-4">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">${data.lessonTitle || 'Lesson Plan'}</h3>
-                        <p class="text-gray-600">${data.subject} - ${data.gradeLevel}</p>
-                    </div>
-                    
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <h4 class="font-semibold text-gray-900 mb-3">Lesson Details</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <span class="text-sm font-medium text-gray-600 block">Subject</span>
-                                <span class="text-sm text-gray-900">${data.subject || 'Not specified'}</span>
-                            </div>
-                            <div>
-                                <span class="text-sm font-medium text-gray-600 block">Grade Level</span>
-                                <span class="text-sm text-gray-900">${data.gradeLevel || 'Not specified'}</span>
-                            </div>
-                            <div>
-                                <span class="text-sm font-medium text-gray-600 block">MELC Code</span>
-                                <span class="text-sm text-gray-900">${data.melcCode || 'Not specified'}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <h4 class="font-semibold text-gray-900 mb-3">Learning Objectives</h4>
-                        <div class="space-y-3">
-                            <div class="bg-white border border-gray-200 rounded-lg p-4">
-                                <p class="text-sm text-gray-700 leading-relaxed">${data.learningObjective1 || 'No learning objective specified'}</p>
-                            </div>
-                            <div class="bg-white border border-gray-200 rounded-lg p-4">
-                                <p class="text-sm text-gray-700 leading-relaxed">${data.learningObjective2 || 'No learning objective specified'}</p>
-                            </div>
-                            <div class="bg-white border border-gray-200 rounded-lg p-4">
-                                <p class="text-sm text-gray-700 leading-relaxed">${data.learningObjective3 || 'No learning objective specified'}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
         if (previewBtn) {
             previewBtn.addEventListener('click', () => {
                 const formData = getPreviewFormData();
@@ -811,24 +764,22 @@
             });
         }
 
-        // Form submission
+        // Form submission - UPDATED
         document.getElementById('lesson-plan-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            // Show loading overlay
             document.getElementById('loading-overlay').classList.remove('hidden');
             
-            // Gather form data with proper values
-            const formData = {
-                lesson_title: document.getElementById('lesson-title').value,
-                subject: document.getElementById('subject').value,
-                grade_level: document.getElementById('grade-level').value,
-                melc_code: document.getElementById('melc-code').value,
-                learning_objective_1: document.getElementById('learning-objective-1').value,
-                learning_objective_2: document.getElementById('learning-objective-2').value,
-                learning_objective_3: document.getElementById('learning-objective-3').value
-            };
-            
             try {
+                // Gather form data with proper values
+                const formData = getSubmissionFormData();
+                
+                // Basic validation
+                if (!formData.subject || !formData.grade_level || !formData.learning_objectives) {
+                    throw new Error('Please fill in all required fields: Subject, Grade Level, and Learning Objectives');
+                }
+
                 const response = await fetch('/generate-lesson-plan/', {
                     method: 'POST',
                     headers: {
@@ -845,17 +796,50 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    window.location.href = `/lesson-plan-result/`;
+                    // Show success message
+                    showSuccessMessage('Lesson plan generated successfully!');
+                    
+                    // Redirect to result page after a short delay
+                    setTimeout(() => {
+                        window.location.href = '/lesson-plan-result/';
+                    }, 1000);
                 } else {
-                    showErrorMessage('Error: ' + data.error);
+                    throw new Error(data.error || 'Unknown error occurred');
                 }
             } catch (error) {
                 console.error('Fetch error:', error);
                 showErrorMessage('An error occurred: ' + error.message);
             } finally {
+                // Hide loading overlay
                 document.getElementById('loading-overlay').classList.add('hidden');
             }
         });
+
+        // AI Suggestions functionality (kept for reference, but not used in current form)
+        const aiSuggestionsModal = document.getElementById('ai-suggestions-modal');
+        const aiSuggestionsContent = document.getElementById('ai-suggestions-content');
+        const closeAiModal = document.getElementById('close-ai-modal');
+        const closeAiModalFooter = document.getElementById('close-ai-modal-footer');
+
+        if (closeAiModal) {
+            closeAiModal.addEventListener('click', () => {
+                aiSuggestionsModal.classList.add('hidden');
+            });
+        }
+
+        if (closeAiModalFooter) {
+            closeAiModalFooter.addEventListener('click', () => {
+                aiSuggestionsModal.classList.add('hidden');
+            });
+        }
+
+        if (aiSuggestionsModal) {
+            aiSuggestionsModal.addEventListener('click', (e) => {
+                if (e.target === aiSuggestionsModal) {
+                    aiSuggestionsModal.classList.add('hidden');
+                }
+            });
+        }
     </script>
 </body>
 </html>

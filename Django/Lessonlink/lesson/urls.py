@@ -108,6 +108,7 @@ path('api/exemplars/upload/', views.upload_exemplar, name='upload_exemplar'),
 path('api/exemplars/', views.get_exemplars, name='get_exemplars'),
 path('api/exemplars/<int:exemplar_id>/delete/', views.delete_exemplar, name='delete_exemplar'),
 path('api/exemplars/<int:exemplar_id>/text/', views.get_exemplar_text, name='get_exemplar_text'),
+path('api/exemplars/department/', views.get_department_exemplars, name='get_department_exemplars'),
 
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
