@@ -62,6 +62,29 @@
         .dropdown-enter {
             animation: scaleIn 0.2s ease-out;
         }
+        
+        .student-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .student-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .student-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .student-list::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 10px;
+        }
+        
+        .student-list::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
     </style>
 </head>
 
@@ -219,6 +242,54 @@
                     <i class="fas fa-calendar text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Calendar</span>
                 </a>
+
+                <!-- My Students Section - Only for Teachers -->
+                {% if user.role == 'Teacher' %}
+                <div class="pt-4 border-t border-gray-200">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wider">My Students</h3>
+                        <span id="student-count-badge" class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">
+                            {{ supervised_students.count }}
+                        </span>
+                    </div>
+                    
+                    <div class="student-list space-y-2">
+                        {% for student in supervised_students %}
+                        <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer student-item"
+                             data-student-id="{{ student.id }}">
+                            <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-white text-xs font-bold">{{ student.first_name|first|upper }}</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900 truncate">{{ student.full_name }}</p>
+                                <p class="text-xs text-gray-500 truncate">{{ student.email }}</p>
+                                <div class="flex items-center mt-1">
+                                    <span class="text-xs text-gray-400">{{ student.rank }}</span>
+                                </div>
+                            </div>
+                            <div class="w-2 h-2 bg-green-400 rounded-full flex-shrink-0 student-status-indicator" 
+                                 title="Active"></div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-user-graduate text-xl text-gray-300 mb-2"></i>
+                            <p class="text-gray-500 text-xs">No assigned students</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Quick Actions for Students -->
+                    {% if supervised_students %}
+                    <div class="mt-3 space-y-1">
+                        <button onclick="viewAllStudents()" 
+                                class="w-full text-center text-xs text-purple-600 hover:text-purple-700 font-medium py-2 hover:bg-purple-50 rounded-lg transition-colors">
+                            <i class="fas fa-list mr-1"></i>
+                            View All Students
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
             </nav>
         </aside>
 
@@ -375,15 +446,6 @@
                                 </span>
                                 
                             </div>
-                            <!-- Debug Section (remove after testing)
-<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-    <h4 class="font-semibold text-blue-900">Debug Info:</h4>
-    <p class="text-sm text-blue-800">Today: {% now "l" %}</p>
-    <p class="text-sm text-blue-800">Schedule count: {{ todays_schedule|length }}</p>
-    {% for schedule in todays_schedule %}
-    <p class="text-sm text-blue-800">Schedule {{ forloop.counter }}: {{ schedule.subject }} (Stored day: {{ schedule.day }}, Display: {{ schedule.get_day_display }})</p>
-    {% endfor %}
-</div> -->
                             {% empty %}
                             <div class="text-center py-4">
                                 <i class="fas fa-calendar-day text-xl text-gray-300 mb-2"></i>
@@ -442,7 +504,56 @@
             // Prevent dropdowns from closing when clicking inside them
             notificationDropdown.addEventListener('click', (e) => e.stopPropagation());
             profileDropdown.addEventListener('click', (e) => e.stopPropagation());
+
+            // Student item click handlers
+            document.querySelectorAll('.student-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const studentId = this.getAttribute('data-student-id');
+                    viewStudentProfile(studentId);
+                });
+            });
         });
+
+        // Student Management Functions
+        function viewStudentProfile(studentId) {
+            // Navigate to student profile or lesson plans
+            window.location.href = `/teacher/student/${studentId}/`;
+        }
+
+        function viewAllStudents() {
+    // Navigate to full student management page
+    window.location.href = "{% url 'teacher_student_list' %}";
+}
+
+        // Load student data periodically to update status
+        function loadStudentStatus() {
+            fetch('/api/teacher/my-students/status/')
+                .then(response => response.json())
+                .then(data => {
+                    updateStudentStatusIndicators(data.students);
+                })
+                .catch(error => {
+                    console.error('Error loading student status:', error);
+                });
+        }
+
+        function updateStudentStatusIndicators(students) {
+            students.forEach(student => {
+                const indicator = document.querySelector(`[data-student-id="${student.id}"] .student-status-indicator`);
+                if (indicator) {
+                    if (student.is_online) {
+                        indicator.className = 'w-2 h-2 bg-green-400 rounded-full flex-shrink-0 student-status-indicator';
+                        indicator.title = 'Online';
+                    } else if (student.last_active_minutes < 10) {
+                        indicator.className = 'w-2 h-2 bg-yellow-400 rounded-full flex-shrink-0 student-status-indicator';
+                        indicator.title = 'Recently Active';
+                    } else {
+                        indicator.className = 'w-2 h-2 bg-gray-400 rounded-full flex-shrink-0 student-status-indicator';
+                        indicator.title = 'Offline';
+                    }
+                }
+            });
+        }
 
         // Notification system
         function loadNotifications() {
@@ -641,6 +752,9 @@
             
             // Reload notifications every 30 seconds
             setInterval(loadNotifications, 30000);
+
+            // Load student status every minute
+            setInterval(loadStudentStatus, 60000);
         });
 
         function markAllNotificationsAsRead() {

@@ -7,15 +7,15 @@ from lessonlinkCalendar.models import ZamboangaEvent  # ADD THIS IMPORT
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     model = User
-    list_display = ("email", "first_name", "last_name", "role", "department", "school", "is_staff")
+    list_display = ("email", "first_name", "last_name", "role", "department", "school", "supervising_teacher", "is_staff")
     list_filter = ("role", "department", "school", "is_staff", "is_active")
-    search_fields = ("email", "first_name", "last_name")
+    search_fields = ("email", "first_name", "last_name", "supervising_teacher__email")
     ordering = ("email",)
 
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("Personal info", {"fields": ("first_name", "middle_name", "last_name", "dob", "profile_picture")}),
-        ("School info", {"fields": ("role", "rank", "department", "school", "affiliations")}),
+        ("School info", {"fields": ("role", "rank", "department", "school", "supervising_teacher", "affiliations")}),
         ("Permissions", {"fields": ("is_staff", "is_active", "is_superuser", "groups", "user_permissions")}),
         ("Important dates", {"fields": ("last_login", "date_joined")}),
     )
@@ -31,6 +31,7 @@ class UserAdmin(BaseUserAdmin):
                 "rank",
                 "department",
                 "school",
+                "supervising_teacher",  # Add this field
                 "password1",
                 "password2",
                 "is_staff",
@@ -38,6 +39,12 @@ class UserAdmin(BaseUserAdmin):
             )}
         ),
     )
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """Limit supervising_teacher choices to Teachers only"""
+        if db_field.name == "supervising_teacher":
+            kwargs["queryset"] = User.objects.filter(role='Teacher', is_active=True)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(Schedule)

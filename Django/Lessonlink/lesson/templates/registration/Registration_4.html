@@ -113,6 +113,7 @@
 
                     <!-- Hidden field to store role from previous step -->
                     <input type="hidden" id="userRole" value="{{ request.session.reg_role }}">
+                    <input type="hidden" id="userRank" value="{{ request.session.reg_rank }}">
 
                     <!-- School Dropdown -->
                     <div class="relative">
@@ -121,7 +122,7 @@
                         </div>
                         <select id="school" name="school"
                             class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white"
-                            required onchange="checkDepartmentAvailability()">
+                            required onchange="handleSchoolChange()">
                             <option value="">Select School</option>
                             {% for school in schools %}
                                 <option value="{{ school.id }}">{{ school.school_name }}</option>
@@ -141,7 +142,7 @@
                         </div>
                         <select id="department" name="department"
                             class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white"
-                            required onchange="checkDepartmentAvailability()">
+                            required onchange="handleDepartmentChange()">
                             <option value="">Select Department</option>
                             <option value="English">English Department</option>
                             <option value="Filipino">Filipino Department</option>
@@ -161,6 +162,22 @@
                             <i class="fas fa-exclamation-triangle mr-2"></i>
                             <span id="warningText">This department already has a Department Head. Please choose a different department.</span>
                         </div>
+                    </div>
+
+                    <!-- Assign to Teacher Dropdown (Only for Student Teachers) -->
+                    <div id="assignTeacherContainer" class="relative hidden">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-chalkboard-teacher text-gray-400"></i>
+                        </div>
+                        <select id="assign_teacher" name="assign_teacher"
+                            class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white">
+                            <option value="">Select Supervising Teacher</option>
+                            <!-- Teachers will be loaded dynamically via JavaScript -->
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <i class="fas fa-chevron-down text-gray-400"></i>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Select the teacher who will supervise your teaching practice</p>
                     </div>
 
                     <!-- Affiliation Section -->
@@ -250,8 +267,90 @@
     </div>
 
     <script>
-        // Get the role from the hidden field
+        // Get the role and rank from hidden fields
         const userRole = document.getElementById('userRole').value;
+        const userRank = document.getElementById('userRank').value;
+        const assignTeacherContainer = document.getElementById('assignTeacherContainer');
+        const assignTeacherSelect = document.getElementById('assign_teacher');
+
+        // Show/hide assign teacher dropdown based on role
+        function toggleAssignTeacherField() {
+            if (userRole === 'Student Teacher') {
+                assignTeacherContainer.classList.remove('hidden');
+                assignTeacherSelect.required = true;
+            } else {
+                assignTeacherContainer.classList.add('hidden');
+                assignTeacherSelect.required = false;
+            }
+        }
+
+        // Handle school change
+        async function handleSchoolChange() {
+            await checkDepartmentAvailability();
+            if (userRole === 'Student Teacher') {
+                await loadTeachersForDepartment();
+            }
+        }
+
+        // Handle department change
+        async function handleDepartmentChange() {
+            await checkDepartmentAvailability();
+            if (userRole === 'Student Teacher') {
+                await loadTeachersForDepartment();
+            }
+        }
+
+        // Load teachers based on selected school and department
+        async function loadTeachersForDepartment() {
+            const school = document.getElementById('school').value;
+            const department = document.getElementById('department').value;
+            
+            if (!school || !department) {
+                assignTeacherSelect.innerHTML = '<option value="">Select School and Department first</option>';
+                return;
+            }
+
+            try {
+                // Show loading state
+                assignTeacherSelect.innerHTML = '<option value="">Loading teachers...</option>';
+                assignTeacherSelect.disabled = true;
+
+                // Fetch teachers from your Django API
+                const response = await fetch(`/api/get-teachers/?school=${school}&department=${department}`);
+                const data = await response.json();
+
+                // Clear existing options
+                assignTeacherSelect.innerHTML = '';
+
+                if (data.teachers && data.teachers.length > 0) {
+                    // Add default option
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = 'Select Supervising Teacher';
+                    assignTeacherSelect.appendChild(defaultOption);
+
+                    // Add teacher options
+                    data.teachers.forEach(teacher => {
+                        const option = document.createElement('option');
+                        option.value = teacher.id;
+                        option.textContent = `${teacher.first_name} ${teacher.last_name} (${teacher.email})`;
+                        assignTeacherSelect.appendChild(option);
+                    });
+                    
+                    assignTeacherSelect.disabled = false;
+                } else {
+                    const noTeacherOption = document.createElement('option');
+                    noTeacherOption.value = '';
+                    noTeacherOption.textContent = 'No teachers available for this department';
+                    assignTeacherSelect.appendChild(noTeacherOption);
+                    assignTeacherSelect.disabled = true;
+                }
+            } catch (error) {
+                console.error('Error loading teachers:', error);
+                assignTeacherSelect.innerHTML = '<option value="">Error loading teachers</option>';
+                assignTeacherSelect.disabled = true;
+            }
+        }
 
         async function checkDepartmentAvailability() {
             const school = document.getElementById('school').value;
@@ -289,6 +388,7 @@
         function handleFormSubmission(event) {
             const department = document.getElementById('department').value;
             const school = document.getElementById('school').value;
+            const assignTeacher = document.getElementById('assign_teacher').value;
             const submitButton = document.getElementById('submitButton');
 
             // Client-side validation
@@ -302,6 +402,12 @@
                 return false;
             }
 
+            // Additional validation for Student Teachers
+            if (userRole === 'Student Teacher' && !assignTeacher) {
+                alert('Please select a Supervising Teacher.');
+                return false;
+            }
+
             // Prevent submission if department is occupied (for Department Head role)
             if (userRole === 'Department Head' && submitButton.disabled) {
                 alert('This department already has a Department Head. Please choose a different department.');
@@ -311,9 +417,19 @@
             return true;
         }
 
-        // Initialize check when page loads
+        // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            toggleAssignTeacherField();
             checkDepartmentAvailability();
+            
+            // If user is Student Teacher and both school and department are already selected, load teachers
+            if (userRole === 'Student Teacher') {
+                const school = document.getElementById('school').value;
+                const department = document.getElementById('department').value;
+                if (school && department) {
+                    loadTeachersForDepartment();
+                }
+            }
         });
 
         function addAffiliationField() {

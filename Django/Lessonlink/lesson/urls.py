@@ -109,6 +109,18 @@ path('api/exemplars/', views.get_exemplars, name='get_exemplars'),
 path('api/exemplars/<int:exemplar_id>/delete/', views.delete_exemplar, name='delete_exemplar'),
 path('api/exemplars/<int:exemplar_id>/text/', views.get_exemplar_text, name='get_exemplar_text'),
 path('api/exemplars/department/', views.get_department_exemplars, name='get_department_exemplars'),
+path('api/get-teachers/', views.get_teachers_by_department, name='get_teachers'),
+path('teacher/my-students/', views.teacher_student_list, name='teacher_student_list'),
+path('teacher/student/<int:student_id>/', views.teacher_student_detail, name='teacher_student_detail'),
+path('teacher/students/<int:student_id>/approval/', views.update_student_approval, name='update_student_approval'),
+path('api/student-concerns/submit/', views.submit_student_concern, name='submit_student_concern'),
+path('api/student-concerns/submit/', views.submit_student_concern, name='submit_student_concern'),
+path('teacher/students/<int:student_id>/concerns/', views.get_student_concerns, name='get_student_concerns'),
+path('teacher/concerns/<int:concern_id>/resolve/', views.resolve_student_concern, name='resolve_student_concern'),
+path('teacher/students/<int:student_id>/concerns/', views.get_student_concerns, name='get_student_concerns'),
+path('teacher/concerns/<int:concern_id>/resolve/', views.resolve_student_concern, name='resolve_student_concern'),
+path('teacher/concerns/<int:concern_id>/', views.get_concern_detail, name='get_concern_detail'),
+
 
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

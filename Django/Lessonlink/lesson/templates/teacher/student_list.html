@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Students - LessonLink</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar-transition {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .dropdown-enter {
+            animation: scaleIn 0.2s ease-out;
+        }
+        
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        .modal-enter {
+            animation: modalEnter 0.3s ease-out;
+        }
+
+        @keyframes modalEnter {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        .message-modal {
+            backdrop-filter: blur(8px);
+        }
+        
+        .notification-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            position: absolute;
+            top: -2px;
+            right: -2px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header - Same as dashboard -->
+    <header class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-40">
+        <div class="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
+            <!-- Mobile menu button -->
+            <button id="mobile-menu-btn"
+                class="md:hidden p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
+                <i class="fas fa-bars text-lg"></i>
+            </button>
+
+            <!-- Logo -->
+            <div class="flex items-center space-x-3 flex-1 md:flex-none">
+                <div class="w-10 h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
+                <div class="hidden sm:block">
+                    <h1 class="text-xl font-bold text-gray-900">LessonLink</h1>
+                    <p class="text-sm text-gray-500 hidden lg:block">Western Mindanao State University</p>
+                </div>
+            </div>
+
+            <!-- Right side actions (same as dashboard) -->
+            <div class="flex items-center space-x-2 md:space-x-4">
+                <!-- Include the same notification and profile dropdown code from dashboard -->
+            </div>
+        </div>
+    </header>
+
+    <div class="flex pt-16">
+        <!-- Sidebar - Same as dashboard -->
+        <aside id="sidebar"
+            class="w-64 bg-white shadow-lg h-screen fixed top-20 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
+            <nav class="p-4 space-y-2">
+                <!-- Include the same sidebar navigation from dashboard -->
+                <!-- Make sure "My Students" is highlighted when on this page -->
+                <a href="{% url 'teacher_student_list' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                    <i class="fas fa-user-graduate text-lg w-5"></i>
+                    <span class="font-medium">My Students</span>
+                </a>
+                <!-- Other navigation items -->
+                <a href="{% url 'dashboard' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-home text-lg w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <!-- ... rest of sidebar ... -->
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-full md:ml-64">
+            <!-- Page Header -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900">My Students</h1>
+                        <p class="text-gray-600 mt-2">Manage and monitor your supervised student teachers</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-white border border-gray-300 rounded-lg px-4 py-2">
+                            <span class="text-sm text-gray-600">Total: {{ supervised_students.count }} students</span>
+                        </div>
+                        <a href="{% url 'dashboard' %}" 
+                           class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-user-graduate text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Active Students</p>
+                            <p class="text-xl font-bold text-gray-900">{{ supervised_students.count }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Completed Lessons</p>
+                            <p class="text-xl font-bold text-gray-900">{{ total_completed_lessons }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-clock text-yellow-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Pending Reviews</p>
+                            <p class="text-xl font-bold text-gray-900">{{ pending_reviews }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-envelope text-purple-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Student Concerns</p>
+                            <p class="text-xl font-bold text-gray-900">{{ student_concerns_count }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Students Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <!-- Table Header -->
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900">Student List</h3>
+                        <div class="flex items-center space-x-3">
+                            <div class="relative">
+                                <input type="text" 
+                                       placeholder="Search students..." 
+                                       class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       id="searchInput">
+                                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                            </div>
+                            <!-- Filter by approval status -->
+                            <select id="statusFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="all">All Status</option>
+                                <option value="approved">Approved</option>
+                                <option value="pending">Pending</option>
+                                <option value="disapproved">Disapproved</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Student
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Contact
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Rank/Position
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Lesson Plans
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Approval Status
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Last Active
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for student in supervised_students %}
+                            <tr class="hover:bg-gray-50 transition-colors" data-status="{{ student.approval_status|default:'pending' }}">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center flex-shrink-0 mr-3 relative">
+                                            <span class="text-white font-bold text-sm">{{ student.first_name|first|upper }}</span>
+                                            {% if student.has_pending_concerns %}
+                                            <div class="notification-dot"></div>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">{{ student.full_name }}</div>
+                                            <div class="text-sm text-gray-500">{{ student.department }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ student.email }}</div>
+                                    <div class="text-sm text-gray-500">{{ student.school.school_name|default:"No school" }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        {{ student.rank }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">
+                                        <span class="font-semibold">{{ student.lesson_plans_count }}</span> total
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        {{ student.completed_lessons_count }} completed
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if student.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                        <span class="w-2 h-2 bg-{% if student.is_active %}green{% else %}red{% endif %}-400 rounded-full mr-1"></span>
+                                        {{ student.is_active|yesno:"Active,Inactive" }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                        {% if student.approval_status == 'approved' %}bg-green-100 text-green-800
+                                        {% elif student.approval_status == 'disapproved' %}bg-red-100 text-red-800
+                                        {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                        <span class="w-2 h-2 rounded-full mr-1 
+                                            {% if student.approval_status == 'approved' %}bg-green-400
+                                            {% elif student.approval_status == 'disapproved' %}bg-red-400
+                                            {% else %}bg-yellow-400{% endif %}"></span>
+                                        {{ student.approval_status|default:"Pending"|title }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {% if student.last_login %}
+                                    {{ student.last_login|timesince }} ago
+                                    {% else %}
+                                    Never
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex items-center space-x-2">
+                                        <!-- Approve Button -->
+                                        <button onclick="updateApprovalStatus({{ student.id }}, 'approved')" 
+                                                class="text-green-600 hover:text-green-900 transition-colors {% if student.approval_status == 'approved' %}opacity-50 cursor-not-allowed{% endif %}"
+                                                title="Approve Student"
+                                                {% if student.approval_status == 'approved' %}disabled{% endif %}>
+                                            <i class="fas fa-check-circle"></i>
+                                        </button>
+                                        
+                                        <!-- Disapprove Button -->
+                                        <button onclick="updateApprovalStatus({{ student.id }}, 'disapproved')" 
+                                                class="text-red-600 hover:text-red-900 transition-colors {% if student.approval_status == 'disapproved' %}opacity-50 cursor-not-allowed{% endif %}"
+                                                title="Disapprove Student"
+                                                {% if student.approval_status == 'disapproved' %}disabled{% endif %}>
+                                            <i class="fas fa-times-circle"></i>
+                                        </button>
+                                        
+                                        <!-- View Profile -->
+                                        <a href="{% url 'teacher_student_detail' student.id %}" 
+                                           class="text-blue-600 hover:text-blue-900 transition-colors"
+                                           title="View Profile">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        
+                                        <!-- Send Feedback Button -->
+                                        <button onclick="openSendFeedback({{ student.id }}, '{{ student.full_name|escapejs }}')" 
+                                                class="text-purple-600 hover:text-purple-900 transition-colors relative"
+                                                title="Send Feedback & Message">
+                                            <i class="fas fa-comment-dots"></i>
+                                            {% if student.has_pending_concerns %}
+                                            <div class="notification-dot"></div>
+                                            {% endif %}
+                                        </button>
+
+                                        <!-- View Concerns Button -->
+                                        <button onclick="viewStudentConcerns({{ student.id }}, '{{ student.full_name|escapejs }}')" 
+                                                class="text-orange-600 hover:text-orange-900 transition-colors relative"
+                                                title="View Student Concerns">
+                                            <i class="fas fa-exclamation-circle"></i>
+                                            {% if student.has_pending_concerns %}
+                                            <div class="notification-dot"></div>
+                                            {% endif %}
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="px-6 py-12 text-center">
+                                    <div class="text-gray-500">
+                                        <i class="fas fa-user-graduate text-4xl mb-3 text-gray-300"></i>
+                                        <p class="text-lg font-medium">No students assigned</p>
+                                        <p class="text-sm mt-1">You don't have any student teachers assigned to you yet.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Approval Status Modal -->
+    <div id="approvalModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md mx-4 w-full">
+            <h3 class="text-lg font-semibold mb-4" id="modalTitle">Update Approval Status</h3>
+            <p class="text-gray-600 mb-4" id="modalMessage">Are you sure you want to update this student's approval status?</p>
+            
+            <!-- Rejection Reason Input (Only shown for disapproval) -->
+            <div id="rejectionReasonContainer" class="mb-4 hidden">
+                <label for="rejectionReason" class="block text-sm font-medium text-gray-700 mb-2">
+                    Reason for Rejection <span class="text-red-500">*</span>
+                </label>
+                <textarea 
+                    id="rejectionReason" 
+                    rows="3" 
+                    placeholder="Please provide a reason for rejecting this student. This message will be visible to the student..."
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                ></textarea>
+                <p class="text-xs text-gray-500 mt-1">This message will help the student understand what needs improvement.</p>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="confirmApproval()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" id="confirmButton">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Send Feedback Modal -->
+    <div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-50 message-modal z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-2xl p-8 max-w-md mx-4 w-full modal-enter">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-comment-dots text-purple-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2" id="feedbackStudentName">Send Feedback</h3>
+                <p class="text-gray-600">Send constructive feedback and guidance to your student teacher.</p>
+            </div>
+            
+            <form id="feedbackForm" class="space-y-4">
+                <input type="hidden" id="feedbackStudentId" name="student_id">
+                
+                <div>
+                    <label for="feedbackSubject" class="block text-sm font-medium text-gray-700 mb-2">
+                        Subject <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" 
+                           id="feedbackSubject" 
+                           name="subject"
+                           placeholder="e.g., Lesson Plan Feedback, General Guidance, etc."
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                           required>
+                </div>
+                
+                <div>
+                    <label for="feedbackType" class="block text-sm font-medium text-gray-700 mb-2">
+                        Feedback Type
+                    </label>
+                    <select id="feedbackType" 
+                            name="feedback_type"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors">
+                        <option value="general">General Feedback</option>
+                        <option value="lesson_plan">Lesson Plan Review</option>
+                        <option value="improvement">Areas for Improvement</option>
+                        <option value="praise">Positive Feedback</option>
+                        <option value="urgent">Urgent Matter</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="feedbackContent" class="block text-sm font-medium text-gray-700 mb-2">
+                        Your Message <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="feedbackContent" 
+                              name="content"
+                              rows="5"
+                              placeholder="Provide specific, constructive feedback. Include what's working well and areas for improvement..."
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors resize-none"
+                              required></textarea>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="requestResponse" name="request_response" class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
+                    <label for="requestResponse" class="text-sm text-gray-700">Request a response from the student</label>
+                </div>
+
+                <div class="flex space-x-3 pt-2">
+                    <button type="button" id="cancelFeedbackBtn" 
+                        class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-all">
+                        Cancel
+                    </button>
+                    
+                    <button type="submit" id="submitFeedbackBtn"
+                        class="flex-1 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white px-6 py-3 rounded-lg font-semibold hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all flex items-center justify-center space-x-2">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Send Feedback</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Student Concerns Modal -->
+    <div id="concernsModal" class="fixed inset-0 bg-black bg-opacity-50 message-modal z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-2xl p-8 max-w-2xl mx-4 w-full max-h-[90vh] overflow-y-auto modal-enter">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-exclamation-circle text-orange-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2" id="concernsStudentName">Student Concerns</h3>
+                <p class="text-gray-600">Review and manage concerns from your student teacher.</p>
+            </div>
+            
+            <div id="concernsList" class="space-y-4">
+                <!-- Concerns will be dynamically loaded here -->
+            </div>
+
+            <div class="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+                <button onclick="closeConcernsModal()" 
+                    class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Concern Detail Modal -->
+    <div id="concernDetailModal" class="fixed inset-0 bg-black bg-opacity-50 message-modal z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-2xl p-8 max-w-2xl mx-4 w-full max-h-[90vh] overflow-y-auto modal-enter">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exclamation-circle text-orange-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">Concern Details</h3>
+                        <p class="text-gray-600" id="concernStudentInfo"></p>
+                    </div>
+                </div>
+                <button onclick="closeConcernDetailModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div id="concernDetailContent" class="space-y-4">
+                <!-- Concern details will be dynamically loaded here -->
+            </div>
+
+            <div class="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+                <button onclick="closeConcernDetailModal()" 
+                    class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all">
+                    Close
+                </button>
+                <button onclick="markCurrentConcernResolved()" 
+                    class="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all"
+                    id="resolveConcernBtn">
+                    Mark as Resolved
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Success Modal -->
+    <div id="feedbackSuccessModal" class="fixed inset-0 bg-black bg-opacity-50 message-modal z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-2xl p-8 max-w-md mx-4 text-center modal-enter">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Feedback Sent!</h3>
+            <p class="text-gray-600 mb-6">Your constructive feedback has been successfully delivered to the student. They will be able to review your guidance and respond if needed.</p>
+            <button id="closeFeedbackSuccessBtn" 
+                class="w-full bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white px-6 py-3 rounded-lg font-semibold hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all">
+                Continue
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Filter by approval status
+        document.getElementById('statusFilter').addEventListener('change', function(e) {
+            const status = e.target.value;
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                if (status === 'all') {
+                    row.style.display = '';
+                } else {
+                    const rowStatus = row.getAttribute('data-status');
+                    if (rowStatus === status) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        });
+
+        // View student concerns - UPDATED WITH REAL API CALL
+        function viewStudentConcerns(studentId, studentName) {
+            document.getElementById('concernsStudentName').textContent = `Concerns from ${studentName}`;
+            
+            // Show loading
+            const concernsList = document.getElementById('concernsList');
+            concernsList.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-3xl text-gray-300 mb-3"></i>
+                    <p class="text-gray-500">Loading concerns...</p>
+                </div>
+            `;
+            
+            // REAL API CALL to fetch student concerns
+            fetch(`/teacher/students/${studentId}/concerns/`, {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.concerns) {
+                    if (data.concerns.length > 0) {
+                        concernsList.innerHTML = data.concerns.map(concern => `
+                            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">${concern.subject}</h4>
+                                        <p class="text-sm text-gray-500">${concern.created_at}</p>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                            ${concern.concern_type === 'clarification' ? 'bg-blue-100 text-blue-800' : 
+                                              concern.concern_type === 'correction' ? 'bg-yellow-100 text-yellow-800' : 
+                                              concern.concern_type === 'appeal' ? 'bg-red-100 text-red-800' : 
+                                              'bg-gray-100 text-gray-800'}">
+                                            ${concern.concern_type.charAt(0).toUpperCase() + concern.concern_type.slice(1)}
+                                        </span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                            ${concern.status === 'pending' ? 'bg-orange-100 text-orange-800' : 
+                                              concern.status === 'resolved' ? 'bg-green-100 text-green-800' : 
+                                              'bg-gray-100 text-gray-800'}">
+                                            ${concern.status.charAt(0).toUpperCase() + concern.status.slice(1)}
+                                        </span>
+                                    </div>
+                                </div>
+                                <p class="text-gray-700 mb-3">${concern.content}</p>
+                                <div class="flex justify-end space-x-2">
+                                    <button onclick="viewConcernDetail(${concern.id})" 
+                                            class="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
+                                        View Details
+                                    </button>
+                                    ${concern.status === 'pending' ? `
+                                    <button onclick="markConcernResolved(${concern.id})" 
+                                            class="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors">
+                                        Mark Resolved
+                                    </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        concernsList.innerHTML = `
+                            <div class="text-center py-8">
+                                <i class="fas fa-check-circle text-3xl text-gray-300 mb-3"></i>
+                                <p class="text-gray-500">No concerns from this student.</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    concernsList.innerHTML = `
+                        <div class="text-center py-8">
+                            <i class="fas fa-exclamation-triangle text-3xl text-red-300 mb-3"></i>
+                            <p class="text-red-500">Error loading concerns: ${data.error || 'Unknown error'}</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching concerns:', error);
+                concernsList.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-exclamation-triangle text-3xl text-red-300 mb-3"></i>
+                        <p class="text-red-500">Error loading concerns. Please try again.</p>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('concernsModal').classList.remove('hidden');
+        }
+
+        // View concern detail - UPDATED WITH REAL API CALL
+        function viewConcernDetail(concernId) {
+            document.getElementById('concernDetailContent').innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-3xl text-gray-300 mb-3"></i>
+                    <p class="text-gray-500">Loading concern details...</p>
+                </div>
+            `;
+            
+            // REAL API CALL to fetch concern details
+            fetch(`/teacher/concerns/${concernId}/`, {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.concern) {
+                    const concern = data.concern;
+                    
+                    document.getElementById('concernStudentInfo').textContent = `From: ${concern.student_name} (${concern.student_email})`;
+                    
+                    document.getElementById('concernDetailContent').innerHTML = `
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                                <p class="text-gray-900 font-medium">${concern.subject}</p>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Concern Type</label>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        ${concern.concern_type.charAt(0).toUpperCase() + concern.concern_type.slice(1)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                        ${concern.status === 'pending' ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'}">
+                                        ${concern.status.charAt(0).toUpperCase() + concern.status.slice(1)}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Student's Message</label>
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                    <p class="text-gray-700">${concern.content}</p>
+                                </div>
+                            </div>
+                            
+                            ${concern.rejection_reason ? `
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Original Rejection Reason</label>
+                                <div class="bg-red-50 rounded-lg p-4 border border-red-200">
+                                    <p class="text-red-700">${concern.rejection_reason}</p>
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Submitted</label>
+                                <p class="text-gray-600">${concern.created_at}</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Update resolve button based on status
+                    const resolveBtn = document.getElementById('resolveConcernBtn');
+                    if (concern.status === 'resolved') {
+                        resolveBtn.disabled = true;
+                        resolveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                        resolveBtn.textContent = 'Already Resolved';
+                    } else {
+                        resolveBtn.disabled = false;
+                        resolveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        resolveBtn.textContent = 'Mark as Resolved';
+                        resolveBtn.setAttribute('data-concern-id', concernId);
+                    }
+                    
+                } else {
+                    document.getElementById('concernDetailContent').innerHTML = `
+                        <div class="text-center py-8">
+                            <i class="fas fa-exclamation-triangle text-3xl text-red-300 mb-3"></i>
+                            <p class="text-red-500">Error loading concern details: ${data.error || 'Unknown error'}</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching concern details:', error);
+                document.getElementById('concernDetailContent').innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-exclamation-triangle text-3xl text-red-300 mb-3"></i>
+                        <p class="text-red-500">Error loading concern details. Please try again.</p>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('concernDetailModal').classList.remove('hidden');
+        }
+
+        // Mark concern as resolved - UPDATED WITH REAL API CALL
+        function markConcernResolved(concernId) {
+            if (confirm('Are you sure you want to mark this concern as resolved?')) {
+                // REAL API CALL to update concern status
+                fetch(`/teacher/concerns/${concernId}/resolve/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken(),
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Concern marked as resolved!');
+                        location.reload(); // Refresh to show updated status
+                    } else {
+                        alert('Error: ' + (data.error || 'Failed to mark concern as resolved'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error resolving concern:', error);
+                    alert('Error resolving concern. Please try again.');
+                });
+            }
+        }
+
+        function markCurrentConcernResolved() {
+            const concernId = document.getElementById('resolveConcernBtn').getAttribute('data-concern-id');
+            markConcernResolved(concernId);
+        }
+
+        // Close modals
+        function closeConcernsModal() {
+            document.getElementById('concernsModal').classList.add('hidden');
+        }
+
+        function closeConcernDetailModal() {
+            document.getElementById('concernDetailModal').classList.add('hidden');
+        }
+
+        // Approval status management
+        let currentStudentId = null;
+        let currentAction = null;
+
+        function updateApprovalStatus(studentId, action) {
+            currentStudentId = studentId;
+            currentAction = action;
+            
+            const actionText = action === 'approved' ? 'approve' : 'disapprove';
+            document.getElementById('modalTitle').textContent = `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} Student`;
+            document.getElementById('modalMessage').textContent = `Are you sure you want to ${actionText} this student?`;
+            
+            // Show/hide rejection reason field
+            const rejectionContainer = document.getElementById('rejectionReasonContainer');
+            const rejectionReason = document.getElementById('rejectionReason');
+            const confirmButton = document.getElementById('confirmButton');
+            
+            if (action === 'disapproved') {
+                rejectionContainer.classList.remove('hidden');
+                rejectionReason.required = true;
+                confirmButton.disabled = true; // Disable confirm until reason is provided
+                confirmButton.classList.add('opacity-50', 'cursor-not-allowed');
+                
+                // Enable confirm button when reason is provided
+                rejectionReason.addEventListener('input', function() {
+                    const hasReason = this.value.trim().length > 0;
+                    confirmButton.disabled = !hasReason;
+                    confirmButton.classList.toggle('opacity-50', !hasReason);
+                    confirmButton.classList.toggle('cursor-not-allowed', !hasReason);
+                });
+            } else {
+                rejectionContainer.classList.add('hidden');
+                rejectionReason.required = false;
+                confirmButton.disabled = false;
+                confirmButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                rejectionReason.value = ''; // Clear reason for approval
+            }
+            
+            document.getElementById('approvalModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('approvalModal').classList.add('hidden');
+            currentStudentId = null;
+            currentAction = null;
+            
+            // Reset rejection reason field
+            const rejectionReason = document.getElementById('rejectionReason');
+            rejectionReason.value = '';
+            rejectionReason.required = false;
+            
+            const confirmButton = document.getElementById('confirmButton');
+            confirmButton.disabled = false;
+            confirmButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        function confirmApproval() {
+            if (currentStudentId && currentAction) {
+                console.log('DEBUG: confirmApproval called with:', {
+                    studentId: currentStudentId,
+                    action: currentAction
+                });
+                
+                const requestData = {
+                    approval_status: currentAction
+                };
+                
+                // Add rejection reason if disapproving
+                if (currentAction === 'disapproved') {
+                    const rejectionReason = document.getElementById('rejectionReason').value.trim();
+                    if (!rejectionReason) {
+                        alert('Please provide a reason for rejection.');
+                        return;
+                    }
+                    requestData.rejection_reason = rejectionReason;
+                }
+                
+                console.log('DEBUG: Sending request data:', requestData);
+                
+                fetch(`/teacher/students/${currentStudentId}/approval/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken(),
+                    },
+                    body: JSON.stringify(requestData)
+                })
+                .then(response => {
+                    console.log('DEBUG: Response status:', response.status);
+                    return response.json().then(data => {
+                        return {
+                            status: response.status,
+                            ok: response.ok,
+                            data: data
+                        };
+                    });
+                })
+                .then(({status, ok, data}) => {
+                    console.log('DEBUG: Response data:', data);
+                    if (ok && data.success) {
+                        console.log('DEBUG: Success, reloading page...');
+                        location.reload();
+                    } else {
+                        console.error('DEBUG: Server returned error:', data);
+                        alert('Error updating approval status: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('DEBUG: Fetch error:', error);
+                    alert('Error updating approval status: ' + error.message);
+                });
+                
+                closeModal();
+            } else {
+                console.error('DEBUG: No student ID or action selected');
+                alert('Error: No student or action selected');
+            }
+        }
+
+        // Feedback Modal Functionality
+        const feedbackModal = document.getElementById('feedbackModal');
+        const feedbackSuccessModal = document.getElementById('feedbackSuccessModal');
+        const feedbackForm = document.getElementById('feedbackForm');
+        const cancelFeedbackBtn = document.getElementById('cancelFeedbackBtn');
+        const closeFeedbackSuccessBtn = document.getElementById('closeFeedbackSuccessBtn');
+
+        function openSendFeedback(studentId, studentName) {
+            document.getElementById('feedbackStudentId').value = studentId;
+            document.getElementById('feedbackStudentName').textContent = `Send Feedback to ${studentName}`;
+            
+            // Set default subject based on student's approval status
+            const studentRow = document.querySelector(`tr[data-status] button[onclick*="${studentId}"]`).closest('tr');
+            const approvalStatus = studentRow.getAttribute('data-status');
+            
+            let defaultSubject = `Guidance for ${studentName}`;
+            if (approvalStatus === 'disapproved') {
+                defaultSubject = `Feedback on Account Status - ${studentName}`;
+            } else if (approvalStatus === 'pending') {
+                defaultSubject = `Welcome and Initial Guidance - ${studentName}`;
+            }
+            
+            document.getElementById('feedbackSubject').value = defaultSubject;
+            document.getElementById('feedbackContent').value = '';
+            document.getElementById('requestResponse').checked = true;
+            
+            feedbackModal.classList.remove('hidden');
+        }
+
+        // Cancel Feedback button
+        if (cancelFeedbackBtn) {
+            cancelFeedbackBtn.addEventListener('click', () => {
+                feedbackModal.classList.add('hidden');
+            });
+        }
+
+        // Close Feedback Success button
+        if (closeFeedbackSuccessBtn) {
+            closeFeedbackSuccessBtn.addEventListener('click', () => {
+                feedbackSuccessModal.classList.add('hidden');
+            });
+        }
+
+        // Feedback Form Submission
+        if (feedbackForm) {
+            feedbackForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                // Get form data
+                const formData = new FormData(feedbackForm);
+                const studentId = formData.get('student_id');
+                const subject = formData.get('subject');
+                const feedbackType = formData.get('feedback_type');
+                const content = formData.get('content');
+                const requestResponse = formData.get('request_response') ? true : false;
+                
+                // Here you would typically send the data to your backend
+                console.log('Sending feedback to student:', { 
+                    studentId, 
+                    subject, 
+                    feedbackType, 
+                    content, 
+                    requestResponse 
+                });
+                
+                // Simulate API call
+                simulateFeedbackSend(studentId, subject, feedbackType, content, requestResponse);
+            });
+        }
+
+        function simulateFeedbackSend(studentId, subject, feedbackType, content, requestResponse) {
+            // Show loading state
+            const submitBtn = document.getElementById('submitFeedbackBtn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Sending...</span>';
+            submitBtn.disabled = true;
+            
+            // Simulate API delay
+            setTimeout(() => {
+                // Hide feedback modal and show success modal
+                feedbackModal.classList.add('hidden');
+                feedbackSuccessModal.classList.remove('hidden');
+                
+                // Reset form
+                feedbackForm.reset();
+                
+                // Reset button state
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 1500);
+        }
+
+        function getCSRFToken() {
+            const name = 'csrftoken';
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Mobile menu functionality (same as dashboard)
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.createElement('div');
+            overlay.id = 'overlay';
+            overlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden';
+            document.body.appendChild(overlay);
+
+            if (mobileMenuBtn && sidebar) {
+                mobileMenuBtn.addEventListener('click', () => {
+                    sidebar.classList.toggle('-translate-x-full');
+                    overlay.classList.toggle('hidden');
+                });
+                
+                overlay.addEventListener('click', () => {
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.add('hidden');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

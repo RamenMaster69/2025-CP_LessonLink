@@ -54,6 +54,8 @@ from .models import Exemplar
 from .serializers import ExemplarSerializer
 import mammoth
 import tempfile
+from .models import StudentConcern  
+
 
 # School Registration Views
 
@@ -255,6 +257,34 @@ def validate_school_id_ajax(request):
         'valid': True, 
         'message': 'School ID is available'
     })
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+
+
+
+def get_teachers_by_department(request):
+    """API endpoint to get teachers by school and department"""
+    school_id = request.GET.get('school')
+    department = request.GET.get('department')
+    
+    if not school_id or not department:
+        return JsonResponse({'teachers': []})
+    
+    try:
+        # Get teachers from the same school and department
+        teachers = User.objects.filter(
+            role='Teacher',
+            school_id=school_id,
+            department=department,
+            is_active=True
+        ).values('id', 'first_name', 'last_name', 'email')
+        
+        return JsonResponse({'teachers': list(teachers)})
+    
+    except Exception as e:
+        logger.error(f"Error fetching teachers: {str(e)}")
+        return JsonResponse({'teachers': []})
 
 
 # def admin_get_calendar_activities(request):
@@ -616,6 +646,7 @@ def registration_4(request):
         school_id = request.POST.get("school")  # Get selected school ID
         affiliations = request.POST.getlist("affiliation[]")
         role = request.session.get('reg_role')  # Get role from session
+        assign_teacher = request.POST.get("assign_teacher")  # Get supervising teacher
         
         # Get the school object
         try:
@@ -648,6 +679,18 @@ def registration_4(request):
                     'error_message': f'A Department Head already exists for {department} in {school.school_name}.',
                     'show_error': True
                 })
+
+        # Additional validation for Student Teachers
+        if role == 'Student Teacher' and not assign_teacher:
+            messages.error(request, "Please select a supervising teacher.")
+            return render(request, 'registration/registration_4.html', {
+                'department': department,
+                'school': school_id,
+                'affiliations': affiliations,
+                'schools': approved_schools,
+                'error_message': "Please select a supervising teacher.",
+                'show_error': True
+            })
 
         # Validation for required fields
         if not department or not school_name:
@@ -702,6 +745,29 @@ def registration_4(request):
                 affiliations=", ".join(affiliations) if affiliations else ""
             )
 
+            # Handle supervising teacher assignment for Student Teachers
+            if role == 'Student Teacher' and assign_teacher:
+                try:
+                    supervising_teacher = User.objects.get(
+                        id=assign_teacher, 
+                        role='Teacher',
+                        school=school,
+                        department=department
+                    )
+                    user.supervising_teacher = supervising_teacher
+                    user.save()
+                    print(f"DEBUG - Assigned supervising teacher: {supervising_teacher.email}")
+                except User.DoesNotExist:
+                    messages.error(request, "Selected teacher not found. Please try again.")
+                    return render(request, 'registration/registration_4.html', {
+                        'department': department,
+                        'school': school_id,
+                        'affiliations': affiliations,
+                        'schools': approved_schools,
+                        'error_message': "Selected teacher not found. Please try again.",
+                        'show_error': True
+                    })
+
             # Clear reg_* session data
             for key in list(request.session.keys()):
                 if key.startswith("reg_"):
@@ -734,6 +800,106 @@ def registration_4(request):
     return render(request, 'registration/registration_4.html', {
         'schools': approved_schools
     })
+
+
+@login_required
+def teacher_student_list(request):
+    """Teacher's view of all their supervised students in a table format"""
+    if request.user.role != 'Teacher':
+        messages.error(request, "You are not authorized to access this page.")
+        return redirect('dashboard')
+    
+    # Get all supervised students
+    supervised_students = User.objects.filter(
+        supervising_teacher=request.user,
+        is_active=True
+    ).select_related('school').order_by('first_name', 'last_name')
+    
+    # Add lesson plan counts for each student
+    from lessonGenerator.models import LessonPlan
+    from django.db.models import Count, Q
+    
+    for student in supervised_students:
+        student.lesson_plans_count = LessonPlan.objects.filter(created_by=student).count()
+        student.completed_lessons_count = LessonPlan.objects.filter(
+            created_by=student, 
+            status='final'
+        ).count()
+        
+        # ADD CONCERNS COUNT
+        student.pending_concerns_count = StudentConcern.objects.filter(
+            student=student,
+            status='pending'
+        ).count()
+        student.has_pending_concerns = student.pending_concerns_count > 0
+    
+    # Get statistics for the page
+    total_completed_lessons = LessonPlan.objects.filter(
+        created_by__supervising_teacher=request.user,
+        status='final'
+    ).count()
+    
+    # Count pending reviews for this teacher's students
+    from .models import LessonPlanSubmission
+    pending_reviews = LessonPlanSubmission.objects.filter(
+        submitted_by__supervising_teacher=request.user,
+        status='submitted'
+    ).count()
+    
+    # ADD STUDENT CONCERNS COUNT
+    student_concerns_count = StudentConcern.objects.filter(
+        student__supervising_teacher=request.user,
+        status='pending'
+    ).count()
+    
+    # Get recent student concerns for the concerns section
+    student_concerns = StudentConcern.objects.filter(
+        student__supervising_teacher=request.user
+    ).select_related('student').order_by('-created_at')[:10]
+    
+    context = {
+        'supervised_students': supervised_students,
+        'total_completed_lessons': total_completed_lessons,
+        'pending_reviews': pending_reviews,
+        'student_concerns_count': student_concerns_count,  # ADD THIS
+        'student_concerns': student_concerns,  # ADD THIS
+        'user': request.user
+    }
+    
+    return render(request, 'teacher/student_list.html', context)
+
+
+
+
+@login_required
+def teacher_student_detail(request, student_id):
+    """Teacher's view of a specific student's details"""
+    if request.user.role != 'Teacher':
+        messages.error(request, "You are not authorized to access this page.")
+        return redirect('dashboard')
+    
+    student = get_object_or_404(User, 
+        id=student_id, 
+        supervising_teacher=request.user,
+        is_active=True
+    )
+    
+    # Get student's lesson plans
+    from lessonGenerator.models import LessonPlan
+    student_lesson_plans = LessonPlan.objects.filter(
+        created_by=student
+    ).order_by('-created_at')
+    
+    context = {
+        'student': student,
+        'lesson_plans': student_lesson_plans,
+        'user': request.user
+    }
+    
+    return render(request, 'teacher/student_detail.html', context)
+
+
+
 
 @csrf_exempt
 def check_department_head(request):
@@ -1028,21 +1194,24 @@ def dashboard(request):
     # Get recent lesson plans (5 most recent)
     recent_lesson_plans = LessonPlan.objects.filter(created_by=user).order_by('-created_at')[:5]
     
+    # Get supervised students for teachers - ADD THIS SECTION
+    supervised_students = []
+    if user.role == 'Teacher':
+        supervised_students = User.objects.filter(
+            supervising_teacher=user,
+            is_active=True,
+            role='Student Teacher'
+        ).select_related('school').order_by('first_name', 'last_name')
+        
+        # DEBUG: Print to console to verify
+        print(f"DEBUG: Teacher {user.email} has {supervised_students.count()} students")
+        for student in supervised_students:
+            print(f"DEBUG: Student - {student.email}")
+    
     # FIXED: Use timezone-aware today calculation
     from django.utils import timezone
-    import pytz
     
-    # Method A: Use the timezone from settings
     today = timezone.localtime(timezone.now()).strftime('%A').lower()
-    
-    # Or Method B: Force a specific timezone (if you're in Philippines)
-    # manila_tz = pytz.timezone('Asia/Manila')
-    # today = timezone.now().astimezone(manila_tz).strftime('%A').lower()
-    
-    print(f"DEBUG: Server time: {timezone.now()}")
-    print(f"DEBUG: Local time: {timezone.localtime(timezone.now())}")
-    print(f"DEBUG: Today for filtering: {today}")
-    
     todays_schedule = Schedule.objects.filter(user=user, day=today).order_by('time')
     
     return render(request, 'dashboard.html', {
@@ -1053,7 +1222,8 @@ def dashboard(request):
         'draft_lesson_plans': draft_lesson_plans,
         'recent_lesson_plans': recent_lesson_plans,
         'todays_schedule': todays_schedule,
-        'today_display': timezone.localtime(timezone.now()).strftime('%A')  # For display
+        'today_display': timezone.localtime(timezone.now()).strftime('%A'),  # For display
+        'supervised_students': supervised_students,  # ADD THIS LINE
     })
 
 def lesson_plan(request):
@@ -1069,6 +1239,131 @@ def logout_view(request):
     logout(request)  # Django's built-in logout function
     messages.success(request, "You have been logged out successfully.")
     return redirect('landing')
+
+
+
+
+@login_required
+@require_POST
+def update_student_approval(request, student_id):
+    """Update student approval status - for teachers only"""
+    print(f"DEBUG: Approval update called for student {student_id} by user {request.user.email}")
+    
+    if request.user.role != 'Teacher':
+        return JsonResponse({'success': False, 'error': 'Unauthorized - Teachers only'}, status=403)
+    
+    try:
+        student = User.objects.get(
+            id=student_id, 
+            supervising_teacher=request.user,
+            is_active=True
+        )
+        print(f"DEBUG: Found student: {student.email}")
+        
+        # Get the raw request body to debug
+        raw_body = request.body.decode('utf-8')
+        print(f"DEBUG: Raw request body: {raw_body}")
+        
+        # Parse JSON data
+        try:
+            data = json.loads(raw_body)
+            approval_status = data.get('approval_status')
+            rejection_reason = data.get('rejection_reason', '')
+            print(f"DEBUG: Parsed approval_status: {approval_status}")
+            print(f"DEBUG: Parsed rejection_reason: {rejection_reason}")
+        except json.JSONDecodeError as e:
+            print(f"DEBUG: JSON decode error: {e}")
+            return JsonResponse({'success': False, 'error': f'Invalid JSON data: {str(e)}'})
+        
+        # Validate the status
+        valid_statuses = ['approved', 'disapproved', 'pending']
+        if approval_status not in valid_statuses:
+            print(f"DEBUG: Invalid status received: {approval_status}. Valid statuses: {valid_statuses}")
+            return JsonResponse({
+                'success': False, 
+                'error': f'Invalid status: {approval_status}. Must be one of: {", ".join(valid_statuses)}'
+            })
+        
+        # Validate rejection reason for disapproval
+        if approval_status == 'disapproved' and not rejection_reason:
+            print(f"DEBUG: Rejection reason required for disapproval")
+            return JsonResponse({
+                'success': False, 
+                'error': 'Rejection reason is required when disapproving a student'
+            })
+        
+        # Update the student
+        print(f"DEBUG: Updating student {student.email} status from {student.approval_status} to {approval_status}")
+        student.approval_status = approval_status
+        
+        # Store rejection reason if provided
+        if approval_status == 'disapproved' and rejection_reason:
+            print(f"DEBUG: Storing rejection reason: {rejection_reason}")
+            student.rejection_reason = rejection_reason
+        elif approval_status == 'approved':
+            # Clear rejection reason if approving
+            student.rejection_reason = ''
+        
+        student.save()
+        
+        # TODO: Send notification to student about the status change
+        # If rejected, include the rejection reason
+        if approval_status == 'disapproved' and rejection_reason:
+            # You can add notification logic here
+            print(f"DEBUG: Student {student.email} rejected with reason: {rejection_reason}")
+        
+        print(f"DEBUG: Successfully updated approval status")
+        return JsonResponse({'success': True})
+            
+    except User.DoesNotExist:
+        print(f"DEBUG: Student {student_id} not found or not supervised by this teacher")
+        return JsonResponse({'success': False, 'error': 'Student not found or you are not their supervising teacher'})
+    except Exception as e:
+        logger.error(f"Error updating student approval: {str(e)}")
+        print(f"DEBUG: Unexpected error: {str(e)}")
+        return JsonResponse({'success': False, 'error': f'Server error: {str(e)}'})
+
+
+        
+
+
+
+
+
+@require_POST
+@csrf_exempt
+@login_required
+def submit_student_concern(request):
+    """Handle student concern submission"""
+    try:
+        data = json.loads(request.body)
+        
+        # Create the concern
+        concern = StudentConcern.objects.create(
+            student=request.user,
+            subject=data.get('subject'),
+            concern_type=data.get('concern_type'),
+            content=data.get('content'),
+            status='pending'
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Concern submitted successfully',
+            'concern_id': concern.id
+        })
+        
+    except Exception as e:
+        logger.error(f"Error submitting student concern: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
+
+
+
+
 
 @login_required
 def profile(request):
@@ -1101,6 +1396,59 @@ def profile(request):
         'user': user,
         'full_name': user.full_name
     })
+
+
+
+
+
+
+@login_required
+def get_student_concerns(request, student_id):
+    """Get concerns for a specific student"""
+    if request.user.role != 'Teacher':
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
+    
+    try:
+        student = User.objects.get(id=student_id, supervising_teacher=request.user)
+        concerns = StudentConcern.objects.filter(student=student).order_by('-created_at')
+        
+        concerns_data = []
+        for concern in concerns:
+            concerns_data.append({
+                'id': concern.id,
+                'subject': concern.subject,
+                'concern_type': concern.concern_type,
+                'content': concern.content,
+                'status': concern.status,
+                'created_at': concern.created_at.strftime('%Y-%m-%d %H:%M'),
+                'rejection_reason': concern.rejection_reason
+            })
+        
+        return JsonResponse({'success': True, 'concerns': concerns_data})
+        
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Student not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@require_POST
+@login_required
+def resolve_student_concern(request, concern_id):
+    """Mark a concern as resolved"""
+    if request.user.role != 'Teacher':
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
+    
+    try:
+        concern = StudentConcern.objects.get(id=concern_id, student__supervising_teacher=request.user)
+        concern.status = 'resolved'
+        concern.save()
+        
+        return JsonResponse({'success': True, 'message': 'Concern marked as resolved'})
+        
+    except StudentConcern.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Concern not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
 
 # ====================================================== SUPER USER SCHOOL APPROVAL ======================================================
@@ -2217,6 +2565,45 @@ def admin_user_management(request):
     }
     
     return render(request, 'admin/admin_user_management.html', context)
+
+
+
+
+# Add to views.py
+@login_required
+def get_concern_detail(request, concern_id):
+    """Get detailed information about a specific concern"""
+    if request.user.role != 'Teacher':
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
+    
+    try:
+        concern = StudentConcern.objects.get(
+            id=concern_id,
+            student__supervising_teacher=request.user
+        )
+        
+        concern_data = {
+            'id': concern.id,
+            'subject': concern.subject,
+            'concern_type': concern.concern_type,
+            'content': concern.content,
+            'status': concern.status,
+            'rejection_reason': concern.rejection_reason,
+            'created_at': concern.created_at.strftime('%Y-%m-%d %H:%M'),
+            'student_name': concern.student.full_name,
+            'student_email': concern.student.email
+        }
+        
+        return JsonResponse({'success': True, 'concern': concern_data})
+        
+    except StudentConcern.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Concern not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+
+        
 
 @login_required
 @user_passes_test(is_admin)

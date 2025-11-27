@@ -49,6 +49,13 @@ class User(AbstractUser):
         ('Admin', 'Admin'),
     ]
 
+    # ADD APPROVAL STATUS CHOICES
+    APPROVAL_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('disapproved', 'Disapproved'),
+    ]
+
     username = None
     email = models.EmailField(unique=True)
 
@@ -60,6 +67,21 @@ class User(AbstractUser):
 
     department = models.CharField(max_length=100)
 
+    # ADD THIS FIELD
+    approval_status = models.CharField(
+        max_length=20,
+        choices=APPROVAL_STATUS_CHOICES,
+        default='pending'
+    )
+
+    # ADD REJECTION REASON FIELD
+    rejection_reason = models.TextField(
+        blank=True, 
+        null=True,
+        verbose_name="Reason for Rejection",
+        help_text="Explanation provided to student when account was disapproved"
+    )
+
     # Instead of plain CharField, link to SchoolRegistration
     school = models.ForeignKey(
         "SchoolRegistration",  # reference your school model
@@ -67,6 +89,17 @@ class User(AbstractUser):
         blank=True,
         null=True,
         related_name="users"
+    )
+
+    # Add supervising teacher field for Student Teachers
+    supervising_teacher = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='supervised_student_teachers',
+        limit_choices_to={'role': 'Teacher'},  # Only teachers can be supervising teachers
+        verbose_name="Supervising Teacher"
     )
 
     affiliations = models.TextField(blank=True, null=True)
@@ -93,6 +126,42 @@ class User(AbstractUser):
             parts.append(self.middle_name)
         parts.append(self.last_name)
         return ' '.join(parts).strip()
+
+
+        
+
+    def clean(self):
+        """Validate that supervising teacher is only set for Student Teachers"""
+        from django.core.exceptions import ValidationError
+        
+        if self.supervising_teacher and self.role != 'Student Teacher':
+            raise ValidationError({
+                'supervising_teacher': 'Supervising teacher can only be assigned to Student Teachers.'
+            })
+        
+        if self.role == 'Student Teacher' and not self.supervising_teacher:
+            raise ValidationError({
+                'supervising_teacher': 'Student Teachers must have a supervising teacher.'
+            })
+        
+        # Validate that supervising teacher is in the same school and department
+        if (self.supervising_teacher and 
+            self.school and 
+            self.department and 
+            self.supervising_teacher.role == 'Teacher'):
+            
+            if self.supervising_teacher.school != self.school:
+                raise ValidationError({
+                    'supervising_teacher': 'Supervising teacher must be from the same school.'
+                })
+            
+            if self.supervising_teacher.department != self.department:
+                raise ValidationError({
+                    'supervising_teacher': 'Supervising teacher must be from the same department.'
+                })
+
+
+
 
 class AdminLog(models.Model):
     ACTION_CHOICES = [
@@ -121,6 +190,44 @@ class AdminLog(models.Model):
     
     def __str__(self):
         return f"{self.admin.email} - {self.action} - {self.timestamp}"
+
+
+
+
+
+
+
+class StudentConcern(models.Model):
+    CONCERN_TYPES = [
+        ('clarification', 'Need Clarification'),
+        ('correction', 'Information Correction'),
+        ('appeal', 'Appeal Decision'),
+        ('other', 'Other Concern'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('resolved', 'Resolved'),
+    ]
+    
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='concerns')
+    subject = models.CharField(max_length=255)
+    concern_type = models.CharField(max_length=20, choices=CONCERN_TYPES, default='clarification')
+    content = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    rejection_reason = models.TextField(blank=True, null=True)  # Link to original rejection
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.student.email} - {self.subject}"
+
+
+
+
 
 class SystemSettings(models.Model):
     """System-wide settings that admins can configure"""
