@@ -350,6 +350,16 @@
                             <button class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors delete-draft-btn" data-draft-id="{{ draft.id }}">
                                 <i class="fas fa-trash mr-2"></i>Delete
                             </button>
+
+                            {% if draft.status == 'draft' and not submission or submission.status == 'draft' %}
+                            <form method="post" action="{% url 'submit_lesson_plan' draft.id %}" class="inline-block w-full">
+                                {% csrf_token %}
+                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors" 
+                                        onclick="return confirm('Submit this lesson plan to your supervising teacher for approval?')">
+                                    <i class="fas fa-paper-plane mr-2"></i>Submit to Supervising Teacher
+                                </button>
+                            </form>
+                            {% endif %}
                         </div>
                     </div>
                     {% endwith %}

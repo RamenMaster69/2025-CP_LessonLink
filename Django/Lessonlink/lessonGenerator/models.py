@@ -375,3 +375,43 @@ class LessonPlanSubmission(models.Model):
     
     def __str__(self):
         return f"{self.lesson_plan.title} - {self.status}"
+
+    def submit_to_supervising_teacher(self):
+        """Submit lesson plan to supervising teacher for review - specifically for Student Teachers"""
+        if not self.created_by.supervising_teacher:
+            return False, "No supervising teacher assigned"
+        
+        if self.status != self.DRAFT:
+            return False, "Only draft lesson plans can be submitted"
+        
+        # Check if already submitted to this supervising teacher
+        existing_submission = LessonPlanSubmission.objects.filter(
+            lesson_plan=self,
+            submitted_to=self.created_by.supervising_teacher,
+            status__in=['submitted', 'approved', 'needs_revision']
+        ).first()
+        
+        if existing_submission:
+            status_display = existing_submission.get_status_display()
+            return False, f"Already submitted to supervising teacher. Current status: {status_display}"
+        
+        # Validate school and department match
+        if (self.created_by.school != self.created_by.supervising_teacher.school or 
+            self.created_by.department != self.created_by.supervising_teacher.department):
+            return False, "Supervising teacher is not in your school/department"
+        
+        try:
+            # Create submission record
+            submission = LessonPlanSubmission.objects.create(
+                lesson_plan=self,
+                submitted_by=self.created_by,
+                submitted_to=self.created_by.supervising_teacher,
+                status='submitted'
+            )
+            
+            return True, f"Lesson plan submitted to {self.created_by.supervising_teacher.full_name} successfully!"
+            
+        except ValidationError as e:
+            return False, str(e)
+        except Exception as e:
+            return False, f"Error submitting lesson plan: {str(e)}"

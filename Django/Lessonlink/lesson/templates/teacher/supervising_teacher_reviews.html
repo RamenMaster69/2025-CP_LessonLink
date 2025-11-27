@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Lesson Plan Reviews - LessonLink</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Use your existing header and sidebar structure -->
+    
+    <div class="flex pt-16">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white shadow-lg h-screen fixed overflow-y-auto">
+            <nav class="p-4 space-y-2">
+                <!-- Include your existing sidebar navigation -->
+                <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
+                    <i class="fas fa-home text-lg w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'teacher_student_list' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
+                    <i class="fas fa-user-graduate text-lg w-5"></i>
+                    <span>My Students</span>
+                </a>
+                <a href="{% url 'supervising_teacher_reviews' %}" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                    <i class="fas fa-clipboard-check text-lg w-5"></i>
+                    <span class="font-medium">Lesson Reviews</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 ml-64">
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-gray-900">Student Lesson Plan Reviews</h1>
+                <p class="text-gray-600">Review and provide feedback on your students' lesson plans</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-clock text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Pending Reviews</p>
+                            <p class="text-xl font-bold text-gray-900">{{ pending_count }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Reviews Section -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Pending Reviews</h3>
+                
+                {% if pending_submissions %}
+                <div class="space-y-4">
+                    {% for submission in pending_submissions %}
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-200 transition-colors">
+                        <div class="flex items-center justify-between mb-3">
+                            <div>
+                                <h4 class="font-semibold text-gray-900">{{ submission.lesson_plan.title }}</h4>
+                                <p class="text-sm text-gray-600">
+                                    By: {{ submission.submitted_by.full_name }} • 
+                                    {{ submission.submission_date|timesince }} ago
+                                </p>
+                            </div>
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+                                Awaiting Review
+                            </span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
+                            <div>
+                                <span class="font-medium">Subject:</span> {{ submission.lesson_plan.subject }}
+                            </div>
+                            <div>
+                                <span class="font-medium">Grade Level:</span> {{ submission.lesson_plan.grade_level }}
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <a href="{% url 'lesson_plan_detail' submission.id %}" 
+                               class="text-blue-600 hover:text-blue-700 font-medium">
+                                View Lesson Plan Details
+                            </a>
+                            <div class="flex space-x-2">
+                                <form method="post" action="{% url 'review_student_lesson_plan' submission.id %}" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="approve">
+                                    <button type="submit" 
+                                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                                            onclick="return confirm('Approve this lesson plan?')">
+                                        Approve
+                                    </button>
+                                </form>
+                                <button onclick="showReviewModal({{ submission.id }}, 'needs_revision')" 
+                                        class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm">
+                                    Request Revision
+                                </button>
+                                <button onclick="showReviewModal({{ submission.id }}, 'reject')" 
+                                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm">
+                                    Reject
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <i class="fas fa-check-circle text-3xl text-gray-300 mb-3"></i>
+                    <p class="text-gray-500">No pending reviews. All caught up!</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Review History -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Review History</h3>
+                
+                {% if reviewed_submissions %}
+                <div class="space-y-3">
+                    {% for submission in reviewed_submissions %}
+                    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                        <div class="flex-1">
+                            <h5 class="font-medium text-gray-900">{{ submission.lesson_plan.title }}</h5>
+                            <p class="text-sm text-gray-600">
+                                {{ submission.submitted_by.full_name }} • 
+                                Reviewed {{ submission.review_date|timesince }} ago
+                            </p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-sm font-medium 
+                            {% if submission.status == 'approved' %}bg-green-100 text-green-800
+                            {% elif submission.status == 'rejected' %}bg-red-100 text-red-800
+                            {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                            {{ submission.get_status_display }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-gray-500 text-center py-4">No review history yet.</p>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Review Modal -->
+    <div id="reviewModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 class="text-lg font-semibold mb-4" id="modalTitle">Provide Feedback</h3>
+            <form id="reviewForm" method="post">
+                {% csrf_token %}
+                <input type="hidden" id="submissionId" name="submission_id">
+                <input type="hidden" id="actionType" name="action">
+                
+                <div class="mb-4">
+                    <label for="reviewNotes" class="block text-sm font-medium text-gray-700 mb-2">
+                        Feedback Notes
+                    </label>
+                    <textarea id="reviewNotes" name="review_notes" rows="4" 
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Provide constructive feedback for the student..."></textarea>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeReviewModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Submit Feedback
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showReviewModal(submissionId, action) {
+            const modal = document.getElementById('reviewModal');
+            const form = document.getElementById('reviewForm');
+            const submissionIdInput = document.getElementById('submissionId');
+            const actionInput = document.getElementById('actionType');
+            const title = document.getElementById('modalTitle');
+            
+            submissionIdInput.value = submissionId;
+            actionInput.value = action;
+            
+            // Update title based on action
+            if (action === 'approve') {
+                title.textContent = 'Approve Lesson Plan';
+            } else if (action === 'reject') {
+                title.textContent = 'Reject Lesson Plan';
+            } else {
+                title.textContent = 'Request Revision';
+            }
+            
+            // Set form action
+            form.action = `/teacher/review-student-lesson/${submissionId}/`;
+            
+            modal.classList.remove('hidden');
+        }
+        
+        function closeReviewModal() {
+            document.getElementById('reviewModal').classList.add('hidden');
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('reviewModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeReviewModal();
+            }
+        });
+    </script>
+</body>
+</html>

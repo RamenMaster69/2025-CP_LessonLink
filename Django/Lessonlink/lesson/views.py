@@ -2323,66 +2323,155 @@ def admin_approve_registration(request, registration_id):
 
 @login_required
 def submit_lesson_plan(request, lesson_plan_id):
-    """Submit a lesson plan to department head for approval"""
+    """Submit a lesson plan for approval - handles both department head and supervising teacher workflows"""
     if request.method == 'POST':
         try:
             # Get the lesson plan
             lesson_plan = LessonPlan.objects.get(id=lesson_plan_id, created_by=request.user)
             
-            # Validate that the teacher has a school and department
+            # Validate that the user has the required school and department information
             if not request.user.school:
                 messages.error(request, "You are not assigned to any school. Please contact administrator.")
                 return redirect('draft_list')
             
-            if not request.user.department:
-                messages.error(request, "You are not assigned to any department. Please contact administrator.")
-                return redirect('draft_list')
+            # ==================== STUDENT TEACHER WORKFLOW ====================
+            if request.user.role == "Student Teacher":
+                if not request.user.supervising_teacher:
+                    messages.error(request, "You don't have a supervising teacher assigned. Please contact administrator.")
+                    return redirect('draft_list')
+                
+                if not request.user.department:
+                    messages.error(request, "You are not assigned to any department. Please contact administrator.")
+                    return redirect('draft_list')
+                
+                # Validate that student teacher and supervising teacher are in same school and department
+                if (request.user.school != request.user.supervising_teacher.school or 
+                    request.user.department != request.user.supervising_teacher.department):
+                    messages.error(request, 
+                        f"Your supervising teacher {request.user.supervising_teacher.full_name} is not in your school/department. "
+                        "Please contact administrator."
+                    )
+                    return redirect('draft_list')
+                
+                # Check if already submitted to supervising teacher
+                existing_submission = LessonPlanSubmission.objects.filter(
+                    lesson_plan=lesson_plan,
+                    submitted_to=request.user.supervising_teacher,
+                    status__in=['submitted', 'approved', 'needs_revision']
+                ).first()
+                
+                if existing_submission:
+                    status_display = existing_submission.get_status_display()
+                    messages.warning(request, 
+                        f"This lesson plan has already been submitted to your supervising teacher. "
+                        f"Current status: {status_display}"
+                    )
+                    return redirect('draft_list')
+                
+                # Create submission to supervising teacher
+                submission = LessonPlanSubmission.objects.create(
+                    lesson_plan=lesson_plan,
+                    submitted_by=request.user,
+                    submitted_to=request.user.supervising_teacher,
+                    status='submitted'
+                )
+                
+                # Update lesson plan status to final when submitted
+                lesson_plan.status = LessonPlan.FINAL
+                lesson_plan.save()
+                
+                # Create submission notification for supervising teacher
+                from lessonlinkNotif.models import Notification
+                Notification.create_lesson_submitted_notification(submission)
+                
+                messages.success(request, 
+                    f"Lesson plan submitted successfully to your supervising teacher: "
+                    f"{request.user.supervising_teacher.full_name}! "
+                    f"They will review your lesson plan and provide feedback."
+                )
+                
+                # Log the submission
+                logger.info(f"Student Teacher {request.user.email} submitted lesson plan {lesson_plan.id} to supervising teacher {request.user.supervising_teacher.email}")
             
-            # Find the correct department head - ensure same school and department
-            department_head = User.objects.filter(
-                role='Department Head',
-                department=request.user.department,
-                school=request.user.school,
-                is_active=True
-            ).first()
+            # ==================== TEACHER WORKFLOW (to Department Head) ====================
+            elif request.user.role == "Teacher":
+                if not request.user.department:
+                    messages.error(request, "You are not assigned to any department. Please contact administrator.")
+                    return redirect('draft_list')
+                
+                # Find the correct department head - ensure same school and department
+                department_head = User.objects.filter(
+                    role='Department Head',
+                    department=request.user.department,
+                    school=request.user.school,
+                    is_active=True
+                ).first()
+                
+                if not department_head:
+                    messages.error(request, 
+                        f"No active Department Head found for {request.user.department} department in {request.user.school}. "
+                        "Please contact administrator."
+                    )
+                    return redirect('draft_list')
+                
+                # Use the model method to handle submission
+                success, message = lesson_plan.submit_for_approval(department_head)
+                
+                if success:
+                    # Create submission notification for department head
+                    from lessonlinkNotif.models import Notification
+                    Notification.create_lesson_submitted_notification(
+                        LessonPlanSubmission.objects.get(
+                            lesson_plan=lesson_plan,
+                            submitted_to=department_head,
+                            status='submitted'
+                        )
+                    )
+                    
+                    # Change lesson plan status to final when submitted
+                    lesson_plan.status = LessonPlan.FINAL
+                    lesson_plan.save()
+                    
+                    messages.success(request, message)
+                    
+                    # Log the submission
+                    logger.info(f"Teacher {request.user.email} submitted lesson plan {lesson_plan.id} to department head {department_head.email}")
+                    
+                else:
+                    messages.error(request, message)
             
-            if not department_head:
-                # Provide helpful error message
+            # ==================== DEPARTMENT HEAD WORKFLOW (Auto-approval) ====================
+            elif request.user.role == "Department Head":
+                # Department heads can auto-approve their own lesson plans
+                lesson_plan.status = LessonPlan.FINAL
+                lesson_plan.auto_approved = True
+                lesson_plan.save()
+                
+                messages.success(request, 
+                    "Lesson plan automatically approved! "
+                    "As a Department Head, your lesson plans are approved immediately."
+                )
+                
+                # Log the auto-approval
+                logger.info(f"Department Head {request.user.email} auto-approved their lesson plan {lesson_plan.id}")
+            
+            # ==================== OTHER ROLES ====================
+            else:
                 messages.error(request, 
-                    f"No active Department Head found for {request.user.department} department in {request.user.school}. "
+                    f"Lesson plan submission is not available for your role ({request.user.role}). "
                     "Please contact administrator."
                 )
                 return redirect('draft_list')
-            
-            # Use the model method to handle submission
-            success, message = lesson_plan.submit_for_approval(department_head)
-            
-            if success:
-                # Create submission notification for department head
-                from lessonlinkNotif.models import Notification
-                Notification.create_lesson_submitted_notification(
-                    LessonPlanSubmission.objects.get(
-                        lesson_plan=lesson_plan,
-                        submitted_to=department_head,
-                        status='submitted'
-                    )
-                )
-                
-                # Change lesson plan status to final when submitted
-                lesson_plan.status = LessonPlan.FINAL
-                lesson_plan.save()
-                messages.success(request, message)
-                
-            else:
-                messages.error(request, message)
                 
         except LessonPlan.DoesNotExist:
             messages.error(request, "Lesson plan not found or you don't have permission to submit it.")
         except Exception as e:
-            messages.error(request, f"An error occurred: {str(e)}")
+            logger.error(f"Error submitting lesson plan {lesson_plan_id}: {str(e)}")
+            messages.error(request, f"An error occurred while submitting the lesson plan: {str(e)}")
         
         return redirect('draft_list')
     
+    # If not POST request, redirect to dashboard
     return redirect('dashboard')
 
 @login_required
@@ -2433,13 +2522,15 @@ def Dep_Pending(request):
 
 @login_required
 def review_lesson_plan(request, submission_id):
-    """Department head reviews a lesson plan"""
+    """Review a lesson plan submission - works for both department heads and supervising teachers"""
     if request.method == 'POST':
         try:
-            submission = LessonPlanSubmission.objects.get(
-                id=submission_id,
-                submitted_to=request.user
-            )
+            submission = LessonPlanSubmission.objects.get(id=submission_id)
+            
+            # Check if user has permission to review this submission
+            if submission.submitted_to != request.user:
+                messages.error(request, "You are not authorized to review this lesson plan.")
+                return redirect('dashboard')
             
             action = request.POST.get('action')
             review_notes = request.POST.get('review_notes', '').strip()
@@ -2449,9 +2540,11 @@ def review_lesson_plan(request, submission_id):
                 submission.lesson_plan.status = LessonPlan.FINAL
                 
                 # Create approval notification
+                from lessonlinkNotif.models import Notification
                 Notification.create_draft_status_notification(submission, approved=True)
                 
                 messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' approved successfully!")
+                
             elif action == 'reject':
                 submission.status = 'rejected'
                 
@@ -2459,23 +2552,41 @@ def review_lesson_plan(request, submission_id):
                 Notification.create_draft_status_notification(submission, approved=False)
                 
                 messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' rejected.")
+                
             elif action == 'needs_revision':
                 submission.status = 'needs_revision'
+                
+                # Change lesson plan back to draft so it can be revised
+                submission.lesson_plan.status = LessonPlan.DRAFT
+                submission.lesson_plan.save()
                 
                 # Create needs revision notification
                 Notification.create_draft_status_notification(submission, approved=False)
                 
                 messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' returned for revision.")
             
+            else:
+                messages.error(request, "Invalid action specified.")
+                return redirect('dashboard')
+            
             submission.review_notes = review_notes
             submission.review_date = timezone.now()
             submission.save()
-            submission.lesson_plan.save()
+            
+            if submission.lesson_plan.status == LessonPlan.FINAL:
+                submission.lesson_plan.save()
+            
+            # Log the review action
+            logger.info(f"{request.user.role} {request.user.email} {action} lesson plan {submission.lesson_plan.id} from {submission.submitted_by.email}")
             
         except LessonPlanSubmission.DoesNotExist:
             messages.error(request, "Submission not found.")
         
-        return redirect('Dep_Pending')
+        # Redirect based on user role
+        if request.user.role == 'Teacher':
+            return redirect('supervising_teacher_reviews')
+        else:
+            return redirect('Dep_Pending')
     
     return redirect('dashboard')
 
@@ -2831,12 +2942,12 @@ def Dep_exemplar(request):
 
 @login_required
 def get_department_exemplars(request):
-    """Get exemplars for teacher's department"""
+    """Get exemplars for user's department - works for both teachers and student teachers"""
     try:
         user = request.user
         
-        # For teachers, get exemplars from their department head in the same department and school
-        if user.role == 'Teacher':
+        # For student teachers, get exemplars from their department head in the same department and school
+        if user.role == 'Student Teacher':
             # Get department head for the same department and school
             department_head = User.objects.filter(
                 role='Department Head',
@@ -2856,7 +2967,40 @@ def get_department_exemplars(request):
                 
                 return JsonResponse({
                     'success': True,
-                    'exemplars': serializer.data
+                    'exemplars': serializer.data,
+                    'user_role': user.role,
+                    'department': user.department
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'No department head found for your department.'
+                }, status=404)
+        
+        # For teachers, get exemplars from their department head
+        elif user.role == 'Teacher':
+            # Get department head for the same department and school
+            department_head = User.objects.filter(
+                role='Department Head',
+                department=user.department,
+                school=user.school,
+                is_active=True
+            ).first()
+            
+            if department_head:
+                # Get exemplars uploaded by department head for this department
+                exemplars = Exemplar.objects.filter(
+                    user=department_head,
+                    department=user.department
+                ).order_by('-upload_date')
+                
+                serializer = ExemplarSerializer(exemplars, many=True)
+                
+                return JsonResponse({
+                    'success': True,
+                    'exemplars': serializer.data,
+                    'user_role': user.role,
+                    'department': user.department
                 })
             else:
                 return JsonResponse({
@@ -2871,7 +3015,9 @@ def get_department_exemplars(request):
             
             return JsonResponse({
                 'success': True,
-                'exemplars': serializer.data
+                'exemplars': serializer.data,
+                'user_role': user.role,
+                'department': user.department
             })
         
         else:
@@ -3067,4 +3213,72 @@ def get_exemplar_text(request, exemplar_id):
             'success': False, 
             'message': 'Error fetching exemplar content'
         }, status=500)
+
+@login_required
+def supervising_teacher_reviews(request):
+    """Supervising teacher's page to review student lesson plans"""
+    if request.user.role != 'Teacher':
+        messages.error(request, "You are not authorized to access this page.")
+        return redirect('dashboard')
+    
+    # Get pending submissions from supervised students
+    pending_submissions = LessonPlanSubmission.objects.filter(
+        submitted_to=request.user,
+        status='submitted'
+    ).select_related('lesson_plan', 'submitted_by').order_by('submission_date')
+    
+    # Get reviewed submissions for history
+    reviewed_submissions = LessonPlanSubmission.objects.filter(
+        submitted_to=request.user
+    ).exclude(status='submitted').select_related('lesson_plan', 'submitted_by').order_by('-review_date')[:10]
+    
+    context = {
+        'user': request.user,
+        'pending_submissions': pending_submissions,
+        'reviewed_submissions': reviewed_submissions,
+        'pending_count': pending_submissions.count(),
+    }
+    
+    return render(request, 'teacher/supervising_teacher_reviews.html', context)
+
+@login_required
+def review_student_lesson_plan(request, submission_id):
+    """Supervising teacher reviews a student's lesson plan"""
+    if request.method == 'POST':
+        try:
+            submission = LessonPlanSubmission.objects.get(
+                id=submission_id,
+                submitted_to=request.user
+            )
+            
+            action = request.POST.get('action')
+            review_notes = request.POST.get('review_notes', '').strip()
+            
+            if action == 'approve':
+                submission.status = 'approved'
+                messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' approved successfully!")
+            elif action == 'reject':
+                submission.status = 'rejected'
+                messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' rejected.")
+            elif action == 'needs_revision':
+                submission.status = 'needs_revision'
+                # Change lesson plan back to draft so student can revise
+                submission.lesson_plan.status = LessonPlan.DRAFT
+                submission.lesson_plan.save()
+                messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' returned for revision.")
+            
+            submission.review_notes = review_notes
+            submission.review_date = timezone.now()
+            submission.save()
+            
+            # Create notification for student
+            from lessonlinkNotif.models import Notification
+            Notification.create_draft_status_notification(submission, approved=(action == 'approve'))
+            
+        except LessonPlanSubmission.DoesNotExist:
+            messages.error(request, "Submission not found.")
+        
+        return redirect('supervising_teacher_reviews')
+    
+    return redirect('dashboard')
 

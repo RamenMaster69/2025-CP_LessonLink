@@ -593,7 +593,23 @@
             };
         }
 
-        // Generate preview content - UPDATED
+        // Get preview form data - UPDATED with better exemplar info
+function getPreviewFormData() {
+    const formData = getFormData();
+    const exemplarSelect = document.getElementById('exemplar-select');
+    const selectedExemplarText = exemplarSelect.options[exemplarSelect.selectedIndex].text;
+    
+    return {
+        subject: formData.subject,
+        gradeLevel: formData.grade_level,
+        learningObjectives: formData.learning_objectives,
+        selectedExemplar: formData.selected_exemplar ? selectedExemplarText : 'No',
+        exemplarId: formData.selected_exemplar,
+        exemplarCount: document.getElementById('exemplar-select').options.length - 1
+    };
+}
+
+        // Generate preview content - UPDATED with better exemplar display
         function generatePreview(data) {
             const learningObjectives = data.learningObjectives.split('\n').filter(obj => obj.trim() !== '');
             
@@ -617,7 +633,7 @@
                             </div>
                             <div>
                                 <span class="text-sm font-medium text-gray-600 block">Exemplar Selected</span>
-                                <span class="text-sm text-gray-900">${data.selectedExemplar || 'No'}</span>
+                                <span class="text-sm text-gray-900">${data.selectedExemplar}</span>
                             </div>
                             <div>
                                 <span class="text-sm font-medium text-gray-600 block">Available Exemplars</span>
@@ -631,7 +647,10 @@
                         <div class="space-y-3">
                             ${learningObjectives.map((objective, index) => `
                                 <div class="bg-white border border-gray-200 rounded-lg p-4">
-                                    <p class="text-sm text-gray-700 leading-relaxed">${objective || 'No learning objective specified'}</p>
+                                    <div class="flex items-start">
+                                        <span class="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">${index + 1}</span>
+                                        <p class="text-sm text-gray-700 leading-relaxed flex-1">${objective || 'No learning objective specified'}</p>
+                                    </div>
                                 </div>
                             `).join('')}
                             ${learningObjectives.length === 0 ? `
@@ -641,6 +660,19 @@
                             ` : ''}
                         </div>
                     </div>
+
+                    ${data.selectedExemplar !== 'No' ? `
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-purple-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p class="text-sm text-purple-700">
+                                <strong>Exemplar Reference:</strong> Your lesson plan will be generated using "<em>${data.selectedExemplar}</em>" as a reference for structure and quality standards.
+                            </p>
+                        </div>
+                    </div>
+                    ` : ''}
 
                     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                         <div class="flex items-center">
@@ -657,48 +689,167 @@
         // Load department exemplars when page loads
         document.addEventListener('DOMContentLoaded', function() {
             loadDepartmentExemplars();
+            
+            // Also load exemplars when subject changes to filter by subject if needed
+            document.getElementById('subject').addEventListener('change', function() {
+                // Optional: You can add subject-based filtering here
+                console.log('Subject changed to:', this.value);
+            });
         });
 
         async function loadDepartmentExemplars() {
             try {
                 const response = await fetch('/api/exemplars/department/', {
+                    method: 'GET',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCookie('csrftoken'),
                     }
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
                 const data = await response.json();
                 
                 const exemplarSelect = document.getElementById('exemplar-select');
+                const exemplarContainer = document.getElementById('exemplar-select').parentElement;
                 
-                if (data.success && data.exemplars.length > 0) {
+                if (data.success && data.exemplars && data.exemplars.length > 0) {
                     // Clear existing options except the first one
                     exemplarSelect.innerHTML = '<option value="">No exemplar selected</option>';
                     
-                    // Add exemplar options
+                    // Add exemplar options with better formatting
                     data.exemplars.forEach(exemplar => {
                         const option = document.createElement('option');
                         option.value = exemplar.id;
-                        option.textContent = `${exemplar.name} (${exemplar.file_size_display})`;
+                        
+                        // Format the display text nicely
+                        let displayText = exemplar.name;
+                        if (exemplar.file_size_display) {
+                            displayText += ` (${exemplar.file_size_display})`;
+                        }
+                        if (exemplar.upload_date) {
+                            const uploadDate = new Date(exemplar.upload_date).toLocaleDateString();
+                            displayText += ` - ${uploadDate}`;
+                        }
+                        
+                        option.textContent = displayText;
+                        option.title = `Uploaded by department head - ${exemplar.file_type?.toUpperCase() || 'File'}`;
                         exemplarSelect.appendChild(option);
                     });
                     
                     // Show success message if this is the first load
                     if (!window.exemplarsLoaded) {
-                        showSuccessMessage(`Loaded ${data.exemplars.length} exemplar(s) from your department head`);
+                        showSuccessMessage(`Loaded ${data.exemplars.length} exemplar(s) from your department`);
                         window.exemplarsLoaded = true;
                     }
+                    
+                    // Add a small info badge showing available exemplars
+                    if (!document.getElementById('exemplar-count-badge')) {
+                        const badge = document.createElement('div');
+                        badge.id = 'exemplar-count-badge';
+                        badge.className = 'mt-1 text-xs text-green-600 font-medium';
+                        badge.textContent = `${data.exemplars.length} exemplar(s) available`;
+                        exemplarContainer.appendChild(badge);
+                    }
+                    
                 } else {
                     exemplarSelect.innerHTML = '<option value="">No exemplars available</option>';
+                    
+                    // Add helpful message
+                    if (!document.getElementById('no-exemplars-message')) {
+                        const message = document.createElement('p');
+                        message.id = 'no-exemplars-message';
+                        message.className = 'mt-1 text-xs text-gray-500';
+                        message.textContent = 'No exemplars available from your department head yet.';
+                        exemplarContainer.appendChild(message);
+                    }
+                    
                     if (data.message) {
                         console.warn('No exemplars:', data.message);
+                        // Show a helpful message to the user
+                        if (data.message.includes('department head')) {
+                            showErrorMessage('No department head found for your department. Exemplars will not be available.');
+                        }
                     }
                 }
             } catch (error) {
                 console.error('Error loading exemplars:', error);
-                document.getElementById('exemplar-select').innerHTML = '<option value="">Error loading exemplars</option>';
+                const exemplarSelect = document.getElementById('exemplar-select');
+                exemplarSelect.innerHTML = '<option value="">Error loading exemplars</option>';
+                
+                showErrorMessage('Failed to load exemplars. Please refresh the page and try again.');
             }
         }
+
+        // Enhanced form submission to include exemplar information
+        document.getElementById('lesson-plan-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Show loading overlay
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            
+            try {
+                // Gather form data with proper values
+                const formData = getSubmissionFormData();
+                
+                // Basic validation
+                if (!formData.subject || !formData.grade_level || !formData.learning_objectives) {
+                    throw new Error('Please fill in all required fields: Subject, Grade Level, and Learning Objectives');
+                }
+
+                // Get selected exemplar info for the loading message
+                const exemplarSelect = document.getElementById('exemplar-select');
+                const selectedExemplarText = exemplarSelect.options[exemplarSelect.selectedIndex].text;
+                
+                // Update loading message based on exemplar selection
+                const loadingMessage = document.getElementById('loading-message');
+                if (formData.selected_exemplar) {
+                    loadingMessage.textContent = `Generating lesson plan using exemplar: ${selectedExemplarText.split(' (')[0]}...`;
+                } else {
+                    loadingMessage.textContent = 'Generating lesson plan based on your inputs...';
+                }
+
+                const response = await fetch('/generate-lesson-plan/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show success message with exemplar info if used
+                    let successMessage = 'Lesson plan generated successfully!';
+                    if (data.exemplar_used) {
+                        successMessage += ` Used exemplar: ${data.exemplar_name}`;
+                    }
+                    showSuccessMessage(successMessage);
+                    
+                    // Redirect to result page after a short delay
+                    setTimeout(() => {
+                        window.location.href = '/lesson-plan-result/';
+                    }, 1000);
+                } else {
+                    throw new Error(data.error || 'Unknown error occurred');
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                showErrorMessage('An error occurred: ' + error.message);
+            } finally {
+                // Hide loading overlay
+                document.getElementById('loading-overlay').classList.add('hidden');
+            }
+        });
 
         // Mobile sidebar functionality
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');

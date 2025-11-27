@@ -121,6 +121,11 @@ path('teacher/students/<int:student_id>/concerns/', views.get_student_concerns, 
 path('teacher/concerns/<int:concern_id>/resolve/', views.resolve_student_concern, name='resolve_student_concern'),
 path('teacher/concerns/<int:concern_id>/', views.get_concern_detail, name='get_concern_detail'),
 
+path('teacher/reviews/', views.supervising_teacher_reviews, name='supervising_teacher_reviews'),
+path('teacher/review-student-lesson/<int:submission_id>/', views.review_student_lesson_plan, name='review_student_lesson_plan'),
+
+
+
 
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
