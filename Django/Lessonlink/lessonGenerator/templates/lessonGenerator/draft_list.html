@@ -206,7 +206,7 @@
                     <i class="fas fa-home text-lg w-5"></i><span>Dashboard</span>
                 </a>
                 <a href="#" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
-                    <i class="fas fa-file-alt text-lg w-5"></i><span class="font-medium">Drafts</span>
+                    <i class="fas fa-file-alt text-lg w-5"></i><span>Drafts</span>
                 </a>
                 <a href="{% url 'task' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
                     <i class="fas fa-tasks text-lg w-5"></i><span>Tasks</span>
@@ -217,6 +217,19 @@
                 <a href="{% url 'dep_calendar' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
                     <i class="fas fa-calendar text-lg w-5"></i><span>Calendar</span>
                 </a>
+                <a href="{% url 'teacher_student_list' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
+                    <i class="fas fa-user-graduate text-lg w-5"></i>
+                    <span>My Students</span>
+                </a>
+                <a href="{% url 'supervising_teacher_reviews' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
+                    <i class="fas fa-clipboard-check text-lg w-5"></i>
+                    <span>Student Lesson Reviews</span>
+                    {% if pending_reviews_count %}
+                    <span class="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{{ pending_reviews_count }}</span>
+                    {% endif %}
+                </a>
+
+                
             </nav>
         </aside>
 

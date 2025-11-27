@@ -219,7 +219,7 @@
                 <a href="#"
                     class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
                     <i class="fas fa-home text-lg w-5"></i>
-                    <span class="font-medium">Dashboard</span>
+                    <span>Dashboard</span>
                 </a>
                 <a href="{% url 'draft_list' %}"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
@@ -242,6 +242,10 @@
                     <i class="fas fa-calendar text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Calendar</span>
                 </a>
+                <a href="{% url 'teacher_student_list' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
+                    <i class="fas fa-user-graduate text-lg w-5"></i>
+                    <span>My Students</span>
+                </a>
                 <a href="{% url 'supervising_teacher_reviews' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
                     <i class="fas fa-clipboard-check text-lg w-5"></i>
                     <span>Student Lesson Reviews</span>
@@ -249,8 +253,9 @@
                     <span class="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{{ pending_reviews_count }}</span>
                     {% endif %}
                 </a>
+                
                 <!-- My Students Section - Only for Teachers -->
-                {% if user.role == 'Teacher' %}
+                {% comment %} {% if user.role == 'Teacher' %}
                 <div class="pt-4 border-t border-gray-200">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wider">My Students</h3>
@@ -285,17 +290,8 @@
                     </div>
                     
                     <!-- Quick Actions for Students -->
-                    {% if supervised_students %}
-                    <div class="mt-3 space-y-1">
-                        <button onclick="viewAllStudents()" 
-                                class="w-full text-center text-xs text-purple-600 hover:text-purple-700 font-medium py-2 hover:bg-purple-50 rounded-lg transition-colors">
-                            <i class="fas fa-list mr-1"></i>
-                            View All Students
-                        </button>
-                    </div>
-                    {% endif %}
                 </div>
-                {% endif %}
+                {% endif %} {% endcomment %}
             </nav>
         </aside>
 
@@ -527,9 +523,9 @@
         }
 
         function viewAllStudents() {
-    // Navigate to full student management page
-    window.location.href = "{% url 'teacher_student_list' %}";
-}
+            // Navigate to full student management page
+            window.location.href = "{% url 'teacher_student_list' %}";
+        }
 
         // Load student data periodically to update status
         function loadStudentStatus() {

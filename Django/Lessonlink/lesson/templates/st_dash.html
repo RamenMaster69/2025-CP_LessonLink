@@ -302,9 +302,9 @@
             <!-- Right side actions -->
             <div class="flex items-center space-x-2 md:space-x-4">
                 <!-- Profile -->
-                <div class="relative">
+                <div class="relative" id="profile-container">
                     <button id="profile-btn"
-                        class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                        class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
                         {% if user.profile_picture %}
                         <img src="{{ user.profile_picture.url }}" 
                             alt="Profile Picture" 
@@ -315,8 +315,9 @@
                         {% endif %}
                     </button>
 
-                    <!-- Profile Dropdown - Moved INSIDE the same relative container -->
-                    <div id="profile-dropdown" class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50 dropdown-enter">
+                    <!-- Profile Dropdown -->
+                    <div id="profile-dropdown" 
+                        class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 dropdown-transition dropdown-hidden z-50">
                         <div class="p-4 border-b border-gray-100">
                             <div class="flex items-center space-x-3">
                                 <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
@@ -706,284 +707,304 @@
     </div>
 
     <script>
-        // Initialize when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            // Mobile menu toggle
-            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            
-            mobileMenuBtn.addEventListener('click', () => {
-                sidebar.classList.toggle('-translate-x-full');
-                overlay.classList.toggle('hidden');
-            });
-            
-            overlay.addEventListener('click', () => {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
-            });
-           
-            // Profile functionality
-            const profileBtn = document.getElementById('profile-btn');
-            const profileDropdown = document.getElementById('profile-dropdown');
-            
-            profileBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleDropdown(profileDropdown);
-            });
-            
-            // Close dropdowns when clicking outside
-            document.addEventListener('click', () => {
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        
+        mobileMenuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        });
+        
+        overlay.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+            closeAllDropdowns(); // Also close dropdowns when overlay is clicked
+        });
+       
+        // Profile dropdown functionality
+        const profileBtn = document.getElementById('profile-btn');
+        const profileDropdown = document.getElementById('profile-dropdown');
+        const profileContainer = document.getElementById('profile-container');
+        
+        // Toggle dropdown when profile button is clicked
+        profileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleDropdown(profileDropdown);
+        });
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            // Check if click is outside profile container
+            if (!profileContainer.contains(e.target)) {
                 closeAllDropdowns();
-            });
+            }
+        });
+        
+        // Close dropdowns when pressing Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeAllDropdowns();
+            }
+        });
+
+        // Utility functions for dropdowns
+        function toggleDropdown(dropdown) {
+            const isHidden = dropdown.classList.contains('dropdown-hidden');
             
-            // Prevent dropdowns from closing when clicking inside them
-            profileDropdown.addEventListener('click', (e) => e.stopPropagation());
+            // Close all dropdowns first
+            closeAllDropdowns();
             
-            // Disapproval Modal Functionality
-            const disapprovalModal = document.getElementById('disapproval-modal');
-            const concernModal = document.getElementById('concern-modal');
-            const concernSuccessModal = document.getElementById('concern-success-modal');
-            const showDisapprovalBtn = document.getElementById('show-disapproval-modal');
-            const sendConcernBtn = document.getElementById('send-concern-btn');
-            const understandBtn = document.getElementById('understand-btn');
-            const cancelConcernBtn = document.getElementById('cancel-concern-btn');
-            const submitConcernBtn = document.getElementById('submit-concern-btn');
-            const closeConcernSuccessBtn = document.getElementById('close-concern-success-btn');
-            const concernForm = document.getElementById('concern-form');
-
-            // Show disapproval modal when button is clicked (if modal is not already showing automatically)
-            if (showDisapprovalBtn) {
-                showDisapprovalBtn.addEventListener('click', () => {
-                    if (disapprovalModal) {
-                        disapprovalModal.classList.remove('hidden');
-                    }
-                });
+            // Then toggle the clicked dropdown
+            if (isHidden) {
+                dropdown.classList.remove('dropdown-hidden');
+                dropdown.classList.add('dropdown-visible');
+            } else {
+                dropdown.classList.remove('dropdown-visible');
+                dropdown.classList.add('dropdown-hidden');
             }
-
-            // Send Concern button
-            if (sendConcernBtn) {
-                sendConcernBtn.addEventListener('click', () => {
-                    if (disapprovalModal) {
-                        disapprovalModal.classList.add('hidden');
-                    }
-                    if (concernModal) {
-                        concernModal.classList.remove('hidden');
-                    }
-                });
-            }
-
-            // Understand button
-            if (understandBtn) {
-                understandBtn.addEventListener('click', () => {
-                    if (disapprovalModal) {
-                        disapprovalModal.classList.add('hidden');
-                    }
-                });
-            }
-
-            // Cancel Concern button
-            if (cancelConcernBtn) {
-                cancelConcernBtn.addEventListener('click', () => {
-                    if (concernModal) {
-                        concernModal.classList.add('hidden');
-                    }
-                    if (disapprovalModal) {
-                        disapprovalModal.classList.remove('hidden');
-                    }
-                });
-            }
-
-            // Close Concern Success button
-            if (closeConcernSuccessBtn) {
-                closeConcernSuccessBtn.addEventListener('click', () => {
-                    if (concernSuccessModal) {
-                        concernSuccessModal.classList.add('hidden');
-                    }
-                });
-            }
-
-            // Concern Form Submission - ACTUAL SAVING
-            if (concernForm) {
-                concernForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    
-                    // Get form data
-                    const formData = new FormData(concernForm);
-                    const data = {
-                        subject: formData.get('subject'),
-                        concern_type: formData.get('concern_type'),
-                        content: formData.get('content')
-                    };
-                    
-                    // Show loading state
-                    const originalText = submitConcernBtn.innerHTML;
-                    submitConcernBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Sending...</span>';
-                    submitConcernBtn.disabled = true;
-                    
-                    // ACTUAL API CALL TO SAVE CONCERN
-                    fetch('/api/student-concerns/submit/', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': getCSRFToken(),
-                        },
-                        body: JSON.stringify(data)
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            // Hide concern modal and show success modal
-                            concernModal.classList.add('hidden');
-                            concernSuccessModal.classList.remove('hidden');
-                            
-                            // Reset form
-                            concernForm.reset();
-                        } else {
-                            throw new Error(data.error || 'Failed to send concern');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error sending concern:', error);
-                        alert('Error sending concern: ' + error.message);
-                    })
-                    .finally(() => {
-                        // Reset button state
-                        submitConcernBtn.innerHTML = originalText;
-                        submitConcernBtn.disabled = false;
-                    });
-                });
-            }
-
-            // AGGRESSIVELY DISABLE ALL RESTRICTED ITEMS
-            disableAllRestrictedItems();
-            
-            // Utility functions
-            function toggleDropdown(dropdown) {
-                if (dropdown.classList.contains('dropdown-hidden')) {
-                    closeAllDropdowns();
-                    dropdown.classList.remove('dropdown-hidden');
-                    dropdown.classList.add('dropdown-visible');
-                } else {
-                    dropdown.classList.remove('dropdown-visible');
-                    dropdown.classList.add('dropdown-hidden');
-                }
-            }
-            
-            function closeAllDropdowns() {
+        }
+        
+        function closeAllDropdowns() {
+            // Close profile dropdown
+            if (profileDropdown) {
                 profileDropdown.classList.remove('dropdown-visible');
                 profileDropdown.classList.add('dropdown-hidden');
             }
-            
-            function disableAllRestrictedItems() {
-                // Get all restricted items
-                const restrictedItems = document.querySelectorAll('.restricted-item');
-                
-                restrictedItems.forEach(item => {
-                    // Completely disable the element using multiple methods
-                    item.style.pointerEvents = 'none';
-                    item.style.userSelect = 'none';
-                    item.style.webkitUserSelect = 'none';
-                    item.style.msUserSelect = 'none';
-                    
-                    // Remove any href attributes from child links
-                    const links = item.querySelectorAll('a');
-                    links.forEach(link => {
-                        link.removeAttribute('href');
-                        link.style.pointerEvents = 'none';
-                        link.style.cursor = 'not-allowed';
-                    });
-                    
-                    // Add multiple layers of click prevention
-                    const preventAllClicks = (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        e.stopImmediatePropagation();
-                        showRestrictedAlert();
-                        return false;
-                    };
-                    
-                    item.addEventListener('click', preventAllClicks, true);
-                    item.addEventListener('mousedown', preventAllClicks, true);
-                    item.addEventListener('mouseup', preventAllClicks, true);
-                    item.addEventListener('dblclick', preventAllClicks, true);
-                    
-                    // Prevent right-click and context menu
-                    item.addEventListener('contextmenu', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        return false;
-                    }, true);
-                    
-                    // Prevent drag
-                    item.addEventListener('dragstart', (e) => {
-                        e.preventDefault();
-                        return false;
-                    }, true);
-                });
-            }
-            
-            // Function to show restricted access alert
-            function showRestrictedAlert() {
-                const status = "{{ user.approval_status }}";
-                let message = "This feature is currently unavailable. ";
-                
-                if (status === 'disapproved') {
-                    message += "Your account has been disapproved. Please contact your supervising teacher.";
-                } else if (status === 'pending') {
-                    message += "Your account is pending approval. Please wait for your teacher's approval.";
-                } else {
-                    message += "Access restricted.";
-                }
-                
-                // Remove any existing alerts first
-                const existingAlerts = document.querySelectorAll('.restricted-alert');
-                existingAlerts.forEach(alert => alert.remove());
-                
-                // Create a custom alert
-                const alertDiv = document.createElement('div');
-                alertDiv.className = 'restricted-alert fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50 animate-fade-in';
-                alertDiv.innerHTML = `
-                    <div class="flex items-center">
-                        <i class="fas fa-exclamation-circle mr-2"></i>
-                        <span>${message}</span>
-                        <button class="ml-4 text-white hover:text-gray-200" onclick="this.parentElement.parentElement.remove()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                `;
-                document.body.appendChild(alertDiv);
-                
-                // Remove alert after 5 seconds
-                setTimeout(() => {
-                    if (alertDiv.parentElement) {
-                        alertDiv.remove();
-                    }
-                }, 5000);
-            }
+        }
 
-            // CSRF Token function
-            function getCSRFToken() {
-                const name = 'csrftoken';
-                let cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    const cookies = document.cookie.split(';');
-                    for (let i = 0; i < cookies.length; i++) {
-                        const cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
+        // [Rest of your existing JavaScript code for modals and restricted items...]
+        
+        // Disapproval Modal Functionality
+        const disapprovalModal = document.getElementById('disapproval-modal');
+        const concernModal = document.getElementById('concern-modal');
+        const concernSuccessModal = document.getElementById('concern-success-modal');
+        const showDisapprovalBtn = document.getElementById('show-disapproval-modal');
+        const sendConcernBtn = document.getElementById('send-concern-btn');
+        const understandBtn = document.getElementById('understand-btn');
+        const cancelConcernBtn = document.getElementById('cancel-concern-btn');
+        const submitConcernBtn = document.getElementById('submit-concern-btn');
+        const closeConcernSuccessBtn = document.getElementById('close-concern-success-btn');
+        const concernForm = document.getElementById('concern-form');
+
+        // Show disapproval modal when button is clicked (if modal is not already showing automatically)
+        if (showDisapprovalBtn) {
+            showDisapprovalBtn.addEventListener('click', () => {
+                if (disapprovalModal) {
+                    disapprovalModal.classList.remove('hidden');
+                }
+            });
+        }
+
+        // Send Concern button
+        if (sendConcernBtn) {
+            sendConcernBtn.addEventListener('click', () => {
+                if (disapprovalModal) {
+                    disapprovalModal.classList.add('hidden');
+                }
+                if (concernModal) {
+                    concernModal.classList.remove('hidden');
+                }
+            });
+        }
+
+        // Understand button
+        if (understandBtn) {
+            understandBtn.addEventListener('click', () => {
+                if (disapprovalModal) {
+                    disapprovalModal.classList.add('hidden');
+                }
+            });
+        }
+
+        // Cancel Concern button
+        if (cancelConcernBtn) {
+            cancelConcernBtn.addEventListener('click', () => {
+                if (concernModal) {
+                    concernModal.classList.add('hidden');
+                }
+                if (disapprovalModal) {
+                    disapprovalModal.classList.remove('hidden');
+                }
+            });
+        }
+
+        // Close Concern Success button
+        if (closeConcernSuccessBtn) {
+            closeConcernSuccessBtn.addEventListener('click', () => {
+                if (concernSuccessModal) {
+                    concernSuccessModal.classList.add('hidden');
+                }
+            });
+        }
+
+        // Concern Form Submission - ACTUAL SAVING
+        if (concernForm) {
+            concernForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                // Get form data
+                const formData = new FormData(concernForm);
+                const data = {
+                    subject: formData.get('subject'),
+                    concern_type: formData.get('concern_type'),
+                    content: formData.get('content')
+                };
+                
+                // Show loading state
+                const originalText = submitConcernBtn.innerHTML;
+                submitConcernBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Sending...</span>';
+                submitConcernBtn.disabled = true;
+                
+                // ACTUAL API CALL TO SAVE CONCERN
+                fetch('/api/student-concerns/submit/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken(),
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Hide concern modal and show success modal
+                        concernModal.classList.add('hidden');
+                        concernSuccessModal.classList.remove('hidden');
+                        
+                        // Reset form
+                        concernForm.reset();
+                    } else {
+                        throw new Error(data.error || 'Failed to send concern');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error sending concern:', error);
+                    alert('Error sending concern: ' + error.message);
+                })
+                .finally(() => {
+                    // Reset button state
+                    submitConcernBtn.innerHTML = originalText;
+                    submitConcernBtn.disabled = false;
+                });
+            });
+        }
+
+        // AGGRESSIVELY DISABLE ALL RESTRICTED ITEMS
+        disableAllRestrictedItems();
+        
+        function disableAllRestrictedItems() {
+            // Get all restricted items
+            const restrictedItems = document.querySelectorAll('.restricted-item');
+            
+            restrictedItems.forEach(item => {
+                // Completely disable the element using multiple methods
+                item.style.pointerEvents = 'none';
+                item.style.userSelect = 'none';
+                item.style.webkitUserSelect = 'none';
+                item.style.msUserSelect = 'none';
+                
+                // Remove any href attributes from child links
+                const links = item.querySelectorAll('a');
+                links.forEach(link => {
+                    link.removeAttribute('href');
+                    link.style.pointerEvents = 'none';
+                    link.style.cursor = 'not-allowed';
+                });
+                
+                // Add multiple layers of click prevention
+                const preventAllClicks = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    showRestrictedAlert();
+                    return false;
+                };
+                
+                item.addEventListener('click', preventAllClicks, true);
+                item.addEventListener('mousedown', preventAllClicks, true);
+                item.addEventListener('mouseup', preventAllClicks, true);
+                item.addEventListener('dblclick', preventAllClicks, true);
+                
+                // Prevent right-click and context menu
+                item.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }, true);
+                
+                // Prevent drag
+                item.addEventListener('dragstart', (e) => {
+                    e.preventDefault();
+                    return false;
+                }, true);
+            });
+        }
+        
+        // Function to show restricted access alert
+        function showRestrictedAlert() {
+            const status = "{{ user.approval_status }}";
+            let message = "This feature is currently unavailable. ";
+            
+            if (status === 'disapproved') {
+                message += "Your account has been disapproved. Please contact your supervising teacher.";
+            } else if (status === 'pending') {
+                message += "Your account is pending approval. Please wait for your teacher's approval.";
+            } else {
+                message += "Access restricted.";
+            }
+            
+            // Remove any existing alerts first
+            const existingAlerts = document.querySelectorAll('.restricted-alert');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            // Create a custom alert
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'restricted-alert fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50 animate-fade-in';
+            alertDiv.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    <span>${message}</span>
+                    <button class="ml-4 text-white hover:text-gray-200" onclick="this.parentElement.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            // Remove alert after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentElement) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // CSRF Token function
+        function getCSRFToken() {
+            const name = 'csrftoken';
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
                     }
                 }
-                return cookieValue;
             }
-        });
-    </script>
+            return cookieValue;
+        }
+    });
+</script>
 </body>
 </html>

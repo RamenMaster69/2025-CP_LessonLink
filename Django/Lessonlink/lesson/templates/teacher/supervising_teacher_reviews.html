@@ -8,16 +8,66 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Use your existing header and sidebar structure -->
+    <!-- Header - Same as dashboard -->
+    <header class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-40">
+        <div class="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
+            <!-- Mobile menu button -->
+            <button id="mobile-menu-btn"
+                class="md:hidden p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
+                <i class="fas fa-bars text-lg"></i>
+            </button>
+
+            <!-- Logo -->
+            <div class="flex items-center space-x-3 flex-1 md:flex-none">
+                <div class="w-10 h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
+                <div class="hidden sm:block">
+                    <h1 class="text-xl font-bold text-gray-900">LessonLink</h1>
+                    <p class="text-sm text-gray-500 hidden lg:block">Western Mindanao State University</p>
+                </div>
+            </div>
+
+            <!-- Right side actions (same as dashboard) -->
+            <div class="flex items-center space-x-2 md:space-x-4">
+                <!-- Include the same notification and profile dropdown code from dashboard -->
+            </div>
+        </div>
+    </header>
     
     <div class="flex pt-16">
         <!-- Sidebar -->
-        <aside class="w-64 bg-white shadow-lg h-screen fixed overflow-y-auto">
+        <aside class="w-64 bg-white shadow-lg h-screen fixed top-20 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
             <nav class="p-4 space-y-2">
+                
+                <a href="{% url 'lesson_ai' %}"><button
+                        class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
+                        <i class="fas fa-plus text-lg"></i>
+                        <span class="font-medium">Create Lesson</span>
+                </button></a>
                 <!-- Include your existing sidebar navigation -->
                 <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
                     <i class="fas fa-home text-lg w-5"></i>
                     <span>Dashboard</span>
+                </a>
+                <a href="{% url 'draft_list' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Drafts</span>
+                    <!-- <span class="ml-auto bg-[#e0e9ff] text-[#11468F] text-xs px-2 py-1 rounded-full">5</span> -->
+                </a>
+                <a href="{% url 'task' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-tasks text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Tasks</span>
+                </a>
+                <a href="{% url 'schedule' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-clock text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Schedule</span>
+                </a>
+                <a href="{% url 'dep_calendar' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-calendar text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Calendar</span>
                 </a>
                 <a href="{% url 'teacher_student_list' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
                     <i class="fas fa-user-graduate text-lg w-5"></i>
@@ -25,9 +75,10 @@
                 </a>
                 <a href="{% url 'supervising_teacher_reviews' %}" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
                     <i class="fas fa-clipboard-check text-lg w-5"></i>
-                    <span class="font-medium">Lesson Reviews</span>
+                    <span>Student Lesson Reviews</span>
                 </a>
             </nav>
+            
         </aside>
 
         <!-- Main Content -->

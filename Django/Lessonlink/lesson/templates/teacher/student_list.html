@@ -91,19 +91,54 @@
             <nav class="p-4 space-y-2">
                 <!-- Include the same sidebar navigation from dashboard -->
                 <!-- Make sure "My Students" is highlighted when on this page -->
-                <a href="{% url 'teacher_student_list' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
-                    <i class="fas fa-user-graduate text-lg w-5"></i>
-                    <span class="font-medium">My Students</span>
-                </a>
+                <a href="{% url 'lesson_ai' %}"><button
+                        class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
+                        <i class="fas fa-plus text-lg"></i>
+                        <span class="font-medium">Create Lesson</span>
+                    </button></a>
+                
                 <!-- Other navigation items -->
                 <a href="{% url 'dashboard' %}"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-home text-lg w-5"></i>
                     <span>Dashboard</span>
                 </a>
-                <!-- ... rest of sidebar ... -->
+                <a href="{% url 'draft_list' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Drafts</span>
+                    <!-- <span class="ml-auto bg-[#e0e9ff] text-[#11468F] text-xs px-2 py-1 rounded-full">5</span> -->
+                </a>
+                <a href="{% url 'task' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-tasks text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Tasks</span>
+                </a>
+                <a href="{% url 'schedule' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-clock text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Schedule</span>
+                </a>
+                <a href="{% url 'dep_calendar' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-calendar text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Calendar</span>
+                </a>
+                <a href="{% url 'teacher_student_list' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                    <i class="fas fa-user-graduate text-lg w-5"></i>
+                    <span>My Students</span>
+                </a>
+                <a href="{% url 'supervising_teacher_reviews' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
+                    <i class="fas fa-clipboard-check text-lg w-5"></i>
+                    <span>Student Lesson Reviews</span>
+                    {% if pending_reviews_count %}
+                    <span class="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{{ pending_reviews_count }}</span>
+                    {% endif %}
+                </a>
             </nav>
+
+            
         </aside>
 
         <!-- Main Content -->
