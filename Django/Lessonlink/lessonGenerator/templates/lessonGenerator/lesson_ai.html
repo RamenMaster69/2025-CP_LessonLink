@@ -254,6 +254,26 @@
                             </select>
                             <p class="text-xs text-gray-500 mt-1">Choose an exemplar uploaded by your department head as reference</p>
                         </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                            <div>
+                                <label for="intelligence-type" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Intelligence Type Focus
+                                </label>
+                                <select id="intelligence-type" name="intelligence_type" 
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                    <option value="comprehensive">Comprehensive (IQ+EQ+SQ+AQ)</option>
+                                    <option value="cognitive">Cognitive Focus (IQ)</option>
+                                    <option value="emotional">Emotional Focus (EQ)</option>
+                                    <option value="social">Social Focus (SQ)</option>
+                                    <option value="resilience">Resilience Focus (AQ)</option>
+                                    <option value="differentiated">Differentiated Mix</option>
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Select how to adapt the lesson for different intelligence types
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Learning Objectives - Three Input Fields -->
@@ -566,6 +586,7 @@
                     document.getElementById('learning-objective-3').value
                 ].filter(obj => obj.trim() !== '').join('\n'),
                 selected_exemplar: document.getElementById('exemplar-select').value,
+                intelligence_type: document.getElementById('intelligence-type').value,
                 // Add default values for other required fields
                 quarter: '',
                 duration: '60',
@@ -577,6 +598,7 @@
                 application: '',
                 evaluation: '',
                 assessment: ''
+                
             };
         }
 

@@ -1,4 +1,4 @@
-# views.py
+# views.py - COMPLETE INTEGRATED VERSION WITH INTELLIGENCE TYPE
 import json
 import google.generativeai as genai
 from django.conf import settings
@@ -10,7 +10,12 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 import re
 from .models import LessonPlan, LessonPlanSubmission
-from .ai_instructions import LESSON_PLANNER_SYSTEM_INSTRUCTION, EXEMPLAR_REFERENCE_INSTRUCTION
+from .ai_instructions import (
+    LESSON_PLANNER_SYSTEM_INSTRUCTION, 
+    EXEMPLAR_REFERENCE_INSTRUCTION,
+    INTELLIGENCE_ADAPTATION_INSTRUCTION,
+    get_system_instruction
+)
 
 # Configure the Gemini API
 try:
@@ -46,7 +51,7 @@ def generate_lesson_plan(request):
                 'error': 'Invalid JSON data received.'
             }, status=400)
         
-        # Extract form data with validation - MATCHING THE ACTUAL FORM FIELDS
+        # Extract form data with validation - INCLUDING INTELLIGENCE TYPE
         required_fields = ['subject', 'grade_level', 'learning_objectives']
         for field in required_fields:
             if field not in data or not data[field].strip():
@@ -69,10 +74,12 @@ def generate_lesson_plan(request):
             'application': data.get('application', '').strip(),
             'evaluation': data.get('evaluation', '').strip(),
             'assessment': data.get('assessment', '').strip(),
-            'selected_exemplar': data.get('selected_exemplar', '').strip(),  # Add exemplar reference
+            'selected_exemplar': data.get('selected_exemplar', '').strip(),
+            'intelligence_type': data.get('intelligence_type', 'comprehensive').strip(),  # NEW FIELD
         }
         
         print("Form data prepared:", form_data)  # Debugging
+        print("Intelligence type:", form_data['intelligence_type'])  # Debugging
         
         # Get exemplar content if selected
         exemplar_content = ""
@@ -89,10 +96,12 @@ def generate_lesson_plan(request):
             except Exception as e:
                 print(f"Error loading exemplar: {str(e)}")
         
-        # Format the prompt for the AI - MATCHING THE FORM STRUCTURE
+        # Format the prompt for the AI - INCLUDING INTELLIGENCE TYPE
         prompt = f"""
         Create a comprehensive MELC-aligned lesson plan based on these details:
-
+        
+        **INTELLIGENCE TYPE FOCUS:** {form_data['intelligence_type'].upper()}
+        
         SUBJECT: {form_data['subject']}
         GRADE LEVEL: {form_data['grade_level']}
         QUARTER: {form_data['quarter'] or 'Not specified'}
@@ -115,24 +124,32 @@ def generate_lesson_plan(request):
 
         Generate this as a complete MELC-aligned lesson plan following DepEd Philippines standards.
         Use the learning objectives provided to create specific, measurable outcomes.
+        
+        **INTELLIGENCE TYPE ADAPTATION REQUIREMENTS:**
+        1. Design activities specifically aligned with the {form_data['intelligence_type']} intelligence focus
+        2. Include assessment methods appropriate for measuring the targeted intelligence
+        3. Provide clear differentiation strategies for the selected intelligence focus
+        4. Maintain MELC alignment while incorporating intelligence adaptation
+        
         {'Use the reference exemplar as a guide for structure, depth, and quality standards while maintaining originality.' if exemplar_content else ''}
         """
         
         print("Sending prompt to AI")  # Debugging
         print(f"Exemplar provided: {bool(exemplar_content)}")  # Debugging
+        print(f"Intelligence type: {form_data['intelligence_type']}")  # Debugging
         
         # Generate the lesson plan using Gemini
         try:
             # Check if exemplar is provided
             has_exemplar = bool(form_data['selected_exemplar'] and exemplar_content)
             
-            # Use appropriate system instruction
-            if has_exemplar:
-                system_instruction = LESSON_PLANNER_SYSTEM_INSTRUCTION + "\n\n" + EXEMPLAR_REFERENCE_INSTRUCTION
-                print("Using enhanced system instruction with exemplar guidance")  # Debugging
-            else:
-                system_instruction = LESSON_PLANNER_SYSTEM_INSTRUCTION
-                print("Using standard system instruction")  # Debugging
+            # Use appropriate system instruction with intelligence type
+            system_instruction = get_system_instruction(
+                has_exemplar=has_exemplar,
+                intelligence_type=form_data['intelligence_type']
+            )
+            
+            print(f"Using system instruction with intelligence type: {form_data['intelligence_type']}")  # Debugging
             
             response = model.generate_content([
                 system_instruction,
@@ -159,6 +176,7 @@ def generate_lesson_plan(request):
                         'success': True,
                         'lesson_plan': lesson_data.get('markdown_output', ''),
                         'exemplar_used': has_exemplar,
+                        'intelligence_type': form_data['intelligence_type'],
                         'exemplar_id': form_data['selected_exemplar'] if has_exemplar else None,
                         'exemplar_name': exemplar_name if has_exemplar else None
                     })
@@ -173,6 +191,7 @@ def generate_lesson_plan(request):
                         'success': True,
                         'lesson_plan': response.text,
                         'exemplar_used': has_exemplar,
+                        'intelligence_type': form_data['intelligence_type'],
                         'exemplar_id': form_data['selected_exemplar'] if has_exemplar else None,
                         'exemplar_name': exemplar_name if has_exemplar else None
                     })
@@ -188,6 +207,7 @@ def generate_lesson_plan(request):
                     'success': True,
                     'lesson_plan': response.text,
                     'exemplar_used': has_exemplar,
+                    'intelligence_type': form_data['intelligence_type'],
                     'exemplar_id': form_data['selected_exemplar'] if has_exemplar else None,
                     'exemplar_name': exemplar_name if has_exemplar else None
                 })
@@ -211,6 +231,7 @@ def generate_lesson_plan(request):
 def lesson_plan_result(request):
     """Render the lesson plan result page"""
     lesson_plan = request.session.get('generated_lesson_plan', '')
+    form_data = request.session.get('lesson_form_data', {})
     
     if not lesson_plan:
         messages.error(request, 'No lesson plan found. Please generate a lesson plan first.')
@@ -221,7 +242,8 @@ def lesson_plan_result(request):
     lesson_plan_html = markdown.markdown(lesson_plan, extensions=['extra', 'nl2br'])
     
     return render(request, 'lessonGenerator/lesson_plan.html', {
-        'lesson_plan': lesson_plan_html
+        'lesson_plan': lesson_plan_html,
+        'intelligence_type': form_data.get('intelligence_type', 'comprehensive')
     })
 
 @csrf_exempt
@@ -252,6 +274,7 @@ def save_lesson_plan(request):
             subject_matter = parsed_content.get('subject_matter', {})
             melc_alignment = parsed_content.get('melc_alignment', {})
             integration = parsed_content.get('integration', {})
+            intelligence_adaptation = parsed_content.get('intelligence_adaptation', {})
             
             lesson_plan = LessonPlan(
                 title=parsed_content.get('title', f"{metadata.get('subject', 'Untitled')} - {metadata.get('grade_level', '')}"),
@@ -270,6 +293,8 @@ def save_lesson_plan(request):
                 assessment=procedure.get('assessment', {}).get('content', ''),
                 generated_content=generated_content,
                 created_by=request.user,
+                # Intelligence type field - NEW
+                intelligence_type=form_data.get('intelligence_type', 'comprehensive'),
                 # MELC Alignment fields
                 melc_code=melc_alignment.get('melc_code', ''),
                 content_standard=melc_alignment.get('content_standard', ''),
@@ -301,6 +326,8 @@ def save_lesson_plan(request):
                 assessment=form_data.get('assessment', ''),
                 generated_content=generated_content,
                 created_by=request.user,
+                # Intelligence type field - NEW
+                intelligence_type=form_data.get('intelligence_type', 'comprehensive'),
                 # Auto-approve for department heads
                 status=LessonPlan.FINAL if is_department_head else LessonPlan.DRAFT,
                 auto_approved=is_department_head
@@ -324,6 +351,7 @@ def save_lesson_plan(request):
             'success': True,
             'draft_id': lesson_plan.id,
             'message': message,
+            'intelligence_type': form_data.get('intelligence_type', 'comprehensive'),
             'auto_approved': is_department_head,
             'user_role': request.user.role if hasattr(request.user, 'role') else 'Teacher',
             'redirect_url': '/drafts/department-head/' if is_department_head else '/drafts/'
@@ -410,6 +438,19 @@ def draft_list(request):
         status=LessonPlan.DRAFT
     ).count()
     
+    # Count by intelligence type for insights
+    intelligence_counts = {}
+    for intelligence_type, display_name in LessonPlan.INTELLIGENCE_TYPE_CHOICES:
+        count = LessonPlan.objects.filter(
+            created_by=request.user,
+            intelligence_type=intelligence_type
+        ).count()
+        if count > 0:
+            intelligence_counts[intelligence_type] = {
+                'display': display_name,
+                'count': count
+            }
+    
     # Count submissions by status for the current user
     user_submissions = LessonPlanSubmission.objects.filter(
         submitted_by=request.user
@@ -426,7 +467,8 @@ def draft_list(request):
         'submitted_count': submitted_count,
         'approved_count': approved_count,
         'revision_count': revision_count,
-        'rejected_count': rejected_count
+        'rejected_count': rejected_count,
+        'intelligence_counts': intelligence_counts  # NEW: Add intelligence insights
     })
 
 @login_required
@@ -435,7 +477,7 @@ def edit_draft(request, draft_id):
     draft = get_object_or_404(LessonPlan, id=draft_id, created_by=request.user)
     
     if request.method == 'POST':
-        # Update the draft with new data
+        # Update the draft with new data including intelligence type
         draft.title = request.POST.get('title', draft.title)
         draft.subject = request.POST.get('subject', draft.subject)
         draft.grade_level = request.POST.get('grade_level', draft.grade_level)
@@ -451,6 +493,9 @@ def edit_draft(request, draft_id):
         draft.evaluation = request.POST.get('evaluation', draft.evaluation)
         draft.assessment = request.POST.get('assessment', draft.assessment)
         draft.generated_content = request.POST.get('generated_content', draft.generated_content)
+        
+        # Update intelligence type - NEW
+        draft.intelligence_type = request.POST.get('intelligence_type', draft.intelligence_type)
         
         # Update MELC fields if provided
         draft.melc_code = request.POST.get('melc_code', draft.melc_code)
@@ -470,13 +515,16 @@ def edit_draft(request, draft_id):
         else:
             return redirect('draft_list')
     
-    return render(request, 'lessonGenerator/edit_draft.html', {'draft': draft})
+    return render(request, 'lessonGenerator/edit_draft.html', {
+        'draft': draft,
+        'intelligence_choices': LessonPlan.INTELLIGENCE_TYPE_CHOICES  # Pass choices to template
+    })
 
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
 def regenerate_lesson_content(request):
-    """Regenerate AI content based on edited form data"""
+    """Regenerate AI content based on edited form data including intelligence type"""
     try:
         # Check if Gemini is configured properly
         if model is None:
@@ -494,10 +542,15 @@ def regenerate_lesson_content(request):
                 'error': 'Invalid JSON data received.'
             }, status=400)
         
-        # Format the prompt for the AI with MELC focus
+        # Get intelligence type from data
+        intelligence_type = data.get('intelligence_type', 'comprehensive')
+        
+        # Format the prompt for the AI with MELC focus and intelligence type
         prompt = f"""
-        Create a comprehensive MELC-aligned lesson plan based on these details:
+        Create a comprehensive MELC-aligned lesson plan with {intelligence_type} intelligence focus.
 
+        INTELLIGENCE TYPE: {intelligence_type.upper()}
+        
         SUBJECT: {data.get('subject', '').strip()}
         GRADE LEVEL: {data.get('grade_level', '').strip()}
         QUARTER: {data.get('quarter', '').strip()}
@@ -513,19 +566,27 @@ def regenerate_lesson_content(request):
         ASSESSMENT: {data.get('assessment', '').strip()}
 
         Generate this as a complete MELC-aligned lesson plan following DepEd Philippines standards.
+        Focus on {intelligence_type} intelligence development while maintaining curriculum alignment.
         Include appropriate MELC codes, content standards, performance standards, and learning competencies.
+        Design activities specifically for {intelligence_type} intelligence development.
         """
         
-        # Generate the lesson plan using Gemini
+        # Generate the lesson plan using Gemini with intelligence type
         try:
+            system_instruction = get_system_instruction(
+                has_exemplar=False,
+                intelligence_type=intelligence_type
+            )
+            
             response = model.generate_content([
-                LESSON_PLANNER_SYSTEM_INSTRUCTION,
+                system_instruction,
                 prompt
             ])
             
             return JsonResponse({
                 'success': True,
-                'generated_content': response.text
+                'generated_content': response.text,
+                'intelligence_type': intelligence_type
             })
             
         except Exception as ai_error:
@@ -550,9 +611,16 @@ def view_draft(request, draft_id):
         lesson_plan=draft
     ).order_by('-submission_date').first()
     
+    # Get intelligence type display name
+    intelligence_display = dict(LessonPlan.INTELLIGENCE_TYPE_CHOICES).get(
+        draft.intelligence_type, 
+        draft.intelligence_type
+    )
+    
     return render(request, 'lessonGenerator/view_draft.html', {
         'draft': draft,
-        'latest_submission': latest_submission
+        'latest_submission': latest_submission,
+        'intelligence_display': intelligence_display
     })
 
 @login_required
@@ -575,18 +643,32 @@ def department_head_drafts(request):
         status=LessonPlan.DRAFT
     ).order_by('-created_at')
     
+    # Count by intelligence type for insights
+    intelligence_counts = {}
+    for intelligence_type, display_name in LessonPlan.INTELLIGENCE_TYPE_CHOICES:
+        count = LessonPlan.objects.filter(
+            created_by=request.user,
+            intelligence_type=intelligence_type
+        ).count()
+        if count > 0:
+            intelligence_counts[intelligence_type] = {
+                'display': display_name,
+                'count': count
+            }
+    
     return render(request, 'lessonGenerator/department_head_drafts.html', {
         'approved_plans': approved_plans,
         'draft_plans': draft_plans,
         'approved_count': approved_plans.count(),
         'draft_count': draft_plans.count(),
+        'intelligence_counts': intelligence_counts,
         'is_department_head': True
     })
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def get_ai_suggestions(request):
-    """Generate AI suggestions for specific lesson plan sections"""
+    """Generate AI suggestions for specific lesson plan sections including intelligence type"""
     try:
         if model is None:
             return JsonResponse({
@@ -604,9 +686,14 @@ def get_ai_suggestions(request):
                 'error': 'Section parameter required'
             }, status=400)
         
-        # Create context-aware prompt for suggestions with MELC focus
+        # Get intelligence type from form data
+        intelligence_type = form_data.get('intelligence_type', 'comprehensive')
+        
+        # Create context-aware prompt for suggestions with MELC and intelligence focus
         prompt = f"""
         Analyze this lesson plan context and provide 3 targeted MELC-aligned suggestions for the {section} section.
+        
+        INTELLIGENCE TYPE FOCUS: {intelligence_type.upper()}
         
         CONTEXT:
         Subject: {form_data.get('subject', 'Not specified')}
@@ -615,19 +702,24 @@ def get_ai_suggestions(request):
         Subject Matter: {form_data.get('subjectMatter', 'Not specified')}
         
         Provide 3 specific, actionable MELC-aligned suggestions for the {section} section that are appropriate for this context.
-        Focus on DepEd Philippines standards and curriculum alignment.
+        Focus on DepEd Philippines standards and {intelligence_type} intelligence development.
+        
+        For {intelligence_type} intelligence, focus on:
+        {get_intelligence_focus_description(intelligence_type)}
+        
         Return ONLY a JSON array with this exact format:
         [
             {{
                 "title": "MELC-aligned suggestion title",
-                "description": "Detailed suggestion description with MELC focus",
-                "example": "Concrete example or implementation idea aligned with DepEd standards"
+                "description": "Detailed suggestion description with {intelligence_type} intelligence focus",
+                "example": "Concrete example or implementation idea aligned with DepEd standards",
+                "intelligence_connection": "How this suggestion develops {intelligence_type} intelligence"
             }}
         ]
         """
         
         response = model.generate_content([
-            "You are an expert educational consultant specialized in DepEd Philippines curriculum. Provide specific, practical MELC-aligned suggestions for lesson plan sections.",
+            f"You are an expert educational consultant specialized in DepEd Philippines curriculum and multiple intelligence theory. Provide specific, practical MELC-aligned suggestions for lesson plan sections with {intelligence_type} intelligence focus.",
             prompt
         ])
         
@@ -639,14 +731,16 @@ def get_ai_suggestions(request):
         else:
             # Fallback if no JSON found
             suggestions = [{
-                "title": "MELC-Aligned Suggestion",
+                "title": f"{intelligence_type.upper()} Intelligence Suggestion",
                 "description": response.text[:200] + "...",
-                "example": "Based on DepEd curriculum standards"
+                "example": "Based on DepEd curriculum standards and intelligence development",
+                "intelligence_connection": f"Develops {intelligence_type} intelligence through targeted activities"
             }]
         
         return JsonResponse({
             'success': True,
-            'suggestions': suggestions
+            'suggestions': suggestions,
+            'intelligence_type': intelligence_type
         })
         
     except Exception as e:
@@ -655,3 +749,94 @@ def get_ai_suggestions(request):
             'success': False,
             'error': f'Suggestion generation failed: {str(e)}'
         }, status=500)
+
+def get_intelligence_focus_description(intelligence_type):
+    """Get description for each intelligence type focus"""
+    descriptions = {
+        'comprehensive': "Balanced approach incorporating all intelligence types: cognitive tasks for logical thinking, emotional tasks for self-awareness, social tasks for collaboration, and resilience tasks for perseverance.",
+        'cognitive': "Emphasize logical, mathematical, and analytical intelligence: problem-solving, pattern recognition, critical analysis, and logical reasoning activities.",
+        'emotional': "Focus on emotional awareness and management: self-reflection, emotion identification, empathy development, and emotional regulation exercises.",
+        'social': "Develop interpersonal and communication skills: collaboration, teamwork, communication exercises, and peer interaction activities.",
+        'resilience': "Build perseverance and adaptability: challenging tasks, growth mindset activities, failure analysis, and stress management exercises.",
+        'differentiated': "Provide varied activities for different intelligence types: tiered activities with clear intelligence labeling and multiple pathways for learning."
+    }
+    return descriptions.get(intelligence_type, "Balanced intelligence development approach.")
+
+# Helper function for intelligence type analytics
+@login_required
+def intelligence_type_analytics(request):
+    """Show analytics for intelligence type usage"""
+    if hasattr(request.user, 'role') and request.user.role != 'Department Head':
+        messages.error(request, "Access denied. Department heads only.")
+        return redirect('draft_list')
+    
+    # Get all lesson plans in the department
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    
+    # Get users in the same department as the department head
+    department_users = User.objects.filter(
+        department=request.user.department,
+        school=request.user.school
+    )
+    
+    # Get lesson plans by intelligence type
+    intelligence_stats = {}
+    total_plans = 0
+    
+    for intelligence_type, display_name in LessonPlan.INTELLIGENCE_TYPE_CHOICES:
+        count = LessonPlan.objects.filter(
+            created_by__in=department_users,
+            intelligence_type=intelligence_type
+        ).count()
+        
+        intelligence_stats[intelligence_type] = {
+            'display': display_name,
+            'count': count,
+            'percentage': 0
+        }
+        total_plans += count
+    
+    # Calculate percentages
+    for intelligence_type in intelligence_stats:
+        if total_plans > 0:
+            intelligence_stats[intelligence_type]['percentage'] = round(
+                (intelligence_stats[intelligence_type]['count'] / total_plans) * 100, 1
+            )
+    
+    # Get most popular intelligence type by subject
+    subject_intelligence = {}
+    subjects = LessonPlan.objects.filter(
+        created_by__in=department_users
+    ).values_list('subject', flat=True).distinct()
+    
+    for subject in subjects:
+        subject_stats = {}
+        for intelligence_type, display_name in LessonPlan.INTELLIGENCE_TYPE_CHOICES:
+            count = LessonPlan.objects.filter(
+                created_by__in=department_users,
+                subject=subject,
+                intelligence_type=intelligence_type
+            ).count()
+            if count > 0:
+                subject_stats[intelligence_type] = {
+                    'display': display_name,
+                    'count': count
+                }
+        
+        if subject_stats:
+            # Find most used intelligence type for this subject
+            most_used = max(subject_stats.items(), key=lambda x: x[1]['count'])
+            subject_intelligence[subject] = {
+                'most_used': most_used[0],
+                'display': most_used[1]['display'],
+                'count': most_used[1]['count'],
+                'all_stats': subject_stats
+            }
+    
+    return render(request, 'lessonGenerator/intelligence_analytics.html', {
+        'intelligence_stats': intelligence_stats,
+        'total_plans': total_plans,
+        'subject_intelligence': subject_intelligence,
+        'department_name': request.user.department if hasattr(request.user, 'department') else 'Your Department'
+    })

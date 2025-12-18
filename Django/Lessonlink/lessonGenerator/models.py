@@ -12,6 +12,16 @@ class LessonPlan(models.Model):
         (FINAL, 'Final'),
     ]
 
+    
+    INTELLIGENCE_TYPE_CHOICES = [
+        ('comprehensive', 'Comprehensive (IQ+EQ+SQ+AQ)'),
+        ('cognitive', 'Cognitive Focus (IQ) - Logical & Analytical'),
+        ('emotional', 'Emotional Focus (EQ) - Self & Social Awareness'),
+        ('social', 'Social Focus (SQ) - Collaboration & Communication'),
+        ('resilience', 'Resilience Focus (AQ) - Perseverance & Adaptability'),
+        ('differentiated', 'Differentiated Mix - All Types with Varied Activities'),
+    ]
+
     # Basic Information
     title = models.CharField(max_length=200)
     subject = models.CharField(max_length=100)
@@ -49,6 +59,13 @@ class LessonPlan(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    intelligence_type = models.CharField(
+        max_length=20,
+        choices=INTELLIGENCE_TYPE_CHOICES,
+        default='comprehensive',
+        help_text="Type of intelligence to focus lesson plan adaptation on"
+    )
 
     def __str__(self):
         return f"{self.subject} - {self.grade_level} - {self.title}"
