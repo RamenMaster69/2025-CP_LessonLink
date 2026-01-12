@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        /* Your existing CSS styles here */
         body {
             font-family: 'Inter', sans-serif;
             background: #f5f5f5;
@@ -288,185 +287,301 @@
     <div class="document-container">
         <!-- Header -->
         <div class="header-section">
-            <h1 class="header-title">LESSON PLAN</h1>
+            <p class="header-title">Republic of the Philippines</p><br>
+            <p class="header-title">Department of Education</p><br>
+            <p class="header-title">Regional IX</p><br>
+            <p class="header-title">{{ user.school }}</p> 
         </div>
 
         <!-- Content -->
         <div style="padding: 2rem;">
-                {% if lesson_plan %}
-                    <div class="lesson-content">
-                        {{ lesson_plan|safe }}
-                    </div>
-                {% endif %}
-                <!-- This section will show when viewing a saved draft -->
-                {% if draft %}
-                <!-- MELC Alignment Section -->
-                <div class="section-box">
-                    <div class="section-title">MELC Alignment</div>
-                    <div class="section-content">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <div class="info-label">MELC Code</div>
-                                <div class="info-content">
+            <!-- This section will show when viewing a saved draft OR when displaying an uploaded lesson plan -->
+            {% if draft or lesson_plan %}
+            <!-- MELC Alignment Section -->
+            <div class="section-box">
+                <div class="section-title">MELC Alignment</div>
+                <div class="section-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <div class="info-label">MELC Code</div>
+                            <div class="info-content">
+                                {% if draft %}
                                     <span class="melc-badge">{{ draft.melc_code|default:"MELC-CODE-HERE" }}</span>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="info-label">Learning Competency</div>
-                                <div class="info-content">{{ draft.learning_competency|default:"Students will be able to..." }}</div>
+                                {% elif lesson_plan %}
+                                    <span class="melc-badge">H7FH-Ha-b-19</span>
+                                {% endif %}
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <div class="info-label">Content Standard</div>
-                                <div class="info-content">{{ draft.content_standard|default:"The learner demonstrates understanding of..." }}</div>
-                            </div>
-                            <div>
-                                <div class="info-label">Performance Standard</div>
-                                <div class="info-content">{{ draft.performance_standard|default:"The learner is able to..." }}</div>
+                        <div>
+                            <div class="info-label">Learning Competency</div>
+                            <div class="info-content">
+                                {% if draft %}
+                                    {{ draft.learning_competency|default:"Students will be able to..." }}
+                                {% elif lesson_plan %}
+                                    Explain adolescent health concerns and the significant role of the family in managing these
+                                {% endif %}
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Top Info Grid -->
-                <div class="info-grid">
-                    <div class="info-box">
-                        <div class="info-label">Grade:</div>
-                        <div class="info-content">{{ draft.grade_level|default:"Grade Level" }}</div>
-                    </div>
-                    <div class="info-box">
-                        <div class="info-label">Subject:</div>
-                        <div class="info-content">{{ draft.subject|default:"Subject" }}</div>
-                    </div>
-                    <div class="info-box">
-                        <div class="info-label">Date:</div>
-                        <div class="info-content">{{ draft.created_at|date:"F d, Y"|default:"Date" }}</div>
-                    </div>
-                </div>
-
-                <!-- Topic and Lesson Number -->
-                <div class="info-grid">
-                    <div class="info-box info-box-wide">
-                        <div class="info-label">Topic:</div>
-                        <div class="info-content">{{ draft.title|default:"Lesson Topic" }}</div>
-                    </div>
-                    <div class="info-box">
-                        <div class="info-label">Quarter:</div>
-                        <div class="info-content">{{ draft.quarter|default:"Quarter" }}</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <div class="info-label">Content Standard</div>
+                            <div class="info-content">
+                                {% if draft %}
+                                    {{ draft.content_standard|default:"The learner demonstrates understanding of..." }}
+                                {% elif lesson_plan %}
+                                    The learners demonstrate understanding of family roles in managing concerns and conflicts and invasion games in promoting family wellness for active and healthy living.
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="info-label">Performance Standard</div>
+                            <div class="info-content">
+                                {% if draft %}
+                                    {{ draft.performance_standard|default:"The learner is able to..." }}
+                                {% elif lesson_plan %}
+                                    The learners participate in invasion games and other physical activities in promoting family wellness for active and healthy living.
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Integration Section -->
+            <!-- Top Info Grid -->
+            <div class="info-grid">
+                <div class="info-box">
+                    <div class="info-label">Grade:</div>
+                    <div class="info-content">
+                        {% if draft %}{{ draft.grade_level|default:"Grade Level" }}
+                        {% elif lesson_plan %}7{% endif %}
+                    </div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Subject:</div>
+                    <div class="info-content">
+                        {% if draft %}{{ draft.subject|default:"Subject" }}
+                        {% elif lesson_plan %}MAPEH (Health){% endif %}
+                    </div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Date:</div>
+                    <div class="info-content">
+                        {% if draft %}{{ draft.created_at|date:"F d, Y"|default:"Date" }}
+                        {% else %}Today's Date{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Topic and Lesson Number -->
+            <div class="info-grid">
+                <div class="info-box info-box-wide">
+                    <div class="info-label">Topic:</div>
+                    <div class="info-content">
+                        {% if draft %}{{ draft.title|default:"Lesson Topic" }}
+                        {% elif lesson_plan %}ADOLESCENT HEALTH CONCERNS AND THE FAMILY'S ROLE{% endif %}
+                    </div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Quarter:</div>
+                    <div class="info-content">
+                        {% if draft %}{{ draft.quarter|default:"Quarter" }}
+                        {% elif lesson_plan %}2{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Integration Section -->
+            <div class="section-box">
+                <div class="section-title">Integration</div>
+                <div class="section-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <div class="info-label">Values Education</div>
+                            <div class="info-content">
+                                {% if draft %}{{ draft.values_integration|default:"Integrated values will be developed..." }}
+                                {% elif lesson_plan %}Health awareness, family responsibility, and empathy development{% endif %}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="info-label">Cross-curricular Connections</div>
+                            <div class="info-content">
+                                {% if draft %}{{ draft.cross_curricular|default:"Connections to other learning areas..." }}
+                                {% elif lesson_plan %}Science (Human Development), Social Studies (Family Structures), Values Education{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Objectives -->
+            <div class="section-box">
+                <div class="section-title">Learning Objectives</div>
+                <div class="content-area">
+                    {% if draft and draft.learning_objectives %}
+                        {{ draft.learning_objectives|linebreaks }}
+                    {% elif lesson_plan %}
+                        <p>At the end of the lesson, students will be able to:</p>
+                        <ul>
+                            <li>Identify common adolescent health concerns</li>
+                            <li>Explain the role of the family in managing adolescent health issues</li>
+                            <li>Develop strategies for family communication about health concerns</li>
+                            <li>Understand the importance of family support in adolescent wellness</li>
+                        </ul>
+                    {% else %}
+                        <p>At the end of the lesson, students will be able to:</p>
+                        <ul>
+                            <li>First learning objective</li>
+                            <li>Second learning objective</li>
+                            <li>Third learning objective</li>
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Materials and Subject Matter -->
+            <div class="two-column-grid">
                 <div class="section-box">
-                    <div class="section-title">Integration</div>
-                    <div class="section-content">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <div class="info-label">Values Education</div>
-                                <div class="info-content">{{ draft.values_integration|default:"Integrated values will be developed..." }}</div>
-                            </div>
-                            <div>
-                                <div class="info-label">Cross-curricular Connections</div>
-                                <div class="info-content">{{ draft.cross_curricular|default:"Connections to other learning areas..." }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Learning Objectives -->
-                <div class="section-box">
-                    <div class="section-title">Learning Objectives</div>
+                    <div class="section-title">Materials Needed</div>
                     <div class="content-area">
-                        {% if draft.learning_objectives %}
-                            {{ draft.learning_objectives|linebreaks }}
-                        {% else %}
-                            <p>At the end of the lesson, students will be able to:</p>
+                        {% if draft and draft.materials_needed %}
+                            {{ draft.materials_needed|linebreaks }}
+                        {% elif lesson_plan %}
                             <ul>
-                                <li>First learning objective</li>
-                                <li>Second learning objective</li>
-                                <li>Third learning objective</li>
+                                <li>PowerPoint presentation on adolescent health</li>
+                                <li>Whiteboard and markers</li>
+                                <li>Student worksheets on family communication</li>
+                                <li>Case study handouts</li>
+                                <li>Laptop and projector</li>
+                                <li>Reference materials: Adolescent Health Guide</li>
+                            </ul>
+                        {% else %}
+                            <ul>
+                                <li>Instructional materials</li>
+                                <li>Visual aids</li>
+                                <li>Student worksheets</li>
                             </ul>
                         {% endif %}
                     </div>
                 </div>
-
-                <!-- Materials and Subject Matter -->
-                <div class="two-column-grid">
-                    <div class="section-box">
-                        <div class="section-title">Materials Needed</div>
-                        <div class="content-area">
-                            {% if draft.materials_needed %}
-                                {{ draft.materials_needed|linebreaks }}
-                            {% else %}
-                                <ul>
-                                    <li>Instructional materials</li>
-                                    <li>Visual aids</li>
-                                    <li>Student worksheets</li>
-                                </ul>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="section-box">
-                        <div class="section-title">Subject Matter</div>
-                        <div class="content-area">
-                            {% if draft.subject_matter %}
-                                {{ draft.subject_matter|linebreaks }}
-                            {% else %}
-                                <p>Key concepts and topics to be covered in this lesson.</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Lesson Procedure -->
                 <div class="section-box">
-                    <div class="section-title">Lesson Procedure</div>
-                    <div class="section-content">
-                        <div class="space-y-6">
-                            <div>
-                                <h4 class="font-semibold text-gray-900 mb-2">Introduction ({{ draft.duration|default:"5" }} minutes)</h4>
-                                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
-                                    {{ draft.introduction|default:"Engaging opening activity to introduce the lesson."|linebreaks }}
-                                </div>
+                    <div class="section-title">Subject Matter</div>
+                    <div class="content-area">
+                        {% if draft and draft.subject_matter %}
+                            {{ draft.subject_matter|linebreaks }}
+                        {% elif lesson_plan %}
+                            <p><strong>Focus:</strong> Adolescent health concerns and family management strategies</p>
+                            <p><strong>Key Concepts:</strong> Physical changes, emotional challenges, social pressures, family communication, support systems</p>
+                            <p><strong>References:</strong> Department of Education Health Curriculum Guide, Adolescent Development Handbook</p>
+                        {% else %}
+                            <p>Key concepts and topics to be covered in this lesson.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lesson Procedure -->
+            <div class="section-box">
+                <div class="section-title">Lesson Procedure</div>
+                <div class="section-content">
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-2">Introduction (5 minutes)</h4>
+                            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                                {% if draft and draft.introduction %}
+                                    {{ draft.introduction|linebreaks }}
+                                {% elif lesson_plan %}
+                                    <p>Begin with a thought-provoking question: "What changes have you noticed as you enter adolescence?"</p>
+                                    <p>Show a short video clip about adolescent development to engage students.</p>
+                                    <p>Establish lesson objectives and connect to students' personal experiences.</p>
+                                {% else %}
+                                    Engaging opening activity to introduce the lesson.
+                                {% endif %}
                             </div>
-                            
-                            <div>
-                                <h4 class="font-semibold text-gray-900 mb-2">Instruction ({{ draft.duration|default:"25" }} minutes)</h4>
-                                <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
-                                    {{ draft.instruction|default:"Direct teaching and explanation of concepts."|linebreaks }}
-                                </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-2">Instruction (25 minutes)</h4>
+                            <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
+                                {% if draft and draft.instruction %}
+                                    {{ draft.instruction|linebreaks }}
+                                {% elif lesson_plan %}
+                                    <p>Present key concepts about adolescent health concerns:</p>
+                                    <ul>
+                                        <li>Physical changes and puberty</li>
+                                        <li>Emotional and psychological challenges</li>
+                                        <li>Social pressures and peer influence</li>
+                                        <li>Nutrition and sleep needs</li>
+                                    </ul>
+                                    <p>Discuss the family's role in:</p>
+                                    <ul>
+                                        <li>Providing emotional support</li>
+                                        <li>Establishing open communication</li>
+                                        <li>Setting healthy boundaries</li>
+                                        <li>Modeling healthy behaviors</li>
+                                    </ul>
+                                {% else %}
+                                    Direct teaching and explanation of concepts.
+                                {% endif %}
                             </div>
-                            
-                            <div>
-                                <h4 class="font-semibold text-gray-900 mb-2">Application ({{ draft.duration|default:"20" }} minutes)</h4>
-                                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
-                                    {{ draft.application|default:"Guided practice and student activities."|linebreaks }}
-                                </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-2">Application (20 minutes)</h4>
+                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+                                {% if draft and draft.application %}
+                                    {{ draft.application|linebreaks }}
+                                {% elif lesson_plan %}
+                                    <p>Group Activity: "Family Communication Role Play"</p>
+                                    <ul>
+                                        <li>Students work in groups to create skits demonstrating effective family communication about health concerns</li>
+                                        <li>Case study analysis: How would your family handle different adolescent health scenarios?</li>
+                                        <li>Worksheet completion: Identifying support systems and communication strategies</li>
+                                    </ul>
+                                {% else %}
+                                    Guided practice and student activities.
+                                {% endif %}
                             </div>
-                            
-                            <div>
-                                <h4 class="font-semibold text-gray-900 mb-2">Evaluation ({{ draft.duration|default:"5" }} minutes)</h4>
-                                <div class="bg-purple-50 border-l-4 border-purple-400 p-4 rounded-r-lg">
-                                    {{ draft.evaluation|default:"Assessment of student understanding."|linebreaks }}
-                                </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-2">Evaluation (5 minutes)</h4>
+                            <div class="bg-purple-50 border-l-4 border-purple-400 p-4 rounded-r-lg">
+                                {% if draft and draft.evaluation %}
+                                    {{ draft.evaluation|linebreaks }}
+                                {% elif lesson_plan %}
+                                    <p>Quick quiz: 5-item formative assessment on key concepts</p>
+                                    <p>Class discussion: Share one thing learned about family support</p>
+                                    <p>Exit ticket: "What is one way your family can better support adolescent health?"</p>
+                                {% else %}
+                                    Assessment of student understanding.
+                                {% endif %}
                             </div>
-                            
-                            <div>
-                                <h4 class="font-semibold text-gray-900 mb-2">Assessment ({{ draft.duration|default:"5" }} minutes)</h4>
-                                <div class="bg-pink-50 border-l-4 border-pink-400 p-4 rounded-r-lg">
-                                    {{ draft.assessment|default:"Formal assessment of learning outcomes."|linebreaks }}
-                                </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-2">Assessment (5 minutes)</h4>
+                            <div class="bg-pink-50 border-l-4 border-pink-400 p-4 rounded-r-lg">
+                                {% if draft and draft.assessment %}
+                                    {{ draft.assessment|linebreaks }}
+                                {% elif lesson_plan %}
+                                    <p>Performance Task: Create a family health communication plan</p>
+                                    <p>Written reflection: How can I apply today's learning in my family?</p>
+                                    <p>Rubric-based assessment of group activity participation</p>
+                                {% else %}
+                                    Formal assessment of learning outcomes.
+                                {% endif %}
                             </div>
                         </div>
                     </div>
                 </div>
-                {% else %}
-                <!-- <div class="text-center py-8">
-                    <p class="text-gray-600">No lesson plan content available.</p>
-                    <a href="{% url 'lesson_ai' %}" class="btn btn-primary mt-4">Create New Lesson Plan</a>
-                </div> -->
-                {% endif %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <p class="text-gray-600">No lesson plan content available.</p>
+                <a href="{% url 'lesson_ai' %}" class="btn btn-primary mt-4">Create New Lesson Plan</a>
+            </div>
+            {% endif %}
 
             <!-- Signatures -->
             <div class="signature-grid">
