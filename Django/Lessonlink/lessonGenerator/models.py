@@ -432,3 +432,12 @@ class LessonPlanSubmission(models.Model):
             return False, str(e)
         except Exception as e:
             return False, f"Error submitting lesson plan: {str(e)}"
+        
+        @classmethod
+        def get_active_submission_for_lesson(cls, lesson_plan, submitted_to):
+            """Get active submission for a lesson plan to a specific recipient"""
+            return cls.objects.filter(
+                lesson_plan=lesson_plan,
+                submitted_to=submitted_to,
+                status__in=['submitted', 'approved', 'needs_revision']
+            ).first()

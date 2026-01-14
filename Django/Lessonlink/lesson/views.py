@@ -2414,31 +2414,45 @@ def submit_lesson_plan(request, lesson_plan_id):
                     )
                     return redirect('draft_list')
                 
-                # Use the model method to handle submission
-                success, message = lesson_plan.submit_for_approval(department_head)
+                # Check if already submitted to department head
+                existing_submission = LessonPlanSubmission.objects.filter(
+                    lesson_plan=lesson_plan,
+                    submitted_to=department_head,
+                    status__in=['submitted', 'approved', 'needs_revision']
+                ).first()
                 
-                if success:
-                    # Create submission notification for department head
-                    from lessonlinkNotif.models import Notification
-                    Notification.create_lesson_submitted_notification(
-                        LessonPlanSubmission.objects.get(
-                            lesson_plan=lesson_plan,
-                            submitted_to=department_head,
-                            status='submitted'
-                        )
+                if existing_submission:
+                    status_display = existing_submission.get_status_display()
+                    messages.warning(request, 
+                        f"This lesson plan has already been submitted to the department head. "
+                        f"Current status: {status_display}"
                     )
-                    
-                    # Change lesson plan status to final when submitted
-                    lesson_plan.status = LessonPlan.FINAL
-                    lesson_plan.save()
-                    
-                    messages.success(request, message)
-                    
-                    # Log the submission
-                    logger.info(f"Teacher {request.user.email} submitted lesson plan {lesson_plan.id} to department head {department_head.email}")
-                    
-                else:
-                    messages.error(request, message)
+                    return redirect('draft_list')
+                
+                # Create submission to department head
+                submission = LessonPlanSubmission.objects.create(
+                    lesson_plan=lesson_plan,
+                    submitted_by=request.user,
+                    submitted_to=department_head,
+                    status='submitted'
+                )
+                
+                # Update lesson plan status to final when submitted
+                lesson_plan.status = LessonPlan.FINAL
+                lesson_plan.save()
+                
+                # Create submission notification for department head
+                from lessonlinkNotif.models import Notification
+                Notification.create_lesson_submitted_notification(submission)
+                
+                messages.success(request, 
+                    f"Lesson plan submitted successfully to department head: "
+                    f"{department_head.full_name}! "
+                    f"They will review your lesson plan and provide feedback."
+                )
+                
+                # Log the submission
+                logger.info(f"Teacher {request.user.email} submitted lesson plan {lesson_plan.id} to department head {department_head.email}")
             
             # ==================== DEPARTMENT HEAD WORKFLOW (Auto-approval) ====================
             elif request.user.role == "Department Head":
@@ -2547,6 +2561,10 @@ def review_lesson_plan(request, submission_id):
                 
             elif action == 'reject':
                 submission.status = 'rejected'
+                
+                # Change lesson plan back to draft so it can be revised
+                submission.lesson_plan.status = LessonPlan.DRAFT
+                submission.lesson_plan.save()
                 
                 # Create rejection notification
                 Notification.create_draft_status_notification(submission, approved=False)
@@ -3224,12 +3242,14 @@ def supervising_teacher_reviews(request):
     # Get pending submissions from supervised students
     pending_submissions = LessonPlanSubmission.objects.filter(
         submitted_to=request.user,
+        submitted_by__supervising_teacher=request.user,  # Only students supervised by this teacher
         status='submitted'
     ).select_related('lesson_plan', 'submitted_by').order_by('submission_date')
     
     # Get reviewed submissions for history
     reviewed_submissions = LessonPlanSubmission.objects.filter(
-        submitted_to=request.user
+        submitted_to=request.user,
+        submitted_by__supervising_teacher=request.user
     ).exclude(status='submitted').select_related('lesson_plan', 'submitted_by').order_by('-review_date')[:10]
     
     context = {
