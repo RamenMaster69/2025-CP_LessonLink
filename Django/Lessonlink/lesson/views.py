@@ -2554,8 +2554,12 @@ def review_lesson_plan(request, submission_id):
                 submission.lesson_plan.status = LessonPlan.FINAL
                 
                 # Create approval notification
-                from lessonlinkNotif.models import Notification
-                Notification.create_draft_status_notification(submission, approved=True)
+                try:
+                    from lessonlinkNotif.models import Notification
+                    Notification.create_draft_status_notification(submission, approved=True)
+                except Exception as e:
+                    print(f"Notification creation error: {e}")
+                    # Continue even if notification fails
                 
                 messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' approved successfully!")
                 
@@ -2567,7 +2571,12 @@ def review_lesson_plan(request, submission_id):
                 submission.lesson_plan.save()
                 
                 # Create rejection notification
-                Notification.create_draft_status_notification(submission, approved=False)
+                try:
+                    from lessonlinkNotif.models import Notification
+                    Notification.create_draft_status_notification(submission, approved=False)
+                except Exception as e:
+                    print(f"Notification creation error: {e}")
+                    # Continue even if notification fails
                 
                 messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' rejected.")
                 
@@ -2579,7 +2588,12 @@ def review_lesson_plan(request, submission_id):
                 submission.lesson_plan.save()
                 
                 # Create needs revision notification
-                Notification.create_draft_status_notification(submission, approved=False)
+                try:
+                    from lessonlinkNotif.models import Notification
+                    Notification.create_draft_status_notification(submission, approved=False)
+                except Exception as e:
+                    print(f"Notification creation error: {e}")
+                    # Continue even if notification fails
                 
                 messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' returned for revision.")
             
@@ -2599,6 +2613,9 @@ def review_lesson_plan(request, submission_id):
             
         except LessonPlanSubmission.DoesNotExist:
             messages.error(request, "Submission not found.")
+        except Exception as e:
+            logger.error(f"Error in review_lesson_plan: {str(e)}")
+            messages.error(request, f"An error occurred: {str(e)}")
         
         # Redirect based on user role
         if request.user.role == 'Teacher':
