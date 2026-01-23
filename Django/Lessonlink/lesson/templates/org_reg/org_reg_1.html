@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Registration - LessonLink</title>
+    <!-- Fixed: Use a more reliable Lucide CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
@@ -34,27 +35,6 @@
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
         
-        .upload-zone {
-            border: 2px dashed #d1d5db;
-            transition: all 0.2s ease;
-        }
-        
-        .upload-zone:hover {
-            border-color: #3b82f6;
-            background-color: #f8fafc;
-        }
-        
-        .upload-zone.dragover {
-            border-color: #3b82f6;
-            background-color: #eff6ff;
-        }
-        
-        .upload-zone.uploaded {
-            border-color: #10b981;
-            background-color: #f0fdf4;
-            border-style: solid;
-        }
-        
         .section-number {
             background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
             color: white;
@@ -78,18 +58,6 @@
             background: linear-gradient(135deg, #059669 0%, #10b981 100%);
         }
         
-        .upload-success {
-            color: #10b981;
-        }
-        
-        .file-info {
-            display: none;
-        }
-        
-        .file-info.show {
-            display: block;
-        }
-
         /* Password Popup Styles */
         .password-popup-overlay {
             display: none;
@@ -134,6 +102,31 @@
                 transform: translateY(0);
             }
         }
+        
+        /* Logo preview styles */
+        .logo-preview-container {
+            width: 120px;
+            height: 120px;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #f8fafc;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .logo-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        /* Simple icon styles for fallback */
+        .icon-fallback {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1em;
+            height: 1em;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -143,7 +136,7 @@
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center space-x-4">
                     <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                        <i data-lucide="graduation-cap" class="w-6 h-6 text-white"></i>
+                        <span class="text-white font-bold">LL</span>
                     </div>
                     <div>
                         <h1 class="text-xl font-semibold text-gray-900">LessonLink</h1>
@@ -151,10 +144,10 @@
                     </div>
                 </div>
                 <nav class="hidden md:flex items-center space-x-6">
-                    <a href="{% url 'landing' %}"><button onclick="goBackToLogin()" class="flex items-center px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
-                        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                    <button onclick="goBackToLogin()" class="flex items-center px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                        <span class="mr-2">←</span>
                         Back to Login
-                    </button></a>
+                    </button>
                 </nav>
             </div>
         </div>
@@ -165,7 +158,7 @@
         <!-- Page Title -->
         <div class="text-center mb-12">
             <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-6">
-                <i data-lucide="building-2" class="w-8 h-8 text-white"></i>
+                <span class="text-white text-2xl">🏫</span>
             </div>
             <h1 class="text-3xl font-bold text-gray-900 mb-4">School Registration</h1>
             <p class="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -176,292 +169,459 @@
 
         <!-- Registration Form -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <!-- CORRECTED: Using Django URL template tag -->
             <form method="POST" action="{% url 'org_reg_1' %}" enctype="multipart/form-data" id="registrationForm">
-    {% csrf_token %}
-    <input type="hidden" name="password" id="formPassword">
+                {% csrf_token %}
+                <input type="hidden" name="password" id="formPassword">
                 
                 <!-- Section 1: Institution Details -->
-<section class="form-section p-8" data-section="1" id="section-1">
-    <div class="flex items-start space-x-4 mb-8">
-        <div class="section-number" data-section-num="1">1</div>
-        <div>
-            <h2 class="text-xl font-semibold text-gray-900 mb-2">Institution Details</h2>
-            <p class="text-gray-600">Basic information about your educational institution</p>
-        </div>
-    </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                Official School Name <span class="text-red-500">*</span>
-            </label>
-            <input 
-                type="text" 
-                name="school_name"
-                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                placeholder="Enter complete official name"
-                required
-            >
-        </div>
-        
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                School ID / DepEd Code <span class="text-red-500">*</span>
-            </label>
-            <input 
-                type="text" 
-                name="school_id"
-                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                placeholder="12-digit registration code"
-                required
-            >
-        </div>
-        
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Year Established</label>
-            <input 
-                type="number" 
-                name="year_established"
-                min="1800" 
-                max="2025" 
-                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                placeholder="1985"
-            >
-        </div>
-    </div>
-</section>
+                <section class="form-section p-8" data-section="1" id="section-1">
+                    <div class="flex items-start space-x-4 mb-8">
+                        <div class="section-number" data-section-num="1">1</div>
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-900 mb-2">Institution Details</h2>
+                            <p class="text-gray-600">Basic information about your educational institution</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Official School Name <span class="text-red-500">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                name="school_name"
+                                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                                placeholder="Enter complete official name"
+                                required
+                            >
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                School ID / DepEd Code <span class="text-red-500">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                name="school_id"
+                                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                                placeholder="12-digit registration code"
+                                required
+                            >
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Year Established</label>
+                            <input 
+                                type="number" 
+                                name="year_established"
+                                min="1800" 
+                                max="2025" 
+                                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                                placeholder="1985"
+                            >
+                        </div>
+                        
+                        <!-- School Logo Upload - SIMPLE BUTTON VERSION -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                School Logo
+                            </label>
+                            
+                            <!-- Simple Upload Button -->
+                            <div class="mb-4">
+                                <button 
+                                    type="button" 
+                                    onclick="document.getElementById('logoUpload').click()"
+                                    class="flex items-center px-4 py-3 bg-blue-50 text-blue-700 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
+                                >
+                                    <span class="mr-2">📤</span>
+                                    Choose Logo File
+                                </button>
+                                <input type="file" id="logoUpload" name="school_logo" accept="image/*" class="hidden" onchange="handleLogoFileSelect(this)">
+                                <p class="text-xs text-gray-500 mt-2">Recommended: Square logo, JPG/PNG, max 2MB</p>
+                            </div>
+                            
+                            <!-- Preview Container (initially hidden) -->
+                            <div id="logo-preview-container" class="hidden">
+                                <div class="flex items-center space-x-4 bg-gray-50 p-4 rounded-lg border">
+                                    <div class="logo-preview-container">
+                                        <img id="logo-preview" class="logo-preview" alt="Logo preview">
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-gray-900" id="logo-filename">logo.png</p>
+                                        <p class="text-xs text-gray-500" id="logo-filesize">1.2 MB</p>
+                                        <button type="button" onclick="removeLogo()" class="mt-2 text-sm text-red-600 hover:text-red-800 flex items-center">
+                                            <span class="mr-1">🗑️</span>
+                                            Remove Logo
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
                 <!-- Section 2: Contact Information -->
-<section class="form-section p-8" data-section="2" id="section-2">
-    <div class="flex items-start space-x-4 mb-8">
-        <div class="section-number" data-section-num="2">2</div>
-        <div>
-            <h2 class="text-xl font-semibold text-gray-900 mb-2">Contact Information</h2>
-            <p class="text-gray-600">Primary contact details and address</p>
-        </div>
-    </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                Complete Address <span class="text-red-500">*</span>
-            </label>
-            <textarea 
-                name="address"
-                rows="3" 
-                class="input-field w-full px-4 py-3 rounded-md text-sm resize-none"
-                placeholder="Street, Barangay, City/Municipality"
-                required
-            ></textarea>
-        </div>
-        
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                Province <span class="text-red-500">*</span>
-            </label>
-            <input 
-                type="text" 
-                name="province"
-                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                placeholder="Province name"
-                required
-            >
-        </div>
-        
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                Region <span class="text-red-500">*</span>
-            </label>
-            <select 
-                name="region"
-                class="input-field w-full px-4 py-3 rounded-md text-sm" 
-                required
-            >
-                <option value="">Select region</option>
-                <option value="Region IX - Zamboanga Peninsula">Region IX - Zamboanga Peninsula</option>
-                <option value="BARMM">BARMM</option>
-            </select>
-        </div>
-        
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number <span class="text-red-500">*</span>
-            </label>
-            <input 
-                type="tel" 
-                name="phone_number"
-                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                placeholder="+63 XX XXXX XXXX"
-                required
-            >
-        </div>
-        
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                Email Address <span class="text-red-500">*</span>
-            </label>
-            <input 
-                type="email" 
-                name="email"
-                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                placeholder="admin@school.edu.ph"
-                required
-            >
-        </div>
-        
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Website</label>
-            <input 
-                type="url" 
-                name="website"
-                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                placeholder="https://www.school.edu.ph"
-            >
-        </div>
-        
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Facebook Page</label>
-            <input 
-                type="url" 
-                name="facebook_page"
-                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                placeholder="https://facebook.com/schoolname"
-            >
-        </div>
-    </div>
-</section>
+                <section class="form-section p-8" data-section="2" id="section-2">
+                    <div class="flex items-start space-x-4 mb-8">
+                        <div class="section-number" data-section-num="2">2</div>
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-900 mb-2">Contact Information</h2>
+                            <p class="text-gray-600">Primary contact details and address</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Complete Address <span class="text-red-500">*</span>
+                            </label>
+                            <textarea 
+                                name="address"
+                                rows="3" 
+                                class="input-field w-full px-4 py-3 rounded-md text-sm resize-none"
+                                placeholder="Street, Barangay, City/Municipality"
+                                required
+                            ></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Region <span class="text-red-500">*</span>
+                            </label>
+                            <select 
+                                name="region"
+                                id="regionSelect"
+                                class="input-field w-full px-4 py-3 rounded-md text-sm" 
+                                required
+                            >
+                                <option value="">Select region</option>
+                                <option value="NCR - National Capital Region">NCR - National Capital Region</option>
+                                <option value="Region I - Ilocos Region">Region I - Ilocos Region</option>
+                                <option value="Region II - Cagayan Valley">Region II - Cagayan Valley</option>
+                                <option value="Region III - Central Luzon">Region III - Central Luzon</option>
+                                <option value="Region IV-A - CALABARZON">Region IV-A - CALABARZON</option>
+                                <option value="Region IV-B - MIMAROPA">Region IV-B - MIMAROPA</option>
+                                <option value="Region V - Bicol Region">Region V - Bicol Region</option>
+                                <option value="Region VI - Western Visayas">Region VI - Western Visayas</option>
+                                <option value="Region VII - Central Visayas">Region VII - Central Visayas</option>
+                                <option value="Region VIII - Eastern Visayas">Region VIII - Eastern Visayas</option>
+                                <option value="Region IX - Zamboanga Peninsula">Region IX - Zamboanga Peninsula</option>
+                                <option value="Region X - Northern Mindanao">Region X - Northern Mindanao</option>
+                                <option value="Region XI - Davao Region">Region XI - Davao Region</option>
+                                <option value="Region XII - SOCCSKSARGEN">Region XII - SOCCSKSARGEN</option>
+                                <option value="Region XIII - Caraga">Region XIII - Caraga</option>
+                                <option value="BARMM - Bangsamoro Autonomous Region in Muslim Mindanao">BARMM - Bangsamoro Autonomous Region in Muslim Mindanao</option>
+                                <option value="CAR - Cordillera Administrative Region">CAR - Cordillera Administrative Region</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Province <span class="text-red-500">*</span>
+                            </label>
+                            <select 
+                                name="province"
+                                id="provinceSelect"
+                                class="input-field w-full px-4 py-3 rounded-md text-sm" 
+                                required
+                            >
+                                <option value="">Select province</option>
+                                <!-- All Philippine Provinces -->
+                                <option value="Abra" data-region="CAR">Abra</option>
+                                <option value="Agusan del Norte" data-region="Caraga">Agusan del Norte</option>
+                                <option value="Agusan del Sur" data-region="Caraga">Agusan del Sur</option>
+                                <option value="Aklan" data-region="Region VI - Western Visayas">Aklan</option>
+                                <option value="Albay" data-region="Region V - Bicol Region">Albay</option>
+                                <option value="Antique" data-region="Region VI - Western Visayas">Antique</option>
+                                <option value="Apayao" data-region="CAR">Apayao</option>
+                                <option value="Aurora" data-region="Region III - Central Luzon">Aurora</option>
+                                <option value="Basilan" data-region="BARMM">Basilan</option>
+                                <option value="Bataan" data-region="Region III - Central Luzon">Bataan</option>
+                                <option value="Batanes" data-region="Region II - Cagayan Valley">Batanes</option>
+                                <option value="Batangas" data-region="Region IV-A - CALABARZON">Batangas</option>
+                                <option value="Benguet" data-region="CAR">Benguet</option>
+                                <option value="Biliran" data-region="Region VIII - Eastern Visayas">Biliran</option>
+                                <option value="Bohol" data-region="Region VII - Central Visayas">Bohol</option>
+                                <option value="Bukidnon" data-region="Region X - Northern Mindanao">Bukidnon</option>
+                                <option value="Bulacan" data-region="Region III - Central Luzon">Bulacan</option>
+                                <option value="Cagayan" data-region="Region II - Cagayan Valley">Cagayan</option>
+                                <option value="Camarines Norte" data-region="Region V - Bicol Region">Camarines Norte</option>
+                                <option value="Camarines Sur" data-region="Region V - Bicol Region">Camarines Sur</option>
+                                <option value="Camiguin" data-region="Region X - Northern Mindanao">Camiguin</option>
+                                <option value="Capiz" data-region="Region VI - Western Visayas">Capiz</option>
+                                <option value="Catanduanes" data-region="Region V - Bicol Region">Catanduanes</option>
+                                <option value="Cavite" data-region="Region IV-A - CALABARZON">Cavite</option>
+                                <option value="Cebu" data-region="Region VII - Central Visayas">Cebu</option>
+                                <option value="Cotabato" data-region="Region XII - SOCCSKSARGEN">Cotabato</option>
+                                <option value="Davao de Oro" data-region="Region XI - Davao Region">Davao de Oro</option>
+                                <option value="Davao del Norte" data-region="Region XI - Davao Region">Davao del Norte</option>
+                                <option value="Davao del Sur" data-region="Region XI - Davao Region">Davao del Sur</option>
+                                <option value="Davao Occidental" data-region="Region XI - Davao Region">Davao Occidental</option>
+                                <option value="Davao Oriental" data-region="Region XI - Davao Region">Davao Oriental</option>
+                                <option value="Dinagat Islands" data-region="Caraga">Dinagat Islands</option>
+                                <option value="Eastern Samar" data-region="Region VIII - Eastern Visayas">Eastern Samar</option>
+                                <option value="Guimaras" data-region="Region VI - Western Visayas">Guimaras</option>
+                                <option value="Ifugao" data-region="CAR">Ifugao</option>
+                                <option value="Ilocos Norte" data-region="Region I - Ilocos Region">Ilocos Norte</option>
+                                <option value="Ilocos Sur" data-region="Region I - Ilocos Region">Ilocos Sur</option>
+                                <option value="Iloilo" data-region="Region VI - Western Visayas">Iloilo</option>
+                                <option value="Isabela" data-region="Region II - Cagayan Valley">Isabela</option>
+                                <option value="Kalinga" data-region="CAR">Kalinga</option>
+                                <option value="La Union" data-region="Region I - Ilocos Region">La Union</option>
+                                <option value="Laguna" data-region="Region IV-A - CALABARZON">Laguna</option>
+                                <option value="Lanao del Norte" data-region="Region X - Northern Mindanao">Lanao del Norte</option>
+                                <option value="Lanao del Sur" data-region="BARMM">Lanao del Sur</option>
+                                <option value="Leyte" data-region="Region VIII - Eastern Visayas">Leyte</option>
+                                <option value="Maguindanao del Norte" data-region="BARMM">Maguindanao del Norte</option>
+                                <option value="Maguindanao del Sur" data-region="BARMM">Maguindanao del Sur</option>
+                                <option value="Marinduque" data-region="Region IV-B - MIMAROPA">Marinduque</option>
+                                <option value="Masbate" data-region="Region V - Bicol Region">Masbate</option>
+                                <option value="Misamis Occidental" data-region="Region X - Northern Mindanao">Misamis Occidental</option>
+                                <option value="Misamis Oriental" data-region="Region X - Northern Mindanao">Misamis Oriental</option>
+                                <option value="Mountain Province" data-region="CAR">Mountain Province</option>
+                                <option value="Negros Occidental" data-region="VI">Negros Occidental</option>
+                                <option value="Negros Oriental" data-region="VII">Negros Oriental</option>
+                                <option value="Northern Samar" data-region="Region VIII - Eastern Visayas">Northern Samar</option>
+                                <option value="Nueva Ecija" data-region="Region III - Central Luzon">Nueva Ecija</option>
+                                <option value="Nueva Vizcaya" data-region="Region II - Cagayan Valley">Nueva Vizcaya</option>
+                                <option value="Occidental Mindoro" data-region="Region IV-B - MIMAROPA">Occidental Mindoro</option>
+                                <option value="Oriental Mindoro" data-region="Region IV-B - MIMAROPA">Oriental Mindoro</option>
+                                <option value="Palawan" data-region="Region IV-B - MIMAROPA">Palawan</option>
+                                <option value="Pampanga" data-region="Region III - Central Luzon">Pampanga</option>
+                                <option value="Pangasinan" data-region="Region I - Ilocos Region">Pangasinan</option>
+                                <option value="Quezon" data-region="Region IV-A - CALABARZON">Quezon</option>
+                                <option value="Quirino" data-region="Region II - Cagayan Valley">Quirino</option>
+                                <option value="Rizal" data-region="Region IV-A - CALABARZON">Rizal</option>
+                                <option value="Romblon" data-region="Region IV-B - MIMAROPA">Romblon</option>
+                                <option value="Samar" data-region="Region VIII - Eastern Visayas">Samar</option>
+                                <option value="Sarangani" data-region="Region XII - SOCCSKSARGEN">Sarangani</option>
+                                <option value="Siquijor" data-region="Region VII - Central Visayas">Siquijor</option>
+                                <option value="Sorsogon" data-region="Region V - Bicol Region">Sorsogon</option>
+                                <option value="South Cotabato" data-region="Region XII - SOCCSKSARGEN">South Cotabato</option>
+                                <option value="Southern Leyte" data-region="Region VIII - Eastern Visayas">Southern Leyte</option>
+                                <option value="Sultan Kudarat" data-region="Region XII - SOCCSKSARGEN">Sultan Kudarat</option>
+                                <option value="Sulu" data-region="BARMM">Sulu</option>
+                                <option value="Surigao del Norte" data-region="Caraga">Surigao del Norte</option>
+                                <option value="Surigao del Sur" data-region="Caraga">Surigao del Sur</option>
+                                <option value="Tarlac" data-region="Region III - Central Luzon">Tarlac</option>
+                                <option value="Tawi-Tawi" data-region="BARMM">Tawi-Tawi</option>
+                                <option value="Zambales" data-region="Region III - Central Luzon">Zambales</option>
+                                <option value="Zamboanga del Norte" data-region="Region IX - Zamboanga Peninsula">Zamboanga del Norte</option>
+                                <option value="Zamboanga del Sur" data-region="Region IX - Zamboanga Peninsula">Zamboanga del Sur</option>
+                                <option value="Zamboanga Sibugay" data-region="Region IX - Zamboanga Peninsula">Zamboanga Sibugay</option>
+                                <!-- Metro Manila Cities (for NCR) -->
+                                <option value="Caloocan" data-region="NCR - National Capital Region">Caloocan (NCR)</option>
+                                <option value="Las Piñas" data-region="NCR - National Capital Region">Las Piñas (NCR)</option>
+                                <option value="Makati" data-region="NCR - National Capital Region">Makati (NCR)</option>
+                                <option value="Malabon" data-region="NCR - National Capital Region">Malabon (NCR)</option>
+                                <option value="Mandaluyong" data-region="NCR - National Capital Region">Mandaluyong (NCR)</option>
+                                <option value="Manila" data-region="NCR - National Capital Region">Manila (NCR)</option>
+                                <option value="Marikina" data-region="NCR - National Capital Region">Marikina (NCR)</option>
+                                <option value="Muntinlupa" data-region="NCR - National Capital Region">Muntinlupa (NCR)</option>
+                                <option value="Navotas" data-region="NCR - National Capital Region">Navotas (NCR)</option>
+                                <option value="Parañaque" data-region="NCR - National Capital Region">Parañaque (NCR)</option>
+                                <option value="Pasay" data-region="NCR - National Capital Region">Pasay (NCR)</option>
+                                <option value="Pasig" data-region="NCR - National Capital Region">Pasig (NCR)</option>
+                                <option value="Quezon City" data-region="NCR - National Capital Region">Quezon City (NCR)</option>
+                                <option value="San Juan" data-region="NCR - National Capital Region">San Juan (NCR)</option>
+                                <option value="Taguig" data-region="NCR - National Capital Region">Taguig (NCR)</option>
+                                <option value="Valenzuela" data-region="NCR - National Capital Region">Valenzuela (NCR)</option>
+                                <option value="Pateros" data-region="NCR - National Capital Region">Pateros (NCR)</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Phone Number <span class="text-red-500">*</span>
+                            </label>
+                            <input 
+                                type="tel" 
+                                name="phone_number"
+                                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                                placeholder="+63 XX XXXX XXXX"
+                                required
+                            >
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Email Address <span class="text-red-500">*</span>
+                            </label>
+                            <input 
+                                type="email" 
+                                name="email"
+                                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                                placeholder="admin@school.edu.ph"
+                                required
+                            >
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Website</label>
+                            <input 
+                                type="url" 
+                                name="website"
+                                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                                placeholder="https://www.school.edu.ph"
+                            >
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Facebook Page</label>
+                            <input 
+                                type="url" 
+                                name="facebook_page"
+                                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                                placeholder="https://facebook.com/schoolname"
+                            >
+                        </div>
+                    </div>
+                </section>
 
                 <!-- Section 3: Administrative Contact -->
-<section class="form-section p-8" data-section="3" id="section-3">
-    <div class="flex items-start space-x-4 mb-8">
-        <div class="section-number" data-section-num="3">3</div>
-        <div>
-            <h2 class="text-xl font-semibold text-gray-900 mb-2">Administrative Contact</h2>
-            <p class="text-gray-600">Primary contact person for system administration</p>
-        </div>
-    </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                Contact Person Name <span class="text-red-500">*</span>
-            </label>
-            <input 
-                type="text" 
-                name="contact_person"
-                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                placeholder="Full name"
-                required
-            >
-        </div>
-        
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                Position/Title <span class="text-red-500">*</span>
-            </label>
-            <input 
-                type="text" 
-                name="position"
-                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                placeholder="Principal, Registrar, etc."
-                required
-            >
-        </div>
-        
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                Contact Email <span class="text-red-500">*</span>
-            </label>
-            <input 
-                type="email" 
-                name="contact_email"
-                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                placeholder="contact@school.edu.ph"
-                required
-            >
-        </div>
-        
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                Contact Phone <span class="text-red-500">*</span>
-            </label>
-            <input 
-                type="tel" 
-                name="contact_phone"
-                class="input-field w-full px-4 py-3 rounded-md text-sm"
-                placeholder="+63 XXX XXX XXXX"
-                required
-            >
-        </div>
-    </div>
-</section>
+                <section class="form-section p-8" data-section="3" id="section-3">
+                    <div class="flex items-start space-x-4 mb-8">
+                        <div class="section-number" data-section-num="3">3</div>
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-900 mb-2">Administrative Contact</h2>
+                            <p class="text-gray-600">Primary contact person for system administration</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Login Email Notification -->
+                    <div class="md:col-span-2 bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                        <div class="flex items-start">
+                            <span class="mr-2">ℹ️</span>
+                            <div>
+                                <p class="text-sm font-medium text-blue-900 mb-1">Important Login Information</p>
+                                <p class="text-sm text-blue-700">This email address will serve as the <span class="font-semibold">primary username</span> for the main school administrator account to log into the LessonLink platform. Ensure it is accurate and regularly monitored.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Contact Person Name <span class="text-red-500">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                name="contact_person"
+                                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                                placeholder="Full name"
+                                required
+                            >
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Position/Title <span class="text-red-500">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                name="position"
+                                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                                placeholder="Principal, Registrar, etc."
+                                required
+                            >
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Contact Email <span class="text-red-500">*</span>
+                            </label>
+                            <input 
+                                type="email" 
+                                name="contact_email"
+                                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                                placeholder="contact@school.edu.ph"
+                                required
+                            >
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Contact Phone <span class="text-red-500">*</span>
+                            </label>
+                            <input 
+                                type="tel" 
+                                name="contact_phone"
+                                class="input-field w-full px-4 py-3 rounded-md text-sm"
+                                placeholder="+63 XXX XXX XXXX"
+                                required
+                            >
+                        </div>
+                    </div>
+                </section>
 
                 <!-- Terms and Conditions -->
-<section class="p-8">
-    <div class="space-y-4">
-        <div class="flex items-start space-x-3">
-            <input 
-                type="checkbox" 
-                id="accuracy" 
-                name="accuracy" 
-                class="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" 
-                required
-            >
-            <label for="accuracy" class="text-sm text-gray-700">
-                I certify that all information provided is accurate and complete. I understand that false information may result in account suspension.
-            </label>
-        </div>
-        
-        <div class="flex items-start space-x-3">
-            <input 
-                type="checkbox" 
-                id="terms" 
-                name="terms" 
-                class="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" 
-                required
-            >
-            <label for="terms" class="text-sm text-gray-700">
-                I agree to the 
-                <a href="#" class="text-blue-600 underline hover:text-blue-800">Terms of Service</a> and 
-                <a href="#" class="text-blue-600 underline hover:text-blue-800">Privacy Policy</a>. 
-                I consent to data processing for platform administration purposes.
-            </label>
-        </div>
-        
-        <div class="flex items-start space-x-3">
-            <input 
-                type="checkbox" 
-                id="communications" 
-                name="communications"
-                class="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            >
-            <label for="communications" class="text-sm text-gray-700">
-                I would like to receive updates about platform features and educational resources via email.
-            </label>
-        </div>
-    </div>
-</section>
+                <section class="p-8">
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-3">
+                            <input 
+                                type="checkbox" 
+                                id="accuracy" 
+                                name="accuracy" 
+                                class="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            >
+                            <label for="accuracy" class="text-sm text-gray-700">
+                                I certify that all information provided is accurate and complete. I understand that false information may result in account suspension.
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <input 
+                                type="checkbox" 
+                                id="terms" 
+                                name="terms" 
+                                class="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            >
+                            <label for="terms" class="text-sm text-gray-700">
+                                I agree to the 
+                                <a href="#" class="text-blue-600 underline hover:text-blue-800">Terms of Service</a> and 
+                                <a href="#" class="text-blue-600 underline hover:text-blue-800">Privacy Policy</a>. 
+                                I consent to data processing for platform administration purposes.
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <input 
+                                type="checkbox" 
+                                id="communications" 
+                                name="communications"
+                                class="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            >
+                            <label for="communications" class="text-sm text-gray-700">
+                                I would like to receive updates about platform features and educational resources via email.
+                            </label>
+                        </div>
+                    </div>
+                </section>
 
-<div class="bg-gray-50 px-8 py-6 rounded-b-lg">
-    <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-        <div class="flex items-center text-sm text-gray-600">
-            <i data-lucide="shield" class="w-4 h-4 mr-2"></i>
-            SSL-encrypted secure submission
-        </div>
-        
-        <div class="flex space-x-4">
-            <button 
-                type="button"
-                onclick="handleSubmitClick(event)"
-                class="px-8 py-3 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center transition-colors"
-            >
-                Submit Registration
-                <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
-            </button>
-        </div>
-    </div>
-</div>
-</form>
+                <div class="bg-gray-50 px-8 py-6 rounded-b-lg">
+                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <span class="mr-2">🔒</span>
+                            SSL-encrypted secure submission
+                        </div>
+                        
+                        <div class="flex space-x-4">
+                            <!-- CORRECTED: Using type="submit" for Django -->
+                            <button 
+                                type="submit"
+                                onclick="handleSubmitClick(event)"
+                                class="px-8 py-3 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center transition-colors"
+                            >
+                                Submit Registration
+                                <span class="ml-2">→</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
 
         <!-- Support Information -->
@@ -470,15 +630,15 @@
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Need Assistance?</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <a href="#" class="flex items-center justify-center text-blue-600 hover:text-blue-800">
-                        <i data-lucide="mail" class="w-4 h-4 mr-2"></i>
+                        <span class="mr-2">📧</span>
                         lessonlink69@gmail.com
                     </a>
                     <a href="#" class="flex items-center justify-center text-blue-600 hover:text-blue-800">
-                        <i data-lucide="phone" class="w-4 h-4 mr-2"></i>
+                        <span class="mr-2">📞</span>
                         +63 953 866 7613
                     </a>
                     <a href="#" class="flex items-center justify-center text-blue-600 hover:text-blue-800">
-                        <i data-lucide="help-circle" class="w-4 h-4 mr-2"></i>
+                        <span class="mr-2">❓</span>
                         Help Center
                     </a>
                 </div>
@@ -491,7 +651,7 @@
         <div class="password-popup">
             <div class="text-center mb-6">
                 <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-4">
-                    <i data-lucide="lock" class="w-6 h-6 text-blue-600"></i>
+                    <span class="text-blue-600 text-xl">🔒</span>
                 </div>
                 <h3 class="text-xl font-semibold text-gray-900 mb-2">Enter Password</h3>
                 <p class="text-sm text-gray-600">Create a secure password for your school account</p>
@@ -548,7 +708,19 @@
     </div>
 
     <script>
-        lucide.createIcons();
+        // Initialize Lucide safely
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined') {
+                try {
+                    lucide.createIcons();
+                    console.log('Lucide icons initialized');
+                } catch (e) {
+                    console.log('Using fallback icons instead of Lucide');
+                }
+            } else {
+                console.log('Lucide not available, using emoji fallbacks');
+            }
+        });
         
         let currentActiveSection = 1;
         const totalSections = 5;
@@ -637,11 +809,14 @@
                 }
             });
 
-            const requiredCheckboxes = ['accuracy', 'terms'];
-            requiredCheckboxes.forEach(id => {
-                const checkbox = document.getElementById(id);
-                if (!checkbox.checked) isValid = false;
-            });
+            // Check required checkboxes
+            const accuracyCheckbox = document.getElementById('accuracy');
+            const termsCheckbox = document.getElementById('terms');
+            
+            if (!accuracyCheckbox.checked || !termsCheckbox.checked) {
+                isValid = false;
+                showAlert('Please accept all required terms and conditions.', 'error');
+            }
 
             if (isValid) {
                 showPasswordPopup();
@@ -651,11 +826,7 @@
                     setTimeout(() => firstInvalidField.focus(), 500);
                 }
 
-                if (!document.getElementById('accuracy').checked || !document.getElementById('terms').checked) {
-                    showAlert('Please accept all required terms and conditions.', 'error');
-                } else {
-                    showAlert(`Please complete all required fields. ${invalidFields.length} field(s) need attention.`, 'error');
-                }
+                showAlert(`Please complete all required fields. ${invalidFields.length} field(s) need attention.`, 'error');
 
                 setTimeout(() => {
                     invalidFields.forEach(field => {
@@ -704,10 +875,15 @@
                 return;
             }
 
+            // Set the password in the hidden field
             document.getElementById('formPassword').value = password;
 
             closePasswordPopup();
 
+            showAlert('Registration submitted successfully!', 'success');
+            
+            // Actually submit the form to Django
+            console.log("DEBUG: Submitting form with password to Django");
             document.getElementById('registrationForm').submit();
         }
 
@@ -738,18 +914,23 @@
                            'bg-blue-50 border-blue-200 text-blue-800';
             
             alertDiv.className = `fixed top-4 right-4 ${bgColor} border rounded-lg px-4 py-3 shadow-lg z-50 max-w-md`;
+            
+            // Use simple emoji icons instead of Lucide
+            let icon = 'ℹ️';
+            if (type === 'success') icon = '✅';
+            if (type === 'error') icon = '❌';
+            
             alertDiv.innerHTML = `
                 <div class="flex items-center">
-                    <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-4 h-4 mr-2"></i>
+                    <span class="mr-2">${icon}</span>
                     <p class="text-sm font-medium">${message}</p>
-                    <button onclick="this.parentElement.parentElement.remove()" class="ml-3">
-                        <i data-lucide="x" class="w-4 h-4"></i>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-gray-500 hover:text-gray-700">
+                        <span class="text-lg">&times;</span>
                     </button>
                 </div>
             `;
             
             document.body.appendChild(alertDiv);
-            lucide.createIcons();
             
             setTimeout(() => {
                 if (alertDiv.parentElement) {
@@ -758,13 +939,117 @@
             }, 5000);
         }
         
+        // Region-Province Dynamic Filtering
+        function setupRegionProvinceFiltering() {
+            const regionSelect = document.getElementById('regionSelect');
+            const provinceSelect = document.getElementById('provinceSelect');
+            
+            // Initialize province select as enabled
+            provinceSelect.disabled = false;
+            
+            regionSelect.addEventListener('change', function() {
+                const selectedRegion = this.value;
+                const provinceOptions = provinceSelect.querySelectorAll('option');
+                
+                // Reset province select
+                provinceSelect.value = '';
+                
+                // Show/hide province options based on selected region
+                provinceOptions.forEach(option => {
+                    if (option.value === '') {
+                        option.style.display = 'block';
+                        return;
+                    }
+                    
+                    const regionData = option.getAttribute('data-region');
+                    if (!selectedRegion) {
+                        option.style.display = 'block';
+                    } else if (regionData && selectedRegion.includes(regionData.split(' - ')[0])) {
+                        option.style.display = 'block';
+                    } else {
+                        option.style.display = 'none';
+                    }
+                });
+                
+                // Update placeholder
+                if (selectedRegion) {
+                    const firstOption = provinceSelect.querySelector('option[value=""]');
+                    firstOption.textContent = `Select province in ${selectedRegion.split(' - ')[0]}`;
+                }
+            });
+        }
+        
+        // Simple Logo Upload Functions
+        function handleLogoFileSelect(input) {
+            if (input.files && input.files[0]) {
+                handleLogoFile(input.files[0]);
+            }
+        }
+        
+        function handleLogoFile(file) {
+            // Check file size (max 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                showAlert('File size must be less than 2MB', 'error');
+                document.getElementById('logoUpload').value = '';
+                return;
+            }
+            
+            // Check file type
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                showAlert('Please upload a valid image file (JPG, PNG, GIF, WebP)', 'error');
+                document.getElementById('logoUpload').value = '';
+                return;
+            }
+            
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('logo-preview');
+                const previewContainer = document.getElementById('logo-preview-container');
+                const filename = document.getElementById('logo-filename');
+                const filesize = document.getElementById('logo-filesize');
+                
+                if (preview && previewContainer && filename && filesize) {
+                    preview.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                    filename.textContent = file.name;
+                    filesize.textContent = formatFileSize(file.size);
+                    
+                    showAlert('Logo uploaded successfully!', 'success');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function removeLogo() {
+            const logoUpload = document.getElementById('logoUpload');
+            const previewContainer = document.getElementById('logo-preview-container');
+            
+            logoUpload.value = '';
+            previewContainer.style.display = 'none';
+            showAlert('Logo removed', 'success');
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' bytes';
+            else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            else return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+        
+        function goBackToLogin() {
+            if (confirm('Are you sure you want to go back? Any unsaved data will be lost.')) {
+                window.location.href = '/login/';
+            }
+        }
+        
+        // Initialize everything when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize all components
             initializeSectionTracking();
+            setupRegionProvinceFiltering();
             
-            setTimeout(() => {
-                updateActiveSection(1);
-            }, 200);
-            
+            // Section number click handlers
             const sectionNumbers = document.querySelectorAll('.section-number');
             sectionNumbers.forEach((num, index) => {
                 num.style.cursor = 'pointer';
@@ -783,42 +1068,9 @@
                 });
             });
             
-            const uploadZones = document.querySelectorAll('.upload-zone');
-            
-            uploadZones.forEach(zone => {
-                const input = zone.querySelector('input[type="file"]');
-                
-                zone.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                    if (!zone.classList.contains('uploaded')) {
-                        zone.classList.add('dragover');
-                    }
-                });
-                
-                zone.addEventListener('dragleave', function(e) {
-                    e.preventDefault();
-                    if (!zone.contains(e.relatedTarget)) {
-                        zone.classList.remove('dragover');
-                    }
-                });
-                
-                zone.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    zone.classList.remove('dragover');
-                    
-                    if (zone.classList.contains('uploaded')) {
-                        return;
-                    }
-                    
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        input.files = files;
-                        const zoneId = zone.id.replace('-upload-zone', '');
-                        const docType = zoneId === 'cert' ? 'Certificate' : 'MOA';
-                        handleFileUpload(input, docType, zoneId);
-                    }
-                });
-            });
+            setTimeout(() => {
+                updateActiveSection(1);
+            }, 200);
         });
     </script>
 </body>

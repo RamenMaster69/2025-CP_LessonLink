@@ -4,6 +4,7 @@ from django.db import models
 from django.utils import timezone
 from django.core.validators import RegexValidator, EmailValidator
 from datetime import datetime, date, time
+import os
 
 
 class CustomUserManager(BaseUserManager):
@@ -127,9 +128,6 @@ class User(AbstractUser):
         parts.append(self.last_name)
         return ' '.join(parts).strip()
 
-
-        
-
     def clean(self):
         """Validate that supervising teacher is only set for Student Teachers"""
         from django.core.exceptions import ValidationError
@@ -161,8 +159,6 @@ class User(AbstractUser):
                 })
 
 
-
-
 class AdminLog(models.Model):
     ACTION_CHOICES = [
         ('user_created', 'User Created'),
@@ -176,11 +172,16 @@ class AdminLog(models.Model):
         ('school_admin_created', 'School Admin Created'), 
         ('school_admin_deactivated', 'School Admin Deactivated'),  
         ('school_admin_activated', 'School Admin Activated'),  
+        ('school_registered', 'School Registration Submitted'),
+        ('school_approved', 'School Registration Approved'),
+        ('school_rejected', 'School Registration Rejected'),
+        ('school_info_requested', 'School Additional Info Requested'),
     ]
     
     admin = models.ForeignKey(User, on_delete=models.CASCADE, related_name='admin_actions')
     action = models.CharField(max_length=50, choices=ACTION_CHOICES)
     target_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='admin_actions_against')
+    target_school = models.ForeignKey('SchoolRegistration', on_delete=models.SET_NULL, null=True, blank=True)
     description = models.TextField()
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -190,11 +191,6 @@ class AdminLog(models.Model):
     
     def __str__(self):
         return f"{self.admin.email} - {self.action} - {self.timestamp}"
-
-
-
-
-
 
 
 class StudentConcern(models.Model):
@@ -224,9 +220,6 @@ class StudentConcern(models.Model):
     
     def __str__(self):
         return f"{self.student.email} - {self.subject}"
-
-
-
 
 
 class SystemSettings(models.Model):
@@ -390,11 +383,7 @@ class SchoolRegistration(models.Model):
     ]
     
     REGION_CHOICES = [
-        ('Region IX - Zamboanga Peninsula', 'Region IX - Zamboanga Peninsula'),
-        ('BARMM', 'BARMM'),
-        # Add more regions as needed
-        ('NCR', 'National Capital Region'),
-        ('CAR', 'Cordillera Administrative Region'),
+        ('NCR - National Capital Region', 'NCR - National Capital Region'),
         ('Region I - Ilocos Region', 'Region I - Ilocos Region'),
         ('Region II - Cagayan Valley', 'Region II - Cagayan Valley'),
         ('Region III - Central Luzon', 'Region III - Central Luzon'),
@@ -404,10 +393,13 @@ class SchoolRegistration(models.Model):
         ('Region VI - Western Visayas', 'Region VI - Western Visayas'),
         ('Region VII - Central Visayas', 'Region VII - Central Visayas'),
         ('Region VIII - Eastern Visayas', 'Region VIII - Eastern Visayas'),
+        ('Region IX - Zamboanga Peninsula', 'Region IX - Zamboanga Peninsula'),
         ('Region X - Northern Mindanao', 'Region X - Northern Mindanao'),
         ('Region XI - Davao Region', 'Region XI - Davao Region'),
         ('Region XII - SOCCSKSARGEN', 'Region XII - SOCCSKSARGEN'),
         ('Region XIII - Caraga', 'Region XIII - Caraga'),
+        ('BARMM - Bangsamoro Autonomous Region in Muslim Mindanao', 'BARMM - Bangsamoro Autonomous Region in Muslim Mindanao'),
+        ('CAR - Cordillera Administrative Region', 'CAR - Cordillera Administrative Region'),
     ]
     
     # Institution Details
@@ -426,15 +418,34 @@ class SchoolRegistration(models.Model):
     
     year_established = models.PositiveIntegerField(
         verbose_name="Year Established",
-        help_text="Year the institution was established"
-    )
-
-    password = models.CharField(
-        max_length=128,
-        verbose_name="Admin Password",
-        help_text="Password for the school administrator account",
+        help_text="Year the institution was established",
         null=True,
         blank=True
+    )
+
+    # School Logo
+    school_logo = models.ImageField(
+        upload_to='school_logos/',
+        blank=True,
+        null=True,
+        verbose_name="School Logo",
+        help_text="Recommended: Square logo, JPG/PNG, max 2MB"
+    )
+    
+    logo_filename = models.CharField(
+        max_length=255, 
+        blank=True, 
+        null=True,
+        verbose_name="Original Logo Filename"
+    )
+
+    # For password hashing (admin password)
+    password_hash = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        verbose_name="Password Hash",
+        help_text="Hashed password for the school administrator account"
     )
     
     # Contact Information
@@ -572,6 +583,8 @@ class SchoolRegistration(models.Model):
             models.Index(fields=['status']),
             models.Index(fields=['created_at']),
             models.Index(fields=['school_id']),
+            models.Index(fields=['region']),
+            models.Index(fields=['contact_email']),
         ]
     
     def __str__(self):
@@ -582,21 +595,35 @@ class SchoolRegistration(models.Model):
         from django.core.exceptions import ValidationError
         from django.utils import timezone
         
+        # Required agreements
         if not self.accuracy:
             raise ValidationError({'accuracy': 'You must certify the accuracy of information provided.'})
         
         if not self.terms:
             raise ValidationError({'terms': 'You must agree to the Terms of Service and Privacy Policy.'})
         
+        # Year validation
         if self.year_established:
             current_year = timezone.now().year
             if self.year_established > current_year:
                 raise ValidationError({'year_established': 'Year established cannot be in the future.'})
             if self.year_established < 1800:
-                raise ValidationError({'year_established': 'Please enter a valid year.'})
+                raise ValidationError({'year_established': 'Please enter a valid year (after 1800).'})
+        
+        # Phone number validation (basic)
+        if self.phone_number and not self.phone_number.startswith('+63'):
+            raise ValidationError({'phone_number': 'Phone number should start with +63 for Philippines.'})
+        
+        if self.contact_phone and not self.contact_phone.startswith('+63'):
+            raise ValidationError({'contact_phone': 'Contact phone should start with +63 for Philippines.'})
     
     def save(self, *args, **kwargs):
         self.full_clean()
+        
+        # Save logo filename if logo exists
+        if self.school_logo and not self.logo_filename:
+            self.logo_filename = self.school_logo.name.split('/')[-1]
+        
         super().save(*args, **kwargs)
     
     @property
@@ -611,17 +638,34 @@ class SchoolRegistration(models.Model):
     def is_rejected(self):
         return self.status == 'rejected'
     
-    def approve_registration(self, processed_by_user=None):
-        self.status = 'approved'
+    @property
+    def is_needs_info(self):
+        return self.status == 'needs_info'
+    
+    @property
+    def days_since_registration(self):
+        """Return number of days since registration"""
         from django.utils import timezone
+        return (timezone.now() - self.created_at).days
+    
+    def get_school_admin_account(self):
+        """Get the school admin user account if it exists"""
+        try:
+            return User.objects.get(email=self.contact_email)
+        except User.DoesNotExist:
+            return None
+    
+    def approve_registration(self, processed_by_user=None):
+        """Approve the school registration"""
+        self.status = 'approved'
         self.processed_at = timezone.now()
         if processed_by_user:
             self.processed_by = processed_by_user
         self.save()
     
     def reject_registration(self, processed_by_user=None, reason=None):
+        """Reject the school registration"""
         self.status = 'rejected'
-        from django.utils import timezone
         self.processed_at = timezone.now()
         if processed_by_user:
             self.processed_by = processed_by_user
@@ -630,14 +674,57 @@ class SchoolRegistration(models.Model):
         self.save()
     
     def request_additional_info(self, processed_by_user=None, notes=None):
+        """Mark registration as needing additional information"""
         self.status = 'needs_info'
-        from django.utils import timezone
         self.processed_at = timezone.now()
         if processed_by_user:
             self.processed_by = processed_by_user
         if notes:
             self.admin_notes = notes
         self.save()
+    
+    def create_school_admin_user(self, password):
+        """
+        Create a User account for the school admin
+        This should be called after approval
+        """
+        from django.contrib.auth.hashers import make_password
+        
+        # Create the user account
+        user = User.objects.create_user(
+            email=self.contact_email,
+            password=password,
+            first_name=self.contact_person.split()[0] if self.contact_person else '',
+            last_name=' '.join(self.contact_person.split()[1:]) if len(self.contact_person.split()) > 1 else '',
+            role='Admin',
+            rank=self.position,
+            department='Administration',
+            school=self,
+            is_active=True
+        )
+        
+        # Store password hash in school registration
+        self.password_hash = make_password(password)
+        self.save()
+        
+        # Create SchoolAdmin profile
+        SchoolAdmin.objects.create(
+            user=user,
+            school=self,
+            is_active=True,
+            created_by=processed_by_user if hasattr(self, 'processed_by') else None
+        )
+        
+        return user
+    
+    def delete(self, *args, **kwargs):
+        """Override delete to handle file cleanup"""
+        # Delete logo file if it exists
+        if self.school_logo:
+            if os.path.isfile(self.school_logo.path):
+                os.remove(self.school_logo.path)
+        
+        super().delete(*args, **kwargs)
 
 
 class SchoolAdmin(models.Model):
@@ -680,10 +767,6 @@ class SchoolAdmin(models.Model):
     @property
     def email(self):
         return self.user.email
-
-    @property
-    def username(self):
-        return self.user.username
 
     def deactivate(self):
         """Deactivate the school admin"""
@@ -761,6 +844,7 @@ class LessonPlanSubmission(models.Model):
         self.clean()
         super().save(*args, **kwargs)
 
+
 class Exemplar(models.Model):
     FILE_TYPES = [
         ('pdf', 'PDF'),
@@ -799,3 +883,55 @@ class Exemplar(models.Model):
             if os.path.isfile(self.file.path):
                 os.remove(self.file.path)
         super().delete(*args, **kwargs)
+
+
+class EmailTemplate(models.Model):
+    """Model for storing email templates for school registration"""
+    TEMPLATE_TYPES = [
+        ('registration_received', 'Registration Received'),
+        ('registration_approved', 'Registration Approved'),
+        ('registration_rejected', 'Registration Rejected'),
+        ('additional_info_requested', 'Additional Information Requested'),
+        ('welcome_school_admin', 'Welcome School Admin'),
+    ]
+    
+    template_type = models.CharField(max_length=50, choices=TEMPLATE_TYPES, unique=True)
+    subject = models.CharField(max_length=255)
+    body = models.TextField(help_text="Use {{school_name}}, {{contact_person}}, etc. as variables")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Email Template"
+        verbose_name_plural = "Email Templates"
+        ordering = ['template_type']
+    
+    def __str__(self):
+        return self.get_template_type_display()
+    
+    def render_template(self, context):
+        """Render the template with context variables"""
+        rendered_body = self.body
+        for key, value in context.items():
+            placeholder = f"{{{{{key}}}}}"
+            rendered_body = rendered_body.replace(placeholder, str(value))
+        return rendered_body
+
+
+class Province(models.Model):
+    """Model for Philippine provinces with region association"""
+    name = models.CharField(max_length=100, unique=True)
+    region = models.CharField(max_length=100, choices=SchoolRegistration.REGION_CHOICES)
+    region_code = models.CharField(max_length=10, blank=True, null=True)
+    
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Province"
+        verbose_name_plural = "Provinces"
+        indexes = [
+            models.Index(fields=['region']),
+        ]
+    
+    def __str__(self):
+        return f"{self.name} ({self.region})"

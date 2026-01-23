@@ -21,13 +21,10 @@ import logging
 from PIL import Image
 import uuid
 from io import BytesIO
-# Add these imports at the top
 from django.utils import timezone
-from .models import LessonPlanSubmission
+from .models import LessonPlanSubmission, User, Schedule, Task, TaskNotification, SchoolRegistration, AdminLog, Exemplar, StudentConcern
 from lessonGenerator.models import LessonPlan
-from django.shortcuts import redirect
-from .models import User, Schedule, Task, TaskNotification, SchoolRegistration
-from .serializers import ScheduleSerializer
+from .serializers import ScheduleSerializer, ExemplarSerializer
 from django.db.models import Q
 from django.contrib.auth.decorators import user_passes_test 
 import csv
@@ -38,60 +35,145 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 import io
-from .models import AdminLog, SystemSettings
 from .forms import SchoolAdminRegistrationForm
 logger = logging.getLogger(__name__)
 from lessonlinkNotif.models import Notification
 from django.http import HttpResponseForbidden
 from functools import wraps
-from django.conf import settings
-from django.core.files.storage import default_storage
 import PyPDF2
 from docx import Document
-from django.core.files.base import ContentFile
-from django.views.decorators.http import require_http_methods
-from .models import Exemplar
-from .serializers import ExemplarSerializer
 import mammoth
 import tempfile
-from .models import StudentConcern  
-
+from django.views.decorators.http import require_POST, require_http_methods
 
 # School Registration Views
-
 from django.contrib.auth.hashers import make_password
-
-
-def restrict_user(usernames):
-    """
-    Decorator to restrict specific users from accessing views
-    Usage: @restrict_user(['dep_dash', 'other_user'])
-    """
-    def decorator(view_func):
-        @wraps(view_func)
-        def _wrapped_view(request, *args, **kwargs):
-            if request.user.username in usernames:
-                return HttpResponseForbidden("Access denied. You are not authorized to view this page.")
-            return view_func(request, *args, **kwargs)
-        return _wrapped_view
-    return decorator
-
-
 
 def org_reg_1(request):
     """Handle school registration form - both GET and POST"""
     
+    print("\n" + "="*60)
+    print("DEBUG: org_reg_1 VIEW CALLED")
+    print(f"DEBUG: Request method: {request.method}")
+    print(f"DEBUG: Path: {request.path}")
+    print("="*60)
+    
     if request.method == 'GET':
-        return render(request, 'org_reg/org_reg_1.html')
+        print("DEBUG: GET request - rendering form")
+        # Prepare provinces and regions for template
+        regions = [
+            'NCR - National Capital Region',
+            'Region I - Ilocos Region',
+            'Region II - Cagayan Valley',
+            'Region III - Central Luzon',
+            'Region IV-A - CALABARZON',
+            'Region IV-B - MIMAROPA',
+            'Region V - Bicol Region',
+            'Region VI - Western Visayas',
+            'Region VII - Central Visayas',
+            'Region VIII - Eastern Visayas',
+            'Region IX - Zamboanga Peninsula',
+            'Region X - Northern Mindanao',
+            'Region XI - Davao Region',
+            'Region XII - SOCCSKSARGEN',
+            'Region XIII - Caraga',
+            'BARMM - Bangsamoro Autonomous Region in Muslim Mindanao',
+            'CAR - Cordillera Administrative Region',
+        ]
+        
+        # Prepare provinces by region for JavaScript filtering
+        provinces_by_region = {
+            'NCR - National Capital Region': [
+                'Caloocan (NCR)', 'Las Piñas (NCR)', 'Makati (NCR)', 'Malabon (NCR)', 'Mandaluyong (NCR)',
+                'Manila (NCR)', 'Marikina (NCR)', 'Muntinlupa (NCR)', 'Navotas (NCR)', 'Parañaque (NCR)',
+                'Pasay (NCR)', 'Pasig (NCR)', 'Quezon City (NCR)', 'San Juan (NCR)', 'Taguig (NCR)', 
+                'Valenzuela (NCR)', 'Pateros (NCR)'
+            ],
+            'Region I - Ilocos Region': [
+                'Ilocos Norte', 'Ilocos Sur', 'La Union', 'Pangasinan'
+            ],
+            'CAR - Cordillera Administrative Region': [
+                'Abra', 'Apayao', 'Benguet', 'Ifugao', 'Kalinga', 'Mountain Province'
+            ],
+            'Region II - Cagayan Valley': [
+                'Batanes', 'Cagayan', 'Isabela', 'Nueva Vizcaya', 'Quirino'
+            ],
+            'Region III - Central Luzon': [
+                'Aurora', 'Bataan', 'Bulacan', 'Nueva Ecija', 'Pampanga',
+                'Tarlac', 'Zambales'
+            ],
+            'Region IV-A - CALABARZON': [
+                'Batangas', 'Cavite', 'Laguna', 'Quezon', 'Rizal'
+            ],
+            'Region IV-B - MIMAROPA': [
+                'Marinduque', 'Occidental Mindoro', 'Oriental Mindoro',
+                'Palawan', 'Romblon'
+            ],
+            'Region V - Bicol Region': [
+                'Albay', 'Camarines Norte', 'Camarines Sur', 'Catanduanes',
+                'Masbate', 'Sorsogon'
+            ],
+            'Region VI - Western Visayas': [
+                'Aklan', 'Antique', 'Capiz', 'Guimaras', 'Iloilo', 'Negros Occidental'
+            ],
+            'Region VII - Central Visayas': [
+                'Bohol', 'Cebu', 'Negros Oriental', 'Siquijor'
+            ],
+            'Region VIII - Eastern Visayas': [
+                'Biliran', 'Eastern Samar', 'Leyte', 'Northern Samar', 'Samar', 'Southern Leyte'
+            ],
+            'Region IX - Zamboanga Peninsula': [
+                'Zamboanga del Norte', 'Zamboanga del Sur', 'Zamboanga Sibugay'
+            ],
+            'Region X - Northern Mindanao': [
+                'Bukidnon', 'Camiguin', 'Lanao del Norte', 'Misamis Occidental', 'Misamis Oriental'
+            ],
+            'Region XI - Davao Region': [
+                'Davao de Oro', 'Davao del Norte', 'Davao del Sur', 'Davao Occidental', 'Davao Oriental'
+            ],
+            'Region XII - SOCCSKSARGEN': [
+                'Cotabato', 'Sarangani', 'South Cotabato', 'Sultan Kudarat'
+            ],
+            'Region XIII - Caraga': [
+                'Agusan del Norte', 'Agusan del Sur', 'Dinagat Islands', 'Surigao del Norte', 'Surigao del Sur'
+            ],
+            'BARMM - Bangsamoro Autonomous Region in Muslim Mindanao': [
+                'Basilan', 'Lanao del Sur', 'Maguindanao del Norte', 'Maguindanao del Sur', 'Sulu', 'Tawi-Tawi'
+            ],
+        }
+        
+        context = {
+            'regions_json': json.dumps(list(provinces_by_region.keys())),
+            'provinces_by_region_json': json.dumps(provinces_by_region),
+            'all_provinces_json': json.dumps([prov for region_provinces in provinces_by_region.values() for prov in region_provinces]),
+        }
+        return render(request, 'org_reg/org_reg_1.html', context)
     
     elif request.method == 'POST':
-        print("=== 🚀 FORM SUBMISSION DEBUG ===")
-        print("📦 All POST data:", dict(request.POST))
-        print("🔑 Password received:", request.POST.get('password'))
-        print("📋 All POST keys:", list(request.POST.keys()))
-        print("================================")
+        print("\n" + "="*60)
+        print("DEBUG: POST REQUEST RECEIVED!")
+        print("="*60)
+        
+        # DEBUG: Check if form is actually submitting
+        print("🔍 CHECKING FORM DATA:")
+        print(f"  CSRF token present: {'csrfmiddlewaretoken' in request.POST}")
+        print(f"  Password field in POST: {'password' in request.POST}")
+        print(f"  Password value: {request.POST.get('password')}")
+        
+        # List all POST data for debugging
+        print("\n📦 ALL POST DATA KEYS:")
+        for key in request.POST.keys():
+            value = request.POST.get(key)
+            print(f"  {key}: {value}")
+        
+        # List all FILES data for debugging
+        print("\n📁 ALL FILES DATA:")
+        for key in request.FILES.keys():
+            file = request.FILES[key]
+            print(f"  {key}: {file.name} ({file.size} bytes)")
+        
         try:
-            # Extract form data - ADD PASSWORD
+            # Extract form data
             form_data = {
                 'school_name': request.POST.get('school_name', '').strip(),
                 'school_id': request.POST.get('school_id', '').strip(),
@@ -107,23 +189,23 @@ def org_reg_1(request):
                 'position': request.POST.get('position', '').strip(),
                 'contact_email': request.POST.get('contact_email', '').strip(),
                 'contact_phone': request.POST.get('contact_phone', '').strip(),
-                'password': request.POST.get('password', '').strip(),  # ADD THIS
+                'password': request.POST.get('password', '').strip(),
                 'accuracy': request.POST.get('accuracy') == 'on',
                 'terms': request.POST.get('terms') == 'on',
                 'communications': request.POST.get('communications') == 'on',
             }
 
             # Debug the extracted data
-            print("=== 📊 EXTRACTED FORM DATA ===")
+            print("\n📊 EXTRACTED FORM DATA:")
             for key, value in form_data.items():
-                print(f"{key}: {value}")
-            print("==============================")
+                print(f"  {key}: {value}")
+            print("="*60)
             
-            # Validate required fields - ADD PASSWORD
+            # Validate required fields
             required_fields = [
                 'school_name', 'school_id', 'address', 'province', 'region',
                 'phone_number', 'email', 'contact_person', 'position',
-                'contact_email', 'contact_phone', 'password'  # ADD PASSWORD
+                'contact_email', 'contact_phone', 'password'
             ]
             
             missing_fields = []
@@ -132,30 +214,58 @@ def org_reg_1(request):
                     missing_fields.append(field.replace('_', ' ').title())
             
             if missing_fields:
+                print(f"❌ MISSING FIELDS: {missing_fields}")
                 messages.error(request, f"Please complete the following required fields: {', '.join(missing_fields)}")
                 return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
             
             # Validate password strength
             password = form_data['password']
             if len(password) < 8:
+                print(f"❌ PASSWORD TOO SHORT: {len(password)} chars")
                 messages.error(request, "Password must be at least 8 characters long.")
                 return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
             
             # Check if school_id already exists
             if SchoolRegistration.objects.filter(school_id=form_data['school_id']).exists():
+                print(f"❌ SCHOOL ID ALREADY EXISTS: {form_data['school_id']}")
                 messages.error(request, f"A school with ID '{form_data['school_id']}' is already registered.")
                 return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
             
             # Check if email already exists in User model
             if User.objects.filter(email=form_data['contact_email']).exists():
+                print(f"❌ USER EMAIL ALREADY EXISTS: {form_data['contact_email']}")
                 messages.error(request, f"An account with email '{form_data['contact_email']}' already exists.")
                 return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
             
-            # Create the school registration record first WITH HASHED PASSWORD
-            school_registration = SchoolRegistration.objects.create(
+            # Handle file upload for school logo
+            school_logo = None
+            if 'school_logo' in request.FILES:
+                logo_file = request.FILES['school_logo']
+                print(f"📸 LOGO FILE DETECTED: {logo_file.name} ({logo_file.size} bytes)")
+                
+                # Validate file type
+                allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+                if logo_file.content_type not in allowed_types:
+                    print(f"❌ INVALID LOGO TYPE: {logo_file.content_type}")
+                    messages.error(request, "Invalid logo file type. Please upload JPG, PNG, GIF, or WebP.")
+                    return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
+                
+                # Validate file size (max 2MB)
+                if logo_file.size > 2 * 1024 * 1024:
+                    print(f"❌ LOGO TOO LARGE: {logo_file.size} bytes")
+                    messages.error(request, "Logo file is too large. Maximum size is 2MB.")
+                    return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
+                
+                school_logo = logo_file
+                print("✅ LOGO VALIDATION PASSED")
+            
+            print("\n🏫 ATTEMPTING TO CREATE SCHOOL REGISTRATION...")
+            
+            # Create the school registration record
+            school_registration = SchoolRegistration(
                 school_name=form_data['school_name'],
                 school_id=form_data['school_id'],
-                year_established=form_data['year_established'],
+                year_established=form_data['year_established'] or None,
                 address=form_data['address'],
                 province=form_data['province'],
                 region=form_data['region'],
@@ -167,55 +277,145 @@ def org_reg_1(request):
                 position=form_data['position'],
                 contact_email=form_data['contact_email'],
                 contact_phone=form_data['contact_phone'],
-                password=make_password(form_data['password']),  # HASH THE PASSWORD
+                password_hash=make_password(form_data['password']),  # Store hashed password
                 accuracy=form_data['accuracy'],
                 terms=form_data['terms'],
                 communications=form_data['communications'],
                 status='pending'
             )
             
-            # Create a user account for the school admin
+            print("✅ SCHOOL REGISTRATION OBJECT CREATED")
+            print(f"  School Name: {school_registration.school_name}")
+            print(f"  School ID: {school_registration.school_id}")
+            print(f"  Contact Email: {school_registration.contact_email}")
+            
+            try:
+                # Save the school registration first
+                print("💾 ATTEMPTING TO SAVE TO DATABASE...")
+                school_registration.save()
+                print(f"✅ SCHOOL REGISTRATION SAVED! ID: {school_registration.id}")
+                print(f"✅ Database entry created at: {school_registration.created_at}")
+                
+            except Exception as save_error:
+                print(f"❌ DATABASE SAVE ERROR: {str(save_error)}")
+                print(f"❌ Error type: {type(save_error)}")
+                import traceback
+                print(f"❌ Traceback:\n{traceback.format_exc()}")
+                messages.error(request, f"Database error: {str(save_error)}")
+                return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
+            
+            # Handle logo upload after saving
+            if school_logo:
+                print("🖼️ PROCESSING LOGO UPLOAD...")
+                try:
+                    # Generate unique filename
+                    import time
+                    timestamp = int(time.time())
+                    file_extension = logo_file.name.split('.')[-1].lower()
+                    filename = f"school_logos/{school_registration.school_id}_{timestamp}.{file_extension}"
+                    
+                    # Save the file
+                    path = default_storage.save(filename, logo_file)
+                    school_registration.school_logo = path
+                    school_registration.logo_filename = logo_file.name
+                    school_registration.save()
+                    print(f"✅ LOGO SAVED: {path}")
+                except Exception as logo_error:
+                    print(f"⚠️ LOGO UPLOAD ERROR (continuing anyway): {str(logo_error)}")
+            
+            # Create a user account for the school admin (inactive until approved)
+            print("\n👤 CREATING USER ACCOUNT...")
             try:
                 # Split contact person name into first and last name
                 name_parts = form_data['contact_person'].split(' ', 1)
                 first_name = name_parts[0]
                 last_name = name_parts[1] if len(name_parts) > 1 else "Admin"
                 
-                # In org_reg_1 view - Update user creation
+                print(f"  First Name: {first_name}")
+                print(f"  Last Name: {last_name}")
+                print(f"  Email: {form_data['contact_email']}")
+                print(f"  Password provided: {'Yes' if form_data['password'] else 'No'}")
+                
+                # Create user account but keep it inactive until school is approved
                 user = User.objects.create_user(
                     email=form_data['contact_email'],
-                    password=form_data['password'],
+                    password=form_data['password'],  # Raw password for initial login
                     first_name=first_name,
                     last_name=last_name,
-                    role='Admin',  # Changed from 'Department Head' to 'Admin'
+                    role='Admin',
                     rank=form_data['position'],
                     department='Administration',
-                    school=school_registration
+                    school=school_registration,
+                    is_active=False  # Inactive until school is approved
                 )
+                
+                print(f"✅ USER ACCOUNT CREATED! ID: {user.id}")
                 
                 # Log both creations
                 logger.info(f"New school registration: {school_registration.school_name} ({school_registration.school_id})")
                 logger.info(f"Created user account: {user.email} for school {school_registration.school_name}")
                 
             except Exception as user_error:
+                print(f"❌ USER CREATION ERROR: {str(user_error)}")
+                import traceback
+                print(f"❌ Traceback:\n{traceback.format_exc()}")
+                
                 # If user creation fails, delete the school registration and show error
-                school_registration.delete()
-                logger.error(f"Failed to create user account: {str(user_error)}")
-                messages.error(request, "Failed to create user account. Please try again.")
+                try:
+                    school_registration.delete()
+                    print("⚠️ Deleted school registration due to user creation failure")
+                except:
+                    pass
+                    
+                messages.error(request, f"Failed to create user account: {str(user_error)}")
                 return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
+            
+            # Final success check
+            print("\n" + "="*60)
+            print("✅✅✅ REGISTRATION SUCCESSFUL! ✅✅✅")
+            print(f"  School: {school_registration.school_name}")
+            print(f"  School ID: {school_registration.school_id}")
+            print(f"  Admin Email: {school_registration.contact_email}")
+            print(f"  Registration ID: {school_registration.id}")
+            print(f"  Created at: {school_registration.created_at}")
+            print("="*60)
+            
+            # Verify it's actually in the database
+            try:
+                db_check = SchoolRegistration.objects.get(id=school_registration.id)
+                print(f"✅ DATABASE VERIFICATION: Found school with ID {db_check.id}")
+            except SchoolRegistration.DoesNotExist:
+                print("❌ DATABASE VERIFICATION FAILED: School not found in database!")
+            except Exception as db_error:
+                print(f"❌ DATABASE VERIFICATION ERROR: {str(db_error)}")
             
             # Success message
             messages.success(
                 request, 
-                f"Registration submitted successfully! "
-                f"Your application for {school_registration.school_name} has been received. "
-                f"A temporary admin account has been created with email: {school_registration.contact_email}. "
-                f"You will be contacted once your registration is reviewed."
+                f"""🎉 Registration submitted successfully! 
+                
+                Your application for **{school_registration.school_name}** has been received and is pending review.
+                
+                📧 **Admin Account Created:**
+                - Username/Email: {school_registration.contact_email}
+                - Password: The password you created
+                
+                ⏳ **What happens next:**
+                1. Our team will review your registration within 3-5 business days
+                2. You'll receive an email notification once approved
+                3. Your admin account will be activated automatically
+                
+                📞 **Need help?**
+                - Email: lessonlink69@gmail.com
+                - Phone: +63 953 866 7613
+                
+                Thank you for choosing LessonLink!"""
             )
             
             return redirect('landing')
             
         except ValidationError as e:
+            print(f"❌ VALIDATION ERROR: {str(e)}")
             # Handle model validation errors
             error_messages = []
             if hasattr(e, 'message_dict'):
@@ -231,13 +431,20 @@ def org_reg_1(request):
             return render(request, 'org_reg/org_reg_1.html', {'form_data': request.POST})
         
         except Exception as e:
+            print(f"❌ UNEXPECTED ERROR: {str(e)}")
+            import traceback
+            print(f"❌ Traceback:\n{traceback.format_exc()}")
+            
             # Handle unexpected errors
             logger.error(f"Error processing school registration: {str(e)}")
-            messages.error(request, "An unexpected error occurred. Please try again or contact support.")
+            messages.error(request, f"An unexpected error occurred: {str(e)}")
             return render(request, 'org_reg/org_reg_1.html', {'form_data': request.POST})
 
 
+
 # AJAX endpoint for real-time school ID validation
+@csrf_exempt
+@require_POST
 def validate_school_id_ajax(request):
     """AJAX endpoint to validate school ID availability"""
     school_id = request.POST.get('school_id', '').strip()
@@ -258,11 +465,9 @@ def validate_school_id_ajax(request):
         'message': 'School ID is available'
     })
 
+
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
-
-
-
 def get_teachers_by_department(request):
     """API endpoint to get teachers by school and department"""
     school_id = request.GET.get('school')
@@ -287,37 +492,10 @@ def get_teachers_by_department(request):
         return JsonResponse({'teachers': []})
 
 
-# def admin_get_calendar_activities(request):
-#     """API endpoint to get calendar activities"""
-#     # For now, return empty array - you can replace with database logic later
-#     activities = []
-#     return JsonResponse(activities, safe=False)
+# Rest of your views remain the same...
+# Only showing the school registration related views above
+# The rest of your views (login, dashboard, etc.) should remain as they were
 
-# def admin_add_calendar_activity(request):
-#     """API endpoint to add calendar activity"""
-#     if request.method == 'POST':
-#         try:
-#             data = json.loads(request.body)
-#             # For now, just return a success response
-#             # You can add database saving logic here later
-#             return JsonResponse({'success': True, 'id': 1})
-#         except Exception as e:
-#             return JsonResponse({'success': False, 'error': str(e)}, status=400)
-#     return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
-
-# def admin_delete_calendar_activity(request, activity_id):
-#     """API endpoint to delete calendar activity"""
-#     if request.method == 'DELETE':
-#         try:
-#             # For now, just return success
-#             # You can add database deletion logic here later
-#             return JsonResponse({'success': True})
-#         except Exception as e:
-#             return JsonResponse({'success': False, 'error': str(e)}, status=400)
-#     return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
-
-
-# User Registration and Authentication Views
 @login_required
 def upload_profile_picture(request):
     """Handle profile picture upload via AJAX"""
@@ -1053,14 +1231,14 @@ def try_school_admin_login(email, password):
         if school_reg:
             # Check password directly (since SchoolRegistration stores hashed password)
             from django.contrib.auth.hashers import check_password
-            if check_password(password, school_reg.password):
+            if check_password(password, school_reg.password_hash):
                 # Find or create user account for this school admin
                 user, created = User.objects.get_or_create(
                     email=school_reg.contact_email,  # Use contact_email as primary email
                     defaults={
                         'first_name': school_reg.contact_person.split(' ', 1)[0] if ' ' in school_reg.contact_person else school_reg.contact_person,
                         'last_name': school_reg.contact_person.split(' ', 1)[1] if ' ' in school_reg.contact_person else 'Admin',
-                        'role': 'Department Head',
+                        'role': 'Admin',
                         'rank': school_reg.position,
                         'department': 'Administration',
                         'school': school_reg,
@@ -1120,7 +1298,7 @@ def try_school_admin_login(email, password):
         if school_reg:
             # Check password directly
             from django.contrib.auth.hashers import check_password
-            if check_password(password, school_reg.password):
+            if check_password(password, school_reg.password_hash):
                 # Find or create user account
                 user = User.objects.filter(
                     Q(email=school_reg.contact_email) | Q(school=school_reg),
@@ -1141,7 +1319,7 @@ def try_school_admin_login(email, password):
                         password=password,
                         first_name=first_name,
                         last_name=last_name,
-                        role='Department Head',
+                        role='Admin',
                         rank=school_reg.position,
                         department='Administration',
                         school=school_reg,
@@ -1505,12 +1683,25 @@ def approve_school(request, school_id):
         try:
             school = get_object_or_404(SchoolRegistration, id=school_id)
             school.status = 'approved'
+            school.processed_at = timezone.now()
+            school.processed_by = request.user
             school.save()
+            
+            # Activate the school admin user
+            admin_user = User.objects.filter(
+                email=school.contact_email,
+                school=school
+            ).first()
+            
+            if admin_user:
+                admin_user.is_active = True
+                admin_user.save()
             
             # Log the action
             AdminLog.objects.create(
                 admin=request.user,
                 action='school_approved',
+                target_school=school,
                 description=f"Approved school: {school.school_name} (ID: {school.school_id})",
                 ip_address=get_client_ip(request)
             )
@@ -1531,14 +1722,20 @@ def reject_school(request, school_id):
     if request.method == 'POST':
         try:
             school = get_object_or_404(SchoolRegistration, id=school_id)
+            reason = request.POST.get('reason', 'No reason provided')
+            
             school.status = 'rejected'
+            school.admin_notes = reason
+            school.processed_at = timezone.now()
+            school.processed_by = request.user
             school.save()
             
             # Log the action
             AdminLog.objects.create(
                 admin=request.user,
                 action='school_rejected',
-                description=f"Rejected school: {school.school_name} (ID: {school.school_id})",
+                target_school=school,
+                description=f"Rejected school: {school.school_name} (ID: {school.school_id}). Reason: {reason}",
                 ip_address=get_client_ip(request)
             )
             
@@ -1560,10 +1757,14 @@ def super_user_school_detail(request, school_id):
     # Get users associated with this school
     school_users = User.objects.filter(school=school).order_by('role', 'last_name')
     
+    # Get admin actions related to this school
+    admin_logs = AdminLog.objects.filter(target_school=school).order_by('-timestamp')[:10]
+    
     context = {
         'school': school,
         'school_users': school_users,
         'users_count': school_users.count(),
+        'admin_logs': admin_logs,
     }
     
     return render(request, 'super_user_school_detail.html', context)
@@ -2133,8 +2334,6 @@ def admin_dashboard(request):
     
     return render(request, 'admin_dashboard.html', context)
 
-
-# def system_admin()
 
 # Task API Views
 @csrf_exempt
@@ -3318,4 +3517,3 @@ def review_student_lesson_plan(request, submission_id):
         return redirect('supervising_teacher_reviews')
     
     return redirect('dashboard')
-
