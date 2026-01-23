@@ -840,3 +840,34 @@ def intelligence_type_analytics(request):
         'subject_intelligence': subject_intelligence,
         'department_name': request.user.department if hasattr(request.user, 'department') else 'Your Department'
     })
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def delete_draft(request, draft_id):
+    """Delete a lesson draft"""
+    try:
+        draft = get_object_or_404(LessonPlan, id=draft_id, created_by=request.user)
+        
+        # Check if there are any submissions (optional: you might want to prevent deletion if submitted)
+        submissions = LessonPlanSubmission.objects.filter(lesson_plan=draft)
+        
+        # Delete the draft
+        draft.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Lesson plan deleted successfully!'
+        })
+        
+    except LessonPlan.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Lesson plan not found or you do not have permission to delete it.'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Error deleting lesson plan: {str(e)}'
+        }, status=500)
+        
