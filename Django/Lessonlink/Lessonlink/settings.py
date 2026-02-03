@@ -42,7 +42,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',  # ✅ Move this BEFORE AutoLogoutMiddleware
-    'lesson.middleware.AutoLogoutMiddleware',  # ✅ Your middleware should come AFTER MessageMiddleware
+    # 'lesson.middleware.AutoLogoutMiddleware',  # ✅ Your middleware should come AFTER MessageMiddleware
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # ✅ REMOVED duplicate MessageMiddleware
 ]

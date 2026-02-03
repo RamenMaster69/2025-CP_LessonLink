@@ -8,6 +8,7 @@ class AutoLogoutMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        # ⚠️ IMPORTANT: Don't print the entire request object as it might access request.body
         print(f"🔵 MIDDLEWARE - Path: {request.path}, User: {request.user}, Authenticated: {request.user.is_authenticated}")
         
         # Skip if user is not authenticated
@@ -25,9 +26,9 @@ class AutoLogoutMiddleware:
             
             print(f"🔵 User IS authenticated! Last activity was {elapsed:.1f} seconds ago")
 
-            # Check if inactive for more than 2 seconds
-            if elapsed > 600:
-                print("⚠️⚠️⚠️ TIMEOUT! User inactive for >2 seconds ⚠️⚠️⚠️")
+            # Check if inactive for more than 600 seconds (10 minutes), not 2 seconds
+            if elapsed > 600:  # Changed from 2 to 600 (10 minutes)
+                print("⚠️⚠️⚠️ TIMEOUT! User inactive for >10 minutes ⚠️⚠️⚠️")
                 print(f"⚠️⚠️⚠️ Logging out user: {request.user.email} ⚠️⚠️⚠️")
                 
                 # ✅ Create redirect FIRST, then logout
@@ -40,7 +41,7 @@ class AutoLogoutMiddleware:
                 response = HttpResponseRedirect(redirect_url)
                 return response
             else:
-                print(f"✅ User still active (elapsed: {elapsed:.1f}s < 2s)")
+                print(f"✅ User still active (elapsed: {elapsed:.1f}s < 600s)")
         else:
             print("🔵 First request for this user, setting last_activity")
 

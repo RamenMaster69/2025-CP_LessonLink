@@ -1,4 +1,6 @@
 from django import forms
+from .models import Schedule
+import datetime
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
@@ -73,5 +75,49 @@ class SchoolAdminRegistrationForm(forms.Form):
         
         if password and confirm_password and password != confirm_password:
             raise ValidationError("Passwords do not match.")
+        
+        return cleaned_data
+
+class ScheduleForm(forms.ModelForm):
+    class Meta:
+        model = Schedule
+        fields = ['title', 'day', 'start_time', 'end_time', 'instructor', 'color', 'description']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-900', 'placeholder': 'e.g., System Integration'}),
+            'day': forms.Select(attrs={'class': 'w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-900'}),
+            'start_time': forms.TimeInput(attrs={'class': 'w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-900', 'type': 'time', 'min': '06:00', 'max': '19:00'}),
+            'end_time': forms.TimeInput(attrs={'class': 'w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-900', 'type': 'time', 'min': '06:00', 'max': '19:00'}),
+            'instructor': forms.TextInput(attrs={'class': 'w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-900', 'placeholder': 'e.g., Sir Ceed'}),
+            'color': forms.TextInput(attrs={'class': 'hidden', 'id': 'event-color'}),
+            'description': forms.Textarea(attrs={'class': 'w-full px-4 py-3 border rounded-lg resize-none', 'rows': 3, 'placeholder': 'Optional notes or description'}),
+        }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        start_time = cleaned_data.get('start_time')
+        end_time = cleaned_data.get('end_time')
+        day = cleaned_data.get('day')
+        user = self.instance.user if self.instance.pk else None
+        
+        if start_time and end_time:
+            # Check if start time is before end time
+            if start_time >= end_time:
+                raise forms.ValidationError("End time must be after start time.")
+            
+            # Check if within working hours (6:00 AM - 7:00 PM)
+            if start_time < datetime.time(6, 0) or end_time > datetime.time(19, 0):
+                raise forms.ValidationError("Classes must be scheduled between 6:00 AM and 7:00 PM.")
+            
+            # Check for overlapping schedules
+            if user and day:
+                overlapping = Schedule.objects.filter(
+                    user=user,
+                    day=day,
+                    start_time__lt=end_time,
+                    end_time__gt=start_time
+                ).exclude(pk=self.instance.pk if self.instance.pk else None)
+                
+                if overlapping.exists():
+                    raise forms.ValidationError("This time slot overlaps with another class.")
         
         return cleaned_data

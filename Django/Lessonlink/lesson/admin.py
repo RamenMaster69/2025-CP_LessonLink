@@ -2,9 +2,9 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
 from .models import (
-    User, Schedule, Task, TaskNotification, 
-    SchoolRegistration, AdminLog, StudentConcern, 
-    SystemSettings, SchoolAdmin, LessonPlanSubmission, 
+    User, Schedule, Task, TaskNotification,
+    SchoolRegistration, AdminLog, StudentConcern,
+    SystemSettings, SchoolAdmin, LessonPlanSubmission,
     Exemplar, EmailTemplate, Province
 )
 from lessonlinkCalendar.models import ZamboangaEvent
@@ -113,23 +113,31 @@ class SchoolRegistrationAdmin(admin.ModelAdmin):
 # Schedule Admin
 @admin.register(Schedule)
 class ScheduleAdmin(admin.ModelAdmin):
-    list_display = ('user', 'subject', 'day', 'time')
-    list_filter = ('day', 'time', 'user')
-    search_fields = ('subject', 'description', 'user__email')
-
-
-# Task Admin
-@admin.register(Task)
-class TaskAdmin(admin.ModelAdmin):
-    list_display = ('title', 'user', 'priority', 'status', 'display_due_datetime', 'is_overdue')
-    list_filter = ('priority', 'status', 'due_date')
-    search_fields = ('title', 'description', 'user__email')
-    ordering = ('-created_at',)
+    list_display = ('user', 'title', 'day', 'start_time', 'end_time', 'instructor', 'color_preview')
+    list_filter = ('day', 'user')
+    search_fields = ('title', 'description', 'instructor', 'user__email')
+    # REMOVE this line: list_editable = ('color',)
+    readonly_fields = ('created_at', 'updated_at')
     
-    @admin.display(boolean=True, description="Overdue?")
-    def is_overdue(self, obj):
-        return obj.is_overdue()
-
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('user', 'title', 'day', 'start_time', 'end_time')
+        }),
+        ('Details', {
+            'fields': ('instructor', 'color', 'description')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def color_preview(self, obj):
+        return format_html(
+            '<div style="width: 20px; height: 20px; background-color: {}; border-radius: 4px; border: 1px solid #ddd;"></div>',
+            obj.color
+        )
+    color_preview.short_description = 'Color'
 
 # Task Notification Admin
 @admin.register(TaskNotification)

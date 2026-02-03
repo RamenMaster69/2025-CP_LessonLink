@@ -1,10 +1,9 @@
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
 from .views import landing, dep_template, teach_template, calendar, admin_calendar, dep_calendar
 from .views import registration_1, registration_2, registration_3, registration_4, org_reg_1
 from .views import login_view, logout_view
 from .views import lesson_planner, lesson_plan
-from .views import dashboard, profile, ScheduleViewSet, draft, task, schedule
+from .views import dashboard, profile, draft, task, schedule
 from .views import Dep_Dash, Dep_Faculty, Dep_Pending
 from .views import st_dash
 from .views import admin_dashboard
@@ -19,21 +18,7 @@ from .views import (
     get_notifications_api, mark_notification_read_api
 )
 
-# REST Framework router
-router = DefaultRouter()
-router.register(r'schedules', ScheduleViewSet, basename='schedule')
-
 urlpatterns = [
-    # REST API endpoints
-    path('api/', include(router.urls)),
-
-    # Task API endpoints
-    path('api/tasks/add/', add_task_api, name='add_task_api'),
-    path('api/tasks/update-status/<int:task_id>/', update_task_status_api, name='update_task_status_api'),
-    path('api/tasks/delete/<int:task_id>/', delete_task_api, name='delete_task_api'),
-    path('api/notifications/', get_notifications_api, name='get_notifications_api'),
-    path('api/notifications/mark-read/<int:notification_id>/', mark_notification_read_api, name='mark_notification_read_api'),
-
     # Regular Django views
     path('', landing, name='landing'),
     path('registration_1/', registration_1, name='registration_1'),
@@ -41,15 +26,10 @@ urlpatterns = [
     path('registration_3/', registration_3, name='registration_3'),
     path('registration_4/', registration_4, name='registration_4'),
     
-    # ======================================================
-    # SCHOOL REGISTRATION URL (ADD THIS LINE)
-    # ======================================================
-    path('register/school/', org_reg_1, name='school_registration'),  # ADD THIS
-    
-    # You already have org_reg_1, but it's better to have a clear name
-    path('org_reg_1/', org_reg_1, name='org_reg_1'),  # Keep this for compatibility
+    # School Registration
+    path('register/school/', org_reg_1, name='school_registration'),
+    path('org_reg_1/', org_reg_1, name='org_reg_1'),
     path('school-registration/', views.org_reg_1, name='org_reg_1'),
-
     
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
@@ -90,9 +70,7 @@ urlpatterns = [
     # Calendar API URLs
     path('calendar-api/', include(('lessonlinkCalendar.urls', 'lessonlinkCalendar'), namespace='lessonlinkcalendar_api')),
 
-    # ======================================================
     # SUPER USER SCHOOL APPROVAL URLs
-    # ======================================================
     path('super-user/', views.super_user_dashboard, name='super_user_dashboard'),
     path('super-user/approve/<int:school_id>/', views.approve_school, name='approve_school'),
     path('super-user/reject/<int:school_id>/', views.reject_school, name='reject_school'),
@@ -108,7 +86,6 @@ urlpatterns = [
     path('school-admin/<int:admin_id>/activate/', views.activate_school_admin, name='activate_school_admin'),
 
     # Exemplar URLs
-    path('dep_exemplar/', views.Dep_exemplar, name='Dep_exemplar'),
     path('api/exemplars/upload/', views.upload_exemplar, name='upload_exemplar'),
     path('api/exemplars/', views.get_exemplars, name='get_exemplars'),
     path('api/exemplars/<int:exemplar_id>/delete/', views.delete_exemplar, name='delete_exemplar'),
@@ -130,5 +107,20 @@ urlpatterns = [
     # Teacher review URLs
     path('teacher/reviews/', views.supervising_teacher_reviews, name='supervising_teacher_reviews'),
     path('teacher/review-student-lesson/<int:submission_id>/', views.review_student_lesson_plan, name='review_student_lesson_plan'),
+
+    # ==================== TASK API ENDPOINTS ====================
+    path('api/tasks/add/', add_task_api, name='add_task_api'),
+    path('api/tasks/update-status/<int:task_id>/', update_task_status_api, name='update_task_status_api'),
+    path('api/tasks/delete/<int:task_id>/', delete_task_api, name='delete_task_api'),
+    path('api/notifications/', get_notifications_api, name='get_notifications_api'),
+    path('api/notifications/mark-read/<int:notification_id>/', mark_notification_read_api, name='mark_notification_read_api'),
+
+    # ==================== SCHEDULE API ENDPOINTS ====================
+    path('api/schedules/', views.create_schedule_api, name='create_schedule_api'),
+    path('api/schedules/all/', views.get_all_schedules, name='get_all_schedules'),
+    path('api/schedules/<int:schedule_id>/', views.delete_schedule_api, name='delete_schedule_api'),
+    
+    # Test endpoint
+    path('api/test/schedule/', views.test_schedule_api, name='test_schedule_api'),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

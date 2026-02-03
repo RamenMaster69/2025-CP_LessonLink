@@ -96,36 +96,63 @@ tailwind.config = {
 
 .schedule-grid {
     display: grid;
-    grid-template-columns: 80px repeat(5, 1fr);
-    gap: 1px;
+    grid-template-columns: 100px repeat(7, 1fr);
+    gap: 2px;
 }
 
 @media (min-width: 768px) {
     .schedule-grid {
-        grid-template-columns: 120px repeat(5, 1fr);
+        grid-template-columns: 120px repeat(7, 1fr);
     }
 }
 
 .time-slot {
-    min-height: 60px;
+    min-height: 80px;
     border: 1px solid #e5e7eb;
+    position: relative;
 }
 
 .schedule-item {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: absolute;
     color: white;
-    border-radius: 6px;
-    padding: 8px;
-    margin: 2px;
-    font-size: 12px;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 13px;
     cursor: pointer;
-    transition: box-shadow 0.2s ease;
+    transition: all 0.2s ease;
     overflow: hidden;
-    text-overflow: ellipsis;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-sizing: border-box;
 }
 
 .schedule-item:hover {
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+.schedule-item-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.schedule-item-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.schedule-item-time {
+    font-size: 11px;
+    opacity: 0.95;
+    margin-bottom: 4px;
+}
+
+.schedule-item-instructor {
+    font-size: 11px;
+    opacity: 0.9;
+    font-style: italic;
 }
 
 /* Mobile schedule view */
@@ -208,6 +235,62 @@ tailwind.config = {
 .notification-toast {
     animation: slideUp 0.3s ease-out;
 }
+
+/* Time column styling */
+.time-column {
+    background-color: #f9fafb;
+    border-right: 2px solid #e5e7eb;
+    font-weight: 500;
+    color: #374151;
+}
+
+.day-header {
+    background-color: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+    text-align: center;
+    padding: 12px 8px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+/* Scrollable schedule */
+.schedule-container {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Grid lines */
+.grid-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: #f0f0f0;
+    z-index: 1;
+}
+
+/* Disabled time slots */
+.time-slot.disabled {
+    background-color: #f9fafb;
+}
+
+.time-slot.disabled::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(0,0,0,0.05) 10px,
+        rgba(0,0,0,0.05) 20px
+    );
+    pointer-events: none;
+}
 </style>
 </head>
 
@@ -269,14 +352,8 @@ tailwind.config = {
             <div class="relative">
                 <button id="profile-btn"
                     class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
-                    {% if user.profile_picture %}
-                    <img src="{{ user.profile_picture.url }}" 
-                        alt="Profile Picture" 
-                        class="w-full h-full object-cover"
-                        id="header-profile-img">
-                    {% else %}
+                    <!-- Profile image placeholder -->
                     <i class="fas fa-user text-gray-500" id="header-profile-icon"></i>
-                    {% endif %}
                 </button>
 
                 <!-- Profile Dropdown - Moved INSIDE the same relative container -->
@@ -284,23 +361,16 @@ tailwind.config = {
                     <div class="p-4 border-b border-gray-100">
                         <div class="flex items-center space-x-3">
                             <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-                                {% if user.profile_picture %}
-                                <img src="{{ user.profile_picture.url }}" 
-                                    alt="Profile Picture" 
-                                    class="w-full h-full object-cover"
-                                    id="dropdown-profile-img">
-                                {% else %}
                                 <i class="fas fa-user-tie text-white"></i>
-                                {% endif %}
                             </div>
                             <div>
-                                <p class="font-semibold text-gray-900">{{ user.full_name }}</p>
-                                <p class="text-sm text-gray-500">{{ user.role }}</p>
+                                <p class="font-semibold text-gray-900">John Doe</p>
+                                <p class="text-sm text-gray-500">Teacher</p>
                             </div>
                         </div>
                     </div>
                     <div class="py-2">
-                        <a href="{% url 'profile' %}"
+                        <a href="#"
                             class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
                             <i class="fas fa-user w-4"></i>
                             <span>My Profile</span>
@@ -311,7 +381,7 @@ tailwind.config = {
                             <span>Settings</span>
                         </a>
                         <hr class="my-2">
-                        <a href="{% url 'logout' %}"
+                        <a href="#"
                             class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
                             <i class="fas fa-sign-out-alt w-4"></i>
                             <span>Logout</span>
@@ -330,7 +400,7 @@ tailwind.config = {
             class="w-64 bg-white shadow-lg h-screen fixed top-20 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
             <nav class="p-4 space-y-2">
                 <!-- Create Lesson Button -->
-                <a href="{% url 'lesson_ai' %}"><button
+                <a href="#"><button
                     class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
                     <i class="fas fa-plus text-lg"></i>
                     <span class="font-medium">Create Lesson</span>
@@ -369,12 +439,7 @@ tailwind.config = {
                 <a href="{% url 'supervising_teacher_reviews' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
                     <i class="fas fa-clipboard-check text-lg w-5"></i>
                     <span>Student Lesson Reviews</span>
-                    {% if pending_reviews_count %}
-                    <span class="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{{ pending_reviews_count }}</span>
-                    {% endif %}
                 </a>
-
-                
             </nav>
         </aside>
 
@@ -388,7 +453,7 @@ tailwind.config = {
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
             <div>
                 <h2 class="text-2xl font-bold text-gray-900 mb-2">Class Schedule</h2>
-                <p class="text-gray-600">Manage your weekly class schedule</p>
+                <p class="text-gray-600">Manage your weekly class schedule (Working Hours: 6:00 AM - 7:00 PM)</p>
             </div>
             <button id="add-class-btn"
                 class="mt-4 md:mt-0 bg-[#11468F] text-white px-6 py-3 rounded-lg hover:bg-[#0d3a7a] transition-all shadow-md flex items-center space-x-2">
@@ -399,81 +464,20 @@ tailwind.config = {
     </div>
 
     <!-- Desktop Schedule Grid (hidden on mobile) -->
-    <div class="desktop-schedule bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <div class="schedule-grid">
-            <!-- Header -->
-            <div class="bg-gray-50 p-3 text-center font-medium text-gray-700 rounded-tl-lg">Time</div>
-            <div class="bg-gray-50 p-3 text-center font-medium text-gray-700">Monday</div>
-            <div class="bg-gray-50 p-3 text-center font-medium text-gray-700">Tuesday</div>
-            <div class="bg-gray-50 p-3 text-center font-medium text-gray-700">Wednesday</div>
-            <div class="bg-gray-50 p-3 text-center font-medium text-gray-700">Thursday</div>
-            <div class="bg-gray-50 p-3 text-center font-medium text-gray-700 rounded-tr-lg">Friday</div>
-
-            <!-- Time Slots -->
-            <div class="time-slot bg-gray-50 p-3 text-sm text-[#11468F] font-medium flex items-center">8:00 - 9:00 AM</div>
-            <div class="time-slot bg-white relative" data-day="monday" data-time="8:00 - 9:00 AM"></div>
-            <div class="time-slot bg-white relative" data-day="tuesday" data-time="8:00 - 9:00 AM"></div>
-            <div class="time-slot bg-white relative" data-day="wednesday" data-time="8:00 - 9:00 AM"></div>
-            <div class="time-slot bg-white relative" data-day="thursday" data-time="8:00 - 9:00 AM"></div>
-            <div class="time-slot bg-white relative" data-day="friday" data-time="8:00 - 9:00 AM"></div>
-
-            <div class="time-slot bg-gray-50 p-3 text-sm text-[#11468F] font-medium flex items-center">9:00 - 10:00 AM</div>
-            <div class="time-slot bg-white relative" data-day="monday" data-time="9:00 - 10:00 AM"></div>
-            <div class="time-slot bg-white relative" data-day="tuesday" data-time="9:00 - 10:00 AM"></div>
-            <div class="time-slot bg-white relative" data-day="wednesday" data-time="9:00 - 10:00 AM"></div>
-            <div class="time-slot bg-white relative" data-day="thursday" data-time="9:00 - 10:00 AM"></div>
-            <div class="time-slot bg-white relative" data-day="friday" data-time="9:00 - 10:00 AM"></div>
-
-            <div class="time-slot bg-gray-50 p-3 text-sm text-[#11468F] font-medium flex items-center">10:00 - 11:00 AM</div>
-            <div class="time-slot bg-white relative" data-day="monday" data-time="10:00 - 11:00 AM"></div>
-            <div class="time-slot bg-white relative" data-day="tuesday" data-time="10:00 - 11:00 AM"></div>
-            <div class="time-slot bg-white relative" data-day="wednesday" data-time="10:00 - 11:00 AM"></div>
-            <div class="time-slot bg-white relative" data-day="thursday" data-time="10:00 - 11:00 AM"></div>
-            <div class="time-slot bg-white relative" data-day="friday" data-time="10:00 - 11:00 AM"></div>
-
-            <div class="time-slot bg-gray-50 p-3 text-sm text-[#11468F] font-medium flex items-center">11:00 - 12:00 PM</div>
-            <div class="time-slot bg-white relative" data-day="monday" data-time="11:00 - 12:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="tuesday" data-time="11:00 - 12:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="wednesday" data-time="11:00 - 12:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="thursday" data-time="11:00 - 12:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="friday" data-time="11:00 - 12:00 PM"></div>
-
-            <div class="time-slot bg-gray-50 p-3 text-sm text-[#11468F] font-medium flex items-center">12:00 - 1:00 PM</div>
-            <div class="time-slot bg-red-50 relative flex items-center justify-center text-red-600 text-sm font-medium" colspan="5">
-                <span>Lunch Break</span>
-            </div>
-            <div class="time-slot bg-red-50 relative flex items-center justify-center text-red-600 text-sm font-medium"></div>
-            <div class="time-slot bg-red-50 relative flex items-center justify-center text-red-600 text-sm font-medium"></div>
-            <div class="time-slot bg-red-50 relative flex items-center justify-center text-red-600 text-sm font-medium"></div>
-            <div class="time-slot bg-red-50 relative flex items-center justify-center text-red-600 text-sm font-medium"></div>
-
-            <div class="time-slot bg-gray-50 p-3 text-sm text-[#11468F] font-medium flex items-center">1:00 - 2:00 PM</div>
-            <div class="time-slot bg-white relative" data-day="monday" data-time="1:00 - 2:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="tuesday" data-time="1:00 - 2:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="wednesday" data-time="1:00 - 2:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="thursday" data-time="1:00 - 2:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="friday" data-time="1:00 - 2:00 PM"></div>
-
-            <div class="time-slot bg-gray-50 p-3 text-sm text-[#11468F] font-medium flex items-center">2:00 - 3:00 PM</div>
-            <div class="time-slot bg-white relative" data-day="monday" data-time="2:00 - 3:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="tuesday" data-time="2:00 - 3:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="wednesday" data-time="2:00 - 3:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="thursday" data-time="2:00 - 3:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="friday" data-time="2:00 - 3:00 PM"></div>
-
-            <div class="time-slot bg-gray-50 p-3 text-sm text-[#11468F] font-medium flex items-center">3:00 - 4:00 PM</div>
-            <div class="time-slot bg-white relative" data-day="monday" data-time="3:00 - 4:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="tuesday" data-time="3:00 - 4:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="wednesday" data-time="3:00 - 4:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="thursday" data-time="3:00 - 4:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="friday" data-time="3:00 - 4:00 PM"></div>
-
-            <div class="time-slot bg-gray-50 p-3 text-sm text-[#11468F] font-medium flex items-center">4:00 - 5:00 PM</div>
-            <div class="time-slot bg-white relative" data-day="monday" data-time="4:00 - 5:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="tuesday" data-time="4:00 - 5:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="wednesday" data-time="4:00 - 5:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="thursday" data-time="4:00 - 5:00 PM"></div>
-            <div class="time-slot bg-white relative" data-day="friday" data-time="4:00 - 5:00 PM"></div>
+    <div class="desktop-schedule bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-8 schedule-container">
+        <div class="schedule-grid" id="schedule-grid">
+            <!-- Time Column Header -->
+            <div class="time-column rounded-tl-lg"></div>
+            <!-- Day Headers -->
+            <div class="day-header">MONDAY</div>
+            <div class="day-header">TUESDAY</div>
+            <div class="day-header">WEDNESDAY</div>
+            <div class="day-header">THURSDAY</div>
+            <div class="day-header">FRIDAY</div>
+            <div class="day-header">SATURDAY</div>
+            <div class="day-header rounded-tr-lg">SUNDAY</div>
+            
+            <!-- Time slots will be generated dynamically -->
         </div>
     </div>
 
@@ -486,6 +490,8 @@ tailwind.config = {
                 <button class="mobile-day-tab" data-day="wednesday">Wednesday</button>
                 <button class="mobile-day-tab" data-day="thursday">Thursday</button>
                 <button class="mobile-day-tab" data-day="friday">Friday</button>
+                <button class="mobile-day-tab" data-day="saturday">Saturday</button>
+                <button class="mobile-day-tab" data-day="sunday">Sunday</button>
             </div>
         </div>
         
@@ -499,70 +505,76 @@ tailwind.config = {
 <!-- Add Class Modal -->
 <div id="add-class-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
 <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-    <div class="p-6">
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-xl font-bold text-gray-900">Add New Class</h3>
-            <button id="close-modal" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times text-lg"></i>
-            </button>
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold">Add Class</h2>
+                    <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <form id="event-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Class Title</label>
+                        <input type="text" id="event-title" required class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-900" placeholder="e.g., System Integration">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Day</label>
+                        <select id="event-day" required class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-900">
+                            <option value="">Select day</option>
+                            <option value="monday">Monday</option>
+                            <option value="tuesday">Tuesday</option>
+                            <option value="wednesday">Wednesday</option>
+                            <option value="thursday">Thursday</option>
+                            <option value="friday">Friday</option>
+                            <option value="saturday">Saturday</option>
+                            <option value="sunday">Sunday</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Start Time</label>
+                            <input type="time" id="event-start" required 
+                                   class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-900"
+                                   min="06:00" max="19:00">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">End Time</label>
+                            <input type="time" id="event-end" required 
+                                   class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-900"
+                                   min="06:00" max="19:00">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Instructor</label>
+                        <input type="text" id="event-instructor" required class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-900" placeholder="e.g., Sir Ceed">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Color</label>
+                        <div class="flex space-x-2 flex-wrap gap-2">
+                            <button type="button" class="color-option w-10 h-10 rounded-full bg-blue-500 ring-2 ring-offset-2 ring-gray-900" data-color="#3b82f6"></button>
+                            <button type="button" class="color-option w-10 h-10 rounded-full bg-green-500" data-color="#10b981"></button>
+                            <button type="button" class="color-option w-10 h-10 rounded-full bg-purple-500" data-color="#8b5cf6"></button>
+                            <button type="button" class="color-option w-10 h-10 rounded-full bg-pink-500" data-color="#ec4899"></button>
+                            <button type="button" class="color-option w-10 h-10 rounded-full bg-yellow-500" data-color="#eab308"></button>
+                            <button type="button" class="color-option w-10 h-10 rounded-full bg-red-500" data-color="#ef4444"></button>
+                            <button type="button" class="color-option w-10 h-10 rounded-full bg-indigo-500" data-color="#6366f1"></button>
+                            <button type="button" class="color-option w-10 h-10 rounded-full bg-teal-500" data-color="#14b8a6"></button>
+                            <button type="button" class="color-option w-10 h-10 rounded-full bg-amber-500" data-color="#f59e0b"></button>
+                        </div>
+                        <input type="hidden" id="event-color" value="#3b82f6">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Additional Notes (Optional)</label>
+                        <textarea id="event-description" rows="3" class="w-full px-4 py-3 border rounded-lg resize-none" placeholder="Optional notes or description"></textarea>
+                    </div>
+                    <div class="flex space-x-3 pt-4">
+                        <button type="button" id="cancel-btn" class="flex-1 px-6 py-3 border rounded-lg hover:bg-gray-50">Cancel</button>
+                        <button type="submit" class="flex-1 px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800">Add Class</button>
+                    </div>
+                </form>
+            </div>
         </div>
-
-        <form id="add-class-form" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                <input type="text" id="subject-input" required
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="e.g. Mathematics, English, Science">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                <textarea id="description-input" rows="3"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Brief description of the class..."></textarea>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Day</label>
-                <select id="day-selector" required
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <option value="">Select Day</option>
-                    <option value="monday">Monday</option>
-                    <option value="tuesday">Tuesday</option>
-                    <option value="wednesday">Wednesday</option>
-                    <option value="thursday">Thursday</option>
-                    <option value="friday">Friday</option>
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
-                <select id="time-selector" required
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <option value="">Select Time</option>
-                    <option value="8:00 - 9:00 AM">8:00 - 9:00 AM</option>
-                    <option value="9:00 - 10:00 AM">9:00 - 10:00 AM</option>
-                    <option value="10:00 - 11:00 AM">10:00 - 11:00 AM</option>
-                    <option value="11:00 - 12:00 PM">11:00 - 12:00 PM</option>
-                    <option value="1:00 - 2:00 PM">1:00 - 2:00 PM</option>
-                    <option value="2:00 - 3:00 PM">2:00 - 3:00 PM</option>
-                    <option value="3:00 - 4:00 PM">3:00 - 4:00 PM</option>
-                    <option value="4:00 - 5:00 PM">4:00 - 5:00 PM</option>
-                </select>
-            </div>
-
-            <div class="flex space-x-3 pt-4">
-                <button type="button" id="cancel-btn"
-                    class="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                    Cancel
-                </button>
-                <button type="submit"
-                    class="flex-1 px-6 py-3 bg-[#11468F] text-white rounded-lg hover:bg-[#0d3a7a] transition-all">
-                    Add Class
-                </button>
-            </div>
-        </form>
-    </div>
 </div>
 </div>
 
@@ -641,15 +653,40 @@ tailwind.config = {
                 OK
             </button>
         </div>
-    </div>
+</div>
 </div>
 
 <!-- Toast Notifications Container -->
 <div id="toast-container" class="fixed top-20 right-4 z-[9998] space-y-2"></div>
 
 <script>
+// Get CSRF token for AJAX requests
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrfToken = getCookie('csrftoken');
+
 // Store schedule data
 let scheduleData = {};
+let selectedColor = '#3b82f6'; // Default color
+
+// Constants for schedule generation
+const WORK_START_HOUR = 6; // 6:00 AM
+const WORK_END_HOUR = 19; // 7:00 PM (24-hour format)
+const TIME_SLOT_HEIGHT = 80; // Height of each hour slot in pixels
+const MINUTES_PER_HOUR = 60;
+const PIXELS_PER_MINUTE = TIME_SLOT_HEIGHT / MINUTES_PER_HOUR;
 
 // Modal and notification functions
 function showConfirmation(message, onConfirm) {
@@ -657,20 +694,17 @@ function showConfirmation(message, onConfirm) {
     const confirmBtn = document.getElementById('confirm-delete');
     const cancelBtn = document.getElementById('confirm-cancel');
     
-    // Update message if provided
     if (message) {
         modal.querySelector('p').textContent = message;
     }
     
     modal.classList.remove('hidden');
     
-    // Remove existing event listeners
     const newConfirmBtn = confirmBtn.cloneNode(true);
     const newCancelBtn = cancelBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
     cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
     
-    // Add new event listeners
     newConfirmBtn.addEventListener('click', () => {
         modal.classList.add('hidden');
         onConfirm();
@@ -749,7 +783,6 @@ function showToast(message, type = 'info') {
     
     container.appendChild(toast);
     
-    // Auto remove after 5 seconds
     setTimeout(() => {
         if (toast.parentElement) {
             toast.style.opacity = '0';
@@ -771,9 +804,33 @@ const addClassBtn = document.getElementById('add-class-btn');
 const addClassModal = document.getElementById('add-class-modal');
 const closeModal = document.getElementById('close-modal');
 const cancelBtn = document.getElementById('cancel-btn');
-const addClassForm = document.getElementById('add-class-form');
+const eventForm = document.getElementById('event-form');
+const eventTitle = document.getElementById('event-title');
+const eventDay = document.getElementById('event-day');
+const eventStart = document.getElementById('event-start');
+const eventEnd = document.getElementById('event-end');
+const eventInstructor = document.getElementById('event-instructor');
+const eventDescription = document.getElementById('event-description');
+const colorOptions = document.querySelectorAll('.color-option');
 const mobileDayTabs = document.querySelectorAll('.mobile-day-tab');
-const mobileDayContent = document.querySelector('.mobile-day-content');
+const scheduleGrid = document.getElementById('schedule-grid');
+
+// Initialize color selection
+colorOptions.forEach(option => {
+    option.addEventListener('click', function() {
+        colorOptions.forEach(opt => {
+            opt.classList.remove('ring-2', 'ring-gray-900', 'ring-offset-2');
+        });
+        
+        this.classList.add('ring-2', 'ring-gray-900', 'ring-offset-2');
+        selectedColor = this.dataset.color;
+        document.getElementById('event-color').value = selectedColor;
+    });
+});
+
+// Set default color as selected
+colorOptions[0].classList.add('ring-2', 'ring-gray-900', 'ring-offset-2');
+document.getElementById('event-color').value = selectedColor;
 
 // Mobile menu toggle
 mobileMenuBtn.addEventListener('click', () => {
@@ -808,27 +865,480 @@ document.addEventListener('click', () => {
 // Modal controls
 addClassBtn.addEventListener('click', () => {
     addClassModal.classList.remove('hidden');
+    eventForm.reset();
+    colorOptions.forEach(opt => {
+        opt.classList.remove('ring-2', 'ring-gray-900', 'ring-offset-2');
+    });
+    colorOptions[0].classList.add('ring-2', 'ring-gray-900', 'ring-offset-2');
+    selectedColor = '#3b82f6';
+    document.getElementById('event-color').value = selectedColor;
+    
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
+    if (currentHour < WORK_START_HOUR || currentHour >= WORK_END_HOUR) {
+        eventStart.value = '06:00';
+        eventEnd.value = '07:00';
+    } else {
+        eventStart.value = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
+        const endHour = currentHour + 1;
+        eventEnd.value = `${endHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
+    }
 });
 
 closeModal.addEventListener('click', () => {
     addClassModal.classList.add('hidden');
-    addClassForm.reset();
+    eventForm.reset();
 });
 
 cancelBtn.addEventListener('click', () => {
     addClassModal.classList.add('hidden');
-    addClassForm.reset();
+    eventForm.reset();
 });
 
 // Close modal when clicking outside
 addClassModal.addEventListener('click', (e) => {
     if (e.target === addClassModal) {
         addClassModal.classList.add('hidden');
-        addClassForm.reset();
+        eventForm.reset();
     }
 });
 
-// Mobile day tabs
+// Time conversion functions
+function timeToMinutes(timeStr) {
+    const timeParts = timeStr.split(' ');
+    let [hours, minutes] = timeParts[0].split(':').map(Number);
+    
+    if (timeParts.length > 1) {
+        const ampm = timeParts[1].toUpperCase();
+        if (ampm === 'PM' && hours < 12) hours += 12;
+        if (ampm === 'AM' && hours === 12) hours = 0;
+    }
+    
+    return hours * 60 + minutes;
+}
+
+function minutesToTime(minutes) {
+    let hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    
+    hours = hours % 12;
+    if (hours === 0) hours = 12;
+    
+    return `${hours}:${mins.toString().padStart(2, '0')} ${ampm}`;
+}
+
+function minutesToTime24(minutes) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+}
+
+// Generate schedule grid
+function generateScheduleGrid() {
+    while (scheduleGrid.children.length > 8) {
+        scheduleGrid.removeChild(scheduleGrid.lastChild);
+    }
+    
+    for (let hour = WORK_START_HOUR; hour < WORK_END_HOUR; hour++) {
+        const timeLabel = document.createElement('div');
+        timeLabel.className = 'time-column p-3 text-sm text-[#11468F] font-medium flex items-center justify-end pr-4 border-b border-r border-gray-200';
+        timeLabel.textContent = minutesToTime(hour * 60);
+        scheduleGrid.appendChild(timeLabel);
+        
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        days.forEach(day => {
+            const cell = document.createElement('div');
+            cell.className = 'time-slot bg-white border-b border-gray-200 relative';
+            cell.dataset.day = day;
+            cell.dataset.time = hour * 60;
+            cell.dataset.hour = hour;
+            scheduleGrid.appendChild(cell);
+        });
+    }
+    
+    document.querySelectorAll('.time-slot').forEach(cell => {
+        cell.addEventListener('click', (e) => {
+            if (e.target.closest('.schedule-item')) return;
+            
+            const day = cell.dataset.day;
+            const startMinutes = parseInt(cell.dataset.time);
+            const hour = parseInt(cell.dataset.hour);
+            
+            let endMinutes = startMinutes + 60;
+            if (endMinutes > WORK_END_HOUR * 60) {
+                endMinutes = WORK_END_HOUR * 60;
+            }
+            
+            eventDay.value = day;
+            eventStart.value = minutesToTime24(startMinutes);
+            eventEnd.value = minutesToTime24(endMinutes);
+            
+            addClassModal.classList.remove('hidden');
+        });
+    });
+}
+
+function calculateEventPosition(event) {
+    const startMinutes = timeToMinutes(event.start);
+    const endMinutes = timeToMinutes(event.end);
+    const duration = endMinutes - startMinutes;
+    
+    const top = (startMinutes - (WORK_START_HOUR * 60)) * PIXELS_PER_MINUTE;
+    const height = duration * PIXELS_PER_MINUTE;
+    
+    return { top, height };
+}
+
+function checkTimeOverlap(day, startTime, endTime) {
+    const events = Object.values(scheduleData).filter(event => event.day === day);
+    
+    const newStart = timeToMinutes(startTime);
+    const newEnd = timeToMinutes(endTime);
+    
+    for (const event of events) {
+        const eventStart = timeToMinutes(event.start);
+        const eventEnd = timeToMinutes(event.end);
+        
+        if ((newStart < eventEnd && newEnd > eventStart)) {
+            return event;
+        }
+    }
+    
+    return null;
+}
+
+function addEventToSchedule(eventData) {
+    scheduleData[eventData.id] = eventData;
+    updateScheduleDisplay();
+}
+
+function updateScheduleDisplay() {
+    document.querySelectorAll('.schedule-item').forEach(item => item.remove());
+    
+    const dayCells = {};
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    days.forEach(day => {
+        dayCells[day] = document.querySelectorAll(`.time-slot[data-day="${day}"]`);
+    });
+    
+    Object.values(scheduleData).forEach(event => {
+        const { top, height } = calculateEventPosition(event);
+        
+        const dayIndex = days.indexOf(event.day);
+        if (dayIndex === -1) return;
+        
+        const startMinutes = timeToMinutes(event.start);
+        const startHour = Math.floor(startMinutes / 60);
+        
+        if (startHour >= WORK_START_HOUR && startHour < WORK_END_HOUR) {
+            const hourDiff = startHour - WORK_START_HOUR;
+            
+            if (hourDiff >= 0 && hourDiff < dayCells[event.day].length) {
+                const targetCell = dayCells[event.day][hourDiff];
+                
+                const scheduleItem = document.createElement('div');
+                scheduleItem.className = 'schedule-item';
+                scheduleItem.dataset.id = event.id;
+                scheduleItem.style.background = event.color;
+                scheduleItem.style.top = `${top}px`;
+                scheduleItem.style.height = `${height}px`;
+                scheduleItem.style.left = '2px';
+                scheduleItem.style.right = '2px';
+                scheduleItem.style.width = 'calc(100% - 4px)';
+                
+                scheduleItem.innerHTML = `
+                    <div class="schedule-item-content">
+                        <div class="schedule-item-title">${event.title}</div>
+                        <div class="schedule-item-time">${event.start} - ${event.end}</div>
+                        <div class="schedule-item-instructor">${event.instructor}</div>
+                        ${event.description ? `<div class="text-xs mt-1 opacity-90 truncate">${event.description}</div>` : ''}
+                    </div>
+                `;
+                
+                scheduleItem.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showConfirmation(`Remove "${event.title}" from your schedule?`, () => {
+                        deleteScheduleEvent(event.id);
+                    });
+                });
+                
+                targetCell.appendChild(scheduleItem);
+            }
+        }
+    });
+    
+    const activeDay = document.querySelector('.mobile-day-tab.active')?.dataset.day;
+    if (activeDay) {
+        updateMobileDayView(activeDay);
+    }
+}
+
+function updateMobileDayView(day) {
+    const dayEvents = Object.values(scheduleData)
+        .filter(event => event.day === day)
+        .sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+    
+    let html = '';
+    
+    if (dayEvents.length === 0) {
+        html = `
+            <div class="p-8 text-center text-gray-500">
+                <i class="fas fa-calendar-plus text-3xl mb-4"></i>
+                <p>No classes scheduled for ${day.charAt(0).toUpperCase() + day.slice(1)}</p>
+                <button class="mt-4 text-[#11468F] hover:text-[#0d3a7a] font-medium add-class-btn-mobile" data-day="${day}">
+                    <i class="fas fa-plus mr-1"></i> Add a class
+                </button>
+            </div>
+        `;
+    } else {
+        dayEvents.forEach(event => {
+            html += `
+                <div class="mobile-time-slot border-b border-gray-200">
+                    <div class="flex items-start">
+                        <div class="w-3 h-3 rounded-full mr-3 mt-1" style="background-color: ${event.color}"></div>
+                        <div class="flex-1">
+                            <div class="font-medium text-gray-900">${event.title}</div>
+                            <div class="text-sm text-gray-600 mt-1">
+                                <i class="fas fa-clock mr-1"></i>${event.start} - ${event.end}
+                            </div>
+                            <div class="text-sm text-gray-600 mt-1">
+                                <i class="fas fa-chalkboard-teacher mr-1"></i>${event.instructor}
+                            </div>
+                            ${event.description ? `
+                                <div class="text-sm text-gray-500 mt-2">
+                                    <i class="fas fa-sticky-note mr-1"></i>${event.description}
+                                </div>
+                            ` : ''}
+                            <div class="mt-3">
+                                <button class="text-red-600 text-sm hover:text-red-800 remove-class-btn" data-id="${event.id}">
+                                    <i class="fas fa-trash mr-1"></i> Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    document.querySelector('.mobile-day-content').innerHTML = html;
+    
+    document.querySelectorAll('.add-class-btn-mobile').forEach(btn => {
+        btn.addEventListener('click', () => {
+            eventDay.value = btn.dataset.day;
+            addClassModal.classList.remove('hidden');
+        });
+    });
+    
+    document.querySelectorAll('.remove-class-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const eventId = btn.dataset.id;
+            const event = scheduleData[eventId];
+            if (event) {
+                showConfirmation(`Remove "${event.title}" from your schedule?`, () => {
+                    deleteScheduleEvent(event.id);
+                });
+            }
+        });
+    });
+}
+
+// ==================== API FUNCTIONS ====================
+
+async function deleteScheduleEvent(eventId) {
+    try {
+        console.log('Deleting schedule with ID:', eventId);
+        
+        const response = await fetch(`/api/schedules/${eventId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        });
+        
+        console.log('Delete response status:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Delete successful:', data);
+            
+            delete scheduleData[eventId];
+            updateScheduleDisplay();
+            showToast('Class removed successfully', 'success');
+        } else {
+            const errorData = await response.json();
+            console.error('Delete failed:', errorData);
+            showError(errorData.error || 'Failed to remove class. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showError('Network error. Please check your connection and try again.');
+    }
+}
+
+async function loadFromBackend() {
+    try {
+        console.log('Loading schedules from backend...');
+        const response = await fetch('/api/schedules/all/');
+        console.log('Load response status:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Loaded data:', data);
+            
+            if (data.schedules) {
+                scheduleData = {};
+                data.schedules.forEach(event => {
+                    scheduleData[event.id] = {
+                        id: event.id,
+                        title: event.title,
+                        day: event.day,
+                        start: event.start,
+                        end: event.end,
+                        start_time: event.start_time,
+                        end_time: event.end_time,
+                        instructor: event.instructor,
+                        color: event.color,
+                        description: event.description || ''
+                    };
+                });
+                updateScheduleDisplay();
+                showToast('Schedule loaded successfully', 'success');
+            } else if (data.error) {
+                console.error('Error in response:', data.error);
+                showToast('Error loading schedule: ' + data.error, 'error');
+            } else {
+                console.error('No schedules field in response:', data);
+                showToast('No schedule data found', 'warning');
+            }
+        } else {
+            const errorData = await response.json();
+            console.error('Failed to load:', errorData);
+            showToast('Failed to load schedule data: ' + (errorData.error || response.statusText), 'error');
+        }
+    } catch (error) {
+        console.error('Error loading from backend:', error);
+        showToast('Failed to load schedule data: ' + error.message, 'error');
+    }
+}
+
+// ==================== EVENT FORM SUBMISSION ====================
+
+eventForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const title = eventTitle.value.trim();
+    const day = eventDay.value;
+    const startTime24 = eventStart.value;
+    const endTime24 = eventEnd.value;
+    const instructor = eventInstructor.value.trim();
+    const description = eventDescription.value.trim();
+    const color = document.getElementById('event-color').value;
+    
+    if (!title || !day || !startTime24 || !endTime24 || !instructor) {
+        showValidation('Please fill in all required fields.');
+        return;
+    }
+    
+    // Format validation
+    const formatTime24to12 = (time24) => {
+        const [hours, minutes] = time24.split(':').map(Number);
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        let hour12 = hours % 12;
+        if (hour12 === 0) hour12 = 12;
+        return `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+    };
+    
+    const startTime12 = formatTime24to12(startTime24);
+    const endTime12 = formatTime24to12(endTime24);
+    
+    const startMinutes = timeToMinutes(startTime12);
+    const endMinutes = timeToMinutes(endTime12);
+    
+    if (startMinutes >= endMinutes) {
+        showError('End time must be after start time.');
+        return;
+    }
+    
+    if (startMinutes < WORK_START_HOUR * 60 || endMinutes > WORK_END_HOUR * 60) {
+        showError(`Classes must be scheduled between ${minutesToTime(WORK_START_HOUR * 60)} and ${minutesToTime(WORK_END_HOUR * 60)}`);
+        return;
+    }
+    
+    const overlappingEvent = checkTimeOverlap(day, startTime12, endTime12);
+    if (overlappingEvent) {
+        showError(`Time overlaps with "${overlappingEvent.title}" (${overlappingEvent.start} - ${overlappingEvent.end})`);
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/schedules/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                title: title,
+                day: day,
+                start_time: startTime24,
+                end_time: endTime24,
+                instructor: instructor,
+                color: color,
+                description: description
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Add the new event to scheduleData
+            scheduleData[data.id] = {
+                id: data.id,
+                title: data.title,
+                day: data.day,
+                start: data.start,
+                end: data.end,
+                start_time: data.start_time,
+                end_time: data.end_time,
+                instructor: data.instructor,
+                color: data.color,
+                description: data.description || ''
+            };
+            
+            updateScheduleDisplay();
+            addClassModal.classList.add('hidden');
+            eventForm.reset();
+            
+            colorOptions.forEach(opt => {
+                opt.classList.remove('ring-2', 'ring-gray-900', 'ring-offset-2');
+            });
+            colorOptions[0].classList.add('ring-2', 'ring-gray-900', 'ring-offset-2');
+            selectedColor = '#3b82f6';
+            document.getElementById('event-color').value = selectedColor;
+            
+            showSuccess(`${title} has been added to your ${day} schedule.`);
+            showToast('Class added successfully', 'success');
+        } else {
+            let errorMessage = 'Failed to add class. Please try again.';
+            if (data.error) {
+                errorMessage = data.error;
+            } else if (data.errors) {
+                errorMessage = data.errors;
+            }
+            showError(errorMessage);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showError('Network error. Please check your connection and try again.');
+    }
+});
+
+// ==================== MOBILE DAY TAB SWITCHING ====================
+
 mobileDayTabs.forEach(tab => {
     tab.addEventListener('click', () => {
         mobileDayTabs.forEach(t => t.classList.remove('active'));
@@ -837,294 +1347,21 @@ mobileDayTabs.forEach(tab => {
     });
 });
 
-// Update mobile day view
-function updateMobileDayView(day) {
-    const times = [
-        '8:00 - 9:00 AM',
-        '9:00 - 10:00 AM',
-        '10:00 - 11:00 AM',
-        '11:00 - 12:00 PM',
-        '12:00 - 1:00 PM',
-        '1:00 - 2:00 PM',
-        '2:00 - 3:00 PM',
-        '3:00 - 4:00 PM',
-        '4:00 - 5:00 PM'
-    ];
-    
-    let html = '';
-    
-    times.forEach(time => {
-        if (time === '12:00 - 1:00 PM') {
-            html += `
-                <div class="mobile-time-slot bg-red-50">
-                    <div class="mobile-time-label text-red-600">${time}</div>
-                    <div class="text-red-600 text-sm font-medium">Lunch Break</div>
-                </div>
-            `;
-            return;
-        }
-        
-        const classKey = `${day}-${time}`;
-        const classData = scheduleData[classKey];
-        
-        html += `
-            <div class="mobile-time-slot" data-day="${day}" data-time="${time}">
-                <div class="mobile-time-label">${time}</div>
-        `;
-        
-        if (classData) {
-            html += `
-                <div class="schedule-item" data-id="${classData.id}">
-                    <div class="font-medium">${classData.subject}</div>
-                    <div class="text-xs mt-1 opacity-90">${classData.description || ''}</div>
-                </div>
-            `;
-        } else {
-            html += `
-                <button class="text-sm text-gray-500 hover:text-[#11468F]">
-                    <i class="fas fa-plus mr-1"></i> Add Class
-                </button>
-            `;
-        }
-        
-        html += `</div>`;
-    });
-    
-    mobileDayContent.innerHTML = html;
-    
-    // Add click handlers to empty slots
-    document.querySelectorAll('.mobile-time-slot[data-day]').forEach(slot => {
-        if (!slot.querySelector('.schedule-item')) {
-            slot.addEventListener('click', (e) => {
-                if (!slot.querySelector('.schedule-item') && !e.target.closest('button')) {
-                    // Pre-fill the modal with the clicked slot's data
-                    document.getElementById('day-selector').value = slot.dataset.day;
-                    document.getElementById('time-selector').value = slot.dataset.time;
-                    addClassModal.classList.remove('hidden');
-                }
-            });
-        }
-    });
-    
-    // Add click handlers to schedule items
-    document.querySelectorAll('.mobile-time-slot .schedule-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const slot = item.closest('.mobile-time-slot');
-            const classId = item.dataset.id;
-            
-            showConfirmation('Are you sure you want to remove this class from your schedule?', () => {
-                // Send delete request to server
-                fetch(`/api/schedules/${classId}/`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRFToken': getCSRFToken(),
-                    }
-                })
-                .then(response => {
-                    if (response.ok) {
-                        const classKey = `${slot.dataset.day}-${slot.dataset.time}`;
-                        delete scheduleData[classKey];
-                        updateScheduleDisplay();
-                        updateMobileDayView(slot.dataset.day);
-                        showToast('Class removed successfully', 'error');
-                    } else {
-                        showError('Error deleting class. Please try again.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showError('Error deleting class. Please try again.');
-                });
-            });
-        });
-    });
-}
+// ==================== INITIALIZATION ====================
 
-// Function to get CSRF token
-function getCSRFToken() {
-    const name = 'csrftoken';
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
+// Initialize the application
+document.addEventListener('DOMContentLoaded', function() {
+    generateScheduleGrid();
+    loadFromBackend();
+    updateMobileDayView('monday');
+});
 
-// Form submission
-addClassForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const subject = document.getElementById('subject-input').value.trim();
-    const description = document.getElementById('description-input').value.trim();
-    const day = document.getElementById('day-selector').value;
-    const time = document.getElementById('time-selector').value;
-
-    if (!subject || !day || !time) {
-        showValidation('Please fill in all required fields (Subject, Day, and Time).');
-        return;
-    }
-
-    // Check if slot is already occupied
-    const classKey = `${day}-${time}`;
-    if (scheduleData[classKey]) {
-        showError('This time slot is already occupied. Please choose a different time.');
-        return;
-    }
-
-    // Simulate API call with loading state
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Adding...';
-    submitBtn.disabled = true;
-
-    // Send data to server
-    fetch('/api/schedules/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-        },
-        body: JSON.stringify({
-            subject,
-            description,
-            day,
-            time
-        })
-    })
-    .then(response => response.json())
-    .then(classData => {
-        // Store the class data
-        scheduleData[classKey] = classData;
-
-        // Update the display
-        updateScheduleDisplay();
-        
-        // Update mobile view if on that day
-        const activeDay = document.querySelector('.mobile-day-tab.active').dataset.day;
-        if (activeDay === day) {
-            updateMobileDayView(day);
-        }
-
-        // Close modal and reset form
+// Close modal with ESC key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
         addClassModal.classList.add('hidden');
-        addClassForm.reset();
-        
-        // Reset button
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-        
-        // Show success notification
-        showSuccess(`${subject} class has been added to your ${day} schedule.`);
-        showToast(`${subject} added successfully`, 'success');
-        
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        
-        // Reset button
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-        
-        showError('Error adding class. Please try again.');
-    });
-});
-
-function updateScheduleDisplay() {
-    // Clear all existing schedule items
-    document.querySelectorAll('.schedule-item').forEach(item => item.remove());
-
-    // Add classes
-    Object.values(scheduleData).forEach(classData => {
-        const slot = document.querySelector(`[data-day="${classData.day}"][data-time="${classData.time}"]`);
-        if (slot) {
-            const scheduleItem = document.createElement('div');
-            scheduleItem.className = 'schedule-item';
-            scheduleItem.dataset.id = classData.id;
-            scheduleItem.innerHTML = `
-                <div class="font-medium">${classData.subject}</div>
-                <div class="text-xs mt-1 opacity-90">${classData.description || ''}</div>
-            `;
-            
-            // Add click handler to edit/remove
-            scheduleItem.addEventListener('click', (e) => {
-                e.stopPropagation();
-                
-                showConfirmation(`Are you sure you want to remove "${classData.subject}" from your schedule?`, () => {
-                    // Send delete request to server
-                    fetch(`/api/schedules/${classData.id}/`, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRFToken': getCSRFToken(),
-                        }
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            const classKey = `${classData.day}-${classData.time}`;
-                            delete scheduleData[classKey];
-                            updateScheduleDisplay();
-                            
-                            // Update mobile view if on that day
-                            const activeDay = document.querySelector('.mobile-day-tab.active')?.dataset.day;
-                            if (activeDay === classData.day) {
-                                updateMobileDayView(classData.day);
-                            }
-                            
-                            showToast('Class removed successfully', 'error');
-                        } else {
-                            showError('Error deleting class. Please try again.');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showError('Error deleting class. Please try again.');
-                    });
-                });
-            });
-
-            slot.appendChild(scheduleItem);
-        }
-    });
-}
-
-// Initialize with empty schedule and load from database
-document.addEventListener('DOMContentLoaded', function() {
-    // Load existing schedule data from server
-    fetch('/api/schedules/')
-        .then(response => response.json())
-        .then(data => {
-            data.forEach(classData => {
-                const classKey = `${classData.day}-${classData.time}`;
-                scheduleData[classKey] = classData;
-            });
-            updateScheduleDisplay();
-            updateMobileDayView('monday');
-        })
-        .catch(error => {
-            console.error('Error loading schedule:', error);
-            showError('Error loading schedule data. Please refresh the page.');
-        });
-});
-
-// Add click handlers to empty time slots
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.time-slot[data-day]').forEach(slot => {
-        slot.addEventListener('click', () => {
-            if (!slot.querySelector('.schedule-item')) {
-                // Pre-fill the modal with the clicked slot's data
-                document.getElementById('day-selector').value = slot.dataset.day;
-                document.getElementById('time-selector').value = slot.dataset.time;
-                addClassModal.classList.remove('hidden');
-            }
-        });
-    });
+        eventForm.reset();
+    }
 });
 
 // Close modals when clicking outside
@@ -1138,215 +1375,23 @@ document.addEventListener('click', (e) => {
     });
 });
 
-// ESC key to close modals
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        const modals = ['confirmation-modal', 'error-modal', 'success-modal', 'validation-modal', 'add-class-modal'];
-        modals.forEach(modalId => {
-            document.getElementById(modalId).classList.add('hidden');
-        });
-        addClassForm.reset();
+// Real-time validation for time inputs
+eventStart.addEventListener('change', function() {
+    const startValue = this.value;
+    const endValue = eventEnd.value;
+    
+    if (startValue && endValue) {
+        const startMinutes = timeToMinutes(startValue + ' AM');
+        const endMinutes = timeToMinutes(endValue + ' AM');
+        
+        if (startMinutes >= endMinutes) {
+            const [hours, minutes] = startValue.split(':').map(Number);
+            let newEndHour = hours + 1;
+            if (newEndHour > WORK_END_HOUR) newEndHour = WORK_END_HOUR;
+            eventEnd.value = `${newEndHour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        }
     }
 });
-    // Notification system
-    function loadNotifications() {
-        fetch('/notifications/notifications/')
-            .then(response => response.json())
-            .then(data => {
-                updateNotificationBadge(data.unread_count);
-                updateNotificationDropdown(data.notifications);
-            })
-            .catch(error => {
-                console.error('Error loading notifications:', error);
-            });
-    }
-
-    function updateNotificationBadge(unreadCount) {
-        const badge = document.getElementById('notification-badge');
-        if (badge) {
-            if (unreadCount > 0) {
-                badge.textContent = unreadCount;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-        }
-    }
-
-    function updateNotificationDropdown(notifications) {
-        const dropdown = document.getElementById('notification-dropdown');
-        if (!dropdown) return;
-
-        const notificationsContainer = dropdown.querySelector('.max-h-96') || dropdown;
-        
-        if (notifications.length === 0) {
-            notificationsContainer.innerHTML = `
-                <div class="p-4 text-center text-gray-500">
-                    <i class="fas fa-bell-slash text-2xl mb-2"></i>
-                    <p>No notifications</p>
-                </div>
-            `;
-            return;
-        }
-
-        let notificationsHTML = '';
-        notifications.forEach(notification => {
-            const icon = getNotificationIcon(notification.type);
-            const timeAgo = getTimeAgo(notification.created_at);
-            const readClass = notification.is_read ? '' : 'bg-blue-50 border-l-4 border-l-blue-500';
-            
-            notificationsHTML += `
-                <div class="p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer ${readClass} notification-item" 
-                    data-notification-id="${notification.id}" 
-                    data-type="${notification.type}"
-                    data-lesson-plan-id="${notification.lesson_plan_id || ''}"
-                    data-submission-id="${notification.submission_id || ''}">
-                    <div class="flex items-start space-x-3">
-                        <div class="w-2 h-2 ${getNotificationColor(notification.type)} rounded-full mt-2 flex-shrink-0"></div>
-                        <div class="flex-1">
-                            <p class="text-sm text-gray-900 font-medium">${notification.title}</p>
-                            <p class="text-xs text-gray-500 mt-1">${notification.message}</p>
-                            <p class="text-xs text-gray-400 mt-1">${timeAgo}</p>
-                        </div>
-                        ${!notification.is_read ? '<div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>' : ''}
-                    </div>
-                </div>
-            `;
-        });
-
-        // Clear existing content and add new notifications
-        const existingContent = notificationsContainer.querySelector('.border-b') ? notificationsContainer : notificationsContainer.querySelector('.max-h-96') || notificationsContainer;
-        existingContent.innerHTML = notificationsHTML;
-
-        // Add click handlers
-        document.querySelectorAll('.notification-item').forEach(item => {
-            item.addEventListener('click', function() {
-                const notificationId = this.getAttribute('data-notification-id');
-                const type = this.getAttribute('data-type');
-                const lessonPlanId = this.getAttribute('data-lesson-plan-id');
-                const submissionId = this.getAttribute('data-submission-id');
-                
-                // Mark as read
-                markNotificationAsRead(notificationId);
-                
-                // Handle navigation based on notification type
-                handleNotificationClick(type, lessonPlanId, submissionId);
-            });
-        });
-    }
-
-    function getNotificationIcon(type) {
-        const icons = {
-            'draft_approved': 'fa-check-circle',
-            'draft_rejected': 'fa-times-circle',
-            'task_due_soon': 'fa-clock',
-            'upcoming_schedule': 'fa-calendar',
-            'lesson_submitted': 'fa-file-upload',
-            'general': 'fa-bell'
-        };
-        return icons[type] || 'fa-bell';
-    }
-
-    function getNotificationColor(type) {
-        const colors = {
-            'draft_approved': 'bg-green-500',
-            'draft_rejected': 'bg-red-500',
-            'task_due_soon': 'bg-yellow-500',
-            'upcoming_schedule': 'bg-blue-500',
-            'lesson_submitted': 'bg-purple-500',
-            'general': 'bg-gray-500'
-        };
-        return colors[type] || 'bg-gray-500';
-    }
-
-    function getTimeAgo(createdAt) {
-        // Simple time ago calculation - you can use a library like day.js for better formatting
-        return createdAt;
-    }
-
-    function markNotificationAsRead(notificationId) {
-        fetch(`/notifications/notifications/${notificationId}/read/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Update UI
-                const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
-                if (notificationItem) {
-                    notificationItem.classList.remove('bg-blue-50', 'border-l-4', 'border-l-blue-500');
-                    const unreadDot = notificationItem.querySelector('.bg-blue-500');
-                    if (unreadDot) {
-                        unreadDot.remove();
-                    }
-                }
-                // Reload notification count
-                loadNotifications();
-            }
-        })
-        .catch(error => {
-            console.error('Error marking notification as read:', error);
-        });
-    }
-
-    function handleNotificationClick(type, lessonPlanId, submissionId) {
-        // Close notification dropdown
-        const dropdown = document.getElementById('notification-dropdown');
-        if (dropdown) {
-            dropdown.classList.add('hidden');
-        }
-
-        // Navigate based on notification type
-        switch(type) {
-            case 'draft_approved':
-            case 'draft_rejected':
-            case 'lesson_submitted':
-                if (submissionId) {
-                    window.location.href = `/lesson-plan-detail/${submissionId}/`;
-                } else if (lessonPlanId) {
-                    window.location.href = `/drafts/${lessonPlanId}/view/`;
-                }
-                break;
-            case 'task_due_soon':
-                window.location.href = '/task/';
-                break;
-            case 'upcoming_schedule':
-                window.location.href = '/schedule/';
-                break;
-            default:
-                // Do nothing for general notifications
-                break;
-        }
-    }
-
-    // CSRF token helper
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    // Load notifications when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-        loadNotifications();
-        
-        // Reload notifications every 30 seconds
-        setInterval(loadNotifications, 30000);
-    });
 </script>
 </body>
-
 </html>

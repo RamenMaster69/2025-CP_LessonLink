@@ -241,30 +241,52 @@ class Schedule(models.Model):
         ('wednesday', 'Wednesday'),
         ('thursday', 'Thursday'),
         ('friday', 'Friday'),
+        ('saturday', 'Saturday'),
+        ('sunday', 'Sunday'),
     ]
     
-    TIME_SLOTS = [
-        ('8:00 - 9:00 AM', '8:00 - 9:00 AM'),
-        ('9:00 - 10:00 AM', '9:00 - 10:00 AM'),
-        ('10:00 - 11:00 AM', '10:00 - 11:00 AM'),
-        ('11:00 - 12:00 PM', '11:00 - 12:00 PM'),
-        ('1:00 - 2:00 PM', '1:00 - 2:00 PM'),
-        ('2:00 - 3:00 PM', '2:00 - 3:00 PM'),
-        ('3:00 - 4:00 PM', '3:00 - 4:00 PM'),
-        ('4:00 - 5:00 PM', '4:00 - 5:00 PM'),
-    ]
-    
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    subject = models.CharField(max_length=100)
-    description = models.TextField(blank=True)
-    day = models.CharField(max_length=10, choices=DAY_CHOICES)
-    time = models.CharField(max_length=20, choices=TIME_SLOTS)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='schedules')
+    title = models.CharField(max_length=200, default='New Class')  # Add default
+    day = models.CharField(max_length=20, choices=DAY_CHOICES, default='monday')  # Add default
+    start_time = models.TimeField(default='08:00:00')  # Add default
+    end_time = models.TimeField(default='09:00:00')  # Add default
+    instructor = models.CharField(max_length=200, default='Instructor')  # Add default
+    color = models.CharField(max_length=20, default='#3b82f6')
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now)  # Changed from auto_now_add=True
+    updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        unique_together = ['user', 'day', 'time']
+        ordering = ['day', 'start_time']
+        unique_together = ['user', 'day', 'start_time', 'end_time']
     
     def __str__(self):
-        return f"{self.subject} on {self.day} at {self.time}"
+        return f"{self.title} - {self.get_day_display()} {self.start_time}-{self.end_time}"
+    
+    @property
+    def formatted_start_time(self):
+        """Format time to 12-hour format with AM/PM"""
+        hour = self.start_time.hour
+        minute = self.start_time.minute
+        period = "AM" if hour < 12 else "PM"
+        hour = hour % 12
+        hour = 12 if hour == 0 else hour
+        return f"{hour}:{minute:02d} {period}"
+    
+    @property
+    def formatted_end_time(self):
+        """Format time to 12-hour format with AM/PM"""
+        hour = self.end_time.hour
+        minute = self.end_time.minute
+        period = "AM" if hour < 12 else "PM"
+        hour = hour % 12
+        hour = 12 if hour == 0 else hour
+        return f"{hour}:{minute:02d} {period}"
+    
+    @property
+    def time_range(self):
+        """Return formatted time range"""
+        return f"{self.formatted_start_time} - {self.formatted_end_time}"
 
 
 class Task(models.Model):

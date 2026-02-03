@@ -6,7 +6,9 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import default_storage 
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.views.decorators.http import require_POST
@@ -45,6 +47,8 @@ from docx import Document
 import mammoth
 import tempfile
 from django.views.decorators.http import require_POST, require_http_methods
+from .forms import ScheduleForm
+from .models import Schedule
 
 # School Registration Views
 from django.contrib.auth.hashers import make_password
@@ -1390,7 +1394,8 @@ def dashboard(request):
     from django.utils import timezone
     
     today = timezone.localtime(timezone.now()).strftime('%A').lower()
-    todays_schedule = Schedule.objects.filter(user=user, day=today).order_by('time')
+    todays_schedule = Schedule.objects.filter(user=user, day=today).order_by('start_time')
+
     
     return render(request, 'dashboard.html', {
         'user': user,
@@ -1500,13 +1505,6 @@ def update_student_approval(request, student_id):
         logger.error(f"Error updating student approval: {str(e)}")
         print(f"DEBUG: Unexpected error: {str(e)}")
         return JsonResponse({'success': False, 'error': f'Server error: {str(e)}'})
-
-
-        
-
-
-
-
 
 @require_POST
 @csrf_exempt
@@ -2135,8 +2133,158 @@ def deactivate_school_admin(request, admin_id):
     
     return redirect('school_admin_list', school_id=school_admin.school.id)
 
+@login_required
+def schedule_view(request):
+    """Main schedule page"""
+    schedules = Schedule.objects.filter(user=request.user)
+    return render(request, 'schedule.html', {'schedules': schedules})
 
+@login_required
+@require_http_methods(["POST"])
+def create_schedule(request):
+    """Create new schedule"""
+    try:
+        data = json.loads(request.body)
+        form = ScheduleForm(data)
+        
+        if form.is_valid():
+            schedule = form.save(commit=False)
+            schedule.user = request.user
+            
+            # Check for overlapping schedules
+            overlapping = Schedule.objects.filter(
+                user=request.user,
+                day=schedule.day,
+                start_time__lt=schedule.end_time,
+                end_time__gt=schedule.start_time
+            )
+            
+            if overlapping.exists():
+                return JsonResponse({
+                    'success': False,
+                    'errors': '{"__all__": ["This time slot overlaps with another class."]}'
+                }, status=400)
+            
+            schedule.save()
+            return JsonResponse({
+                'success': True,
+                'id': schedule.id,
+                'title': schedule.title,
+                'day': schedule.day,
+                'start': schedule.formatted_start_time,
+                'end': schedule.formatted_end_time,
+                'instructor': schedule.instructor,
+                'color': schedule.color,
+                'description': schedule.description or ''
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors.as_json()
+            }, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'errors': '{"__all__": ["Invalid JSON data"]}'
+        }, status=400)
 
+@login_required
+@csrf_exempt
+@require_http_methods(["GET", "PUT", "DELETE"])
+def schedule_detail(request, pk):
+    """Get, update, or delete a specific schedule"""
+    try:
+        schedule = Schedule.objects.get(pk=pk, user=request.user)
+    except Schedule.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Schedule not found'
+        }, status=404)
+    
+    if request.method == 'GET':
+        return JsonResponse({
+            'id': schedule.id,
+            'title': schedule.title,
+            'day': schedule.day,
+            'start': schedule.formatted_start_time,
+            'end': schedule.formatted_end_time,
+            'instructor': schedule.instructor,
+            'color': schedule.color,
+            'description': schedule.description or ''
+        })
+    
+    elif request.method == 'PUT':
+        try:
+            data = json.loads(request.body)
+            form = ScheduleForm(data, instance=schedule)
+            if form.is_valid():
+                schedule = form.save(commit=False)
+                
+                # Check for overlapping schedules (excluding current one)
+                overlapping = Schedule.objects.filter(
+                    user=request.user,
+                    day=schedule.day,
+                    start_time__lt=schedule.end_time,
+                    end_time__gt=schedule.start_time
+                ).exclude(pk=schedule.pk)
+                
+                if overlapping.exists():
+                    return JsonResponse({
+                        'success': False,
+                        'errors': '{"__all__": ["This time slot overlaps with another class."]}'
+                    }, status=400)
+                
+                schedule.save()
+                return JsonResponse({
+                    'success': True,
+                    'id': schedule.id,
+                    'title': schedule.title,
+                    'day': schedule.day,
+                    'start': schedule.formatted_start_time,
+                    'end': schedule.formatted_end_time,
+                    'instructor': schedule.instructor,
+                    'color': schedule.color,
+                    'description': schedule.description or ''
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors.as_json()
+                }, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'errors': '{"__all__": ["Invalid JSON data"]}'
+            }, status=400)
+    
+    elif request.method == 'DELETE':
+        schedule.delete()
+        return JsonResponse({'success': True})
+
+@login_required
+def get_schedules(request):
+    """Get all schedules for the current user"""
+    try:
+        schedules = Schedule.objects.filter(user=request.user)
+        schedule_list = []
+        
+        for schedule in schedules:
+            schedule_list.append({
+                'id': schedule.id,
+                'title': schedule.title,
+                'day': schedule.day,
+                'start': schedule.formatted_start_time,
+                'end': schedule.formatted_end_time,
+                'instructor': schedule.instructor,
+                'color': schedule.color,
+                'description': schedule.description or ''
+            })
+        
+        return JsonResponse({'schedules': schedule_list})
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e)
+        }, status=500)
 
 @login_required
 def schedule(request):
@@ -3517,3 +3665,356 @@ def review_student_lesson_plan(request, submission_id):
         return redirect('supervising_teacher_reviews')
     
     return redirect('dashboard')
+
+    # Add to your views.py
+    def test_api(request):
+        """Test API endpoint"""
+        return JsonResponse({
+            'message': 'API is working!',
+            'status': 'success'
+        })
+
+@csrf_exempt
+@login_required
+def create_schedule_api(request):
+    """Create a new schedule via API - COMPLETELY FIXED VERSION"""
+    if request.method != 'POST':
+        return JsonResponse({
+            'success': False,
+            'error': 'Only POST method is allowed'
+        }, status=405)
+    
+    try:
+        # DEBUG: Log the raw request
+        print(f"DEBUG create_schedule_api called")
+        print(f"DEBUG User: {request.user.email}")
+        print(f"DEBUG Content-Type: {request.content_type}")
+        
+        # Read the raw body ONCE and store it
+        raw_body = request.body
+        
+        # DEBUG: Check if body is empty
+        print(f"DEBUG Body length: {len(raw_body)}")
+        
+        # Decode and parse the JSON
+        if not raw_body:
+            return JsonResponse({
+                'success': False,
+                'error': 'Empty request body'
+            }, status=400)
+        
+        try:
+            body_str = raw_body.decode('utf-8')
+            data = json.loads(body_str)
+        except UnicodeDecodeError:
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid encoding in request body'
+            }, status=400)
+        except json.JSONDecodeError as e:
+            return JsonResponse({
+                'success': False,
+                'error': f'Invalid JSON: {str(e)}'
+            }, status=400)
+        
+        # DEBUG: Show what data we received
+        print(f"DEBUG Parsed data: {data}")
+        
+        # Validate required fields
+        required_fields = ['title', 'day', 'start_time', 'end_time', 'instructor']
+        missing_fields = []
+        for field in required_fields:
+            if field not in data or not data[field]:
+                missing_fields.append(field)
+        
+        if missing_fields:
+            return JsonResponse({
+                'success': False,
+                'error': f'Missing required fields: {", ".join(missing_fields)}'
+            }, status=400)
+        
+        # Check for overlapping schedules
+        overlapping = Schedule.objects.filter(
+            user=request.user,
+            day=data['day'],
+            start_time__lt=data['end_time'],
+            end_time__gt=data['start_time']
+        )
+        
+        if overlapping.exists():
+            return JsonResponse({
+                'success': False,
+                'error': 'This time slot overlaps with another class.'
+            }, status=400)
+        
+        # Create the schedule
+        schedule = Schedule.objects.create(
+            user=request.user,
+            title=data['title'],
+            day=data['day'],
+            start_time=data['start_time'],
+            end_time=data['end_time'],
+            instructor=data['instructor'],
+            color=data.get('color', '#3b82f6'),
+            description=data.get('description', '')
+        )
+        
+        # Format response - convert 24-hour to 12-hour format
+        def format_time_24_to_12(time_str):
+            try:
+                if not time_str:
+                    return ""
+                hours, minutes = map(int, time_str.split(':'))
+                am_pm = "AM" if hours < 12 else "PM"
+                hours_12 = hours % 12
+                if hours_12 == 0:
+                    hours_12 = 12
+                return f"{hours_12}:{minutes:02d} {am_pm}"
+            except:
+                return time_str
+        
+        response_data = {
+            'success': True,
+            'id': schedule.id,
+            'title': schedule.title,
+            'day': schedule.day,
+            'start': format_time_24_to_12(schedule.start_time),
+            'end': format_time_24_to_12(schedule.end_time),
+            'start_time': schedule.start_time,
+            'end_time': schedule.end_time,
+            'instructor': schedule.instructor,
+            'color': schedule.color,
+            'description': schedule.description or ''
+        }
+        
+        print(f"DEBUG Schedule created successfully: {schedule.id}")
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        logger.error(f"Error creating schedule: {str(e)}", exc_info=True)
+        print(f"ERROR in create_schedule_api: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        return JsonResponse({
+            'success': False,
+            'error': 'Internal server error. Please try again.'
+        }, status=500)
+
+@csrf_exempt
+@login_required
+@api_view(['DELETE'])
+def delete_schedule_api(request, schedule_id):
+    """Delete a schedule via API"""
+    try:
+        schedule = get_object_or_404(Schedule, id=schedule_id, user=request.user)
+        schedule.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Schedule deleted successfully'
+        })
+        
+    except Schedule.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Schedule not found'
+        }, status=404)
+    except Exception as e:
+        logger.error(f"Error deleting schedule: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+def test_schedule_api(request):
+    """Test if schedule API is working"""
+    return JsonResponse({
+        'message': 'Schedule API is working!',
+        'url': request.path,
+        'method': request.method
+    })
+
+#     def test_schedule_api(request):
+#     """Test if schedule API is working"""
+#     return JsonResponse({
+#         'message': 'Schedule API is working!',
+#         'url': request.path,
+#         'method': request.method
+#     })
+
+# def debug_all_urls(request):
+#     """Show all registered URLs"""
+#     from django.urls import get_resolver
+    
+#     output = io.StringIO()
+#     resolver = get_resolver()
+    
+#     def print_urls(url_patterns, prefix=''):
+#         for pattern in url_patterns:
+#             if hasattr(pattern, 'url_patterns'):
+#                 # This is an include
+#                 print_urls(pattern.url_patterns, prefix + str(pattern.pattern))
+#             else:
+#                 output.write(f'{prefix}{str(pattern.pattern)}\n')
+    
+#     print_urls(resolver.url_patterns)
+    
+#     return HttpResponse(f'<pre>{output.getvalue()}</pre>')
+
+@login_required
+@api_view(['GET'])
+def get_all_schedules(request):
+    """Get all schedules for the current user"""
+    try:
+        schedules = Schedule.objects.filter(user=request.user)
+        schedule_list = []
+        
+        for schedule in schedules:
+            # Convert 24-hour time to 12-hour format
+            def format_time_24_to_12(time_str):
+                try:
+                    if not time_str:
+                        return ""
+                    # Parse time
+                    hours, minutes = map(int, time_str.split(':'))
+                    
+                    # Convert to 12-hour format
+                    am_pm = "AM" if hours < 12 else "PM"
+                    hours_12 = hours % 12
+                    if hours_12 == 0:
+                        hours_12 = 12
+                    
+                    return f"{hours_12}:{minutes:02d} {am_pm}"
+                except:
+                    return time_str
+            
+            schedule_list.append({
+                'id': schedule.id,
+                'title': schedule.title,
+                'day': schedule.day,
+                'start': format_time_24_to_12(schedule.start_time),
+                'end': format_time_24_to_12(schedule.end_time),
+                'start_time': schedule.start_time,  # Keep 24-hour format
+                'end_time': schedule.end_time,      # Keep 24-hour format
+                'instructor': schedule.instructor,
+                'color': schedule.color,
+                'description': schedule.description or ''
+            })
+        
+        return JsonResponse({'schedules': schedule_list})
+    except Exception as e:
+        logger.error(f"Error fetching schedules: {str(e)}")
+        return JsonResponse({
+            'error': str(e)
+        }, status=500)
+
+@csrf_exempt
+@login_required
+@api_view(['POST'])
+def create_schedule_api(request):
+    """Create a new schedule via API - USING DRF"""
+    try:
+        # DRF's request.data handles the body reading properly
+        data = request.data
+        
+        print(f"DEBUG: Received data: {data}")
+        
+        # Validate required fields
+        required_fields = ['title', 'day', 'start_time', 'end_time', 'instructor']
+        missing_fields = []
+        for field in required_fields:
+            if field not in data or not data[field]:
+                missing_fields.append(field)
+        
+        if missing_fields:
+            return Response({
+                'success': False,
+                'error': f'Missing required fields: {", ".join(missing_fields)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Create the schedule
+        schedule = Schedule.objects.create(
+            user=request.user,
+            title=data['title'],
+            day=data['day'],
+            start_time=data['start_time'],
+            end_time=data['end_time'],
+            instructor=data['instructor'],
+            color=data.get('color', '#3b82f6'),
+            description=data.get('description', '')
+        )
+        
+        # Format response
+        def format_time_24_to_12(time_str):
+            try:
+                hours, minutes = map(int, time_str.split(':'))
+                am_pm = "AM" if hours < 12 else "PM"
+                hours_12 = hours % 12
+                if hours_12 == 0:
+                    hours_12 = 12
+                return f"{hours_12}:{minutes:02d} {am_pm}"
+            except:
+                return time_str
+        
+        response_data = {
+            'id': schedule.id,
+            'title': schedule.title,
+            'day': schedule.day,
+            'start': format_time_24_to_12(schedule.start_time),
+            'end': format_time_24_to_12(schedule.end_time),
+            'start_time': schedule.start_time,
+            'end_time': schedule.end_time,
+            'instructor': schedule.instructor,
+            'color': schedule.color,
+            'description': schedule.description or ''
+        }
+        
+        return JsonResponse(response_data)
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON data'
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Error creating schedule: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+@csrf_exempt
+@login_required
+@api_view(['DELETE'])
+def delete_schedule_api(request, schedule_id):
+    """Delete a schedule via API"""
+    try:
+        schedule = get_object_or_404(Schedule, id=schedule_id, user=request.user)
+        schedule.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Schedule deleted successfully'
+        })
+        
+    except Schedule.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Schedule not found'
+        }, status=404)
+    except Exception as e:
+        logger.error(f"Error deleting schedule: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+# Test function (keep this)
+def test_schedule_api(request):
+    """Test if schedule API is working"""
+    return JsonResponse({
+        'message': 'Schedule API is working!',
+        'url': request.path,
+        'method': request.method
+    })
