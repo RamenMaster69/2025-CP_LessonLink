@@ -441,12 +441,12 @@
                                     </div>
                                     <div>
                                         <h4 class="font-semibold text-gray-900 text-sm">{{ schedule.subject }}</h4>
-                                        <p class="text-gray-500 text-xs">{{ today_display }} • {{ schedule.time }}</p>                                    </div>
+                                        <p class="text-gray-500 text-xs">{{ today_display }} • {{ schedule.time }}</p>
+                                    </div>
                                 </div>
-                                <span class="text-{% if forloop.first %}green{% else %}gray{% endif %}-600 text-sm font-medium">
+                                <span class="{% if forloop.first %}text-green-600{% else %}text-gray-600{% endif %} text-sm font-medium">
                                     {% if forloop.first %}Next{% else %}Later{% endif %}
                                 </span>
-                                
                             </div>
                             {% empty %}
                             <div class="text-center py-4">

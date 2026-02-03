@@ -86,6 +86,16 @@ tailwind.config = {
     }
 }
 
+/* 
+Z-INDEX HIERARCHY:
+- Schedule items: 100 (normal), 200 (hover)
+- Dropdowns: 50
+- Sidebar/Overlay: 30-50
+- Add Class Modal: 1000
+- Confirmation/Error/Success Modals: 9999
+- Toast Notifications: 9998
+*/
+
 .sidebar-transition {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -97,7 +107,8 @@ tailwind.config = {
 .schedule-grid {
     display: grid;
     grid-template-columns: 100px repeat(7, 1fr);
-    gap: 2px;
+    gap: 0;
+    position: relative;
 }
 
 @media (min-width: 768px) {
@@ -107,52 +118,81 @@ tailwind.config = {
 }
 
 .time-slot {
-    min-height: 80px;
-    border: 1px solid #e5e7eb;
+    min-height: 100px;
+    border-right: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
     position: relative;
+    background: white;
 }
 
 .schedule-item {
     position: absolute;
     color: white;
-    border-radius: 8px;
+    border-radius: 6px;
     padding: 10px;
-    font-size: 13px;
+    font-size: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
     overflow: hidden;
-    z-index: 10;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 100;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     box-sizing: border-box;
+    border: 2px solid rgba(255,255,255,0.4);
+    left: 4px !important;
+    right: 4px !important;
+    width: calc(100% - 8px) !important;
 }
 
 .schedule-item:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+    transform: translateY(-2px) scale(1.02);
+    z-index: 200;
+    border-color: rgba(255,255,255,0.6);
 }
 
 .schedule-item-content {
     display: flex;
     flex-direction: column;
     height: 100%;
+    overflow: hidden;
+    gap: 4px;
 }
 
 .schedule-item-title {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 14px;
-    margin-bottom: 4px;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .schedule-item-time {
     font-size: 11px;
     opacity: 0.95;
-    margin-bottom: 4px;
+    line-height: 1.2;
+    font-weight: 500;
 }
 
 .schedule-item-instructor {
     font-size: 11px;
     opacity: 0.9;
     font-style: italic;
+    line-height: 1.2;
+}
+
+.schedule-item-description {
+    font-size: 10px;
+    opacity: 0.85;
+    line-height: 1.2;
+    margin-top: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 /* Mobile schedule view */
@@ -239,57 +279,71 @@ tailwind.config = {
 /* Time column styling */
 .time-column {
     background-color: #f9fafb;
-    border-right: 2px solid #e5e7eb;
-    font-weight: 500;
-    color: #374151;
+    border-right: 2px solid #d1d5db;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 600;
+    color: #11468F;
+    padding: 8px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-height: 100px;
 }
 
 .day-header {
-    background-color: #f9fafb;
-    font-weight: 600;
-    color: #374151;
+    background: linear-gradient(to bottom, #f9fafb, #f3f4f6);
+    font-weight: 700;
+    color: #11468F;
     text-align: center;
-    padding: 12px 8px;
-    border-bottom: 2px solid #e5e7eb;
+    padding: 16px 8px;
+    border-bottom: 2px solid #d1d5db;
+    border-right: 1px solid #e5e7eb;
+    font-size: 13px;
+    letter-spacing: 0.5px;
 }
 
 /* Scrollable schedule */
 .schedule-container {
     max-height: calc(100vh - 200px);
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: auto;
 }
 
-/* Grid lines */
-.grid-line {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background-color: #f0f0f0;
-    z-index: 1;
+/* Better schedule item sizing */
+@media (max-width: 1024px) {
+    .schedule-item-title {
+        font-size: 12px;
+    }
+    .schedule-item-time,
+    .schedule-item-instructor {
+        font-size: 10px;
+    }
+    .schedule-item-description {
+        font-size: 9px;
+    }
 }
 
-/* Disabled time slots */
-.time-slot.disabled {
-    background-color: #f9fafb;
+/* Prevent text overflow */
+.schedule-item {
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
-.time-slot.disabled::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: repeating-linear-gradient(
-        45deg,
-        transparent,
-        transparent 10px,
-        rgba(0,0,0,0.05) 10px,
-        rgba(0,0,0,0.05) 20px
-    );
-    pointer-events: none;
+/* Grid container improvements */
+.schedule-grid {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Empty state styling */
+.empty-schedule {
+    grid-column: 2 / -1;
+    padding: 40px;
+    text-align: center;
+    color: #6b7280;
 }
 </style>
 </head>
@@ -464,10 +518,10 @@ tailwind.config = {
     </div>
 
     <!-- Desktop Schedule Grid (hidden on mobile) -->
-    <div class="desktop-schedule bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-8 schedule-container">
+    <div class="desktop-schedule bg-white rounded-xl shadow-sm p-4 mb-8 schedule-container">
         <div class="schedule-grid" id="schedule-grid">
             <!-- Time Column Header -->
-            <div class="time-column rounded-tl-lg"></div>
+            <div class="time-column rounded-tl-lg border-0"></div>
             <!-- Day Headers -->
             <div class="day-header">MONDAY</div>
             <div class="day-header">TUESDAY</div>
@@ -475,7 +529,7 @@ tailwind.config = {
             <div class="day-header">THURSDAY</div>
             <div class="day-header">FRIDAY</div>
             <div class="day-header">SATURDAY</div>
-            <div class="day-header rounded-tr-lg">SUNDAY</div>
+            <div class="day-header rounded-tr-lg border-r-0">SUNDAY</div>
             
             <!-- Time slots will be generated dynamically -->
         </div>
@@ -503,7 +557,7 @@ tailwind.config = {
 </div>
 
 <!-- Add Class Modal -->
-<div id="add-class-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+<div id="add-class-modal" class="fixed inset-0 bg-black bg-opacity-50 z-[1000] hidden flex items-center justify-center p-4">
 <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
     <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
             <div class="p-6">
@@ -681,10 +735,10 @@ const csrfToken = getCookie('csrftoken');
 let scheduleData = {};
 let selectedColor = '#3b82f6'; // Default color
 
-// Constants for schedule generation
+// Constants for schedule generation - IMPROVED FOR BETTER ALIGNMENT
 const WORK_START_HOUR = 6; // 6:00 AM
 const WORK_END_HOUR = 19; // 7:00 PM (24-hour format)
-const TIME_SLOT_HEIGHT = 80; // Height of each hour slot in pixels
+const TIME_SLOT_HEIGHT = 100; // Increased from 80 to 100px for better visibility
 const MINUTES_PER_HOUR = 60;
 const PIXELS_PER_MINUTE = TIME_SLOT_HEIGHT / MINUTES_PER_HOUR;
 
@@ -907,6 +961,13 @@ addClassModal.addEventListener('click', (e) => {
 
 // Time conversion functions
 function timeToMinutes(timeStr) {
+    timeStr = timeStr.toString().trim();
+    
+    if (timeStr.match(/^\d{1,2}:\d{2}$/)) {
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        return hours * 60 + minutes;
+    }
+    
     const timeParts = timeStr.split(' ');
     let [hours, minutes] = timeParts[0].split(':').map(Number);
     
@@ -936,6 +997,15 @@ function minutesToTime24(minutes) {
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
 }
 
+function formatTime24to12(time24) {
+    if (!time24) return '';
+    const [hours, minutes] = time24.split(':').map(Number);
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    let hour12 = hours % 12;
+    if (hour12 === 0) hour12 = 12;
+    return `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+}
+
 // Generate schedule grid
 function generateScheduleGrid() {
     while (scheduleGrid.children.length > 8) {
@@ -944,14 +1014,14 @@ function generateScheduleGrid() {
     
     for (let hour = WORK_START_HOUR; hour < WORK_END_HOUR; hour++) {
         const timeLabel = document.createElement('div');
-        timeLabel.className = 'time-column p-3 text-sm text-[#11468F] font-medium flex items-center justify-end pr-4 border-b border-r border-gray-200';
+        timeLabel.className = 'time-column';
         timeLabel.textContent = minutesToTime(hour * 60);
         scheduleGrid.appendChild(timeLabel);
         
         const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         days.forEach(day => {
             const cell = document.createElement('div');
-            cell.className = 'time-slot bg-white border-b border-gray-200 relative';
+            cell.className = 'time-slot';
             cell.dataset.day = day;
             cell.dataset.time = hour * 60;
             cell.dataset.hour = hour;
@@ -981,26 +1051,35 @@ function generateScheduleGrid() {
     });
 }
 
+// IMPROVED: Calculate event position with precise alignment
 function calculateEventPosition(event) {
-    const startMinutes = timeToMinutes(event.start);
-    const endMinutes = timeToMinutes(event.end);
+    // Use the 24-hour format times for accurate calculation
+    const startMinutes = timeToMinutes(event.start_time);
+    const endMinutes = timeToMinutes(event.end_time);
     const duration = endMinutes - startMinutes;
     
-    const top = (startMinutes - (WORK_START_HOUR * 60)) * PIXELS_PER_MINUTE;
+    // Calculate position from the start of the work day
+    const minutesFromStart = startMinutes - (WORK_START_HOUR * 60);
+    const top = minutesFromStart * PIXELS_PER_MINUTE;
     const height = duration * PIXELS_PER_MINUTE;
+    
+    console.log(`Position calc for "${event.title}": start=${event.start_time} (${startMinutes}min), end=${event.end_time} (${endMinutes}min), top=${top}px, height=${height}px`);
     
     return { top, height };
 }
 
-function checkTimeOverlap(day, startTime, endTime) {
-    const events = Object.values(scheduleData).filter(event => event.day === day);
+function checkTimeOverlap(day, startTime, endTime, excludeId = null) {
+    const events = Object.values(scheduleData).filter(event => 
+        event.day === day && (!excludeId || event.id !== excludeId)
+    );
     
     const newStart = timeToMinutes(startTime);
     const newEnd = timeToMinutes(endTime);
     
     for (const event of events) {
-        const eventStart = timeToMinutes(event.start);
-        const eventEnd = timeToMinutes(event.end);
+        // Use the 24-hour format times for accurate comparison
+        const eventStart = timeToMinutes(event.start_time);
+        const eventEnd = timeToMinutes(event.end_time);
         
         if ((newStart < eventEnd && newEnd > eventStart)) {
             return event;
@@ -1016,22 +1095,33 @@ function addEventToSchedule(eventData) {
 }
 
 function updateScheduleDisplay() {
+    console.log('=== UPDATING SCHEDULE DISPLAY ===');
+    console.log('Total events:', Object.values(scheduleData).length);
+    
     document.querySelectorAll('.schedule-item').forEach(item => item.remove());
     
     const dayCells = {};
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     days.forEach(day => {
         dayCells[day] = document.querySelectorAll(`.time-slot[data-day="${day}"]`);
+        console.log(`${day}: ${dayCells[day].length} time slots`);
     });
     
     Object.values(scheduleData).forEach(event => {
+        console.log(`\nProcessing: ${event.title}`);
+        console.log(`  Day: ${event.day}`);
+        console.log(`  Time: ${event.start_time} - ${event.end_time}`);
+        
         const { top, height } = calculateEventPosition(event);
         
         const dayIndex = days.indexOf(event.day);
         if (dayIndex === -1) return;
         
-        const startMinutes = timeToMinutes(event.start);
+        // Use start_time (24-hour format) for accurate positioning
+        const startMinutes = timeToMinutes(event.start_time);
         const startHour = Math.floor(startMinutes / 60);
+        
+        console.log(`  Start hour: ${startHour}, Hour diff from ${WORK_START_HOUR}: ${startHour - WORK_START_HOUR}`);
         
         if (startHour >= WORK_START_HOUR && startHour < WORK_END_HOUR) {
             const hourDiff = startHour - WORK_START_HOUR;
@@ -1039,22 +1129,32 @@ function updateScheduleDisplay() {
             if (hourDiff >= 0 && hourDiff < dayCells[event.day].length) {
                 const targetCell = dayCells[event.day][hourDiff];
                 
+                // Calculate the position RELATIVE to the cell's hour
+                const cellStartMinutes = (WORK_START_HOUR + hourDiff) * 60;
+                const relativeTop = (startMinutes - cellStartMinutes) * PIXELS_PER_MINUTE;
+                
+                console.log(`  Cell starts at: ${cellStartMinutes} min, Relative top: ${relativeTop}px`);
+                
+                const displayStart = formatTime24to12(event.start_time);
+                const displayEnd = formatTime24to12(event.end_time);
+                
                 const scheduleItem = document.createElement('div');
                 scheduleItem.className = 'schedule-item';
                 scheduleItem.dataset.id = event.id;
                 scheduleItem.style.background = event.color;
-                scheduleItem.style.top = `${top}px`;
-                scheduleItem.style.height = `${height}px`;
-                scheduleItem.style.left = '2px';
-                scheduleItem.style.right = '2px';
-                scheduleItem.style.width = 'calc(100% - 4px)';
+                scheduleItem.style.top = `${relativeTop}px`; // Use relative position
+                scheduleItem.style.height = `${Math.max(height, 60)}px`; // Minimum height for visibility
+                
+                // Dynamic font sizing based on height
+                const titleSize = Math.max(11, Math.min(14, height / 8));
+                const textSize = Math.max(9, Math.min(11, height / 10));
                 
                 scheduleItem.innerHTML = `
                     <div class="schedule-item-content">
-                        <div class="schedule-item-title">${event.title}</div>
-                        <div class="schedule-item-time">${event.start} - ${event.end}</div>
-                        <div class="schedule-item-instructor">${event.instructor}</div>
-                        ${event.description ? `<div class="text-xs mt-1 opacity-90 truncate">${event.description}</div>` : ''}
+                        <div class="schedule-item-title" style="font-size: ${titleSize}px;">${event.title}</div>
+                        <div class="schedule-item-time" style="font-size: ${textSize}px;">${displayStart} - ${displayEnd}</div>
+                        <div class="schedule-item-instructor" style="font-size: ${textSize}px;">${event.instructor}</div>
+                        ${event.description && height > 80 ? `<div class="schedule-item-description" style="font-size: ${textSize - 1}px;">${event.description}</div>` : ''}
                     </div>
                 `;
                 
@@ -1066,9 +1166,17 @@ function updateScheduleDisplay() {
                 });
                 
                 targetCell.appendChild(scheduleItem);
+                
+                console.log(`  ✓ Added to cell ${hourDiff} with relative top=${relativeTop}px, height=${height}px`);
+            } else {
+                console.error(`  ✗ Hour diff ${hourDiff} out of range (0-${dayCells[event.day].length})`);
             }
+        } else {
+            console.error(`  ✗ Start hour ${startHour} outside work hours ${WORK_START_HOUR}-${WORK_END_HOUR}`);
         }
     });
+    
+    console.log('=== SCHEDULE DISPLAY UPDATED ===\n');
     
     const activeDay = document.querySelector('.mobile-day-tab.active')?.dataset.day;
     if (activeDay) {
@@ -1079,7 +1187,7 @@ function updateScheduleDisplay() {
 function updateMobileDayView(day) {
     const dayEvents = Object.values(scheduleData)
         .filter(event => event.day === day)
-        .sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+        .sort((a, b) => timeToMinutes(a.start_time) - timeToMinutes(b.start_time));
     
     let html = '';
     
@@ -1095,6 +1203,9 @@ function updateMobileDayView(day) {
         `;
     } else {
         dayEvents.forEach(event => {
+            const displayStart = formatTime24to12(event.start_time);
+            const displayEnd = formatTime24to12(event.end_time);
+            
             html += `
                 <div class="mobile-time-slot border-b border-gray-200">
                     <div class="flex items-start">
@@ -1102,7 +1213,7 @@ function updateMobileDayView(day) {
                         <div class="flex-1">
                             <div class="font-medium text-gray-900">${event.title}</div>
                             <div class="text-sm text-gray-600 mt-1">
-                                <i class="fas fa-clock mr-1"></i>${event.start} - ${event.end}
+                                <i class="fas fa-clock mr-1"></i>${displayStart} - ${displayEnd}
                             </div>
                             <div class="text-sm text-gray-600 mt-1">
                                 <i class="fas fa-chalkboard-teacher mr-1"></i>${event.instructor}
@@ -1192,12 +1303,15 @@ async function loadFromBackend() {
             if (data.schedules) {
                 scheduleData = {};
                 data.schedules.forEach(event => {
+                    const displayStart = formatTime24to12(event.start_time);
+                    const displayEnd = formatTime24to12(event.end_time);
+                    
                     scheduleData[event.id] = {
                         id: event.id,
                         title: event.title,
                         day: event.day,
-                        start: event.start,
-                        end: event.end,
+                        start: displayStart,
+                        end: displayEnd,
                         start_time: event.start_time,
                         end_time: event.end_time,
                         instructor: event.instructor,
@@ -1243,20 +1357,11 @@ eventForm.addEventListener('submit', async (e) => {
         return;
     }
     
-    // Format validation
-    const formatTime24to12 = (time24) => {
-        const [hours, minutes] = time24.split(':').map(Number);
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        let hour12 = hours % 12;
-        if (hour12 === 0) hour12 = 12;
-        return `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-    };
-    
     const startTime12 = formatTime24to12(startTime24);
     const endTime12 = formatTime24to12(endTime24);
     
-    const startMinutes = timeToMinutes(startTime12);
-    const endMinutes = timeToMinutes(endTime12);
+    const startMinutes = timeToMinutes(startTime24);
+    const endMinutes = timeToMinutes(endTime24);
     
     if (startMinutes >= endMinutes) {
         showError('End time must be after start time.');
@@ -1268,9 +1373,10 @@ eventForm.addEventListener('submit', async (e) => {
         return;
     }
     
-    const overlappingEvent = checkTimeOverlap(day, startTime12, endTime12);
+    // Check overlap using 24-hour format
+    const overlappingEvent = checkTimeOverlap(day, startTime24, endTime24);
     if (overlappingEvent) {
-        showError(`Time overlaps with "${overlappingEvent.title}" (${overlappingEvent.start} - ${overlappingEvent.end})`);
+        showError(`Time overlaps with "${overlappingEvent.title}" (${formatTime24to12(overlappingEvent.start_time)} - ${formatTime24to12(overlappingEvent.end_time)})`);
         return;
     }
     
@@ -1295,13 +1401,15 @@ eventForm.addEventListener('submit', async (e) => {
         const data = await response.json();
         
         if (response.ok) {
-            // Add the new event to scheduleData
+            const displayStart = formatTime24to12(data.start_time);
+            const displayEnd = formatTime24to12(data.end_time);
+            
             scheduleData[data.id] = {
                 id: data.id,
                 title: data.title,
                 day: data.day,
-                start: data.start,
-                end: data.end,
+                start: displayStart,
+                end: displayEnd,
                 start_time: data.start_time,
                 end_time: data.end_time,
                 instructor: data.instructor,
@@ -1349,7 +1457,6 @@ mobileDayTabs.forEach(tab => {
 
 // ==================== INITIALIZATION ====================
 
-// Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     generateScheduleGrid();
     loadFromBackend();
@@ -1381,8 +1488,8 @@ eventStart.addEventListener('change', function() {
     const endValue = eventEnd.value;
     
     if (startValue && endValue) {
-        const startMinutes = timeToMinutes(startValue + ' AM');
-        const endMinutes = timeToMinutes(endValue + ' AM');
+        const startMinutes = timeToMinutes(startValue);
+        const endMinutes = timeToMinutes(endValue);
         
         if (startMinutes >= endMinutes) {
             const [hours, minutes] = startValue.split(':').map(Number);
