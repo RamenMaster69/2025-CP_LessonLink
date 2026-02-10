@@ -161,6 +161,41 @@
         .custom-textarea.active {
             display: block;
         }
+
+        /* Add to existing styles */
+        .validation-warning {
+            border-color: #f59e0b !important;
+            background-color: #fffbeb !important;
+        }
+
+        .validation-error {
+            border-color: #dc2626 !important;
+            background-color: #fef2f2 !important;
+        }
+
+        .validation-success {
+            border-color: #10b981 !important;
+            background-color: #ecfdf5 !important;
+        }
+
+        .exemplar-match-indicator {
+            display: flex;
+            align-items: center;
+            margin-top: 4px;
+            font-size: 12px;
+        }
+
+        .exemplar-match-good {
+            color: #10b981;
+        }
+
+        .exemplar-match-warning {
+            color: #f59e0b;
+        }
+
+        .exemplar-match-bad {
+            color: #dc2626;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -1013,6 +1048,200 @@ function getPreviewFormData() {
                 }
             });
         }
+
+        //===========================================================================================================================
+        //===========================================================================================================================
+        //===========================================================================================================================
+
+
+        // Add this function to lesson_ai.html
+        function showValidationError(errorData) {
+            // Create validation error modal
+            const errorModal = document.createElement('div');
+            errorModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            errorModal.innerHTML = `
+                <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
+                    <div class="bg-red-600 text-white px-6 py-4 flex items-center justify-between">
+                        <h3 class="text-lg font-semibold">Input Validation Error</h3>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" class="p-2 hover:bg-red-700 rounded-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="overflow-y-auto max-h-[calc(80vh-120px)] p-6">
+                        <div class="mb-6">
+                            <div class="flex items-center mb-4">
+                                <svg class="w-6 h-6 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.998-.833-2.732 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <h4 class="text-lg font-semibold text-gray-900">Your inputs don't match the selected exemplar</h4>
+                            </div>
+                            
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                                <p class="text-red-700 font-medium mb-2">Selected Exemplar: <span class="font-bold">${errorData.exemplar_name || 'Unknown'}</span></p>
+                                <p class="text-red-600 text-sm">Confidence Score: ${Math.round(errorData.confidence_score * 100)}% match</p>
+                            </div>
+                            
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                                <h5 class="font-medium text-yellow-800 mb-2">Analysis:</h5>
+                                <p class="text-yellow-700 text-sm">${errorData.analysis_explanation || 'No detailed analysis available.'}</p>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <h5 class="font-medium text-gray-900">Suggested Actions:</h5>
+                                
+                                <div class="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                                    <svg class="w-5 h-5 text-blue-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                    </svg>
+                                    <div>
+                                        <p class="font-medium text-blue-800">Option 1: Choose a different exemplar</p>
+                                        <p class="text-blue-600 text-sm mt-1">Select an exemplar that better matches your subject and topic.</p>
+                                        <button onclick="showExemplarSelector()" class="mt-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">
+                                            Browse Exemplars
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
+                                    <svg class="w-5 h-5 text-green-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                    <div>
+                                        <p class="font-medium text-green-800">Option 2: Adjust your inputs</p>
+                                        <p class="text-green-600 text-sm mt-1">Modify your subject, grade level, or objectives to better align with the exemplar.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                                    <svg class="w-5 h-5 text-gray-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    <div>
+                                        <p class="font-medium text-gray-800">Option 3: Create without exemplar</p>
+                                        <p class="text-gray-600 text-sm mt-1">Generate a lesson plan without using any exemplar as reference.</p>
+                                        <button onclick="removeExemplarAndSubmit()" class="mt-2 px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700">
+                                            Remove Exemplar & Continue
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 px-6 py-4 flex justify-end">
+                        <button onclick="this.parentElement.parentElement.remove()" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(errorModal);
+        }
+
+        function showExemplarSelector() {
+            // Close error modal first
+            document.querySelector('.fixed.inset-0.bg-black')?.remove();
+            
+            // Focus on exemplar selector
+            const exemplarSelect = document.getElementById('exemplar-select');
+            exemplarSelect.focus();
+            
+            // Show tooltip or highlight
+            exemplarSelect.parentElement.classList.add('ring-2', 'ring-blue-500');
+            setTimeout(() => {
+                exemplarSelect.parentElement.classList.remove('ring-2', 'ring-blue-500');
+            }, 3000);
+        }
+
+        function removeExemplarAndSubmit() {
+            // Remove exemplar selection
+            document.getElementById('exemplar-select').value = '';
+            
+            // Close error modal
+            document.querySelector('.fixed.inset-0.bg-black')?.remove();
+            
+            // Show confirmation
+            const confirmBtn = document.createElement('div');
+            confirmBtn.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+            confirmBtn.textContent = 'Exemplar removed. Click Generate again.';
+            document.body.appendChild(confirmBtn);
+            setTimeout(() => confirmBtn.remove(), 3000);
+        }
+
+        // Update form submission handler to handle validation errors
+        document.getElementById('lesson-plan-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Show loading overlay
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            
+            try {
+                // Gather form data with proper values
+                const formData = getSubmissionFormData();
+                
+                // Basic validation
+                if (!formData.subject || !formData.grade_level || !formData.learning_objectives) {
+                    throw new Error('Please fill in all required fields: Subject, Grade Level, and Learning Objectives');
+                }
+
+                // Get selected exemplar info for the loading message
+                const exemplarSelect = document.getElementById('exemplar-select');
+                const selectedExemplarText = exemplarSelect.options[exemplarSelect.selectedIndex].text;
+                
+                // Update loading message based on exemplar selection
+                const loadingMessage = document.getElementById('loading-message');
+                if (formData.selected_exemplar) {
+                    loadingMessage.textContent = `Validating inputs against exemplar: ${selectedExemplarText.split(' (')[0]}...`;
+                } else {
+                    loadingMessage.textContent = 'Generating lesson plan based on your inputs...';
+                }
+
+                const response = await fetch('/generate-lesson-plan/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show success message with exemplar info if used
+                    let successMessage = 'Lesson plan generated successfully!';
+                    if (data.exemplar_used) {
+                        successMessage += ` Used exemplar: ${data.exemplar_name}`;
+                    }
+                    showSuccessMessage(successMessage);
+                    
+                    // Redirect to result page after a short delay
+                    setTimeout(() => {
+                        window.location.href = '/lesson-plan-result/';
+                    }, 1000);
+                } else {
+                    // Check if it's a validation error
+                    if (data.validation_error) {
+                        // Show specialized validation error modal
+                        showValidationError(data);
+                    } else {
+                        throw new Error(data.error || 'Unknown error occurred');
+                    }
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                showErrorMessage('An error occurred: ' + error.message);
+            } finally {
+                // Hide loading overlay
+                document.getElementById('loading-overlay').classList.add('hidden');
+            }
+        });
+
+
     </script>
 </body>
 </html>

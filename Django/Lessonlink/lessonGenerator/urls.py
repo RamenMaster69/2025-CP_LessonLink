@@ -14,4 +14,5 @@ urlpatterns = [
     path('drafts/<int:draft_id>/delete/', views.delete_draft, name='delete_draft'),
     path('regenerate-lesson-content/', views.regenerate_lesson_content, name='regenerate_lesson_content'),
     path('get-ai-suggestions/', views.get_ai_suggestions, name='get_ai_suggestions'),
+    path('check-exemplar-compatibility/', views.check_exemplar_compatibility, name='check_exemplar_compatibility'),
 ]

@@ -1,4 +1,3 @@
-# views.py - COMPLETE INTEGRATED VERSION WITH INTELLIGENCE TYPE
 import json
 import google.generativeai as genai
 from django.conf import settings
@@ -28,6 +27,76 @@ except Exception as e:
 def lesson_ai(request):
     """Render the main page with the lesson plan form"""
     return render(request, 'lessonGenerator/lesson_ai.html')
+
+def analyze_input_relation(user_inputs, exemplar_content, exemplar_name):
+    """
+    Analyze if user inputs are related to the selected exemplar
+    Returns: (is_related: bool, explanation: str, confidence_score: float)
+    """
+    try:
+        if not exemplar_content or not user_inputs:
+            return True, "No exemplar selected", 1.0
+        
+        # Prepare analysis prompt
+        analysis_prompt = f"""
+        Analyze the relationship between the user's lesson plan inputs and the selected exemplar.
+        
+        USER INPUTS:
+        Subject: {user_inputs.get('subject', '')}
+        Grade Level: {user_inputs.get('grade_level', '')}
+        Learning Objectives: {user_inputs.get('learning_objectives', '')}
+        Subject Matter: {user_inputs.get('subject_matter', '')}
+        
+        SELECTED EXEMPLAR: {exemplar_name}
+        EXEMPLAR CONTENT (first 2000 chars): {exemplar_content[:2000]}
+        
+        ANALYSIS TASK:
+        1. Determine if the user's inputs are related to the exemplar
+        2. Check for subject alignment
+        3. Check for grade level appropriateness
+        4. Check if learning objectives are compatible with exemplar content
+        5. Check if subject matter aligns with exemplar focus
+        
+        RELATIONSHIP CRITERIA:
+        - DIRECT RELATION: Same subject area, similar topics, compatible grade level
+        - INDIRECT RELATION: Different but related subjects, transferable concepts
+        - UNRELATED: Completely different subjects/topics, incompatible content
+        
+        Return ONLY a JSON object with this exact structure:
+        {{
+            "is_related": true/false,
+            "confidence_score": 0.0-1.0,
+            "explanation": "Detailed explanation of the relationship analysis",
+            "specific_issues": ["List of specific issues if unrelated"],
+            "suggestions": ["Suggestions for better alignment if unrelated"]
+        }}
+        
+        Be strict but fair. Only mark as unrelated if there's a clear mismatch that would make
+        the exemplar useless as a reference.
+        """
+        
+        response = model.generate_content([
+            "You are an educational content analyst. Analyze the relationship between lesson plan inputs and exemplars. Return only JSON.",
+            analysis_prompt
+        ])
+        
+        # Extract JSON from response
+        json_match = re.search(r'\{.*\}', response.text, re.DOTALL)
+        if json_match:
+            analysis_result = json.loads(json_match.group())
+            return (
+                analysis_result.get('is_related', True),
+                analysis_result.get('explanation', ''),
+                analysis_result.get('confidence_score', 0.0)
+            )
+        else:
+            # If analysis fails, default to allowing (but log warning)
+            print("Failed to parse relationship analysis, defaulting to allowed")
+            return True, "Analysis failed, proceeding with caution", 0.5
+            
+    except Exception as e:
+        print(f"Relationship analysis error: {str(e)}")
+        return True, f"Analysis error: {str(e)}", 0.5
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -91,6 +160,35 @@ def generate_lesson_plan(request):
                 exemplar_content = exemplar.extracted_text
                 exemplar_name = exemplar.name
                 print(f"Exemplar content loaded: {len(exemplar_content)} characters from {exemplar_name}")  # Debugging
+                
+                # REAL-TIME INPUT VALIDATION: Check if inputs are related to exemplar
+                print("Analyzing input-exemplar relationship...")  # Debugging
+                is_related, explanation, confidence = analyze_input_relation(
+                    form_data, 
+                    exemplar_content, 
+                    exemplar_name
+                )
+                
+                print(f"Relationship analysis: is_related={is_related}, confidence={confidence}")  # Debugging
+                
+                if not is_related:
+                    # Inputs are not related to exemplar - return error
+                    return JsonResponse({
+                        'success': False,
+                        'error': f'INPUT VALIDATION ERROR: Your lesson plan inputs are not sufficiently related to the selected exemplar "{exemplar_name}".\n\n'
+                                f'Analysis: {explanation}\n\n'
+                                f'Please either:\n'
+                                f'1. Choose a different exemplar that matches your subject/topic\n'
+                                f'2. Adjust your lesson plan inputs to better align with the exemplar\n'
+                                f'3. Deselect the exemplar if you want to create a lesson plan without reference',
+                        'validation_error': True,
+                        'exemplar_name': exemplar_name,
+                        'confidence_score': confidence,
+                        'analysis_explanation': explanation
+                    }, status=400)
+                
+                print(f"Inputs validated: {explanation}")  # Debugging
+                    
             except Exemplar.DoesNotExist:
                 print("Selected exemplar not found")
             except Exception as e:
@@ -120,7 +218,7 @@ def generate_lesson_plan(request):
         ASSESSMENT: {form_data['assessment'] or 'To be developed for formal assessment'}
 
         {'REFERENCE EXEMPLAR: ' + exemplar_name if exemplar_name else ''}
-        {'EXEMPLAR CONTENT FOR REFERENCE: ' + exemplar_content if exemplar_content else ''}
+        {'EXEMPLAR CONTENT FOR REFERENCE: ' + exemplar_content[:2000] + '...' if exemplar_content else ''}
 
         Generate this as a complete MELC-aligned lesson plan following DepEd Philippines standards.
         Use the learning objectives provided to create specific, measurable outcomes.
@@ -178,7 +276,8 @@ def generate_lesson_plan(request):
                         'exemplar_used': has_exemplar,
                         'intelligence_type': form_data['intelligence_type'],
                         'exemplar_id': form_data['selected_exemplar'] if has_exemplar else None,
-                        'exemplar_name': exemplar_name if has_exemplar else None
+                        'exemplar_name': exemplar_name if has_exemplar else None,
+                        'validation_passed': True if has_exemplar else None
                     })
                 else:
                     # Fallback: if no JSON found, treat as markdown
@@ -193,7 +292,8 @@ def generate_lesson_plan(request):
                         'exemplar_used': has_exemplar,
                         'intelligence_type': form_data['intelligence_type'],
                         'exemplar_id': form_data['selected_exemplar'] if has_exemplar else None,
-                        'exemplar_name': exemplar_name if has_exemplar else None
+                        'exemplar_name': exemplar_name if has_exemplar else None,
+                        'validation_passed': True if has_exemplar else None
                     })
                     
             except json.JSONDecodeError as json_error:
@@ -209,7 +309,8 @@ def generate_lesson_plan(request):
                     'exemplar_used': has_exemplar,
                     'intelligence_type': form_data['intelligence_type'],
                     'exemplar_id': form_data['selected_exemplar'] if has_exemplar else None,
-                    'exemplar_name': exemplar_name if has_exemplar else None
+                    'exemplar_name': exemplar_name if has_exemplar else None,
+                    'validation_passed': True if has_exemplar else None
                 })
             
         except Exception as ai_error:
@@ -871,3 +972,66 @@ def delete_draft(request, draft_id):
             'error': f'Error deleting lesson plan: {str(e)}'
         }, status=500)
         
+        
+@csrf_exempt
+@require_http_methods(["POST"])
+def check_exemplar_compatibility(request):
+    """Quick compatibility check between subject and exemplar"""
+    try:
+        data = json.loads(request.body)
+        subject = data.get('subject', '').strip()
+        exemplar_id = data.get('exemplar_id', '').strip()
+        
+        if not subject or not exemplar_id:
+            return JsonResponse({
+                'compatible': True,
+                'message': 'Insufficient data for compatibility check'
+            })
+        
+        # Get exemplar
+        from lesson.models import Exemplar
+        try:
+            exemplar = Exemplar.objects.get(id=exemplar_id)
+            
+            # Simple keyword-based compatibility check
+            subject_lower = subject.lower()
+            exemplar_text_lower = exemplar.extracted_text.lower() if exemplar.extracted_text else ""
+            
+            # Check for subject-related keywords
+            subject_keywords = {
+                'mathematics': ['math', 'mathematics', 'algebra', 'geometry', 'calculus', 'numbers'],
+                'science': ['science', 'biology', 'chemistry', 'physics', 'experiment', 'lab'],
+                'english': ['english', 'grammar', 'writing', 'literature', 'reading', 'comprehension'],
+                'araling panlipunan': ['history', 'social studies', 'culture', 'government', 'geography'],
+                'mapeh': ['music', 'arts', 'pe', 'physical education', 'health'],
+                'tle': ['technology', 'livelihood', 'education', 'technical', 'vocational'],
+                'filipino': ['filipino', 'tagalog', 'wika', 'panitikan']
+            }
+            
+            # Determine compatibility
+            compatible = False
+            for key, keywords in subject_keywords.items():
+                if key in subject_lower or any(kw in subject_lower for kw in keywords):
+                    # Check if exemplar contains related keywords
+                    if any(kw in exemplar_text_lower for kw in keywords):
+                        compatible = True
+                        break
+            
+            return JsonResponse({
+                'compatible': compatible,
+                'subject': subject,
+                'exemplar_name': exemplar.name,
+                'message': 'Compatible' if compatible else 'Potential mismatch detected'
+            })
+            
+        except Exemplar.DoesNotExist:
+            return JsonResponse({
+                'compatible': True,
+                'message': 'Exemplar not found'
+            })
+            
+    except Exception as e:
+        return JsonResponse({
+            'compatible': True,
+            'message': f'Error checking compatibility: {str(e)}'
+        })
