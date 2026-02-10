@@ -12,14 +12,404 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        
+        /* Print button at top */
+        .print-button-top {
+            position: fixed;
+            top: 20px;
+            right: 30px;
+            z-index: 1000;
+            background: #10b981;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        
+        .print-button-top:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        /* Content styling for screen */
+        .print-content {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-size: 14px;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            margin: 8px 0;
+        }
+        
+        .signature-line {
+            border-bottom: 2px solid #999;
+            padding-bottom: 4px;
+            min-height: 24px;
+        }
+        
+        .signature-line-empty {
+            border-bottom: 2px solid #999;
+            min-height: 24px;
+            margin-top: 4px;
+        }
+        
         @media print {
-            .no-print {
+            /* Critical print setup - COMPACT VERSION */
+            @page {
+                margin: 0.5in;
+                size: letter portrait;
+            }
+            
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+                font-size: 10pt !important;
+                line-height: 1.3 !important;
+                color: black !important;
+            }
+            
+            /* Hide non-printable elements */
+            .no-print,
+            nav,
+            button,
+            .print-button-top {
                 display: none !important;
+            }
+            
+            /* Main container adjustments */
+            .max-w-7xl {
+                max-width: 100% !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            /* Content container */
+            .bg-white.rounded-lg.shadow-sm.border {
+                border: none !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+            
+            /* Remove ALL container padding/margins */
+            .p-8, .px-6, .py-8, .px-4, .py-4 {
+                padding: 0 !important;
+            }
+            
+            /* Compact Title and headers */
+            h1 {
+                font-size: 14pt !important;
+                font-weight: bold !important;
+                color: black !important;
+                margin: 0 0 4pt 0 !important;
+                page-break-after: avoid !important;
+            }
+            
+            h2 {
+                font-size: 11pt !important;
+                font-weight: bold !important;
+                color: black !important;
+                margin: 6pt 0 3pt 0 !important;
+                page-break-after: avoid !important;
+                border-bottom: 1pt solid black !important;
+                padding-bottom: 2pt !important;
+            }
+            
+            h3 {
+                font-size: 10.5pt !important;
+                font-weight: 600 !important;
+                color: black !important;
+                margin: 4pt 0 2pt 0 !important;
+                page-break-after: avoid !important;
+            }
+            
+            h4 {
+                font-size: 10pt !important;
+                font-weight: 600 !important;
+                color: black !important;
+                margin: 3pt 0 2pt 0 !important;
+            }
+            
+            /* Remove all background colors */
+            .bg-gray-50,
+            .bg-gray-100,
+            .bg-white,
+            .bg-blue-50,
+            .bg-green-50,
+            .bg-yellow-50 {
+                background: white !important;
+            }
+            
+            /* All text to black */
+            .text-gray-800,
+            .text-gray-700,
+            .text-gray-600,
+            .text-blue-600,
+            * {
+                color: black !important;
+            }
+            
+            /* Remove decorative elements */
+            .rounded-lg,
+            .rounded-full,
+            .shadow-sm,
+            .shadow {
+                border-radius: 0 !important;
+                box-shadow: none !important;
+            }
+            
+            /* Border styling */
+            .border-b {
+                border-bottom: 1pt solid #999 !important;
+            }
+            
+            .border-t {
+                border-top: 1pt solid #999 !important;
+            }
+            
+            .border-gray-100,
+            .border-gray-200 {
+                border-color: #999 !important;
+            }
+            
+            /* COMPACT Title header section */
+            .text-center.border-b {
+                text-align: center !important;
+                border-bottom: 1.5pt solid black !important;
+                padding-bottom: 4pt !important;
+                margin-bottom: 6pt !important;
+            }
+            
+            .text-center.border-b .text-3xl {
+                font-size: 14pt !important;
+                margin-bottom: 2pt !important;
+            }
+            
+            .text-center.border-b .text-sm {
+                font-size: 9pt !important;
+            }
+            
+            /* COMPACT Basic Information grid */
+            .md\:grid-cols-2 {
+                display: table !important;
+                width: 100% !important;
+                border-collapse: collapse !important;
+                margin-bottom: 6pt !important;
+            }
+            
+            .md\:grid-cols-2 > div {
+                display: table-row !important;
+            }
+            
+            .md\:grid-cols-2 > div > label {
+                display: table-cell !important;
+                font-weight: 600 !important;
+                padding: 2pt 6pt !important;
+                border-bottom: 1pt solid #ddd !important;
+                width: 35% !important;
+                font-size: 10pt !important;
+            }
+            
+            .md\:grid-cols-2 > div > div {
+                display: table-cell !important;
+                padding: 2pt 6pt !important;
+                border-bottom: 1pt solid #ddd !important;
+                width: 65% !important;
+                font-size: 10pt !important;
+            }
+            
+            /* COMPACT Content sections - MINIMAL SPACING */
+            .mb-8 {
+                margin-bottom: 6pt !important;
+            }
+            
+            .mb-6 {
+                margin-bottom: 4pt !important;
+            }
+            
+            .mb-4 {
+                margin-bottom: 3pt !important;
+            }
+            
+            .mb-3 {
+                margin-bottom: 2pt !important;
+            }
+            
+            .mb-2 {
+                margin-bottom: 2pt !important;
+            }
+            
+            /* COMPACT Print content boxes */
+            .print-content {
+                font-size: 10pt !important;
+                line-height: 1.3 !important;
+                margin: 2pt 0 !important;
+                padding: 4pt !important;
+                border: 1pt solid #ccc !important;
+                background: white !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+                text-align: justify !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+            }
+            
+            /* Remove bold formatting from content */
+            .print-content strong,
+            .print-content b {
+                font-weight: normal !important;
+            }
+            
+            /* COMPACT Paragraph spacing */
+            .print-content p {
+                margin: 2pt 0 !important;
+                text-indent: 0 !important;
+            }
+            
+            .print-content p:first-child {
+                margin-top: 0 !important;
+            }
+            
+            .print-content p:last-child {
+                margin-bottom: 0 !important;
+            }
+            
+            /* COMPACT List formatting */
+            .print-content ul,
+            .print-content ol {
+                margin: 2pt 0 !important;
+                padding-left: 15pt !important;
+            }
+            
+            .print-content li {
+                margin: 1pt 0 !important;
+            }
+            
+            /* COMPACT Signature section */
+            .lg\:grid-cols-2 {
+                display: table !important;
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+            
+            .signature-section {
+                display: table-cell !important;
+                width: 50% !important;
+                padding: 0 8pt !important;
+                vertical-align: top !important;
+                page-break-inside: avoid !important;
+            }
+            
+            .signature-section:first-child {
+                border-right: 1pt solid #ccc !important;
+                padding-right: 8pt !important;
+                padding-left: 0 !important;
+            }
+            
+            .signature-section h3 {
+                font-size: 10.5pt !important;
+                font-weight: bold !important;
+                margin-bottom: 4pt !important;
+            }
+            
+            .signature-line,
+            .signature-line-empty {
+                border-bottom: 1.5pt solid black !important;
+                min-height: 18pt !important;
+                margin-bottom: 4pt !important;
+                padding-bottom: 1pt !important;
+                padding-top: 1pt !important;
+            }
+            
+            .signature-section label {
+                font-size: 9pt !important;
+                font-weight: 600 !important;
+                display: block !important;
+                margin-bottom: 1pt !important;
+            }
+            
+            .space-y-4 > div {
+                margin-bottom: 6pt !important;
+            }
+            
+            /* Page break controls */
+            .page-break-inside-avoid {
+                page-break-inside: avoid !important;
+            }
+            
+            /* COMPACT spacing overrides */
+            .mt-12 {
+                margin-top: 8pt !important;
+            }
+            
+            .pt-8 {
+                padding-top: 6pt !important;
+            }
+            
+            .pb-6 {
+                padding-bottom: 4pt !important;
+            }
+            
+            /* Ensure minimal spacing */
+            p {
+                margin: 2pt 0 !important;
+            }
+            
+            /* Grid gap removal */
+            .gap-4,
+            .gap-8 {
+                gap: 0 !important;
+            }
+            
+            /* COMPACT Text sizing */
+            .text-sm {
+                font-size: 9pt !important;
+            }
+            
+            .text-lg {
+                font-size: 10.5pt !important;
+            }
+            
+            .text-xl {
+                font-size: 11pt !important;
+            }
+            
+            .text-3xl {
+                font-size: 14pt !important;
+            }
+            
+            /* Remove excessive padding from utility classes */
+            .px-6, .py-6 {
+                padding: 0 !important;
             }
         }
     </style>
 </head>
 <body class="bg-gray-50">
+    <!-- Print button at top -->
+    <button onclick="window.print()" class="print-button-top no-print">
+        <i class="fas fa-print mr-2"></i> Print
+    </button>
+
     <!-- Navigation Bar -->
     <nav class="sticky top-0 z-50 no-print" style="background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);">
         <div class="max-w-7xl mx-auto px-6 py-4">
@@ -51,13 +441,6 @@
                     </span>
                     {% endif %}
                     
-                    <!-- Print Button - Only show if approved -->
-                    {% if latest_submission.status == 'approved' %}
-                    <button onclick="window.print()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-sm font-medium">
-                        <i class="fas fa-print mr-2"></i>Print
-                    </button>
-                    {% endif %}
-                    
                     <a href="{% url 'edit_draft' draft.id %}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium">
                         <i class="fas fa-edit mr-2"></i>Edit Draft
                     </a>
@@ -75,184 +458,159 @@
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-6 py-8">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <!-- Header -->
-            <div class="border-b border-gray-200 pb-6 mb-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">{{ draft.title }}</h2>
-                <p class="text-sm text-gray-600">
-                    <i class="fas fa-calendar mr-2"></i>Created on {{ draft.created_at|date:"F d, Y" }}
-                </p>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+            <!-- Title Header -->
+            <div class="text-center border-b pb-6 mb-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-3">{{ draft.title }}</h1>
+                <div class="text-gray-600 text-sm">
+                    <p><strong>Created:</strong> {{ draft.created_at|date:"F d, Y" }}</p>
+                </div>
             </div>
 
             <!-- Basic Information -->
-            <div class="border-b border-gray-200 pb-6 mb-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Basic Information</h3>
+            <div class="mb-8">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b">Basic Information</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                        <div class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50">
-                            {{ draft.subject|default:"Not specified" }}
-                        </div>
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                        <label class="font-semibold text-gray-700">Subject</label>
+                        <div class="text-gray-800">{{ draft.subject|default:"Not specified" }}</div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
-                        <div class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50">
-                            {{ draft.grade_level|default:"Not specified" }}
-                        </div>
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                        <label class="font-semibold text-gray-700">Grade Level</label>
+                        <div class="text-gray-800">{{ draft.grade_level|default:"Not specified" }}</div>
                     </div>
                     {% if draft.quarter %}
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Quarter</label>
-                        <div class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50">
-                            {{ draft.quarter }}
-                        </div>
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                        <label class="font-semibold text-gray-700">Quarter</label>
+                        <div class="text-gray-800">{{ draft.quarter }}</div>
                     </div>
                     {% endif %}
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Duration (minutes)</label>
-                        <div class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50">
-                            {{ draft.duration|default:"0" }}
-                        </div>
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                        <label class="font-semibold text-gray-700">Duration</label>
+                        <div class="text-gray-800">{{ draft.duration|default:"0" }} minutes</div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Class Size</label>
-                        <div class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50">
-                            {{ draft.population|default:"0" }} students
-                        </div>
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                        <label class="font-semibold text-gray-700">Class Size</label>
+                        <div class="text-gray-800">{{ draft.population|default:"0" }} students</div>
                     </div>
                 </div>
             </div>
 
             <!-- Learning Objectives -->
             {% if draft.learning_objectives %}
-            <div class="border-b border-gray-200 pb-6 mb-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Learning Objectives</h3>
-                <div class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-sm whitespace-pre-wrap">{{ draft.learning_objectives }}</div>
+            <div class="mb-8 page-break-inside-avoid">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b">Learning Objectives</h2>
+                <div class="print-content">{{ draft.learning_objectives|striptags }}</div>
             </div>
             {% endif %}
 
             <!-- Subject Matter -->
             {% if draft.subject_matter %}
-            <div class="border-b border-gray-200 pb-6 mb-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Subject Matter</h3>
-                <div class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-sm whitespace-pre-wrap">{{ draft.subject_matter }}</div>
+            <div class="mb-8 page-break-inside-avoid">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b">Subject Matter</h2>
+                <div class="print-content">{{ draft.subject_matter|striptags }}</div>
             </div>
             {% endif %}
 
             <!-- Materials Needed -->
             {% if draft.materials_needed %}
-            <div class="border-b border-gray-200 pb-6 mb-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Materials Needed</h3>
-                <div class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-sm whitespace-pre-wrap">{{ draft.materials_needed }}</div>
+            <div class="mb-8 page-break-inside-avoid">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b">Materials Needed</h2>
+                <div class="print-content">{{ draft.materials_needed|striptags }}</div>
             </div>
             {% endif %}
 
             <!-- Lesson Procedure -->
-            <div class="border-b border-gray-200 pb-6 mb-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Lesson Procedure</h3>
-                <div class="space-y-4">
-                    {% if draft.introduction %}
-                    <div>
-                        <h4 class="font-medium text-gray-700 mb-2">Introduction</h4>
-                        <div class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-sm whitespace-pre-wrap">{{ draft.introduction }}</div>
-                    </div>
-                    {% endif %}
-                    
-                    {% if draft.instruction %}
-                    <div>
-                        <h4 class="font-medium text-gray-700 mb-2">Instruction/Direct Teaching</h4>
-                        <div class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-sm whitespace-pre-wrap">{{ draft.instruction }}</div>
-                    </div>
-                    {% endif %}
-                    
-                    {% if draft.application %}
-                    <div>
-                        <h4 class="font-medium text-gray-700 mb-2">Guided Practice/Application</h4>
-                        <div class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-sm whitespace-pre-wrap">{{ draft.application }}</div>
-                    </div>
-                    {% endif %}
-                    
-                    {% if draft.evaluation %}
-                    <div>
-                        <h4 class="font-medium text-gray-700 mb-2">Independent Practice/Evaluation</h4>
-                        <div class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-sm whitespace-pre-wrap">{{ draft.evaluation }}</div>
-                    </div>
-                    {% endif %}
-                    
-                    {% if draft.assessment %}
-                    <div>
-                        <h4 class="font-medium text-gray-700 mb-2">Assessment</h4>
-                        <div class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-sm whitespace-pre-wrap">{{ draft.assessment }}</div>
-                    </div>
-                    {% endif %}
+            <div class="mb-8">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b">Lesson Procedure</h2>
+                
+                {% if draft.introduction %}
+                <div class="mb-6 page-break-inside-avoid">
+                    <h3 class="font-bold text-gray-700 mb-2 text-lg">Introduction</h3>
+                    <div class="print-content">{{ draft.introduction|striptags }}</div>
                 </div>
-            </div>
-
-            <!-- AI Generated Content -->
-            <!-- {% if draft.generated_content %}
-            <div class="border-b border-gray-200 pb-6 mb-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">AI-Generated Content</h3>
-                <div class="bg-gray-100 p-4 rounded-lg overflow-auto max-h-64">
-                    <div class="prose max-w-none text-sm">
-                        {{ draft.generated_content|markdown|safe }}
-                    </div>
+                {% endif %}
+                
+                {% if draft.instruction %}
+                <div class="mb-6 page-break-inside-avoid">
+                    <h3 class="font-bold text-gray-700 mb-2 text-lg">Instruction/Direct Teaching</h3>
+                    <div class="print-content">{{ draft.instruction|striptags }}</div>
                 </div>
+                {% endif %}
+                
+                {% if draft.application %}
+                <div class="mb-6 page-break-inside-avoid">
+                    <h3 class="font-bold text-gray-700 mb-2 text-lg">Guided Practice/Application</h3>
+                    <div class="print-content">{{ draft.application|striptags }}</div>
+                </div>
+                {% endif %}
+                
+                {% if draft.evaluation %}
+                <div class="mb-6 page-break-inside-avoid">
+                    <h3 class="font-bold text-gray-700 mb-2 text-lg">Independent Practice/Evaluation</h3>
+                    <div class="print-content">{{ draft.evaluation|striptags }}</div>
+                </div>
+                {% endif %}
+                
+                {% if draft.assessment %}
+                <div class="mb-6 page-break-inside-avoid">
+                    <h3 class="font-bold text-gray-700 mb-2 text-lg">Assessment</h3>
+                    <div class="print-content">{{ draft.assessment|striptags }}</div>
+                </div>
+                {% endif %}
             </div>
-            {% endif %} -->
 
             <!-- Signature Section -->
-            <div class="border-b border-gray-200 pb-6 mb-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Signatures</h3>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="mt-12 pt-8 border-t page-break-inside-avoid">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">Signatures</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <!-- Teacher Section -->
-                    <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
-                        <h4 class="font-medium text-gray-700 mb-4 flex items-center">
-                            <i class="fas fa-user-graduate mr-2 text-blue-600"></i>
-                            Teacher
-                        </h4>
-                        <div class="space-y-3">
+                    <div class="signature-section">
+                        <h3 class="font-bold text-gray-700 mb-4">Teacher</h3>
+                        <div class="space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                                <div class="border-b-2 border-gray-400 pb-2 text-sm">
+                                <div class="signature-line">
                                     {{ request.user.get_full_name|default:request.user.username }}
                                 </div>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Date Prepared</label>
-                                <div class="border-b-2 border-gray-400 pb-2 text-sm">
+                                <div class="signature-line">
                                     {{ draft.created_at|date:"F d, Y" }}
                                 </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Signature</label>
+                                <div class="signature-line-empty"></div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Principal Section -->
-                    <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
-                        <h4 class="font-medium text-gray-700 mb-4 flex items-center">
-                            <i class="fas fa-user-tie mr-2 text-purple-600"></i>
-                            Administrative Approval
-                        </h4>
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Principal Signature</label>
-                                <div class="border-b-2 border-gray-400 pb-2 min-h-[32px]"></div>
-                            </div>
+                    <div class="signature-section">
+                        <h3 class="font-bold text-gray-700 mb-4">Administrative Approval</h3>
+                        <div class="space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Principal Name</label>
-                                <div class="border-b-2 border-gray-400 pb-2 min-h-[32px]"></div>
+                                <div class="signature-line-empty"></div>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                                <div class="border-b-2 border-gray-400 pb-2 min-h-[32px]"></div>
+                                <div class="signature-line-empty"></div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Signature</label>
+                                <div class="signature-line-empty"></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Submission Status -->
+            <!-- Submission Status (Hidden in Print) -->
             {% if latest_submission %}
-            <div class="bg-gray-50 rounded-lg p-6 border border-gray-200 no-print">
+            <div class="bg-gray-50 rounded-lg p-6 border border-gray-200 mt-8 no-print">
                 <h4 class="font-semibold text-gray-800 text-lg mb-4 flex items-center">
                     <i class="fas fa-info-circle mr-2 text-blue-600"></i>
                     Submission Status
@@ -284,6 +642,37 @@
                 window.location.href = "{% url 'draft_list' %}";
             }
         }
+        
+        // Clean up text formatting before print
+        function cleanTextFormatting() {
+            const contentElements = document.querySelectorAll('.print-content');
+            contentElements.forEach(element => {
+                let text = element.textContent || element.innerText;
+                
+                // Remove ** markdown bold markers
+                text = text.replace(/\*\*/g, '');
+                
+                // Remove multiple spaces
+                text = text.replace(/\s+/g, ' ');
+                
+                // Clean up line breaks
+                text = text.trim();
+                
+                // Set cleaned text back
+                element.textContent = text;
+            });
+        }
+        
+        // Print handling
+        window.addEventListener('beforeprint', function() {
+            cleanTextFormatting();
+            document.title = "{{ draft.title }} - Lesson Plan";
+        });
+        
+        // Also clean on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            cleanTextFormatting();
+        });
     </script>
 </body>
 </html>

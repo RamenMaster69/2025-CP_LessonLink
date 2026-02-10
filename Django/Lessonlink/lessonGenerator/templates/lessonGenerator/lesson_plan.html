@@ -1,3 +1,4 @@
+{% load markdown_filter %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +7,7 @@
     <title>Professional Lesson Plan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -15,14 +17,15 @@
         .document-container {
             background: white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 2rem auto;
+            width: 95%;
         }
         
         .header-section {
             background: white;
             border-bottom: 4px solid #000;
-            padding: 2rem;
+            padding: 2.5rem;
             text-align: center;
         }
         
@@ -34,64 +37,58 @@
             margin: 0;
         }
         
+        .content-section {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .section-header {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #374151;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .section-header i {
+            margin-right: 0.75rem;
+            color: #6366f1;
+        }
+        
         .info-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 0;
-            border: 2px solid #000;
-            margin: 2rem 0;
+            gap: 1.5rem;
         }
         
-        .info-box {
-            border-right: 2px solid #000;
-            padding: 1.5rem;
-            min-height: 100px;
-        }
-        
-        .info-box:last-child {
-            border-right: none;
-        }
-        
-        .info-box-wide {
-            grid-column: span 2;
+        .info-item {
+            background: #f9fafb;
+            padding: 1.25rem;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
         }
         
         .info-label {
-            font-weight: 700;
+            font-weight: 600;
             font-size: 0.875rem;
-            color: #000;
+            color: #6b7280;
             margin-bottom: 0.5rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
         
-        .info-content {
-            border-bottom: 2px solid #000;
-            min-height: 40px;
-            padding-top: 0.5rem;
-        }
-        
-        .section-box {
-            border: 3px solid #000;
-            padding: 0;
-            margin: 2rem 0;
-            background: white;
-        }
-        
-        .section-title {
-            font-weight: 800;
-            font-size: 1.25rem;
-            color: #000;
-            margin: 0;
-            padding: 1rem 2rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            background: #f9fafb;
-            border-bottom: 3px solid #000;
-        }
-        
-        .section-content {
-            padding: 2rem;
+        .info-value {
+            font-weight: 500;
+            color: #111827;
+            font-size: 1.05rem;
         }
         
         .two-column-grid {
@@ -101,26 +98,38 @@
         }
         
         .content-area {
-            border-bottom: 2px solid #000;
-            min-height: 120px;
-            padding: 1rem 0;
             line-height: 1.8;
+            color: #374151;
+            padding: 1.25rem 0;
         }
         
         .signature-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 3rem;
-            margin-top: 3rem;
+            gap: 2rem;
+            margin-top: 2.5rem;
         }
         
         .signature-box {
-            border: 2px solid #000;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
             padding: 2rem;
         }
         
+        .signature-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #374151;
+            margin-bottom: 1.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
         .signature-line {
-            border-bottom: 2px solid #000;
+            border-bottom: 2px solid #d1d5db;
             min-height: 60px;
             margin: 1rem 0;
         }
@@ -128,108 +137,114 @@
         .signature-label {
             font-weight: 600;
             font-size: 0.875rem;
-            color: #000;
-            margin-bottom: 0.5rem;
+            color: #6b7280;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
         }
         
-        .nav-bar {
+        /* Markdown Content Styling with Containers */
+        .lesson-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        
+        .lesson-content > h1:first-child {
             background: white;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 1rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        
-        .btn {
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-            border-radius: 0.375rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
-            font-size: 0.875rem;
-        }
-        
-        .btn-primary {
-            background: #000;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #333;
-        }
-        
-        .btn-secondary {
-            background: #6b7280;
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background: #4b5563;
-        }
-
-        .lesson-content h1 {
-            font-size: 1.875rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            font-size: 1.75rem;
             font-weight: 800;
             color: #000;
-            margin: 2rem 0 1.5rem 0;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
         
         .lesson-content h2 {
-            font-size: 1.5rem;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px 8px 0 0;
+            padding: 1.25rem 2rem;
+            margin: 0;
+            margin-top: 2rem;
+            font-size: 1rem;
             font-weight: 700;
-            color: #000;
-            margin: 1.5rem 0 1rem 0;
+            color: #374151;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid #e5e7eb;
         }
         
         .lesson-content h3 {
             font-size: 1.25rem;
             font-weight: 600;
-            color: #000;
-            margin: 1.25rem 0 0.75rem 0;
+            color: #1f2937;
+            margin: 1.5rem 0 1rem 0;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
         }
         
         .lesson-content p {
-            margin-bottom: 1rem;
-            line-height: 1.8;
+            margin-bottom: 1.25rem;
+            line-height: 1.9;
             color: #374151;
+            font-size: 1.05rem;
         }
         
-        .lesson-content ul, .lesson-content ol {
-            margin: 1rem 0;
-            padding-left: 2rem;
+        .lesson-content ul, 
+        .lesson-content ol {
+            margin: 1.25rem 0;
+            padding-left: 2.5rem;
             color: #374151;
         }
         
         .lesson-content li {
-            margin-bottom: 0.5rem;
-            line-height: 1.7;
+            margin-bottom: 0.75rem;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+        
+        .lesson-content strong {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        /* Special styling for metadata lists */
+        .lesson-content ul li {
+            list-style-type: none;
+            position: relative;
+            padding-left: 0;
+        }
+        
+        .lesson-content ul li strong {
+            display: inline-block;
+            min-width: 160px;
+            color: #6b7280;
+            font-weight: 600;
+            font-size: 1rem;
         }
 
         @media print {
-            .nav-bar {
+            .no-print {
                 display: none;
             }
             .document-container {
                 box-shadow: none;
                 margin: 0;
+                max-width: 100%;
+                width: 100%;
+            }
+            .content-section {
+                border: 2px solid #000;
+                page-break-inside: avoid;
             }
         }
 
         @media (max-width: 768px) {
             .info-grid {
                 grid-template-columns: 1fr;
-            }
-            .info-box {
-                border-right: none;
-                border-bottom: 2px solid #000;
-            }
-            .info-box:last-child {
-                border-bottom: none;
             }
             .two-column-grid {
                 grid-template-columns: 1fr;
@@ -240,383 +255,125 @@
             .header-title {
                 font-size: 2rem;
             }
-        }
-
-        .melc-badge {
-            background: #e0f2fe;
-            border: 2px solid #0284c7;
-            color: #0369a1;
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            font-weight: 600;
-            font-size: 0.875rem;
-            display: inline-block;
-            margin: 0.25rem;
+            .nav-container {
+                padding: 0.75rem 1rem;
+            }
+            .nav-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .nav-buttons button, .nav-buttons a {
+                width: 100%;
+                text-align: center;
+            }
+            .document-container {
+                width: 98%;
+                margin: 1rem auto;
+            }
+            .content-section {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Navigation Bar -->
-    <nav class="nav-bar">
-        <div class="flex justify-between items-center">
-            <button onclick="goBack()" class="btn btn-secondary flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                </svg>
-                Back
-            </button>
-            
-            <div class="flex items-center gap-3">
-                <a href="{% url 'lesson_ai' %}" class="btn btn-primary">
-                    Create New Plan
-                </a>
-                {% if user.is_authenticated %}
-                <button onclick="saveAsDraft()" class="btn btn-primary">
-                    Save Draft
-                </button>
-                {% else %}
-                <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-secondary">
-                    Login to Save
-                </a>
-                {% endif %}
+    <nav class="sticky top-0 z-50 no-print" style="background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);">
+        <div class="max-w-7xl mx-auto px-6 py-4 nav-container">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                        <i class="fas fa-chalkboard-teacher text-indigo-600 text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-white font-semibold text-lg">LessonLink: Lesson Plan Assistant</h1>
+                        <p class="text-blue-100 text-sm">AI-Powered Educational Planning Tool</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4 nav-buttons">
+                    <!-- Status Badge -->
+                    {% if draft %}
+                        {% if draft.auto_approved %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                            <i class="fas fa-crown mr-2"></i>Auto-Approved
+                        </span>
+                        {% endif %}
+                        
+                        <!-- Edit Draft Button -->
+                        <a href="{% url 'edit_draft' draft.id %}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium">
+                            <i class="fas fa-edit mr-2"></i>Edit Draft
+                        </a>
+                    {% endif %}
+                    
+                    <!-- Save Draft Button -->
+                    {% if user.is_authenticated %}
+                    <button onclick="saveAsDraft()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg text-sm font-medium">
+                        <i class="fas fa-save mr-2"></i>Save Draft
+                    </button>
+                    {% else %}
+                    <a href="{% url 'login' %}?next={{ request.path }}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg text-sm font-medium">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Login to Save
+                    </a>
+                    {% endif %}
+                    
+                    <!-- Back Button -->
+                    <button onclick="goBack()" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg text-sm font-medium">
+                        <i class="fas fa-arrow-left mr-2"></i>Back
+                    </button>
+                    
+                    <!-- Create New Plan Button -->
+                    <a href="{% url 'lesson_ai' %}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium">
+                        <i class="fas fa-plus mr-2"></i>Create New
+                    </a>
+                </div>
             </div>
         </div>
     </nav>
 
     <!-- Main Document -->
     <div class="document-container">
-        <!-- Header -->
-        <div class="header-section">
-            <p class="header-title">Republic of the Philippines</p><br>
-            <p class="header-title">Department of Education</p><br>
-            <p class="header-title">Regional IX</p><br>
-            <p class="header-title">{{ user.school }}</p> 
-        </div>
-
         <!-- Content -->
-        <div style="padding: 2rem;">
-            <!-- This section will show when viewing a saved draft OR when displaying an uploaded lesson plan -->
-            {% if draft or lesson_plan %}
-            <!-- MELC Alignment Section -->
-            <div class="section-box">
-                <div class="section-title">MELC Alignment</div>
-                <div class="section-content">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <div class="info-label">MELC Code</div>
-                            <div class="info-content">
-                                {% if draft %}
-                                    <span class="melc-badge">{{ draft.melc_code|default:"MELC-CODE-HERE" }}</span>
-                                {% elif lesson_plan %}
-                                    <span class="melc-badge">H7FH-Ha-b-19</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div>
-                            <div class="info-label">Learning Competency</div>
-                            <div class="info-content">
-                                {% if draft %}
-                                    {{ draft.learning_competency|default:"Students will be able to..." }}
-                                {% elif lesson_plan %}
-                                    Explain adolescent health concerns and the significant role of the family in managing these
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <div class="info-label">Content Standard</div>
-                            <div class="info-content">
-                                {% if draft %}
-                                    {{ draft.content_standard|default:"The learner demonstrates understanding of..." }}
-                                {% elif lesson_plan %}
-                                    The learners demonstrate understanding of family roles in managing concerns and conflicts and invasion games in promoting family wellness for active and healthy living.
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div>
-                            <div class="info-label">Performance Standard</div>
-                            <div class="info-content">
-                                {% if draft %}
-                                    {{ draft.performance_standard|default:"The learner is able to..." }}
-                                {% elif lesson_plan %}
-                                    The learners participate in invasion games and other physical activities in promoting family wellness for active and healthy living.
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Top Info Grid -->
-            <div class="info-grid">
-                <div class="info-box">
-                    <div class="info-label">Grade:</div>
-                    <div class="info-content">
-                        {% if draft %}{{ draft.grade_level|default:"Grade Level" }}
-                        {% elif lesson_plan %}7{% endif %}
-                    </div>
-                </div>
-                <div class="info-box">
-                    <div class="info-label">Subject:</div>
-                    <div class="info-content">
-                        {% if draft %}{{ draft.subject|default:"Subject" }}
-                        {% elif lesson_plan %}MAPEH (Health){% endif %}
-                    </div>
-                </div>
-                <div class="info-box">
-                    <div class="info-label">Date:</div>
-                    <div class="info-content">
-                        {% if draft %}{{ draft.created_at|date:"F d, Y"|default:"Date" }}
-                        {% else %}Today's Date{% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Topic and Lesson Number -->
-            <div class="info-grid">
-                <div class="info-box info-box-wide">
-                    <div class="info-label">Topic:</div>
-                    <div class="info-content">
-                        {% if draft %}{{ draft.title|default:"Lesson Topic" }}
-                        {% elif lesson_plan %}ADOLESCENT HEALTH CONCERNS AND THE FAMILY'S ROLE{% endif %}
-                    </div>
-                </div>
-                <div class="info-box">
-                    <div class="info-label">Quarter:</div>
-                    <div class="info-content">
-                        {% if draft %}{{ draft.quarter|default:"Quarter" }}
-                        {% elif lesson_plan %}2{% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Integration Section -->
-            <div class="section-box">
-                <div class="section-title">Integration</div>
-                <div class="section-content">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <div class="info-label">Values Education</div>
-                            <div class="info-content">
-                                {% if draft %}{{ draft.values_integration|default:"Integrated values will be developed..." }}
-                                {% elif lesson_plan %}Health awareness, family responsibility, and empathy development{% endif %}
-                            </div>
-                        </div>
-                        <div>
-                            <div class="info-label">Cross-curricular Connections</div>
-                            <div class="info-content">
-                                {% if draft %}{{ draft.cross_curricular|default:"Connections to other learning areas..." }}
-                                {% elif lesson_plan %}Science (Human Development), Social Studies (Family Structures), Values Education{% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Learning Objectives -->
-            <div class="section-box">
-                <div class="section-title">Learning Objectives</div>
-                <div class="content-area">
-                    {% if draft and draft.learning_objectives %}
-                        {{ draft.learning_objectives|linebreaks }}
-                    {% elif lesson_plan %}
-                        <p>At the end of the lesson, students will be able to:</p>
-                        <ul>
-                            <li>Identify common adolescent health concerns</li>
-                            <li>Explain the role of the family in managing adolescent health issues</li>
-                            <li>Develop strategies for family communication about health concerns</li>
-                            <li>Understand the importance of family support in adolescent wellness</li>
-                        </ul>
-                    {% else %}
-                        <p>At the end of the lesson, students will be able to:</p>
-                        <ul>
-                            <li>First learning objective</li>
-                            <li>Second learning objective</li>
-                            <li>Third learning objective</li>
-                        </ul>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Materials and Subject Matter -->
-            <div class="two-column-grid">
-                <div class="section-box">
-                    <div class="section-title">Materials Needed</div>
-                    <div class="content-area">
-                        {% if draft and draft.materials_needed %}
-                            {{ draft.materials_needed|linebreaks }}
-                        {% elif lesson_plan %}
-                            <ul>
-                                <li>PowerPoint presentation on adolescent health</li>
-                                <li>Whiteboard and markers</li>
-                                <li>Student worksheets on family communication</li>
-                                <li>Case study handouts</li>
-                                <li>Laptop and projector</li>
-                                <li>Reference materials: Adolescent Health Guide</li>
-                            </ul>
-                        {% else %}
-                            <ul>
-                                <li>Instructional materials</li>
-                                <li>Visual aids</li>
-                                <li>Student worksheets</li>
-                            </ul>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="section-box">
-                    <div class="section-title">Subject Matter</div>
-                    <div class="content-area">
-                        {% if draft and draft.subject_matter %}
-                            {{ draft.subject_matter|linebreaks }}
-                        {% elif lesson_plan %}
-                            <p><strong>Focus:</strong> Adolescent health concerns and family management strategies</p>
-                            <p><strong>Key Concepts:</strong> Physical changes, emotional challenges, social pressures, family communication, support systems</p>
-                            <p><strong>References:</strong> Department of Education Health Curriculum Guide, Adolescent Development Handbook</p>
-                        {% else %}
-                            <p>Key concepts and topics to be covered in this lesson.</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Lesson Procedure -->
-            <div class="section-box">
-                <div class="section-title">Lesson Procedure</div>
-                <div class="section-content">
-                    <div class="space-y-6">
-                        <div>
-                            <h4 class="font-semibold text-gray-900 mb-2">Introduction (5 minutes)</h4>
-                            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
-                                {% if draft and draft.introduction %}
-                                    {{ draft.introduction|linebreaks }}
-                                {% elif lesson_plan %}
-                                    <p>Begin with a thought-provoking question: "What changes have you noticed as you enter adolescence?"</p>
-                                    <p>Show a short video clip about adolescent development to engage students.</p>
-                                    <p>Establish lesson objectives and connect to students' personal experiences.</p>
-                                {% else %}
-                                    Engaging opening activity to introduce the lesson.
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h4 class="font-semibold text-gray-900 mb-2">Instruction (25 minutes)</h4>
-                            <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
-                                {% if draft and draft.instruction %}
-                                    {{ draft.instruction|linebreaks }}
-                                {% elif lesson_plan %}
-                                    <p>Present key concepts about adolescent health concerns:</p>
-                                    <ul>
-                                        <li>Physical changes and puberty</li>
-                                        <li>Emotional and psychological challenges</li>
-                                        <li>Social pressures and peer influence</li>
-                                        <li>Nutrition and sleep needs</li>
-                                    </ul>
-                                    <p>Discuss the family's role in:</p>
-                                    <ul>
-                                        <li>Providing emotional support</li>
-                                        <li>Establishing open communication</li>
-                                        <li>Setting healthy boundaries</li>
-                                        <li>Modeling healthy behaviors</li>
-                                    </ul>
-                                {% else %}
-                                    Direct teaching and explanation of concepts.
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h4 class="font-semibold text-gray-900 mb-2">Application (20 minutes)</h4>
-                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
-                                {% if draft and draft.application %}
-                                    {{ draft.application|linebreaks }}
-                                {% elif lesson_plan %}
-                                    <p>Group Activity: "Family Communication Role Play"</p>
-                                    <ul>
-                                        <li>Students work in groups to create skits demonstrating effective family communication about health concerns</li>
-                                        <li>Case study analysis: How would your family handle different adolescent health scenarios?</li>
-                                        <li>Worksheet completion: Identifying support systems and communication strategies</li>
-                                    </ul>
-                                {% else %}
-                                    Guided practice and student activities.
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h4 class="font-semibold text-gray-900 mb-2">Evaluation (5 minutes)</h4>
-                            <div class="bg-purple-50 border-l-4 border-purple-400 p-4 rounded-r-lg">
-                                {% if draft and draft.evaluation %}
-                                    {{ draft.evaluation|linebreaks }}
-                                {% elif lesson_plan %}
-                                    <p>Quick quiz: 5-item formative assessment on key concepts</p>
-                                    <p>Class discussion: Share one thing learned about family support</p>
-                                    <p>Exit ticket: "What is one way your family can better support adolescent health?"</p>
-                                {% else %}
-                                    Assessment of student understanding.
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h4 class="font-semibold text-gray-900 mb-2">Assessment (5 minutes)</h4>
-                            <div class="bg-pink-50 border-l-4 border-pink-400 p-4 rounded-r-lg">
-                                {% if draft and draft.assessment %}
-                                    {{ draft.assessment|linebreaks }}
-                                {% elif lesson_plan %}
-                                    <p>Performance Task: Create a family health communication plan</p>
-                                    <p>Written reflection: How can I apply today's learning in my family?</p>
-                                    <p>Rubric-based assessment of group activity participation</p>
-                                {% else %}
-                                    Formal assessment of learning outcomes.
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% else %}
-            <div class="text-center py-8">
-                <p class="text-gray-600">No lesson plan content available.</p>
-                <a href="{% url 'lesson_ai' %}" class="btn btn-primary mt-4">Create New Lesson Plan</a>
-            </div>
-            {% endif %}
-
-            <!-- Signatures -->
-            <div class="signature-grid">
-                <div class="signature-box">
-                    <div class="section-title" style="font-size: 1rem;">Teacher</div>
-                    <div class="signature-line"></div>
-                    <div class="signature-label">Signature</div>
-                    <div style="margin-top: 1.5rem;">
-                        <div class="signature-label">Name</div>
-                        <div class="signature-line"></div>
-                    </div>
-                    <div style="margin-top: 1.5rem;">
-                        <div class="signature-label">Date</div>
-                        <div class="signature-line"></div>
-                    </div>
-                </div>
-
-                <div class="signature-box">
-                    <div class="section-title" style="font-size: 1rem;">Principal</div>
-                    <div class="signature-line"></div>
-                    <div class="signature-label">Signature</div>
-                    <div style="margin-top: 1.5rem;">
-                        <div class="signature-label">Name</div>
-                        <div class="signature-line"></div>
-                    </div>
-                    <div style="margin-top: 1.5rem;">
-                        <div class="signature-label">Date</div>
-                        <div class="signature-line"></div>
-                    </div>
-                </div>
+        <div style="padding: 2.5rem;">
+            <div class="lesson-content" id="lessonContent">
+                {{ lesson_plan|markdown }}
             </div>
         </div>
     </div>
 
     <script>
+        // Wrap content after H2 in containers
+        document.addEventListener('DOMContentLoaded', function() {
+            const lessonContent = document.getElementById('lessonContent');
+            if (!lessonContent) return;
+            
+            const h2Elements = lessonContent.querySelectorAll('h2');
+            
+            h2Elements.forEach(h2 => {
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = 'background: white; border: 2px solid #e5e7eb; border-radius: 8px; margin-bottom: 2rem; overflow: hidden;';
+                
+                // Move h2 into wrapper
+                h2.parentNode.insertBefore(wrapper, h2);
+                wrapper.appendChild(h2);
+                
+                // Collect following siblings until next h2 or h1
+                let nextSibling = wrapper.nextElementSibling;
+                const contentWrapper = document.createElement('div');
+                contentWrapper.style.cssText = 'padding: 1.5rem 2rem 2rem 2rem;';
+                
+                while (nextSibling && nextSibling.tagName !== 'H2' && nextSibling.tagName !== 'H1') {
+                    const current = nextSibling;
+                    nextSibling = nextSibling.nextElementSibling;
+                    contentWrapper.appendChild(current);
+                }
+                
+                if (contentWrapper.children.length > 0) {
+                    wrapper.appendChild(contentWrapper);
+                }
+            });
+        });
+        
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -636,19 +393,21 @@
             if (window.history.length > 1) {
                 window.history.back();
             } else {
-                window.location.href = "{% url 'lesson_ai' %}";
+                window.location.href = '/';
             }
         }
 
         async function saveAsDraft() {
             const button = event.target;
             const originalText = button.innerHTML;
+            const originalBg = button.style.background;
             
-            button.innerHTML = 'Saving...';
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
             button.disabled = true;
+            button.style.background = '#4b5563';
 
             try {
-                const response = await fetch('{% url "save_lesson_plan" %}', {
+                const response = await fetch('/save-lesson-plan/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -665,30 +424,86 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('Lesson plan saved successfully!');
-                    if (data.redirect_url) {
-                        window.location.href = data.redirect_url;
-                    } else if (data.draft_id) {
-                        window.location.href = `/drafts/${data.draft_id}/edit/`;
-                    } else {
-                        window.location.href = '{% url "draft_list" %}';
-                    }
+                    // Show success message
+                    const successAlert = document.createElement('div');
+                    successAlert.className = 'fixed top-20 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                    successAlert.innerHTML = `
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle mr-3"></i>
+                            <span>${data.message || 'Lesson plan saved successfully!'}</span>
+                        </div>
+                    `;
+                    document.body.appendChild(successAlert);
+                    
+                    // Remove alert after 3 seconds
+                    setTimeout(() => {
+                        successAlert.remove();
+                    }, 3000);
+                    
+                    // Redirect to view_draft after a brief delay
+                    setTimeout(() => {
+                        if (data.draft_id) {
+                            window.location.href = `/drafts/${data.draft_id}/view/`;
+                        } else {
+                            window.location.href = '/drafts/';
+                        }
+                    }, 1000);
                 } else {
-                    alert(data.error || 'An error occurred while saving the draft.');
+                    // Show error message
+                    const errorAlert = document.createElement('div');
+                    errorAlert.className = 'fixed top-20 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                    errorAlert.innerHTML = `
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-triangle mr-3"></i>
+                            <span>${data.error || 'An error occurred while saving the draft.'}</span>
+                        </div>
+                    `;
+                    document.body.appendChild(errorAlert);
+                    
+                    // Remove alert after 5 seconds
+                    setTimeout(() => {
+                        errorAlert.remove();
+                    }, 5000);
                 }
             } catch (error) {
                 console.error('Save draft error:', error);
-                alert('An error occurred while saving the draft. Please try again.');
+                // Show error message
+                const errorAlert = document.createElement('div');
+                errorAlert.className = 'fixed top-20 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                errorAlert.innerHTML = `
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-triangle mr-3"></i>
+                        <span>An error occurred while saving the draft. Please try again.</span>
+                    </div>
+                `;
+                document.body.appendChild(errorAlert);
+                
+                // Remove alert after 5 seconds
+                setTimeout(() => {
+                    errorAlert.remove();
+                }, 5000);
             } finally {
-                button.innerHTML = originalText;
+                button.innerHTML = '<i class="fas fa-save mr-2"></i>Save Draft';
                 button.disabled = false;
+                button.style.background = originalBg;
             }
         }
-
-        // Print functionality
-        function printLessonPlan() {
-            window.print();
-        }
+        
+        // Add keyboard shortcuts (removed print shortcut)
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+S or Cmd+S to save
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                if (document.querySelector('button[onclick="saveAsDraft()"]') && !document.querySelector('button[onclick="saveAsDraft()"]').disabled) {
+                    saveAsDraft();
+                }
+            }
+            
+            // Escape to go back
+            if (e.key === 'Escape') {
+                goBack();
+            }
+        });
     </script>
 </body>
 </html>
