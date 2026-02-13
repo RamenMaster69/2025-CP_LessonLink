@@ -47,6 +47,7 @@
             margin: 8px 0;
             max-width: 280px;
             animation: slideInLeft 0.5s ease-out;
+            word-wrap: break-word;
         }
         
         @keyframes slideInLeft {
@@ -104,6 +105,22 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* Mobile-specific improvements */
+        @media (max-width: 640px) {
+            .ai-chat-bubble {
+                max-width: 100%;
+                font-size: 14px;
+            }
+            
+            .lesson-mockup {
+                padding: 12px !important;
+            }
+            
+            h1 {
+                line-height: 1.2;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 overflow-x-hidden">
@@ -125,7 +142,7 @@
                     <a href="#contact" class="text-gray-700 hover:text-blue-600 transition-colors">Contact</a>
                 </div>
                 
-                <div class="flex items-center space-x-4">
+                <div class="hidden md:flex items-center space-x-4">
                     <a href="{% url 'login' %}"><button id="login-btn" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Sign In</button></a>
                     <a href="{% url 'registration_1' %}"><button id="get-started-btn" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all">
                         Get Started
@@ -171,82 +188,82 @@
 
     <!-- Hero Section -->
     <section class="hero-gradient min-h-screen flex items-center relative overflow-hidden pt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-12 sm:py-0">
+            <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                 <!-- Left Content -->
                 <div class="text-white">
-                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
                         Revolutionize Your
-                        <span class="text-gradient bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
+                        <span class="text-gradient bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent block sm:inline">
                             Lesson Planning
                         </span>
                         with AI
                     </h1>
                     
-                    <p class="text-lg sm:text-xl lg:text-2xl mb-8 text-blue-100 leading-relaxed">
+                    <p class="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 text-blue-100 leading-relaxed">
                         Empowering Filipino educators with intelligent lesson planning tools designed for the K-10 curriculum.
                     </p>
                     
-                    <div class="flex flex-col sm:flex-row gap-4 mb-6">
-                        <button id="start-planning-btn" class="bg-white text-blue-900 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-all flex-1 sm:flex-none">
+                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6">
+                        <button id="start-planning-btn" class="bg-white text-blue-900 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg hover:bg-gray-100 transition-all w-full sm:w-auto">
                             <i class="fas fa-rocket mr-2"></i>Start Planning Now
                         </button>
-                        <button id="watch-demo-btn" class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-900 transition-all flex-1 sm:flex-none">
+                        <button id="watch-demo-btn" class="border-2 border-white text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg hover:bg-white hover:text-blue-900 transition-all w-full sm:w-auto">
                             <i class="fas fa-play mr-2"></i>Watch Demo
                         </button>
                     </div>
                     
-                    <div class="flex justify-center mb-12">
-                        <a href="{% url 'org_reg_1' %}"><button id="register-school-btn" class="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:from-yellow-600 hover:to-orange-600 transition-all shadow-lg max-w-sm">
+                    <div class="flex justify-center lg:justify-start mb-8 sm:mb-12">
+                        <a href="{% url 'org_reg_1' %}" class="w-full sm:w-auto"><button id="register-school-btn" class="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg hover:from-yellow-600 hover:to-orange-600 transition-all shadow-lg w-full">
                             <i class="fas fa-building mr-2"></i>Register Your School
                         </button></a>
                     </div>
                     
                     <!-- Stats -->
-                    <div class="grid grid-cols-3 gap-8">
+                    <div class="grid grid-cols-3 gap-4 sm:gap-8">
                         <div class="text-center">
-                            <div class="text-2xl sm:text-3xl font-bold text-yellow-400 stat-number">1000+</div>
-                            <div class="text-blue-200 text-sm sm:text-base">Educators</div>
+                            <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-yellow-400 stat-number">1000+</div>
+                            <div class="text-blue-200 text-xs sm:text-sm lg:text-base">Educators</div>
                         </div>
                         <div class="text-center">
-                            <div class="text-2xl sm:text-3xl font-bold text-yellow-400 stat-number">5000+</div>
-                            <div class="text-blue-200 text-sm sm:text-base">Lesson Plans</div>
+                            <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-yellow-400 stat-number">5000+</div>
+                            <div class="text-blue-200 text-xs sm:text-sm lg:text-base">Lesson Plans</div>
                         </div>
                         <div class="text-center">
-                            <div class="text-2xl sm:text-3xl font-bold text-yellow-400 stat-number">50+</div>
-                            <div class="text-blue-200 text-sm sm:text-base">Schools</div>
+                            <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-yellow-400 stat-number">50+</div>
+                            <div class="text-blue-200 text-xs sm:text-sm lg:text-base">Schools</div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Right Content - Interactive Demo -->
-                <div class="relative">
-                    <div class="lesson-mockup p-4 sm:p-6 relative">
-                        <div class="flex items-center mb-4">
-                            <div class="w-3 h-3 bg-red-400 rounded-full mr-2"></div>
-                            <div class="w-3 h-3 bg-yellow-400 rounded-full mr-2"></div>
-                            <div class="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
-                            <div class="ml-4 text-sm text-gray-600">LessonLink AI Assistant</div>
+                <div class="relative mt-8 lg:mt-0">
+                    <div class="lesson-mockup p-3 sm:p-4 md:p-6 relative">
+                        <div class="flex items-center mb-3 sm:mb-4">
+                            <div class="w-2 h-2 sm:w-3 sm:h-3 bg-red-400 rounded-full mr-1 sm:mr-2"></div>
+                            <div class="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-400 rounded-full mr-1 sm:mr-2"></div>
+                            <div class="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full mr-1 sm:mr-2"></div>
+                            <div class="ml-2 sm:ml-4 text-xs sm:text-sm text-gray-600">LessonLink AI Assistant</div>
                         </div>
                         
-                        <div class="space-y-4">
-                            <div class="ai-chat-bubble">
+                        <div class="space-y-3 sm:space-y-4">
+                            <div class="ai-chat-bubble text-sm sm:text-base">
                                 <i class="fas fa-robot mr-2"></i>
                                 Hi! I'm your AI lesson planning assistant. What subject would you like to create a lesson plan for?
                             </div>
                             
-                            <div class="bg-gray-200 text-gray-800 p-3 rounded-lg rounded-bl-sm ml-auto max-w-64">
+                            <div class="bg-gray-200 text-gray-800 p-2 sm:p-3 rounded-lg rounded-bl-sm ml-auto max-w-full sm:max-w-64 text-sm sm:text-base">
                                 Grade 7 Science - States of Matter
                             </div>
                             
-                            <div class="ai-chat-bubble">
+                            <div class="ai-chat-bubble text-sm sm:text-base">
                                 <i class="fas fa-magic mr-2"></i>
                                 Perfect! I'll create a comprehensive lesson plan with activities, assessments, and resources aligned with DepEd standards.
                             </div>
                             
-                            <div class="bg-white p-4 rounded-lg border-l-4 border-blue-500">
-                                <h4 class="font-semibold text-gray-800 mb-2">Generated Lesson Plan Preview</h4>
-                                <div class="text-sm text-gray-600 space-y-1">
+                            <div class="bg-white p-3 sm:p-4 rounded-lg border-l-4 border-blue-500">
+                                <h4 class="font-semibold text-gray-800 mb-2 text-sm sm:text-base">Generated Lesson Plan Preview</h4>
+                                <div class="text-xs sm:text-sm text-gray-600 space-y-1">
                                     <div>📚 Subject: Science 7</div>
                                     <div>🎯 Topic: States of Matter</div>
                                     <div>⏰ Duration: 60 minutes</div>
@@ -254,7 +271,7 @@
                                 </div>
                             </div>
                             
-                            <div class="ai-chat-bubble flex items-center">
+                            <div class="ai-chat-bubble flex items-center text-sm sm:text-base">
                                 <span class="mr-2">Generating activities</span>
                                 <div class="flex space-x-1">
                                     <div class="typing-indicator"></div>
@@ -270,45 +287,45 @@
     </section>
 
     <!-- Benefits Section -->
-    <section id="benefits" class="py-20 bg-gray-50">
+    <section id="benefits" class="py-12 sm:py-16 lg:py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold text-gray-900 mb-4">Why Filipino Educators Love LessonLink</h2>
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            <div class="text-center mb-12 sm:mb-16">
+                <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Why Filipino Educators Love LessonLink</h2>
+                <p class="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto px-4">
                     Discover how our platform transforms the teaching experience for educators across the Philippines.
                 </p>
             </div>
             
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                 <!-- Benefit 1 -->
-                <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mb-6">
-                        <i class="fas fa-clock text-white text-2xl"></i>
+                <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+                        <i class="fas fa-clock text-white text-xl sm:text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Save Time</h3>
-                    <p class="text-gray-600">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Save Time</h3>
+                    <p class="text-sm sm:text-base text-gray-600">
                         Reduce lesson planning time by up to 70% with our AI-powered tools, giving you more time to focus on teaching.
                     </p>
                 </div>
                 
                 <!-- Benefit 2 -->
-                <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-                    <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mb-6">
-                        <i class="fas fa-graduation-cap text-white text-2xl"></i>
+                <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+                        <i class="fas fa-graduation-cap text-white text-xl sm:text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Improve Quality</h3>
-                    <p class="text-gray-600">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Improve Quality</h3>
+                    <p class="text-sm sm:text-base text-gray-600">
                         Create more engaging, comprehensive lesson plans that align perfectly with DepEd standards and student needs.
                     </p>
                 </div>
                 
                 <!-- Benefit 3 -->
-                <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mb-6">
-                        <i class="fas fa-users text-white text-2xl"></i>
+                <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+                        <i class="fas fa-users text-white text-xl sm:text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Collaborate Easily</h3>
-                    <p class="text-gray-600">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Collaborate Easily</h3>
+                    <p class="text-sm sm:text-base text-gray-600">
                         Share and collaborate on lesson plans with colleagues, fostering a community of best teaching practices.
                     </p>
                 </div>
@@ -317,26 +334,26 @@
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="py-20 bg-white">
+    <section id="features" class="py-12 sm:py-16 lg:py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold text-gray-900 mb-4">Powerful Features for Modern Educators</h2>
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            <div class="text-center mb-12 sm:mb-16">
+                <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Powerful Features for Modern Educators</h2>
+                <p class="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto px-4">
                     Everything you need to create, organize, and deliver exceptional lessons that engage Filipino students.
                 </p>
             </div>
             
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                 <!-- Feature 1 -->
-                <div class="card-hover bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mb-6">
-                        <i class="fas fa-brain text-white text-2xl"></i>
+                <div class="card-hover bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+                        <i class="fas fa-brain text-white text-xl sm:text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">AI Lesson Generator</h3>
-                    <p class="text-gray-600 mb-4">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">AI Lesson Generator</h3>
+                    <p class="text-sm sm:text-base text-gray-600 mb-4">
                         Generate comprehensive lesson plans in minutes using AI trained on Filipino curriculum standards and pedagogical best practices.
                     </p>
-                    <ul class="text-sm text-gray-500 space-y-2">
+                    <ul class="text-xs sm:text-sm text-gray-500 space-y-2">
                         <li><i class="fas fa-check text-green-500 mr-2"></i>DepEd K-10 aligned</li>
                         <li><i class="fas fa-check text-green-500 mr-2"></i>Multiple learning styles</li>
                         <li><i class="fas fa-check text-green-500 mr-2"></i>Cultural integration</li>
@@ -344,15 +361,15 @@
                 </div>
                 
                 <!-- Feature 2 -->
-                <div class="card-hover bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-                    <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mb-6">
-                        <i class="fas fa-folder-open text-white text-2xl"></i>
+                <div class="card-hover bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+                        <i class="fas fa-folder-open text-white text-xl sm:text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Smart Organization</h3>
-                    <p class="text-gray-600 mb-4">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Smart Organization</h3>
+                    <p class="text-sm sm:text-base text-gray-600 mb-4">
                         Organize your lesson plans with intelligent categorization, tagging, and search capabilities for easy retrieval.
                     </p>
-                    <ul class="text-sm text-gray-500 space-y-2">
+                    <ul class="text-xs sm:text-sm text-gray-500 space-y-2">
                         <li><i class="fas fa-check text-green-500 mr-2"></i>Auto-categorization</li>
                         <li><i class="fas fa-check text-green-500 mr-2"></i>Advanced search</li>
                         <li><i class="fas fa-check text-green-500 mr-2"></i>Version control</li>
@@ -360,15 +377,15 @@
                 </div>
                 
                 <!-- Feature 3 -->
-                <div class="card-hover bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mb-6">
-                        <i class="fas fa-share-alt text-white text-2xl"></i>
+                <div class="card-hover bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+                        <i class="fas fa-share-alt text-white text-xl sm:text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Collaboration Tools</h3>
-                    <p class="text-gray-600 mb-4">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Collaboration Tools</h3>
+                    <p class="text-sm sm:text-base text-gray-600 mb-4">
                         Share lesson plans with colleagues, provide feedback, and work together to improve teaching strategies.
                     </p>
-                    <ul class="text-sm text-gray-500 space-y-2">
+                    <ul class="text-xs sm:text-sm text-gray-500 space-y-2">
                         <li><i class="fas fa-check text-green-500 mr-2"></i>Real-time collaboration</li>
                         <li><i class="fas fa-check text-green-500 mr-2"></i>Commenting system</li>
                         <li><i class="fas fa-check text-green-500 mr-2"></i>Version history</li>
@@ -376,15 +393,15 @@
                 </div>
                 
                 <!-- Feature 4 -->
-                <div class="card-hover bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-                    <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center mb-6">
-                        <i class="fas fa-chart-line text-white text-2xl"></i>
+                <div class="card-hover bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+                        <i class="fas fa-chart-line text-white text-xl sm:text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Assessment Tools</h3>
-                    <p class="text-gray-600 mb-4">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Assessment Tools</h3>
+                    <p class="text-sm sm:text-base text-gray-600 mb-4">
                         Create aligned assessments, rubrics, and quizzes that perfectly match your lesson objectives.
                     </p>
-                    <ul class="text-sm text-gray-500 space-y-2">
+                    <ul class="text-xs sm:text-sm text-gray-500 space-y-2">
                         <li><i class="fas fa-check text-green-500 mr-2"></i>Auto-generate quizzes</li>
                         <li><i class="fas fa-check text-green-500 mr-2"></i>Rubric creator</li>
                         <li><i class="fas fa-check text-green-500 mr-2"></i>Standards alignment</li>
@@ -392,15 +409,15 @@
                 </div>
                 
                 <!-- Feature 5 -->
-                <div class="card-hover bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-                    <div class="w-16 h-16 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center mb-6">
-                        <i class="fas fa-book text-white text-2xl"></i>
+                <div class="card-hover bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+                        <i class="fas fa-book text-white text-xl sm:text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Resource Library</h3>
-                    <p class="text-gray-600 mb-4">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Resource Library</h3>
+                    <p class="text-sm sm:text-base text-gray-600 mb-4">
                         Access a growing library of teaching resources, activities, and materials created by Filipino educators.
                     </p>
-                    <ul class="text-sm text-gray-500 space-y-2">
+                    <ul class="text-xs sm:text-sm text-gray-500 space-y-2">
                         <li><i class="fas fa-check text-green-500 mr-2"></i>Curriculum-aligned resources</li>
                         <li><i class="fas fa-check text-green-500 mr-2"></i>Filipino cultural context</li>
                         <li><i class="fas fa-check text-green-500 mr-2"></i>Community contributions</li>
@@ -408,15 +425,15 @@
                 </div>
                 
                 <!-- Feature 6 -->
-                <div class="card-hover bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-                    <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center mb-6">
-                        <i class="fas fa-mobile-alt text-white text-2xl"></i>
+                <div class="card-hover bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+                        <i class="fas fa-mobile-alt text-white text-xl sm:text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Mobile Ready</h3>
-                    <p class="text-gray-600 mb-4">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Mobile Ready</h3>
+                    <p class="text-sm sm:text-base text-gray-600 mb-4">
                         Access your lesson plans anywhere, anytime with our responsive design and offline capabilities.
                     </p>
-                    <ul class="text-sm text-gray-500 space-y-2">
+                    <ul class="text-xs sm:text-sm text-gray-500 space-y-2">
                         <li><i class="fas fa-check text-green-500 mr-2"></i>Cross-device sync</li>
                         <li><i class="fas fa-check text-green-500 mr-2"></i>Cloud backup</li>
                         <li><i class="fas fa-check text-green-500 mr-2"></i>Offline access</li>
@@ -427,44 +444,44 @@
     </section>
 
     <!-- About Section -->
-    <section id="about" class="py-20 bg-gray-50">
+    <section id="about" class="py-12 sm:py-16 lg:py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid lg:grid-cols-2 gap-12 items-center">
+            <div class="grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
                 <div>
-                    <h2 class="text-4xl font-bold text-gray-900 mb-6">About LessonLink</h2>
-                    <p class="text-lg text-gray-600 mb-6">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 sm:mb-6">About LessonLink</h2>
+                    <p class="text-base sm:text-lg text-gray-600 mb-4 sm:mb-6">
                         LessonLink was created by educators, for educators. Our mission is to empower Filipino teachers with technology that enhances their teaching practice while respecting their expertise and the unique needs of Filipino students.
                     </p>
-                    <p class="text-lg text-gray-600 mb-6">
+                    <p class="text-base sm:text-lg text-gray-600 mb-4 sm:mb-6">
                         Developed in partnership with the WMSU College of Teacher Education in Zamboanga City, our platform combines cutting-edge AI technology with deep pedagogical understanding of the Philippine educational context.
                     </p>
                     <div class="flex items-center space-x-4">
-                        <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-university text-white text-2xl"></i>
+                        <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-university text-white text-lg sm:text-2xl"></i>
                         </div>
                         <div>
-                            <h3 class="font-semibold text-gray-900">In Partnership With</h3>
-                            <p class="text-gray-600">WMSU College of Teacher Education</p>
+                            <h3 class="font-semibold text-gray-900 text-sm sm:text-base">In Partnership With</h3>
+                            <p class="text-gray-600 text-sm sm:text-base">WMSU College of Teacher Education</p>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white p-8 rounded-xl shadow-lg">
-                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Our Vision</h3>
-                    <p class="text-gray-600 mb-6">
+                <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Our Vision</h3>
+                    <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
                         We envision a future where every Filipino educator has the tools and support needed to create engaging, effective learning experiences that prepare students for success in the 21st century.
                     </p>
-                    <div class="space-y-4">
+                    <div class="space-y-3 sm:space-y-4">
                         <div class="flex items-start">
-                            <i class="fas fa-check text-green-500 mt-1 mr-3"></i>
-                            <p class="text-gray-600">Developed specifically for the Philippine K-10 curriculum</p>
+                            <i class="fas fa-check text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                            <p class="text-sm sm:text-base text-gray-600">Developed specifically for the Philippine K-10 curriculum</p>
                         </div>
                         <div class="flex items-start">
-                            <i class="fas fa-check text-green-500 mt-1 mr-3"></i>
-                            <p class="text-gray-600">Created with input from Filipino educators</p>
+                            <i class="fas fa-check text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                            <p class="text-sm sm:text-base text-gray-600">Created with input from Filipino educators</p>
                         </div>
                         <div class="flex items-start">
-                            <i class="fas fa-check text-green-500 mt-1 mr-3"></i>
-                            <p class="text-gray-600">Continuously updated based on user feedback</p>
+                            <i class="fas fa-check text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                            <p class="text-sm sm:text-base text-gray-600">Continuously updated based on user feedback</p>
                         </div>
                     </div>
                 </div>
@@ -473,36 +490,36 @@
     </section>
 
     <!-- Contact Section -->
-    <section id="contact" class="py-20 bg-white">
+    <section id="contact" class="py-12 sm:py-16 lg:py-20 bg-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold text-gray-900 mb-4">Get In Touch</h2>
-                <p class="text-xl text-gray-600">
+            <div class="text-center mb-12 sm:mb-16">
+                <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Get In Touch</h2>
+                <p class="text-lg sm:text-xl text-gray-600 px-4">
                     Have questions about LessonLink? We'd love to hear from you.
                 </p>
             </div>
             
-            <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-                <form id="contact-form" class="space-y-6">
-                    <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
+                <form id="contact-form" class="space-y-4 sm:space-y-6">
+                    <div class="grid sm:grid-cols-2 gap-4 sm:gap-6">
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Name</label>
-                            <input type="text" id="name" name="name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            <input type="text" id="name" name="name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base" required>
                         </div>
                         <div>
                             <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                            <input type="email" id="email" name="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            <input type="email" id="email" name="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base" required>
                         </div>
                     </div>
                     <div>
                         <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                        <input type="text" id="subject" name="subject" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        <input type="text" id="subject" name="subject" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base" required>
                     </div>
                     <div>
                         <label for="message" class="block text-sm font-medium text-gray-700 mb-2">Message</label>
-                        <textarea id="message" name="message" rows="5" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required></textarea>
+                        <textarea id="message" name="message" rows="5" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base" required></textarea>
                     </div>
-                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all">
+                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg hover:from-blue-700 hover:to-indigo-700 transition-all">
                         Send Message
                     </button>
                 </form>
@@ -511,19 +528,19 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="py-20 hero-gradient">
+    <section class="py-12 sm:py-16 lg:py-20 hero-gradient">
         <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-            <h2 class="text-4xl font-bold text-white mb-6">
+            <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4 sm:mb-6">
                 Ready to Transform Your Teaching?
             </h2>
-            <p class="text-xl text-blue-100 mb-8">
+            <p class="text-lg sm:text-xl text-blue-100 mb-6 sm:mb-8 px-4">
                 Join thousands of Filipino educators who are already using LessonLink to create better lessons in less time.
             </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <button id="create-account-btn" class="bg-white text-blue-900 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-all">
+            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+                <button id="create-account-btn" class="bg-white text-blue-900 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg hover:bg-gray-100 transition-all w-full sm:w-auto">
                     <i class="fas fa-user-plus mr-2"></i>Create Free Account
                 </button>
-                <button id="schedule-demo-btn" class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-900 transition-all">
+                <button id="schedule-demo-btn" class="border-2 border-white text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg hover:bg-white hover:text-blue-900 transition-all w-full sm:w-auto">
                     <i class="fas fa-calendar mr-2"></i>Schedule Demo
                 </button>
             </div>
@@ -531,24 +548,24 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-12">
+    <footer class="bg-gray-900 text-white py-8 sm:py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid md:grid-cols-4 gap-8">
-                <div>
+            <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
+                <div class="col-span-2 sm:col-span-2 md:col-span-1">
                     <div class="flex items-center space-x-2 mb-4">
                         <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
                             <i class="fas fa-graduation-cap text-white"></i>
                         </div>
                         <span class="text-lg font-bold">LessonLink</span>
                     </div>
-                    <p class="text-gray-400">
+                    <p class="text-sm sm:text-base text-gray-400">
                         Empowering Filipino educators with AI-powered lesson planning tools.
                     </p>
                 </div>
                 
                 <div>
-                    <h3 class="font-semibold mb-4">Product</h3>
-                    <ul class="space-y-2 text-gray-400">
+                    <h3 class="font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Product</h3>
+                    <ul class="space-y-2 text-xs sm:text-sm text-gray-400">
                         <li><a href="#features" class="hover:text-white transition-colors">Features</a></li>
                         <li><a href="#" class="hover:text-white transition-colors">Pricing</a></li>
                         <li><a href="#" class="hover:text-white transition-colors">Demo</a></li>
@@ -556,8 +573,8 @@
                 </div>
                 
                 <div>
-                    <h3 class="font-semibold mb-4">Support</h3>
-                    <ul class="space-y-2 text-gray-400">
+                    <h3 class="font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Support</h3>
+                    <ul class="space-y-2 text-xs sm:text-sm text-gray-400">
                         <li><a href="#" class="hover:text-white transition-colors">Help Center</a></li>
                         <li><a href="#contact" class="hover:text-white transition-colors">Contact</a></li>
                         <li><a href="#" class="hover:text-white transition-colors">Training</a></li>
@@ -565,39 +582,39 @@
                 </div>
                 
                 <div>
-                    <h3 class="font-semibold mb-4">Connect</h3>
+                    <h3 class="font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Connect</h3>
                     <div class="flex space-x-4">
                         <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fab fa-facebook text-xl"></i>
+                            <i class="fab fa-facebook text-lg sm:text-xl"></i>
                         </a>
                         <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fab fa-twitter text-xl"></i>
+                            <i class="fab fa-twitter text-lg sm:text-xl"></i>
                         </a>
                         <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fab fa-linkedin text-xl"></i>
+                            <i class="fab fa-linkedin text-lg sm:text-xl"></i>
                         </a>
                     </div>
                 </div>
             </div>
             
-            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+            <div class="border-t border-gray-800 mt-6 sm:mt-8 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-gray-400">
                 <p>&copy; 2025 LessonLink. Designed for WMSU College of Teacher Education, Zamboanga City.</p>
             </div>
         </div>
     </footer>
 
     <!-- Modal for demo video -->
-    <div id="demo-modal" class="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center hidden">
+    <div id="demo-modal" class="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-lg max-w-4xl w-full mx-4 relative">
             <button id="close-modal" class="absolute -top-10 right-0 text-white text-2xl">
                 <i class="fas fa-times"></i>
             </button>
-            <div class="p-8">
-                <h3 class="text-2xl font-bold text-gray-900 mb-4">LessonLink Demo</h3>
-                <div class="aspect-w-16 aspect-h-9 bg-gray-200 rounded-lg flex items-center justify-center">
+            <div class="p-4 sm:p-8">
+                <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4">LessonLink Demo</h3>
+                <div class="aspect-w-16 aspect-h-9 bg-gray-200 rounded-lg flex items-center justify-center min-h-[200px] sm:min-h-[300px]">
                     <div class="text-center">
-                        <i class="fas fa-play-circle text-6xl text-blue-600 mb-4"></i>
-                        <p class="text-gray-600">Demo video would play here</p>
+                        <i class="fas fa-play-circle text-4xl sm:text-6xl text-blue-600 mb-4"></i>
+                        <p class="text-sm sm:text-base text-gray-600">Demo video would play here</p>
                     </div>
                 </div>
             </div>
@@ -685,12 +702,6 @@
             alert('Thank you for your message! We will get back to you soon.');
             contactForm.reset();
         });
-
-        // Button functionality for demo purposes
-        const buttons = [
-            'login-btn', 'mobile-login-btn', 'get-started-btn', 'mobile-get-started-btn',
-            'start-planning-btn', 'register-school-btn', 'create-account-btn'
-        ];
 
         // Animate stats on page load
         window.addEventListener('load', () => {
