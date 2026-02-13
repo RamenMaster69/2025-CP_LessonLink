@@ -2380,7 +2380,7 @@ def st_dash(request):
     import pytz
     
     today = timezone.localtime(timezone.now()).strftime('%A').lower()
-    todays_schedule = Schedule.objects.filter(user=user, day=today).order_by('time')
+    todays_schedule = Schedule.objects.filter(user=user, day=today).order_by('start_time')
     
     return render(request, 'st_dash.html', {
         'user': user,
