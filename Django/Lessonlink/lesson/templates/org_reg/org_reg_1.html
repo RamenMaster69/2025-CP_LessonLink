@@ -169,10 +169,38 @@
 
         <!-- Registration Form -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-            <!-- CORRECTED: Using Django URL template tag -->
             <form method="POST" action="{% url 'org_reg_1' %}" enctype="multipart/form-data" id="registrationForm">
                 {% csrf_token %}
                 <input type="hidden" name="password" id="formPassword">
+                
+                <!-- Validation Errors Display -->
+                {% if messages %}
+                <div class="mb-8">
+                    {% for message in messages %}
+                        <div class="p-4 rounded-lg mb-3 {% if message.tags == 'error' %}bg-red-100 border border-red-300 text-red-700{% elif message.tags == 'success' %}bg-green-100 border border-green-300 text-green-700{% elif message.tags == 'warning' %}bg-yellow-100 border border-yellow-300 text-yellow-700{% else %}bg-blue-100 border border-blue-300 text-blue-700{% endif %}">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 mr-3">
+                                    {% if message.tags == 'error' %}
+                                        <span class="text-red-500">❌</span>
+                                    {% elif message.tags == 'success' %}
+                                        <span class="text-green-500">✅</span>
+                                    {% elif message.tags == 'warning' %}
+                                        <span class="text-yellow-500">⚠️</span>
+                                    {% else %}
+                                        <span class="text-blue-500">ℹ️</span>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium">{{ message }}</p>
+                                </div>
+                                <button type="button" onclick="this.parentElement.parentElement.remove()" class="ml-3 text-gray-400 hover:text-gray-600">
+                                    <span class="text-lg">&times;</span>
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
                 
                 <!-- Section 1: Institution Details -->
                 <section class="form-section p-8" data-section="1" id="section-1">
@@ -1071,6 +1099,35 @@
             setTimeout(() => {
                 updateActiveSection(1);
             }, 200);
+        });
+
+        function formatPhoneNumber(input) {
+            let value = input.value.replace(/\D/g, '');
+            
+            if (value.length >= 10) {
+                // If it starts with 09 (11 digits total)
+                if (value.length === 11 && value.startsWith('09')) {
+                    input.value = '+63' + value.substring(1);
+                }
+                // If it's 10 digits starting with 9
+                else if (value.length === 10 && value.startsWith('9')) {
+                    input.value = '+63' + value;
+                }
+                // If it already has 63 prefix
+                else if (value.length === 12 && value.startsWith('63')) {
+                    input.value = '+' + value;
+                }
+            }
+        }
+
+        // Attach to phone number inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            const phoneInputs = document.querySelectorAll('input[name="phone_number"], input[name="contact_phone"]');
+            phoneInputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    formatPhoneNumber(this);
+                });
+            });
         });
     </script>
 </body>

@@ -53,6 +53,8 @@ from .models import Schedule
 # School Registration Views
 from django.contrib.auth.hashers import make_password
 
+# views.py - Update the org_reg_1 function
+
 def org_reg_1(request):
     """Handle school registration form - both GET and POST"""
     
@@ -64,6 +66,9 @@ def org_reg_1(request):
     
     if request.method == 'GET':
         print("DEBUG: GET request - rendering form")
+        # Check for validation errors in session (for displaying after redirect)
+        validation_errors = request.session.pop('validation_errors', None)
+        
         # Prepare provinces and regions for template
         regions = [
             'NCR - National Capital Region',
@@ -150,6 +155,8 @@ def org_reg_1(request):
             'regions_json': json.dumps(list(provinces_by_region.keys())),
             'provinces_by_region_json': json.dumps(provinces_by_region),
             'all_provinces_json': json.dumps([prov for region_provinces in provinces_by_region.values() for prov in region_provinces]),
+            'validation_errors': validation_errors,
+            'form_data': request.session.pop('form_data', {}) if validation_errors else {},
         }
         return render(request, 'org_reg/org_reg_1.html', context)
     
@@ -229,8 +236,9 @@ def org_reg_1(request):
                 messages.error(request, "Password must be at least 8 characters long.")
                 return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
             
-            # Check if school_id already exists
-            if SchoolRegistration.objects.filter(school_id=form_data['school_id']).exists():
+            # Check if school_id already exists - IMPORTANT FIX: Use the model directly, not as a variable
+            from .models import SchoolRegistration as SchoolRegModel
+            if SchoolRegModel.objects.filter(school_id=form_data['school_id']).exists():
                 print(f"❌ SCHOOL ID ALREADY EXISTS: {form_data['school_id']}")
                 messages.error(request, f"A school with ID '{form_data['school_id']}' is already registered.")
                 return render(request, 'org_reg/org_reg_1.html', {'form_data': form_data})
@@ -265,22 +273,31 @@ def org_reg_1(request):
             
             print("\n🏫 ATTEMPTING TO CREATE SCHOOL REGISTRATION...")
             
-            # Create the school registration record
-            school_registration = SchoolRegistration(
+            # Format phone numbers before creating the object
+            from .models import SchoolRegistration as SchoolRegModel
+            temp_school = SchoolRegModel()
+            formatted_phone = temp_school.format_philippine_phone(form_data['phone_number'])
+            formatted_contact_phone = temp_school.format_philippine_phone(form_data['contact_phone'])
+            
+            print(f"📞 Original phone: {form_data['phone_number']} -> Formatted: {formatted_phone}")
+            print(f"📞 Original contact: {form_data['contact_phone']} -> Formatted: {formatted_contact_phone}")
+            
+            # Create the school registration record - Use the model with a different name
+            school_registration = SchoolRegModel(
                 school_name=form_data['school_name'],
                 school_id=form_data['school_id'],
                 year_established=form_data['year_established'] or None,
                 address=form_data['address'],
                 province=form_data['province'],
                 region=form_data['region'],
-                phone_number=form_data['phone_number'],
+                phone_number=formatted_phone,  # Use formatted phone
                 email=form_data['email'],
                 website=form_data['website'] if form_data['website'] else None,
                 facebook_page=form_data['facebook_page'] if form_data['facebook_page'] else None,
                 contact_person=form_data['contact_person'],
                 position=form_data['position'],
                 contact_email=form_data['contact_email'],
-                contact_phone=form_data['contact_phone'],
+                contact_phone=formatted_contact_phone,  # Use formatted contact phone
                 password_hash=make_password(form_data['password']),  # Store hashed password
                 accuracy=form_data['accuracy'],
                 terms=form_data['terms'],
@@ -291,6 +308,8 @@ def org_reg_1(request):
             print("✅ SCHOOL REGISTRATION OBJECT CREATED")
             print(f"  School Name: {school_registration.school_name}")
             print(f"  School ID: {school_registration.school_id}")
+            print(f"  Phone: {school_registration.phone_number}")
+            print(f"  Contact Phone: {school_registration.contact_phone}")
             print(f"  Contact Email: {school_registration.contact_email}")
             
             try:
@@ -299,6 +318,26 @@ def org_reg_1(request):
                 school_registration.save()
                 print(f"✅ SCHOOL REGISTRATION SAVED! ID: {school_registration.id}")
                 print(f"✅ Database entry created at: {school_registration.created_at}")
+                
+            except ValidationError as e:
+                print(f"❌ VALIDATION ERROR: {str(e)}")
+                # Store validation errors in session for display
+                error_dict = {}
+                if hasattr(e, 'message_dict'):
+                    for field, errors in e.message_dict.items():
+                        error_dict[field] = errors
+                else:
+                    error_dict['__all__'] = [str(e)]
+                
+                request.session['validation_errors'] = error_dict
+                request.session['form_data'] = form_data
+                
+                # Add error messages for display
+                for field, errors in error_dict.items():
+                    for error in errors:
+                        messages.error(request, f"{field.replace('_', ' ').title()}: {error}")
+                
+                return redirect('org_reg_1')
                 
             except Exception as save_error:
                 print(f"❌ DATABASE SAVE ERROR: {str(save_error)}")
@@ -386,9 +425,9 @@ def org_reg_1(request):
             
             # Verify it's actually in the database
             try:
-                db_check = SchoolRegistration.objects.get(id=school_registration.id)
+                db_check = SchoolRegModel.objects.get(id=school_registration.id)
                 print(f"✅ DATABASE VERIFICATION: Found school with ID {db_check.id}")
-            except SchoolRegistration.DoesNotExist:
+            except SchoolRegModel.DoesNotExist:
                 print("❌ DATABASE VERIFICATION FAILED: School not found in database!")
             except Exception as db_error:
                 print(f"❌ DATABASE VERIFICATION ERROR: {str(db_error)}")
@@ -443,7 +482,6 @@ def org_reg_1(request):
             logger.error(f"Error processing school registration: {str(e)}")
             messages.error(request, f"An unexpected error occurred: {str(e)}")
             return render(request, 'org_reg/org_reg_1.html', {'form_data': request.POST})
-
 
 
 # AJAX endpoint for real-time school ID validation

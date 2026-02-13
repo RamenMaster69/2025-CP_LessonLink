@@ -613,9 +613,10 @@ class SchoolRegistration(models.Model):
         return f"{self.school_name} ({self.school_id}) - {self.get_status_display()}"
     
     def clean(self):
-        """Custom validation"""
+        """Custom validation with automatic phone number formatting"""
         from django.core.exceptions import ValidationError
         from django.utils import timezone
+        import re
         
         # Required agreements
         if not self.accuracy:
@@ -632,14 +633,65 @@ class SchoolRegistration(models.Model):
             if self.year_established < 1800:
                 raise ValidationError({'year_established': 'Please enter a valid year (after 1800).'})
         
-        # Phone number validation (basic)
-        if self.phone_number and not self.phone_number.startswith('+63'):
-            raise ValidationError({'phone_number': 'Phone number should start with +63 for Philippines.'})
+        # Format phone numbers to +63 format
+        if self.phone_number:
+            self.phone_number = self.format_philippine_phone(self.phone_number)
         
-        if self.contact_phone and not self.contact_phone.startswith('+63'):
-            raise ValidationError({'contact_phone': 'Contact phone should start with +63 for Philippines.'})
+        if self.contact_phone:
+            self.contact_phone = self.format_philippine_phone(self.contact_phone)
+    
+    def format_philippine_phone(self, phone):
+        """Format Philippine phone numbers to +63 format"""
+        import re
+        
+        if not phone:
+            return phone
+        
+        # Remove all non-digit characters
+        digits = re.sub(r'\D', '', phone)
+        
+        # Check if it's a valid Philippine mobile number
+        # Philippine mobile numbers: 11 digits starting with 09, or 12 digits with 63 prefix
+        if len(digits) == 11 and digits.startswith('09'):
+            # Format: 09123456789 -> +639123456789
+            return f"+63{digits[1:]}"
+        elif len(digits) == 12 and digits.startswith('63'):
+            # Already has 63 prefix
+            return f"+{digits}"
+        elif len(digits) == 10 and digits.startswith('9'):
+            # Format: 9123456789 -> +639123456789
+            return f"+63{digits}"
+        elif len(digits) == 13 and digits.startswith('063'):
+            # Format: 0639123456789 -> +639123456789
+            return f"+63{digits[3:]}"
+        elif len(digits) == 14 and digits.startswith('0063'):
+            # Format: 00639123456789 -> +639123456789
+            return f"+63{digits[4:]}"
+        elif len(digits) == 12 and digits.startswith('639'):
+            # Format: 639123456789 -> +639123456789
+            return f"+{digits}"
+        elif len(digits) == 13 and digits.startswith('0639'):
+            # Format: 0639123456789 -> +639123456789
+            return f"+63{digits[3:]}"
+        else:
+            # If it doesn't match any pattern, try to add +63 if it looks like a local number
+            if digits and digits.isdigit() and len(digits) == 10 and digits[0] in '23456789':
+                # Landline format without area code? Try adding +63
+                return f"+63{digits}"
+            elif digits and digits.isdigit() and len(digits) == 7:
+                # Local 7-digit number? Try adding +63 (assuming Manila area)
+                return f"+632{digits}"
+        
+        # If no pattern matches, return original (validation will fail)
+        return phone
     
     def save(self, *args, **kwargs):
+        # Format phone numbers before validation
+        if self.phone_number:
+            self.phone_number = self.format_philippine_phone(self.phone_number)
+        if self.contact_phone:
+            self.contact_phone = self.format_philippine_phone(self.contact_phone)
+        
         self.full_clean()
         
         # Save logo filename if logo exists

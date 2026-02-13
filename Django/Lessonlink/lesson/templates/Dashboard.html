@@ -100,10 +100,26 @@
 
             <!-- Logo -->
             <div class="flex items-center space-x-3 flex-1 md:flex-none">
+                {% if user_school and user_school.school_logo %}
+                <div class="w-10 h-10 rounded-full overflow-hidden shadow-md">
+                    <img src="{{ user_school.school_logo.url }}" 
+                        alt="{{ user_school.school_name }}" 
+                        class="w-full h-full object-cover"
+                        onerror="this.onerror=null; this.parentElement.classList.add('bg-gradient-to-r', 'from-[#11468F]', 'to-[#9E5EFF]'); this.style.display='none';">
+                </div>
+                {% else %}
                 <div class="w-10 h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
+                {% endif %}
+                
                 <div class="hidden sm:block">
                     <h1 class="text-xl font-bold text-gray-900">LessonLink</h1>
-                    <p class="text-sm text-gray-500 hidden lg:block">Western Mindanao State University</p>
+                    <p class="text-sm text-gray-500 hidden lg:block">
+                        {% if user_school %}
+                            {{ user_school.school_name }}
+                        {% else %}
+                            {{ user.email|default:"LessonLink" }}
+                        {% endif %}
+                    </p>
                 </div>
             </div>
 
