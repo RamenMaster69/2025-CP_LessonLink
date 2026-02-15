@@ -163,6 +163,55 @@
                 margin: 2px 0;
             }
         }
+
+        /* Locked button styles */
+        .locked-button {
+            position: relative;
+            cursor: not-allowed !important;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .locked-button .lock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            color: white;
+            font-size: 1.25rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .locked-button:hover .lock-overlay {
+            opacity: 1;
+        }
+
+        .locked-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ef4444;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            margin-bottom: 8px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .locked-button:hover .locked-tooltip {
+            display: block;
+        }
     </style>
 </head>
 
@@ -332,12 +381,8 @@
         <aside id="sidebar"
             class="w-64 bg-white shadow-lg h-screen fixed md:static -translate-x-full md:translate-x-0 sidebar-transition z-30">
             <nav class="p-4 pt-8 space-y-2">
-                <!-- Create Lesson Button -->
-                <a href="{% url 'lesson_ai' %}"><button
-                    class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md text-sm md:text-base">
-                    <i class="fas fa-plus text-sm md:text-lg"></i>
-                    <span class="font-medium">Create Lesson</span>
-                </button></a>
+                <!-- Create Lesson Button Container - Dynamically controlled by JavaScript -->
+                <div id="create-lesson-container"></div>
 
                 <!-- Navigation Items -->
                 <a href="{% url 'dashboard' %}"
@@ -562,6 +607,56 @@
             return cookieValue;
         }
 
+        // Get user role and approval status from Django template
+        const userRole = "{{ user.role }}".toLowerCase().trim();
+        const userApprovalStatus = "{{ user.approval_status }}".toLowerCase().trim();
+
+        // Function to setup create lesson button based on role and approval
+        function setupCreateLessonButton() {
+            const container = document.getElementById('create-lesson-container');
+            
+            if (!container) return;
+            
+            // Determine if button should be locked
+            const isStudentTeacherNotApproved = (userRole === 'student teacher' && userApprovalStatus !== 'approved');
+            const isOtherNotApproved = (userRole !== 'student teacher' && userRole !== 'teacher' && userApprovalStatus !== 'approved');
+            
+            if (isStudentTeacherNotApproved || isOtherNotApproved) {
+                // LOCKED VERSION - Student Teacher not approved
+                let lockMessage = '';
+                if (userRole === 'student teacher' && userApprovalStatus === 'pending') {
+                    lockMessage = 'Waiting for teacher approval';
+                } else if (userRole === 'student teacher' && userApprovalStatus === 'disapproved') {
+                    lockMessage = 'Account disapproved by teacher';
+                } else {
+                    lockMessage = 'Account not approved';
+                }
+                
+                container.innerHTML = `
+                    <div class="relative locked-button mb-2">
+                        <button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-lg shadow-md min-h-[48px]" disabled>
+                            <i class="fas fa-lock text-lg"></i>
+                            <span class="font-medium">Create Lesson</span>
+                        </button>
+                        <div class="lock-overlay">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <div class="locked-tooltip">${lockMessage}</div>
+                    </div>
+                `;
+            } else {
+                // UNLOCKED VERSION - Teacher, Approved Student Teacher, or Approved other roles
+                container.innerHTML = `
+                    <a href="{% url 'lesson_ai' %}">
+                        <button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md min-h-[48px]">
+                            <i class="fas fa-plus text-lg"></i>
+                            <span class="font-medium">Create Lesson</span>
+                        </button>
+                    </a>
+                `;
+            }
+        }
+
         // Success Message Modal Functions
         function showSuccessMessage(message) {
             const modal = document.getElementById('success-message-modal');
@@ -658,6 +753,9 @@
 
         // Initialize functionality when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
+            // Setup create lesson button
+            setupCreateLessonButton();
+
             // Mobile menu functionality
             const mobileMenuBtn = document.getElementById('mobile-menu-btn');
             const sidebar = document.getElementById('sidebar');
@@ -883,7 +981,7 @@
                         
                         // Update notification dropdown content
                         const notificationDropdown = document.getElementById('notification-dropdown');
-                        const notificationList = notificationDropdown.querySelector('.max-h-64');
+                        const notificationList = notificationDropdown.querySelector('.max-h-96');
                         
                         // Clear existing notifications
                         notificationList.innerHTML = '';

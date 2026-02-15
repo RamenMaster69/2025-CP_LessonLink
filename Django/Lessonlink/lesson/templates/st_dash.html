@@ -86,8 +86,8 @@
             pointer-events: all;
         }
 
-        /* COMPLETELY DISABLE RESTRICTED ITEMS */
-        .restricted-item {
+        /* COMPLETELY DISABLE CREATE LESSON BUTTON ONLY */
+        .create-lesson-restricted {
             pointer-events: none !important;
             user-select: none !important;
             -webkit-user-select: none !important;
@@ -95,19 +95,14 @@
             -ms-user-select: none !important;
         }
         
-        .restricted-item * {
+        .create-lesson-restricted * {
             pointer-events: none !important;
         }
         
-        /* Force disable any links inside restricted items */
-        .restricted-item a {
+        /* Force disable any links inside create lesson restricted items */
+        .create-lesson-restricted a {
             pointer-events: none !important;
             cursor: not-allowed !important;
-        }
-        
-        /* Make sure the entire sidebar area for restricted items is non-interactive */
-        #sidebar .restricted-item {
-            pointer-events: none !important;
         }
 
         .cursor-not-allowed {
@@ -148,10 +143,37 @@
                 transform: scale(1) translateY(0);
             }
         }
+
+        /* URL Protection Banner */
+        .url-protection-banner {
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen">
+    <!-- URL Protection Alert (will show if user tries to bypass) -->
+    {% if url_restricted %}
+    <div class="url-protection-banner fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-red-600 text-white px-6 py-3 rounded-lg shadow-xl flex items-center space-x-3">
+        <i class="fas fa-shield-alt text-xl"></i>
+        <span>Access restricted - You need approval to access this page directly.</span>
+        <button onclick="this.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    {% endif %}
+
     <!-- Session Warning Modal -->
     <div id="session-warning-modal" class="fixed inset-0 bg-black bg-opacity-50 session-modal z-50 hidden flex items-center justify-center">
         <div class="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl transform transition-all">
@@ -382,7 +404,7 @@
         <aside id="sidebar"
             class="w-64 bg-white shadow-lg h-screen fixed top-20 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
             <nav class="p-4 space-y-2">
-                <!-- Create Lesson Button -->
+                <!-- Create Lesson Button - ONLY THIS IS RESTRICTED -->
                 {% if user.approval_status == 'approved' %}
                     <!-- FULL ACCESS ONLY FOR APPROVED USERS -->
                     <a href="{% url 'lesson_ai' %}">
@@ -393,8 +415,8 @@
                         </button>
                     </a>
                 {% else %}
-                    <!-- RESTRICTED FOR PENDING AND DISAPPROVED USERS -->
-                    <div class="relative restricted-item">
+                    <!-- RESTRICTED ONLY FOR CREATE LESSON -->
+                    <div class="relative create-lesson-restricted">
                         <button
                             class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-lg cursor-not-allowed shadow-md opacity-60"
                             disabled>
@@ -413,89 +435,36 @@
                     </div>
                 {% endif %}
 
-                <!-- Navigation Items -->
+                <!-- Navigation Items - ALL UNLOCKED FOR EVERYONE -->
                 <a href="{% url 'dashboard' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
-                    <i class="fas fa-home text-lg w-5"></i>
+                    class="flex items-center space-x-3 px-4 py-3 {% if request.resolver_match.url_name == 'dashboard' %}text-[#11468F] bg-[#f0f5ff] border border-[#d6e0ff]{% else %}text-gray-700 hover:bg-[#f0f5ff]{% endif %} rounded-lg transition-colors group">
+                    <i class="fas fa-home text-lg w-5 {% if request.resolver_match.url_name == 'dashboard' %}text-[#11468F]{% else %}group-hover:text-[#11468F]{% endif %} transition-colors"></i>
                     <span class="font-medium">Dashboard</span>
                 </a>
                 
-                {% if user.approval_status == 'approved' %}
-                    <!-- FULL ACCESS ONLY FOR APPROVED USERS -->
-                    <a href="{% url 'draft_list' %}" id="drafts-link"
-                        class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                        <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                        <span>Drafts</span>
-                    </a>
-                    <a href="{% url 'task' %}" id="tasks-link"
-                        class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                        <i class="fas fa-tasks text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                        <span>Tasks</span>
-                    </a>
-                    <a href="{% url 'schedule' %}" id="schedule-link"
-                        class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                        <i class="fas fa-calendar-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                        <span>Schedule</span>
-                    </a>
-                    <a href="{% url 'dep_calendar' %}" id="calendar-link"
-                        class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                        <i class="fas fa-calendar text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                        <span>Calendar</span>
-                    </a>
-                {% else %}
-                    <!-- RESTRICTED ACCESS FOR PENDING AND DISAPPROVED USERS -->
-                    <div class="relative restricted-item">
-                        <div class="flex items-center space-x-3 px-4 py-3 text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed group">
-                            <i class="fas fa-file-alt text-lg w-5"></i>
-                            <span>Drafts</span>
-                            <i class="fas fa-lock text-xs ml-auto text-red-500"></i>
-                        </div>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <div class="bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity">
-                                {% if user.approval_status == 'pending' %}Pending Approval{% else %}Access Restricted{% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="relative restricted-item">
-                        <div class="flex items-center space-x-3 px-4 py-3 text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed group">
-                            <i class="fas fa-tasks text-lg w-5"></i>
-                            <span>Tasks</span>
-                            <i class="fas fa-lock text-xs ml-auto text-red-500"></i>
-                        </div>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <div class="bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity">
-                                {% if user.approval_status == 'pending' %}Pending Approval{% else %}Access Restricted{% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="relative restricted-item">
-                        <div class="flex items-center space-x-3 px-4 py-3 text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed group">
-                            <i class="fas fa-calendar-alt text-lg w-5"></i>
-                            <span>Schedule</span>
-                            <i class="fas fa-lock text-xs ml-auto text-red-500"></i>
-                        </div>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <div class="bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity">
-                                {% if user.approval_status == 'pending' %}Pending Approval{% else %}Access Restricted{% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="relative restricted-item">
-                        <div class="flex items-center space-x-3 px-4 py-3 text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed group">
-                            <i class="fas fa-calendar text-lg w-5"></i>
-                            <span>Calendar</span>
-                            <i class="fas fa-lock text-xs ml-auto text-red-500"></i>
-                        </div>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <div class="bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity">
-                                {% if user.approval_status == 'pending' %}Pending Approval{% else %}Access Restricted{% endif %}
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
+                <a href="{% url 'draft_list' %}" id="drafts-link"
+                    class="flex items-center space-x-3 px-4 py-3 {% if request.resolver_match.url_name == 'draft_list' %}text-[#11468F] bg-[#f0f5ff] border border-[#d6e0ff]{% else %}text-gray-700 hover:bg-[#f0f5ff]{% endif %} rounded-lg transition-colors group">
+                    <i class="fas fa-file-alt text-lg w-5 {% if request.resolver_match.url_name == 'draft_list' %}text-[#11468F]{% else %}group-hover:text-[#11468F]{% endif %} transition-colors"></i>
+                    <span>Drafts</span>
+                </a>
+                
+                <a href="{% url 'task' %}" id="tasks-link"
+                    class="flex items-center space-x-3 px-4 py-3 {% if request.resolver_match.url_name == 'task' %}text-[#11468F] bg-[#f0f5ff] border border-[#d6e0ff]{% else %}text-gray-700 hover:bg-[#f0f5ff]{% endif %} rounded-lg transition-colors group">
+                    <i class="fas fa-tasks text-lg w-5 {% if request.resolver_match.url_name == 'task' %}text-[#11468F]{% else %}group-hover:text-[#11468F]{% endif %} transition-colors"></i>
+                    <span>Tasks</span>
+                </a>
+                
+                <a href="{% url 'schedule' %}" id="schedule-link"
+                    class="flex items-center space-x-3 px-4 py-3 {% if request.resolver_match.url_name == 'schedule' %}text-[#11468F] bg-[#f0f5ff] border border-[#d6e0ff]{% else %}text-gray-700 hover:bg-[#f0f5ff]{% endif %} rounded-lg transition-colors group">
+                    <i class="fas fa-calendar-alt text-lg w-5 {% if request.resolver_match.url_name == 'schedule' %}text-[#11468F]{% else %}group-hover:text-[#11468F]{% endif %} transition-colors"></i>
+                    <span>Schedule</span>
+                </a>
+                
+                <a href="{% url 'dep_calendar' %}" id="calendar-link"
+                    class="flex items-center space-x-3 px-4 py-3 {% if request.resolver_match.url_name == 'dep_calendar' %}text-[#11468F] bg-[#f0f5ff] border border-[#d6e0ff]{% else %}text-gray-700 hover:bg-[#f0f5ff]{% endif %} rounded-lg transition-colors group">
+                    <i class="fas fa-calendar text-lg w-5 {% if request.resolver_match.url_name == 'dep_calendar' %}text-[#11468F]{% else %}group-hover:text-[#11468F]{% endif %} transition-colors"></i>
+                    <span>Calendar</span>
+                </a>
             </nav>
         </aside>
 
@@ -583,7 +552,7 @@
                     </a>
                     {% else %}
                     <button
-                        class="bg-gray-300 text-gray-500 px-6 py-3 rounded-lg font-semibold cursor-not-allowed shadow-lg inline-flex items-center space-x-2 opacity-60 restricted-item"
+                        class="bg-gray-300 text-gray-500 px-6 py-3 rounded-lg font-semibold cursor-not-allowed shadow-lg inline-flex items-center space-x-2 opacity-60 create-lesson-restricted"
                         disabled>
                         <i class="fas fa-plus"></i>
                         <span>Start New Lesson Plan</span>
@@ -640,16 +609,10 @@
                             <h3 class="text-xl font-bold text-gray-900">Recent Lesson Plans</h3>
                             <p class="text-gray-500 text-sm">Your latest teaching materials</p>
                         </div>
-                        {% if user.approval_status == 'approved' %}
                         <a href="{% url 'draft_list' %}"
                             class="text-purple-600 hover:text-purple-700 font-medium text-sm bg-purple-50 px-3 py-2 rounded-lg hover:bg-purple-100 transition-colors">
                             View All
                         </a>
-                        {% else %}
-                        <span class="text-gray-400 font-medium text-sm bg-gray-100 px-3 py-2 rounded-lg cursor-not-allowed restricted-item">
-                            View All
-                        </span>
-                        {% endif %}
                     </div>
 
                     <div class="space-y-4">
@@ -723,6 +686,43 @@
     </div>
 
     <script>
+    // URL Protection - JavaScript layer
+    document.addEventListener('DOMContentLoaded', () => {
+        // Check if user is not approved but trying to access certain URLs
+        const approvalStatus = "{{ user.approval_status }}";
+        const currentUrl = window.location.pathname;
+        
+        // Define restricted URLs for non-approved users
+        const restrictedUrls = [
+            '/lesson_ai/',
+            '/create-lesson/',
+            '/lesson-planner/',
+            '/lesson_planner/'
+        ];
+        
+        // Check if current URL is in restricted list AND user is not approved
+        const isRestrictedUrl = restrictedUrls.some(url => currentUrl.includes(url));
+        
+        if (isRestrictedUrl && approvalStatus !== 'approved') {
+            // Show a warning message
+            const warningDiv = document.createElement('div');
+            warningDiv.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-red-600 text-white px-6 py-3 rounded-lg shadow-xl flex items-center space-x-3 url-protection-banner';
+            warningDiv.innerHTML = `
+                <i class="fas fa-shield-alt text-xl"></i>
+                <span>Access restricted - You need approval to access this page.</span>
+                <button onclick="this.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            document.body.appendChild(warningDiv);
+            
+            // Redirect back to dashboard after 3 seconds
+            setTimeout(() => {
+                window.location.href = "{% url 'dashboard' %}";
+            }, 3000);
+        }
+    });
+
     // Initialize when DOM is loaded
     document.addEventListener('DOMContentLoaded', () => {
         // Mobile menu toggle
@@ -792,8 +792,6 @@
             }
         }
 
-        // [Rest of your existing JavaScript code for modals and restricted items...]
-        
         // Disapproval Modal Functionality
         const disapprovalModal = document.getElementById('disapproval-modal');
         const concernModal = document.getElementById('concern-modal');
@@ -914,57 +912,33 @@
             });
         }
 
-        // AGGRESSIVELY DISABLE ALL RESTRICTED ITEMS
-        disableAllRestrictedItems();
-        
-        function disableAllRestrictedItems() {
-            // Get all restricted items
-            const restrictedItems = document.querySelectorAll('.restricted-item');
+        // DISABLE ONLY CREATE LESSON BUTTON for non-approved users
+        if ("{{ user.approval_status }}" !== 'approved') {
+            const createLessonButtons = document.querySelectorAll('.create-lesson-restricted');
             
-            restrictedItems.forEach(item => {
-                // Completely disable the element using multiple methods
-                item.style.pointerEvents = 'none';
-                item.style.userSelect = 'none';
-                item.style.webkitUserSelect = 'none';
-                item.style.msUserSelect = 'none';
+            createLessonButtons.forEach(button => {
+                // Completely disable the element
+                button.style.pointerEvents = 'none';
+                button.style.userSelect = 'none';
                 
                 // Remove any href attributes from child links
-                const links = item.querySelectorAll('a');
+                const links = button.querySelectorAll('a');
                 links.forEach(link => {
                     link.removeAttribute('href');
                     link.style.pointerEvents = 'none';
                     link.style.cursor = 'not-allowed';
                 });
                 
-                // Add multiple layers of click prevention
-                const preventAllClicks = (e) => {
+                // Add click prevention
+                button.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    e.stopImmediatePropagation();
                     showRestrictedAlert();
-                    return false;
-                };
-                
-                item.addEventListener('click', preventAllClicks, true);
-                item.addEventListener('mousedown', preventAllClicks, true);
-                item.addEventListener('mouseup', preventAllClicks, true);
-                item.addEventListener('dblclick', preventAllClicks, true);
-                
-                // Prevent right-click and context menu
-                item.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }, true);
-                
-                // Prevent drag
-                item.addEventListener('dragstart', (e) => {
-                    e.preventDefault();
                     return false;
                 }, true);
             });
         }
-        
+
         // Function to show restricted access alert
         function showRestrictedAlert() {
             const status = "{{ user.approval_status }}";
@@ -1021,6 +995,6 @@
             return cookieValue;
         }
     });
-</script>
+    </script>
 </body>
 </html>

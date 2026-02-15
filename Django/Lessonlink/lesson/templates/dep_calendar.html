@@ -149,6 +149,55 @@
             border-radius: 4px;
             margin-left: 4px;
         }
+
+        /* Locked button styles */
+        .locked-button {
+            position: relative;
+            cursor: not-allowed !important;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .locked-button .lock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            color: white;
+            font-size: 1.25rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .locked-button:hover .lock-overlay {
+            opacity: 1;
+        }
+
+        .locked-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ef4444;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            margin-bottom: 8px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .locked-button:hover .locked-tooltip {
+            display: block;
+        }
     </style>
 </head>
 
@@ -315,126 +364,119 @@
     <div class="flex pt-16">
         <!-- Sidebar - Fixed and sticky -->
         <aside id="sidebar" class="w-64 bg-white shadow-lg h-screen fixed top-16 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30">
-    <nav class="p-4 pt-8 space-y-2">
-        <!-- Create Lesson Button -->
-        <a href="{% url 'lesson_ai' %}"><button
-            class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md text-sm md:text-base">
-            <i class="fas fa-plus text-sm md:text-lg"></i>
-            <span class="font-medium">Create Lesson</span>
-        </button></a>
+            <nav class="p-4 pt-8 space-y-2">
+                <!-- Create Lesson Button Container - Will be dynamically controlled by JavaScript -->
+                <div id="create-lesson-container"></div>
 
-        <!-- Role-based Navigation -->
-        {% if user_role == 'admin' %}
-            <!-- Admin Links -->
-            <a href="{% url 'admin_dashboard' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
-                <i class="fas fa-home text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="{% url 'admin_user_management' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
-                <i class="fas fa-chalkboard-teacher text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                <span>User Management</span>
-            </a>
-            <a href="{% url 'admin_system_reports' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
-                <i class="fas fa-chart-bar text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                <span>Reports & Analytics</span>
-            </a>
+                <!-- Role-based Navigation -->
+                {% if user_role == 'admin' %}
+                    <!-- Admin Links -->
+                    <a href="{% url 'admin_dashboard' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
+                        <i class="fas fa-home text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{% url 'admin_user_management' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
+                        <i class="fas fa-chalkboard-teacher text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span>User Management</span>
+                    </a>
+                    <a href="{% url 'admin_system_reports' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
+                        <i class="fas fa-chart-bar text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span>Reports & Analytics</span>
+                    </a>
 
-        {% elif user_role == 'department_head' %}
-            <!-- Department Head Links -->
-            <a href="{% url 'Dep_Dash' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
-                <i class="fas fa-home text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="{% url 'department_head_drafts' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
-                <i class="fas fa-file-alt text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                <span>Lesson Plans</span>
-            </a>
-            <a href="{% url 'department_head_drafts' %}"
-                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
-                <i class="fas fa-file-alt text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                <span>Exemplar</span>
-            </a>
-            
-            <!-- Calendar Link - Active state -->
-            <a href="{% url 'dep_calendar' %}" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff] text-sm md:text-base">
-                <i class="fas fa-calendar-alt text-sm md:text-lg w-5"></i>
-                <span>Calendar</span>
-            </a>
-            
-            <a href="{% url 'Dep_Pending' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
-                <i class="fas fa-clock text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                <span>Pending Reviews</span>
-                {% if pending_submissions > 0 %}
-                <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">{{ pending_submissions }}</span>
+                {% elif user_role == 'department_head' %}
+                    <!-- Department Head Links -->
+                    <a href="{% url 'Dep_Dash' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
+                        <i class="fas fa-home text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{% url 'department_head_drafts' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
+                        <i class="fas fa-file-alt text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span>Lesson Plans</span>
+                    </a>
+                    <a href="{% url 'department_head_drafts' %}"
+                        class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
+                        <i class="fas fa-file-alt text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span>Exemplar</span>
+                    </a>
+                    
+                    <!-- Calendar Link - Active state -->
+                    <a href="{% url 'dep_calendar' %}" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff] text-sm md:text-base">
+                        <i class="fas fa-calendar-alt text-sm md:text-lg w-5"></i>
+                        <span>Calendar</span>
+                    </a>
+                    
+                    <a href="{% url 'Dep_Pending' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
+                        <i class="fas fa-clock text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span>Pending Reviews</span>
+                        {% if pending_submissions > 0 %}
+                        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">{{ pending_submissions }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'Dep_Faculty' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
+                        <i class="fas fa-users text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span>Faculty</span>
+                    </a>
+
+                {% else %}
+                    <!-- Teacher & Student Teacher Links -->
+                    <a href="{% url 'dashboard' %}"
+                        class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
+                        <i class="fas fa-home text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{% url 'draft_list' %}"
+                        class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
+                        <i class="fas fa-file-alt text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span>Drafts</span>
+                    </a>
+                    <a href="{% url 'task' %}"
+                        class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
+                        <i class="fas fa-tasks text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span>Tasks</span>
+                    </a>
+                    <a href="{% url 'schedule' %}"
+                        class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
+                        <i class="fas fa-clock text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                        <span>Schedule</span>
+                    </a>
+                    
                 {% endif %}
-            </a>
-            <a href="{% url 'Dep_Faculty' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
-                <i class="fas fa-users text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                <span>Faculty</span>
-            </a>
 
-        {% else %}
-            <!-- Teacher & Student Teacher Links -->
-            <a href="{% url 'dashboard' %}"
-                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
-                <i class="fas fa-home text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="{% url 'draft_list' %}"
-                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
-                <i class="fas fa-file-alt text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                <span>Drafts</span>
-            </a>
-            <a href="{% url 'task' %}"
-                class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff] text-sm md:text-base">
-                <i class="fas fa-tasks text-sm md:text-lg w-5"></i>
-                <span>Tasks</span>
-            </a>
-            <a href="{% url 'schedule' %}"
-                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group text-sm md:text-base">
-                <i class="fas fa-clock text-sm md:text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                <span>Schedule</span>
-            </a>
-            
-        {% endif %}
+                <!-- Calendar Link (Active - Common for all roles) -->
+                {% if user_role == 'admin' %}
+                    <!-- Admin Calendar -->
+                    <a href="{% url 'admin_calendar' %}" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff] text-sm md:text-base">
+                        <i class="fas fa-calendar-alt text-sm md:text-lg w-5"></i>
+                        <span>Calendar</span>
+                    </a>
+                {% elif user_role == 'department_head' %}
+                    <!-- Department Head Calendar - Already included above -->
+                {% else %}
+                    <!-- Teacher & Student Teacher Calendar -->
+                    <a href="{% url 'dep_calendar' %}"
+                        class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff] text-sm md:text-base">
+                        <i class="fas fa-calendar text-sm md:text-lg w-5"></i>
+                        <span>Calendar</span>
+                    </a>
+                {% endif %}
 
-        <!-- Calendar Link (Active - Common for all roles) -->
-        {% if user_role == 'admin' %}
-            <!-- Admin Calendar -->
-            <a href="{% url 'admin_calendar' %}" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff] text-sm md:text-base">
-                <i class="fas fa-calendar-alt text-sm md:text-lg w-5"></i>
-                <span>Calendar</span>
-            </a>
-        {% elif user_role == 'department_head' %}
-            <!-- Department Head Calendar - Already included above -->
-        {% else %}
-            <!-- Teacher & Student Teacher Calendar -->
-            <a href="{% url 'dep_calendar' %}"
-                class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff] text-sm md:text-base">
-                <i class="fas fa-calendar text-sm md:text-lg w-5"></i>
-                <span>Calendar</span>
-            </a>
-        {% endif %}
-
-        <!-- TEACHER-ONLY LINKS - Only show if user is NOT a Student Teacher -->
-        <!-- Check both conditions: if user is a teacher AND not a student teacher -->
-        {% if user_role == 'teacher' or not user.role == 'Student Teacher' %}
-            {% if user.role != 'Student Teacher' %}
-                <a href="{% url 'teacher_student_list' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors text-sm md:text-base">
-                    <i class="fas fa-user-graduate text-lg w-5"></i>
-                    <span>My Students</span>
-                </a>
-                <a href="{% url 'supervising_teacher_reviews' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors text-sm md:text-base">
-                    <i class="fas fa-clipboard-check text-lg w-5"></i>
-                    <span>Student Lesson Reviews</span>
-                    {% if pending_reviews_count %}
-                    <span class="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{{ pending_reviews_count }}</span>
-                    {% endif %}
-                </a>
-            {% endif %}
-        {% endif %}
-    </nav>
-</aside>
+                <!-- TEACHER-ONLY LINKS - Only show if user is a Teacher (not Student Teacher) -->
+                {% if user.role == 'Teacher' %}
+                    <a href="{% url 'teacher_student_list' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors text-sm md:text-base">
+                        <i class="fas fa-user-graduate text-lg w-5"></i>
+                        <span>My Students</span>
+                    </a>
+                    <a href="{% url 'supervising_teacher_reviews' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors text-sm md:text-base">
+                        <i class="fas fa-clipboard-check text-lg w-5"></i>
+                        <span>Student Lesson Reviews</span>
+                        {% if pending_reviews_count %}
+                        <span class="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{{ pending_reviews_count }}</span>
+                        {% endif %}
+                    </a>
+                {% endif %}
+            </nav>
+        </aside>
 
         <!-- Main Content -->
         <main class="flex-1 md:ml-72 p-6">
@@ -609,13 +651,17 @@
     let currentDate = new Date();
     let activities = [];
     
-    // Normalize user role to lowercase and trim whitespace for consistent comparison
+    // Get user role and approval status from Django template
     const userRole = "{{ user_role }}".toLowerCase().trim();
+    const userApprovalStatus = "{{ user.approval_status }}".toLowerCase().trim();
+    const userActualRole = "{{ user.role }}".toLowerCase().trim();
     const currentUserName = "{{ user.first_name }} {{ user.last_name }}";
     const currentUserId = {{ user.id }};
     
     // Debug log to check role
     console.log("Current user role:", userRole);
+    console.log("User actual role:", userActualRole);
+    console.log("User approval status:", userApprovalStatus);
     console.log("Current user ID:", currentUserId);
 
     const categoryColors = {
@@ -632,6 +678,52 @@
         cultural: '#ec4899'
     };
 
+    // Function to setup create lesson button based on role and approval
+    function setupCreateLessonButton() {
+        const container = document.getElementById('create-lesson-container');
+        
+        if (!container) return;
+        
+        // Determine if button should be locked
+        const isStudentTeacherNotApproved = (userActualRole === 'student teacher' && userApprovalStatus !== 'approved');
+        const isOtherNotApproved = (userActualRole !== 'student teacher' && userActualRole !== 'teacher' && userApprovalStatus !== 'approved');
+        
+        if (isStudentTeacherNotApproved || isOtherNotApproved) {
+            // LOCKED VERSION - Student Teacher not approved
+            let lockMessage = '';
+            if (userActualRole === 'student teacher' && userApprovalStatus === 'pending') {
+                lockMessage = 'Waiting for teacher approval';
+            } else if (userActualRole === 'student teacher' && userApprovalStatus === 'disapproved') {
+                lockMessage = 'Account disapproved by teacher';
+            } else {
+                lockMessage = 'Account not approved';
+            }
+            
+            container.innerHTML = `
+                <div class="relative locked-button mb-2">
+                    <button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-lg shadow-md min-h-[48px]" disabled>
+                        <i class="fas fa-lock text-lg"></i>
+                        <span class="font-medium">Create Lesson</span>
+                    </button>
+                    <div class="lock-overlay">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div class="locked-tooltip">${lockMessage}</div>
+                </div>
+            `;
+        } else {
+            // UNLOCKED VERSION - Teacher, Approved Student Teacher, or Approved other roles
+            container.innerHTML = `
+                <a href="{% url 'lesson_ai' %}">
+                    <button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md min-h-[48px]">
+                        <i class="fas fa-plus text-lg"></i>
+                        <span class="font-medium">Create Lesson</span>
+                    </button>
+                </a>
+            `;
+        }
+    }
+
     // Function to check if user can edit this activity
     function canUserEditActivity(activity) {
         console.log("Checking edit permission for activity:", activity.id, "User role:", userRole);
@@ -646,7 +738,7 @@
         const isAdmin = userRole === 'admin';
         const isDepartmentHead = userRole === 'department_head';
         const isTeacher = userRole === 'teacher';
-        const isStudentTeacher = userRole === 'student_teacher';
+        const isStudentTeacher = userActualRole === 'student teacher';
         
         if (isAdmin) {
             console.log("User is admin - can edit");
@@ -670,7 +762,7 @@
     // Function to check if user can add activities
     function canUserAddActivities() {
         const isTeacher = userRole === 'teacher';
-        const isStudentTeacher = userRole === 'student_teacher';
+        const isStudentTeacher = userActualRole === 'student teacher';
         
         const canAdd = !isTeacher && !isStudentTeacher;
         console.log("Can user add activities:", canAdd);
@@ -1192,8 +1284,11 @@
     // Call debug function after page loads
     setTimeout(debugZamboangaEvents, 2000);
     
-    // Initialize calendar
-    loadActivities();
+    // Initialize calendar and setup create lesson button
+    document.addEventListener('DOMContentLoaded', function() {
+        loadActivities();
+        setupCreateLessonButton();
+    });
 </script>
 </body>
 </html>
