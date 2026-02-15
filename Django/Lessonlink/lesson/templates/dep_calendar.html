@@ -163,7 +163,7 @@
             </button>
 
             <!-- Logo -->
-            <div class="flex items-center space-x-3 flex-1 md:flex-none">
+            <a href="{% url 'dashboard' %}"><div class="flex items-center space-x-3 flex-1 md:flex-none">
                 {% if user_school and user_school.school_logo %}
                 <div class="w-10 h-10 rounded-full overflow-hidden shadow-md">
                     <img src="{{ user_school.school_logo.url }}" 
@@ -185,7 +185,7 @@
                         {% endif %}
                     </p>
                 </div>
-            </div>
+            </div></a>
 
             <!-- Right side actions -->
             <div class="flex items-center space-x-2 md:space-x-4">
