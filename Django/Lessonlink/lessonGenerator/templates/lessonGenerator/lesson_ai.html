@@ -6,6 +6,82 @@
     <title>LessonLink Lesson Plan Assistant</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Page Entrance Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .animate-header {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+
+        .animate-back-btn {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .animate-title {
+            animation: slideInRight 0.5s ease-out 0.1s forwards;
+            opacity: 0;
+        }
+
+        .animate-form {
+            animation: scaleIn 0.5s ease-out 0.2s forwards;
+            opacity: 0;
+            transform-origin: center;
+        }
+
+        .animate-field {
+            animation: fadeInUp 0.4s ease-out forwards;
+            opacity: 0;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.15s; }
+        .delay-3 { animation-delay: 0.2s; }
+        .delay-4 { animation-delay: 0.25s; }
+        .delay-5 { animation-delay: 0.3s; }
+        .delay-6 { animation-delay: 0.35s; }
+        .delay-7 { animation-delay: 0.4s; }
+        .delay-8 { animation-delay: 0.45s; }
+
         .gradient-bg {
             background: linear-gradient(135deg, #11468F 0%, #9E5EFF 100%);
         }
@@ -199,12 +275,12 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Header -->
-    <div class="gradient-bg text-white px-4 sm:px-6 py-4">
+    <!-- Header with animation -->
+    <div class="gradient-bg text-white px-4 sm:px-6 py-4 animate-header">
         <div class="flex items-center justify-between">
 
             <!-- Logo -->
-            <div class="flex items-center space-x-3 flex-1 md:flex-none">
+            <a href="{% url 'dashboard' %}"><div class="flex items-center space-x-3 flex-1 md:flex-none">
                 {% if user_school and user_school.school_logo %}
                 <div class="w-10 h-10 rounded-full overflow-hidden shadow-md">
                     <img src="{{ user_school.school_logo.url }}" 
@@ -226,7 +302,7 @@
                         {% endif %}
                     </p>
                 </div>
-            </div>
+            </div></a>
 
             <button id="mobile-menu-btn" class="md:hidden p-2 text-white hover:bg-white/10 rounded-lg">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -239,16 +315,16 @@
     <div class="flex relative">
         <!-- Main Content -->
         <div class="flex-1 p-4 sm:p-6 w-full md:w-auto">
-            <!-- Back Button -->
-            <button class="flex items-center text-gray-600 hover:text-gray-800 mb-4 sm:mb-6" onclick="window.history.back()">
+            <!-- Back Button with animation -->
+            <button class="flex items-center text-gray-600 hover:text-gray-800 mb-4 sm:mb-6 animate-back-btn" onclick="window.history.back()">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
                 Back to Dashboard
             </button>
 
-            <!-- Create a Lesson Plan Header -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 space-y-4 sm:space-y-0">
+            <!-- Create a Lesson Plan Header with animation -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 space-y-4 sm:space-y-0 animate-title">
                 <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Create a Lesson Plan</h2>
                 <div class="flex items-center space-x-2 text-sm text-gray-600">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -258,21 +334,21 @@
                 </div>
             </div>
 
-            <!-- Form Container -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 lesson-plan-section">
+            <!-- Form Container with animation -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 lesson-plan-section animate-form">
                 <!-- Form Fields -->
                 <form id="lesson-plan-form" class="space-y-4 sm:space-y-6">
                     <!-- Lesson Title -->
-                    <div>
+                    <div class="animate-field delay-1">
                         <label for="lesson-title" class="block text-sm font-medium text-gray-700 mb-2">Lesson Title</label>
-                        <input type="text" id="lesson-title" name="lesson_title" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter the title of your lesson plan" required>
+                        <input type="text" id="lesson-title" name="lesson_title" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" placeholder="Enter the title of your lesson plan" required>
                     </div>
 
                     <!-- Row 1: Subject, Grade Level, and Exemplar Selector -->
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-                        <div>
+                        <div class="animate-field delay-2">
                             <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                            <select id="subject" name="subject" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            <select id="subject" name="subject" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" required>
                                 <option value="">Select Subject</option>
                                 <option value="Mathematics">Mathematics</option>
                                 <option value="Science">Science</option>
@@ -283,9 +359,9 @@
                                 <option value="Filipino">Filipino</option>
                             </select>
                         </div>
-                        <div>
+                        <div class="animate-field delay-3">
                             <label for="grade-level" class="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
-                            <select id="grade-level" name="grade_level" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            <select id="grade-level" name="grade_level" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" required>
                                 <option value="">Select Grade</option>
                                 <option value="Kindergarten">Kindergarten</option>
                                 <option value="1st Grade">1st Grade</option>
@@ -300,9 +376,9 @@
                                 <option value="10th Grade">10th Grade</option>
                             </select>
                         </div>
-                        <div>
+                        <div class="animate-field delay-4">
                             <label for="exemplar-select" class="block text-sm font-medium text-gray-700 mb-2">Select Exemplar (Optional)</label>
-                            <select id="exemplar-select" name="selected_exemplar" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <select id="exemplar-select" name="selected_exemplar" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
                                 <option value="">No exemplar selected</option>
                                 <!-- Exemplars will be loaded dynamically -->
                             </select>
@@ -310,12 +386,12 @@
                         </div>
                         
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                            <div>
+                            <div class="animate-field delay-5">
                                 <label for="intelligence-type" class="block text-sm font-medium text-gray-700 mb-2">
                                     Intelligence Type Focus
                                 </label>
                                 <select id="intelligence-type" name="intelligence_type" 
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" required>
                                     <option value="comprehensive">Comprehensive (IQ+EQ+SQ+AQ)</option>
                                     <option value="cognitive">Cognitive Focus (IQ)</option>
                                     <option value="emotional">Emotional Focus (EQ)</option>
@@ -334,24 +410,24 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Learning Objectives</label>
                         <div class="space-y-3">
-                            <div>
-                                <input type="text" id="learning-objective-1" name="learning_objective_1" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="At the end of the lesson, students will be able to..." required>
+                            <div class="animate-field delay-6">
+                                <input type="text" id="learning-objective-1" name="learning_objective_1" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" placeholder="At the end of the lesson, students will be able to..." required>
                             </div>
-                            <div>
-                                <input type="text" id="learning-objective-2" name="learning_objective_2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Additional learning objective..." required>
+                            <div class="animate-field delay-7">
+                                <input type="text" id="learning-objective-2" name="learning_objective_2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" placeholder="Additional learning objective..." required>
                             </div>
-                            <div>
-                                <input type="text" id="learning-objective-3" name="learning_objective_3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Additional learning objective..." required>
+                            <div class="animate-field delay-8">
+                                <input type="text" id="learning-objective-3" name="learning_objective_3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" placeholder="Additional learning objective..." required>
                             </div>
                         </div>
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="mt-6 sm:mt-8 flex gap-3">
-                        <button type="button" id="preview-btn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium text-sm transition duration-200">
+                    <div class="mt-6 sm:mt-8 flex gap-3 animate-field delay-8">
+                        <button type="button" id="preview-btn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
                             Preview Lesson Plan
                         </button>
-                        <button type="submit" id="generate-btn" class="flex-1 gradient-bg hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium text-sm transition duration-200">
+                        <button type="submit" id="generate-btn" class="flex-1 gradient-bg hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
                             Generate Lesson Plan
                         </button>
                     </div>
@@ -359,7 +435,7 @@
             </div>
         </div>
 
-        <!-- Right Sidebar - AI Panel -->
+        <!-- Right Sidebar - AI Panel (commented out) -->
         {% comment %} <div id="sidebar" class="w-80 bg-white border-l border-gray-200 p-6 overflow-y-auto hidden md:block">
             <div class="mb-8">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">AI Suggestions</h3>
@@ -467,10 +543,10 @@
     <!-- AI Suggestions Modal -->
     <div id="ai-suggestions-modal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 hidden">
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-300 scale-95 opacity-0 modal-enter-active" id="ai-modal-content">
                 <div class="gradient-bg text-white px-6 py-4 flex items-center justify-between">
                     <h3 class="text-lg font-semibold">AI Suggestions</h3>
-                    <button id="close-ai-modal" class="p-2 hover:bg-white/10 rounded-lg">
+                    <button id="close-ai-modal" class="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -484,7 +560,7 @@
                 </div>
                 
                 <div class="border-t border-gray-200 px-6 py-4 flex justify-end">
-                    <button id="close-ai-modal-footer" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">
+                    <button id="close-ai-modal-footer" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors duration-200">
                         Close
                     </button>
                 </div>
@@ -494,7 +570,7 @@
 
     <!-- Enhanced Loading Overlay -->
     <div id="loading-overlay" class="fixed inset-0 bg-gray-800 bg-opacity-90 flex items-center justify-center hidden z-50">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0" id="loading-content">
             <div class="text-center">
                 <div class="ai-thinking">
                     <div class="ai-icon">AI</div>
@@ -526,10 +602,10 @@
     <!-- Preview Modal -->
     <div id="preview-modal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 hidden">
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="preview-modal-content">
                 <div class="gradient-bg text-white px-6 py-4 flex items-center justify-between">
                     <h3 class="text-lg font-semibold">Lesson Plan Preview</h3>
-                    <button id="close-preview" class="p-2 hover:bg-white/10 rounded-lg">
+                    <button id="close-preview" class="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -541,10 +617,10 @@
                 </div>
                 
                 <div class="border-t border-gray-200 px-6 py-4 flex justify-end space-x-3">
-                    <button id="close-preview-footer" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">
+                    <button id="close-preview-footer" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors duration-200">
                         Close
                     </button>
-                    <button id="submit-from-preview" class="gradient-bg hover:opacity-90 text-white px-6 py-2 rounded-lg font-medium">
+                    <button id="submit-from-preview" class="gradient-bg hover:opacity-90 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
                         Generate Lesson Plan
                     </button>
                 </div>
@@ -553,6 +629,37 @@
     </div>
 
     <script>
+        // Modal entrance animation
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const modalContent = modalId === 'loading-overlay' ? 
+                document.getElementById('loading-content') : 
+                document.getElementById(modalId + '-content') || document.querySelector('#' + modalId + ' > div > div');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                if (modalContent) {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                }
+            }, 10);
+        }
+
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const modalContent = modalId === 'loading-overlay' ? 
+                document.getElementById('loading-content') : 
+                document.getElementById(modalId + '-content') || document.querySelector('#' + modalId + ' > div > div');
+            
+            if (modalContent) {
+                modalContent.classList.add('scale-95', 'opacity-0');
+                modalContent.classList.remove('scale-100', 'opacity-100');
+            }
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
         // Get CSRF token
         function getCookie(name) {
             let cookieValue = null;
@@ -569,10 +676,10 @@
             return cookieValue;
         }
 
-        // Show success message
+        // Show success message with animation
         function showSuccessMessage(message) {
             const successMsg = document.createElement('div');
-            successMsg.className = 'fixed top-6 right-6 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500';
+            successMsg.className = 'fixed top-6 right-6 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500 ease-out';
             successMsg.innerHTML = `
                 <div class="flex items-center">
                     <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -592,10 +699,10 @@
             }, 4000);
         }
 
-        // Show error message
+        // Show error message with animation
         function showErrorMessage(message) {
             const errorMsg = document.createElement('div');
-            errorMsg.className = 'fixed top-6 right-6 bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500';
+            errorMsg.className = 'fixed top-6 right-6 bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500 ease-out';
             errorMsg.innerHTML = `
                 <div class="flex items-center">
                     <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -615,7 +722,7 @@
             }, 4000);
         }
 
-        // Get current form data - UPDATED FOR NEW FORM STRUCTURE
+        // Get current form data
         function getFormData() {
             return {
                 subject: document.getElementById('subject').value,
@@ -629,7 +736,7 @@
             };
         }
 
-        // Get form data for submission - UPDATED
+        // Get form data for submission
         function getSubmissionFormData() {
             return {
                 subject: document.getElementById('subject').value,
@@ -641,7 +748,6 @@
                 ].filter(obj => obj.trim() !== '').join('\n'),
                 selected_exemplar: document.getElementById('exemplar-select').value,
                 intelligence_type: document.getElementById('intelligence-type').value,
-                // Add default values for other required fields
                 quarter: '',
                 duration: '60',
                 population: '30',
@@ -656,36 +762,23 @@
             };
         }
 
-        // Get preview form data - UPDATED
+        // Get preview form data
         function getPreviewFormData() {
             const formData = getFormData();
+            const exemplarSelect = document.getElementById('exemplar-select');
+            const selectedExemplarText = exemplarSelect.options[exemplarSelect.selectedIndex]?.text || 'No exemplar selected';
             
             return {
                 subject: formData.subject,
                 gradeLevel: formData.grade_level,
                 learningObjectives: formData.learning_objectives,
-                selectedExemplar: formData.selected_exemplar ? 'Yes' : 'No',
+                selectedExemplar: formData.selected_exemplar ? selectedExemplarText : 'No',
+                exemplarId: formData.selected_exemplar,
                 exemplarCount: document.getElementById('exemplar-select').options.length - 1
             };
         }
 
-        // Get preview form data - UPDATED with better exemplar info
-function getPreviewFormData() {
-    const formData = getFormData();
-    const exemplarSelect = document.getElementById('exemplar-select');
-    const selectedExemplarText = exemplarSelect.options[exemplarSelect.selectedIndex].text;
-    
-    return {
-        subject: formData.subject,
-        gradeLevel: formData.grade_level,
-        learningObjectives: formData.learning_objectives,
-        selectedExemplar: formData.selected_exemplar ? selectedExemplarText : 'No',
-        exemplarId: formData.selected_exemplar,
-        exemplarCount: document.getElementById('exemplar-select').options.length - 1
-    };
-}
-
-        // Generate preview content - UPDATED with better exemplar display
+        // Generate preview content
         function generatePreview(data) {
             const learningObjectives = data.learningObjectives.split('\n').filter(obj => obj.trim() !== '');
             
@@ -766,9 +859,7 @@ function getPreviewFormData() {
         document.addEventListener('DOMContentLoaded', function() {
             loadDepartmentExemplars();
             
-            // Also load exemplars when subject changes to filter by subject if needed
             document.getElementById('subject').addEventListener('change', function() {
-                // Optional: You can add subject-based filtering here
                 console.log('Subject changed to:', this.value);
             });
         });
@@ -793,15 +884,12 @@ function getPreviewFormData() {
                 const exemplarContainer = document.getElementById('exemplar-select').parentElement;
                 
                 if (data.success && data.exemplars && data.exemplars.length > 0) {
-                    // Clear existing options except the first one
                     exemplarSelect.innerHTML = '<option value="">No exemplar selected</option>';
                     
-                    // Add exemplar options with better formatting
                     data.exemplars.forEach(exemplar => {
                         const option = document.createElement('option');
                         option.value = exemplar.id;
                         
-                        // Format the display text nicely
                         let displayText = exemplar.name;
                         if (exemplar.file_size_display) {
                             displayText += ` (${exemplar.file_size_display})`;
@@ -816,13 +904,11 @@ function getPreviewFormData() {
                         exemplarSelect.appendChild(option);
                     });
                     
-                    // Show success message if this is the first load
                     if (!window.exemplarsLoaded) {
                         showSuccessMessage(`Loaded ${data.exemplars.length} exemplar(s) from your department`);
                         window.exemplarsLoaded = true;
                     }
                     
-                    // Add a small info badge showing available exemplars
                     if (!document.getElementById('exemplar-count-badge')) {
                         const badge = document.createElement('div');
                         badge.id = 'exemplar-count-badge';
@@ -834,7 +920,6 @@ function getPreviewFormData() {
                 } else {
                     exemplarSelect.innerHTML = '<option value="">No exemplars available</option>';
                     
-                    // Add helpful message
                     if (!document.getElementById('no-exemplars-message')) {
                         const message = document.createElement('p');
                         message.id = 'no-exemplars-message';
@@ -845,7 +930,6 @@ function getPreviewFormData() {
                     
                     if (data.message) {
                         console.warn('No exemplars:', data.message);
-                        // Show a helpful message to the user
                         if (data.message.includes('department head')) {
                             showErrorMessage('No department head found for your department. Exemplars will not be available.');
                         }
@@ -859,73 +943,6 @@ function getPreviewFormData() {
                 showErrorMessage('Failed to load exemplars. Please refresh the page and try again.');
             }
         }
-
-        // Enhanced form submission to include exemplar information
-        document.getElementById('lesson-plan-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            // Show loading overlay
-            document.getElementById('loading-overlay').classList.remove('hidden');
-            
-            try {
-                // Gather form data with proper values
-                const formData = getSubmissionFormData();
-                
-                // Basic validation
-                if (!formData.subject || !formData.grade_level || !formData.learning_objectives) {
-                    throw new Error('Please fill in all required fields: Subject, Grade Level, and Learning Objectives');
-                }
-
-                // Get selected exemplar info for the loading message
-                const exemplarSelect = document.getElementById('exemplar-select');
-                const selectedExemplarText = exemplarSelect.options[exemplarSelect.selectedIndex].text;
-                
-                // Update loading message based on exemplar selection
-                const loadingMessage = document.getElementById('loading-message');
-                if (formData.selected_exemplar) {
-                    loadingMessage.textContent = `Generating lesson plan using exemplar: ${selectedExemplarText.split(' (')[0]}...`;
-                } else {
-                    loadingMessage.textContent = 'Generating lesson plan based on your inputs...';
-                }
-
-                const response = await fetch('/generate-lesson-plan/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                    },
-                    body: JSON.stringify(formData)
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Show success message with exemplar info if used
-                    let successMessage = 'Lesson plan generated successfully!';
-                    if (data.exemplar_used) {
-                        successMessage += ` Used exemplar: ${data.exemplar_name}`;
-                    }
-                    showSuccessMessage(successMessage);
-                    
-                    // Redirect to result page after a short delay
-                    setTimeout(() => {
-                        window.location.href = '/lesson-plan-result/';
-                    }, 1000);
-                } else {
-                    throw new Error(data.error || 'Unknown error occurred');
-                }
-            } catch (error) {
-                console.error('Fetch error:', error);
-                showErrorMessage('An error occurred: ' + error.message);
-            } finally {
-                // Hide loading overlay
-                document.getElementById('loading-overlay').classList.add('hidden');
-            }
-        });
 
         // Mobile sidebar functionality
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
@@ -966,13 +983,13 @@ function getPreviewFormData() {
             previewBtn.addEventListener('click', () => {
                 const formData = getPreviewFormData();
                 previewContent.innerHTML = generatePreview(formData);
-                previewModal.classList.remove('hidden');
+                showModal('preview-modal');
                 document.body.style.overflow = 'hidden';
             });
         }
 
         function closePreviewModal() {
-            previewModal.classList.add('hidden');
+            hideModal('preview-modal');
             document.body.style.overflow = 'auto';
         }
 
@@ -991,20 +1008,27 @@ function getPreviewFormData() {
             });
         }
 
-        // Form submission - UPDATED
+        // Form submission
         document.getElementById('lesson-plan-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Show loading overlay
-            document.getElementById('loading-overlay').classList.remove('hidden');
+            showModal('loading-overlay');
             
             try {
-                // Gather form data with proper values
                 const formData = getSubmissionFormData();
                 
-                // Basic validation
                 if (!formData.subject || !formData.grade_level || !formData.learning_objectives) {
                     throw new Error('Please fill in all required fields: Subject, Grade Level, and Learning Objectives');
+                }
+
+                const exemplarSelect = document.getElementById('exemplar-select');
+                const selectedExemplarText = exemplarSelect.options[exemplarSelect.selectedIndex]?.text || '';
+                
+                const loadingMessage = document.getElementById('loading-message');
+                if (formData.selected_exemplar) {
+                    loadingMessage.textContent = `Generating lesson plan using exemplar: ${selectedExemplarText.split(' (')[0]}...`;
+                } else {
+                    loadingMessage.textContent = 'Generating lesson plan based on your inputs...';
                 }
 
                 const response = await fetch('/generate-lesson-plan/', {
@@ -1023,26 +1047,32 @@ function getPreviewFormData() {
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Show success message
-                    showSuccessMessage('Lesson plan generated successfully!');
+                    let successMessage = 'Lesson plan generated successfully!';
+                    if (data.exemplar_used) {
+                        successMessage += ` Used exemplar: ${data.exemplar_name}`;
+                    }
+                    hideModal('loading-overlay');
+                    showSuccessMessage(successMessage);
                     
-                    // Redirect to result page after a short delay
                     setTimeout(() => {
                         window.location.href = '/lesson-plan-result/';
                     }, 1000);
                 } else {
-                    throw new Error(data.error || 'Unknown error occurred');
+                    if (data.validation_error) {
+                        hideModal('loading-overlay');
+                        showValidationError(data);
+                    } else {
+                        throw new Error(data.error || 'Unknown error occurred');
+                    }
                 }
             } catch (error) {
                 console.error('Fetch error:', error);
+                hideModal('loading-overlay');
                 showErrorMessage('An error occurred: ' + error.message);
-            } finally {
-                // Hide loading overlay
-                document.getElementById('loading-overlay').classList.add('hidden');
             }
         });
 
-        // AI Suggestions functionality (kept for reference, but not used in current form)
+        // AI Suggestions functionality
         const aiSuggestionsModal = document.getElementById('ai-suggestions-modal');
         const aiSuggestionsContent = document.getElementById('ai-suggestions-content');
         const closeAiModal = document.getElementById('close-ai-modal');
@@ -1050,39 +1080,33 @@ function getPreviewFormData() {
 
         if (closeAiModal) {
             closeAiModal.addEventListener('click', () => {
-                aiSuggestionsModal.classList.add('hidden');
+                hideModal('ai-suggestions-modal');
             });
         }
 
         if (closeAiModalFooter) {
             closeAiModalFooter.addEventListener('click', () => {
-                aiSuggestionsModal.classList.add('hidden');
+                hideModal('ai-suggestions-modal');
             });
         }
 
         if (aiSuggestionsModal) {
             aiSuggestionsModal.addEventListener('click', (e) => {
                 if (e.target === aiSuggestionsModal) {
-                    aiSuggestionsModal.classList.add('hidden');
+                    hideModal('ai-suggestions-modal');
                 }
             });
         }
 
-        //===========================================================================================================================
-        //===========================================================================================================================
-        //===========================================================================================================================
-
-
-        // Add this function to lesson_ai.html
+        // Validation error handling
         function showValidationError(errorData) {
-            // Create validation error modal
             const errorModal = document.createElement('div');
             errorModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
             errorModal.innerHTML = `
-                <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
+                <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="error-modal-content">
                     <div class="bg-red-600 text-white px-6 py-4 flex items-center justify-between">
                         <h3 class="text-lg font-semibold">Input Validation Error</h3>
-                        <button onclick="this.parentElement.parentElement.parentElement.remove()" class="p-2 hover:bg-red-700 rounded-lg">
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" class="p-2 hover:bg-red-700 rounded-lg transition-colors duration-200">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
@@ -1118,7 +1142,7 @@ function getPreviewFormData() {
                                     <div>
                                         <p class="font-medium text-blue-800">Option 1: Choose a different exemplar</p>
                                         <p class="text-blue-600 text-sm mt-1">Select an exemplar that better matches your subject and topic.</p>
-                                        <button onclick="showExemplarSelector()" class="mt-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">
+                                        <button onclick="showExemplarSelector()" class="mt-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-all duration-200">
                                             Browse Exemplars
                                         </button>
                                     </div>
@@ -1141,7 +1165,7 @@ function getPreviewFormData() {
                                     <div>
                                         <p class="font-medium text-gray-800">Option 3: Create without exemplar</p>
                                         <p class="text-gray-600 text-sm mt-1">Generate a lesson plan without using any exemplar as reference.</p>
-                                        <button onclick="removeExemplarAndSubmit()" class="mt-2 px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700">
+                                        <button onclick="removeExemplarAndSubmit()" class="mt-2 px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-all duration-200">
                                             Remove Exemplar & Continue
                                         </button>
                                     </div>
@@ -1151,7 +1175,7 @@ function getPreviewFormData() {
                     </div>
                     
                     <div class="border-t border-gray-200 px-6 py-4 flex justify-end">
-                        <button onclick="this.parentElement.parentElement.remove()" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">
+                        <button onclick="this.parentElement.parentElement.remove()" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors duration-200">
                             Close
                         </button>
                     </div>
@@ -1159,17 +1183,21 @@ function getPreviewFormData() {
             `;
             
             document.body.appendChild(errorModal);
+            
+            // Animate error modal entrance
+            const errorContent = document.getElementById('error-modal-content');
+            setTimeout(() => {
+                errorContent.classList.remove('scale-95', 'opacity-0');
+                errorContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
         }
 
         function showExemplarSelector() {
-            // Close error modal first
             document.querySelector('.fixed.inset-0.bg-black')?.remove();
             
-            // Focus on exemplar selector
             const exemplarSelect = document.getElementById('exemplar-select');
             exemplarSelect.focus();
             
-            // Show tooltip or highlight
             exemplarSelect.parentElement.classList.add('ring-2', 'ring-blue-500');
             setTimeout(() => {
                 exemplarSelect.parentElement.classList.remove('ring-2', 'ring-blue-500');
@@ -1177,90 +1205,20 @@ function getPreviewFormData() {
         }
 
         function removeExemplarAndSubmit() {
-            // Remove exemplar selection
             document.getElementById('exemplar-select').value = '';
-            
-            // Close error modal
             document.querySelector('.fixed.inset-0.bg-black')?.remove();
             
-            // Show confirmation
             const confirmBtn = document.createElement('div');
-            confirmBtn.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+            confirmBtn.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full';
             confirmBtn.textContent = 'Exemplar removed. Click Generate again.';
             document.body.appendChild(confirmBtn);
-            setTimeout(() => confirmBtn.remove(), 3000);
+            
+            setTimeout(() => confirmBtn.classList.remove('translate-x-full'), 100);
+            setTimeout(() => {
+                confirmBtn.classList.add('translate-x-full');
+                setTimeout(() => confirmBtn.remove(), 300);
+            }, 3000);
         }
-
-        // Update form submission handler to handle validation errors
-        document.getElementById('lesson-plan-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            // Show loading overlay
-            document.getElementById('loading-overlay').classList.remove('hidden');
-            
-            try {
-                // Gather form data with proper values
-                const formData = getSubmissionFormData();
-                
-                // Basic validation
-                if (!formData.subject || !formData.grade_level || !formData.learning_objectives) {
-                    throw new Error('Please fill in all required fields: Subject, Grade Level, and Learning Objectives');
-                }
-
-                // Get selected exemplar info for the loading message
-                const exemplarSelect = document.getElementById('exemplar-select');
-                const selectedExemplarText = exemplarSelect.options[exemplarSelect.selectedIndex].text;
-                
-                // Update loading message based on exemplar selection
-                const loadingMessage = document.getElementById('loading-message');
-                if (formData.selected_exemplar) {
-                    loadingMessage.textContent = `Validating inputs against exemplar: ${selectedExemplarText.split(' (')[0]}...`;
-                } else {
-                    loadingMessage.textContent = 'Generating lesson plan based on your inputs...';
-                }
-
-                const response = await fetch('/generate-lesson-plan/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                    },
-                    body: JSON.stringify(formData)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Show success message with exemplar info if used
-                    let successMessage = 'Lesson plan generated successfully!';
-                    if (data.exemplar_used) {
-                        successMessage += ` Used exemplar: ${data.exemplar_name}`;
-                    }
-                    showSuccessMessage(successMessage);
-                    
-                    // Redirect to result page after a short delay
-                    setTimeout(() => {
-                        window.location.href = '/lesson-plan-result/';
-                    }, 1000);
-                } else {
-                    // Check if it's a validation error
-                    if (data.validation_error) {
-                        // Show specialized validation error modal
-                        showValidationError(data);
-                    } else {
-                        throw new Error(data.error || 'Unknown error occurred');
-                    }
-                }
-            } catch (error) {
-                console.error('Fetch error:', error);
-                showErrorMessage('An error occurred: ' + error.message);
-            } finally {
-                // Hide loading overlay
-                document.getElementById('loading-overlay').classList.add('hidden');
-            }
-        });
-
-
     </script>
 </body>
 </html>

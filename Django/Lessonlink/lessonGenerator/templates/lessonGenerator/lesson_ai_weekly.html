@@ -7,6 +7,47 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* Page Entrance Fade-in Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .fade-in-delay-1 {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 0.1s forwards;
+        }
+
+        .fade-in-delay-2 {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 0.2s forwards;
+        }
+
+        .fade-in-delay-3 {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 0.3s forwards;
+        }
+
+        .fade-in-delay-4 {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 0.4s forwards;
+        }
+
+        .fade-in-delay-5 {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 0.5s forwards;
+        }
+
         .gradient-bg {
             background: linear-gradient(135deg, #11468F 0%, #9E5EFF 100%);
         }
@@ -242,39 +283,47 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Header -->
-    <div class="gradient-bg text-white px-4 sm:px-6 py-4">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                    <i class="fas fa-calendar-week text-[#11468F] text-sm"></i>
+    <!-- Header with fade-in -->
+    <div class="gradient-bg text-white px-4 sm:px-6 py-4 fade-in">
+        <!-- Logo -->
+            <a href="{% url 'dashboard' %}"><div class="flex items-center space-x-3 flex-1 md:flex-none">
+                {% if user_school and user_school.school_logo %}
+                <div class="w-10 h-10 rounded-full overflow-hidden shadow-md">
+                    <img src="{{ user_school.school_logo.url }}" 
+                        alt="{{ user_school.school_name }}" 
+                        class="w-full h-full object-cover"
+                        onerror="this.onerror=null; this.parentElement.classList.add('bg-gradient-to-r', 'from-[#11468F]', 'to-[#9E5EFF]'); this.style.display='none';">
                 </div>
-                <div>
-                    <h1 class="text-lg sm:text-xl font-semibold leading-tight">LessonLink Weekly Lesson Plan</h1>
-                    <p class="text-xs sm:text-sm text-white/80 mt-0.5">Plan your week with flexibility and structure</p>
+                {% else %}
+                <div class="w-10 h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
+                {% endif %}
+                
+                <div class="hidden sm:block">
+                    <h1 class="text-xl font-bold text-white">LessonLink</h1>
+                    <p class="text-sm text-gray-400 hidden lg:block">
+                        {% if user_school %}
+                            {{ user_school.school_name }}
+                        {% else %}
+                            {{ user.email|default:"LessonLink" }}
+                        {% endif %}
+                    </p>
                 </div>
-            </div>
-            <button id="mobile-menu-btn" class="md:hidden p-2 text-white hover:bg-white/10 rounded-lg">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-            </button>
-        </div>
+            </div></a>
     </div>
 
     <div class="flex relative">
         <!-- Main Content -->
         <div class="flex-1 p-4 sm:p-6 w-full md:w-auto">
-            <!-- Back Button -->
-            <button class="flex items-center text-gray-600 hover:text-gray-800 mb-4 sm:mb-6" onclick="window.history.back()">
+            <!-- Back Button with fade-in delay 1 -->
+            <button class="flex items-center text-gray-600 hover:text-gray-800 mb-4 sm:mb-6 fade-in-delay-1" onclick="window.history.back()">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
                 Back to Dashboard
             </button>
 
-            <!-- Page Header -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8">
+            <!-- Page Header with fade-in delay 2 -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 fade-in-delay-2">
                 <div>
                     <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Weekly Lesson Plan</h2>
                     <p class="text-sm text-gray-600 mt-1">Create a high-level overview of your week's flow</p>
@@ -285,14 +334,14 @@
                 </div>
             </div>
 
-            <!-- Form Container -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <!-- Form Container with fade-in delay 3 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 fade-in-delay-3">
                 <form id="weekly-lesson-form" class="space-y-8">
                     <!-- Basic Info Section -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
+                        <div class="fade-in-delay-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                            <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent">
+                            <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent transition-all duration-200">
                                 <option value="">Select Subject</option>
                                 <option value="Mathematics">Mathematics</option>
                                 <option value="Science">Science</option>
@@ -303,41 +352,41 @@
                                 <option value="Filipino">Filipino</option>
                             </select>
                         </div>
-                        <div>
+                        <div class="fade-in-delay-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Week of</label>
-                            <input type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent">
+                            <input type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent transition-all duration-200">
                         </div>
-                        <div>
+                        <div class="fade-in-delay-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Unit/Theme</label>
-                            <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent" placeholder="e.g., Forces and Motion">
+                            <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent transition-all duration-200" placeholder="e.g., Forces and Motion">
                         </div>
                     </div>
 
                     <!-- Weekly Goals Section -->
                     <div class="border-t border-gray-200 pt-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">1. Weekly Goals</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 fade-in-delay-4">1. Weekly Goals</h3>
                         <div class="space-y-4">
-                            <div>
+                            <div class="fade-in-delay-5">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Big Idea</label>
-                                <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent" placeholder="What should students understand by Friday?">
+                                <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent transition-all duration-200" placeholder="What should students understand by Friday?">
                             </div>
-                            <div>
+                            <div class="fade-in-delay-5">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Key Standards</label>
-                                <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent" placeholder="Standard codes or descriptions">
+                                <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent transition-all duration-200" placeholder="Standard codes or descriptions">
                             </div>
-                            <div>
+                            <div class="fade-in-delay-5">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Essential Question</label>
-                                <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent" placeholder='e.g., "How does gravity affect our daily lives?"'>
+                                <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent transition-all duration-200" placeholder='e.g., "How does gravity affect our daily lives?"'>
                             </div>
                         </div>
                     </div>
 
                     <!-- Instructional Grid Section -->
                     <div class="border-t border-gray-200 pt-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">2. Instructional Grid</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 fade-in-delay-5">2. Instructional Grid</h3>
                         
                         <!-- Desktop Grid View -->
-                        <div class="hidden md:block overflow-x-auto">
+                        <div class="hidden md:block overflow-x-auto fade-in-delay-5">
                             <div class="weekly-grid">
                                 <!-- Header Row -->
                                 <div class="weekly-grid-header"></div>
@@ -350,76 +399,76 @@
                                 <!-- Topic/Objective Row -->
                                 <div class="weekly-grid-row-label">Topic / Objective</div>
                                 <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0" placeholder="Introduction: What's the hook?">
+                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Introduction: What's the hook?">
                                 </div>
                                 <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0" placeholder="Skill Building: New concept">
+                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Skill Building: New concept">
                                 </div>
                                 <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0" placeholder="Deep Dive: Application">
+                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Deep Dive: Application">
                                 </div>
                                 <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0" placeholder="Refinement: Practice">
+                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Refinement: Practice">
                                 </div>
                                 <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0" placeholder="Synthesis: Wrap-up">
+                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Synthesis: Wrap-up">
                                 </div>
                                 
                                 <!-- Activities & Methods Row -->
                                 <div class="weekly-grid-row-label">Activities & Methods</div>
                                 <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0" placeholder="Direct instruction, video, or brainstorm">
+                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Direct instruction, video, or brainstorm">
                                 </div>
                                 <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0" placeholder="Guided practice, group work">
+                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Guided practice, group work">
                                 </div>
                                 <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0" placeholder="Lab, creative project, or debate">
+                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Lab, creative project, or debate">
                                 </div>
                                 <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0" placeholder="Independent work, centers, or review">
+                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Independent work, centers, or review">
                                 </div>
                                 <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0" placeholder="Final project, test, or presentation">
+                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Final project, test, or presentation">
                                 </div>
                                 
                                 <!-- Assessment/Evidence Row -->
                                 <div class="weekly-grid-row-label">Assessment / Evidence</div>
                                 <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0" placeholder="Observation, entry ticket">
+                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Observation, entry ticket">
                                 </div>
                                 <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0" placeholder="Worksheet, class discussion">
+                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Worksheet, class discussion">
                                 </div>
                                 <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0" placeholder="Drafting, peer feedback">
+                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Drafting, peer feedback">
                                 </div>
                                 <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0" placeholder="Check-in quiz, informal check">
+                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Check-in quiz, informal check">
                                 </div>
                                 <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0" placeholder="Graded assessment/Exit slip">
+                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Graded assessment/Exit slip">
                                 </div>
                             </div>
                         </div>
 
                         <!-- Mobile Grid View (Stacked) -->
-                        <div class="md:hidden space-y-6">
+                        <div class="md:hidden space-y-6 fade-in-delay-5">
                             <!-- Monday -->
                             <div class="day-column">
                                 <div class="day-header">Monday - Introduction</div>
                                 <div class="space-y-3">
                                     <div>
                                         <label class="text-xs font-medium text-gray-600">Topic/Objective</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="What's the hook?">
+                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="What's the hook?">
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium text-gray-600">Activities & Methods</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Direct instruction, video, or brainstorm">
+                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Direct instruction, video, or brainstorm">
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium text-gray-600">Assessment/Evidence</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Observation, entry ticket">
+                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Observation, entry ticket">
                                     </div>
                                 </div>
                             </div>
@@ -430,15 +479,15 @@
                                 <div class="space-y-3">
                                     <div>
                                         <label class="text-xs font-medium text-gray-600">Topic/Objective</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="New concept">
+                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="New concept">
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium text-gray-600">Activities & Methods</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Guided practice, group work">
+                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Guided practice, group work">
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium text-gray-600">Assessment/Evidence</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Worksheet, class discussion">
+                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Worksheet, class discussion">
                                     </div>
                                 </div>
                             </div>
@@ -449,15 +498,15 @@
                                 <div class="space-y-3">
                                     <div>
                                         <label class="text-xs font-medium text-gray-600">Topic/Objective</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Application">
+                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Application">
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium text-gray-600">Activities & Methods</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Lab, creative project, or debate">
+                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Lab, creative project, or debate">
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium text-gray-600">Assessment/Evidence</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Drafting, peer feedback">
+                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Drafting, peer feedback">
                                     </div>
                                 </div>
                             </div>
@@ -468,15 +517,15 @@
                                 <div class="space-y-3">
                                     <div>
                                         <label class="text-xs font-medium text-gray-600">Topic/Objective</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Practice">
+                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Practice">
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium text-gray-600">Activities & Methods</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Independent work, centers, or review">
+                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Independent work, centers, or review">
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium text-gray-600">Assessment/Evidence</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Check-in quiz, informal check">
+                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Check-in quiz, informal check">
                                     </div>
                                 </div>
                             </div>
@@ -487,15 +536,15 @@
                                 <div class="space-y-3">
                                     <div>
                                         <label class="text-xs font-medium text-gray-600">Topic/Objective</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Wrap-up">
+                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Wrap-up">
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium text-gray-600">Activities & Methods</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Final project, test, or presentation">
+                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Final project, test, or presentation">
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium text-gray-600">Assessment/Evidence</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Graded assessment/Exit slip">
+                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Graded assessment/Exit slip">
                                     </div>
                                 </div>
                             </div>
@@ -503,7 +552,7 @@
                     </div>
 
                     <!-- Pro Tips Section -->
-                    <div class="pro-tip">
+                    <div class="pro-tip fade-in-delay-5">
                         <div class="flex items-start space-x-3">
                             <i class="fas fa-lightbulb text-yellow-500 mt-1"></i>
                             <div>
@@ -518,11 +567,11 @@
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="mt-8 flex gap-3">
-                        <button type="button" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium text-sm transition duration-200">
+                    <div class="mt-8 flex gap-3 fade-in-delay-5">
+                        <button type="button" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
                             <i class="fas fa-save mr-2"></i>Save as Draft
                         </button>
-                        <button type="submit" class="flex-1 gradient-bg hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium text-sm transition duration-200">
+                        <button type="submit" class="flex-1 gradient-bg hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
                             <i class="fas fa-paper-plane mr-2"></i>Generate Weekly Plan
                         </button>
                     </div>
@@ -531,9 +580,9 @@
         </div>
     </div>
 
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="fixed inset-0 bg-gray-800 bg-opacity-90 flex items-center justify-center hidden z-50">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4">
+    <!-- Loading Overlay with fade animation -->
+    <div id="loading-overlay" class="fixed inset-0 bg-gray-800 bg-opacity-90 flex items-center justify-center hidden z-50 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0" id="loading-content">
             <div class="text-center">
                 <div class="ai-thinking">
                     <div class="ai-icon">
@@ -563,6 +612,30 @@
     </div>
 
     <script>
+        // Loading overlay animation functions
+        function showLoadingOverlay() {
+            const overlay = document.getElementById('loading-overlay');
+            const content = document.getElementById('loading-content');
+            
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function hideLoadingOverlay() {
+            const overlay = document.getElementById('loading-overlay');
+            const content = document.getElementById('loading-content');
+            
+            content.classList.add('scale-95', 'opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+
         // Get CSRF token
         function getCookie(name) {
             let cookieValue = null;
@@ -579,10 +652,10 @@
             return cookieValue;
         }
 
-        // Show success message
+        // Show success message with animation
         function showSuccessMessage(message) {
             const successMsg = document.createElement('div');
-            successMsg.className = 'fixed top-6 right-6 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500';
+            successMsg.className = 'fixed top-6 right-6 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500 ease-out';
             successMsg.innerHTML = `
                 <div class="flex items-center">
                     <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -602,10 +675,10 @@
             }, 4000);
         }
 
-        // Show error message
+        // Show error message with animation
         function showErrorMessage(message) {
             const errorMsg = document.createElement('div');
-            errorMsg.className = 'fixed top-6 right-6 bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500';
+            errorMsg.className = 'fixed top-6 right-6 bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500 ease-out';
             errorMsg.innerHTML = `
                 <div class="flex items-center">
                     <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -629,12 +702,12 @@
         document.getElementById('weekly-lesson-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Show loading overlay
-            document.getElementById('loading-overlay').classList.remove('hidden');
+            // Show loading overlay with animation
+            showLoadingOverlay();
             
             // Simulate generation (replace with actual API call)
             setTimeout(() => {
-                document.getElementById('loading-overlay').classList.add('hidden');
+                hideLoadingOverlay();
                 showSuccessMessage('Weekly lesson plan generated successfully!');
                 
                 // Redirect to view page after delay
