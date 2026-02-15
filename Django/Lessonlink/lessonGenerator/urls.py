@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     path('lesson_ai/', views.lesson_ai, name='lesson_ai'),
+    path('lesson_ai_weekly', views.lesson_ai_weekly, name='lesson_ai_weekly'),
     path('generate-lesson-plan/', views.generate_lesson_plan, name='generate_lesson_plan'),
     path('lesson-plan-result/', views.lesson_plan_result, name='lesson_plan_result'),
     path('save-lesson-plan/', views.save_lesson_plan, name='save_lesson_plan'),

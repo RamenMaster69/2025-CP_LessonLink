@@ -1035,3 +1035,6 @@ def check_exemplar_compatibility(request):
             'compatible': True,
             'message': f'Error checking compatibility: {str(e)}'
         })
+
+def lesson_ai_weekly(request):
+    return render(request, 'lessonGenerator/lesson_ai_weekly.html')

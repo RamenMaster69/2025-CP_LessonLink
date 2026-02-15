@@ -85,6 +85,170 @@
         .student-list::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
         }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-option {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .modal-option:hover {
+            border-color: #9E5EFF;
+            background-color: #f9f5ff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(158, 94, 255, 0.1);
+        }
+
+        .modal-option.selected {
+            border-color: #9E5EFF;
+            background-color: #f9f5ff;
+        }
+
+        .modal-option-icon {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, #11468F, #9E5EFF);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+        }
+
+        .modal-option-icon i {
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .modal-option-text h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.25rem;
+        }
+
+        .modal-option-text p {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-size: 0.875rem;
+        }
+
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #11468F, #9E5EFF);
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .modal-btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: #374151;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-header p {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
     </style>
 </head>
 
@@ -224,12 +388,12 @@
         <aside id="sidebar"
             class="w-64 bg-white shadow-lg h-screen fixed top-20 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
             <nav class="p-4 space-y-2">
-                <!-- Create Lesson Button (Updated) -->
-                <a href="{% url 'lesson_ai' %}"><button
+                <!-- Create Lesson Button (Updated with modal trigger) -->
+                <button onclick="openLessonModal()"
                         class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
                         <i class="fas fa-plus text-lg"></i>
                         <span class="font-medium">Create Lesson</span>
-                    </button></a>
+                </button>
 
                 <!-- Navigation Items (Updated) -->
                 <a href="#"
@@ -269,45 +433,6 @@
                     <span class="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{{ pending_reviews_count }}</span>
                     {% endif %}
                 </a>
-                
-                <!-- My Students Section - Only for Teachers -->
-                {% comment %} {% if user.role == 'Teacher' %}
-                <div class="pt-4 border-t border-gray-200">
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wider">My Students</h3>
-                        <span id="student-count-badge" class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">
-                            {{ supervised_students.count }}
-                        </span>
-                    </div>
-                    
-                    <div class="student-list space-y-2">
-                        {% for student in supervised_students %}
-                        <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer student-item"
-                             data-student-id="{{ student.id }}">
-                            <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span class="text-white text-xs font-bold">{{ student.first_name|first|upper }}</span>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-gray-900 truncate">{{ student.full_name }}</p>
-                                <p class="text-xs text-gray-500 truncate">{{ student.email }}</p>
-                                <div class="flex items-center mt-1">
-                                    <span class="text-xs text-gray-400">{{ student.rank }}</span>
-                                </div>
-                            </div>
-                            <div class="w-2 h-2 bg-green-400 rounded-full flex-shrink-0 student-status-indicator" 
-                                 title="Active"></div>
-                        </div>
-                        {% empty %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-user-graduate text-xl text-gray-300 mb-2"></i>
-                            <p class="text-gray-500 text-xs">No assigned students</p>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    
-                    <!-- Quick Actions for Students -->
-                </div>
-                {% endif %} {% endcomment %}
             </nav>
         </aside>
 
@@ -345,11 +470,11 @@
                         {{ user.first_name }}!</h3>
                     <p class="text-white/80 mb-6 text-sm md:text-base max-w-md">Ready to create amazing lessons with AI
                         assistance? Let's make learning exciting today!</p>
-                    <a href="{% url 'lesson_ai' %}"><button
+                    <button onclick="openLessonModal()"
                             class="bg-white text-[#11468F] px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl inline-flex items-center space-x-2">
                             <i class="fas fa-plus"></i>
                             <span>Start New Lesson Plan</span>
-                        </button></a>
+                    </button>
                 </div>
             </div>
 
@@ -477,7 +602,124 @@
         </main>
     </div>
 
+    <!-- Lesson Type Selection Modal -->
+    <div id="lessonModal" class="modal-overlay">
+        <div class="modal-content relative">
+            <button class="modal-close" onclick="closeLessonModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="modal-header">
+                <h2>Create New Lesson</h2>
+                <p>Choose the type of lesson plan you want to create</p>
+            </div>
+
+            <div class="space-y-3">
+                <!-- Daily Lesson Plan Option -->
+                <div class="modal-option" data-type="daily" onclick="selectLessonType('daily')">
+                    <div class="modal-option-icon">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div class="modal-option-text">
+                        <h3>Daily Lesson Plan</h3>
+                        <p>Create a detailed lesson plan for a single day</p>
+                    </div>
+                </div>
+
+                <!-- Weekly Lesson Plan Option -->
+                <div class="modal-option" data-type="weekly" onclick="selectLessonType('weekly')">
+                    <div class="modal-option-icon">
+                        <i class="fas fa-calendar-week"></i>
+                    </div>
+                    <div class="modal-option-text">
+                        <h3>Weekly Lesson Plan</h3>
+                        <p>Plan your lessons for an entire week</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" onclick="closeLessonModal()">
+                    Cancel
+                </button>
+                <button id="continueBtn" class="modal-btn modal-btn-primary" onclick="continueToLesson()" disabled>
+                    Continue
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Modal state
+        let selectedLessonType = null;
+
+        // Open modal function
+        function openLessonModal() {
+            const modal = document.getElementById('lessonModal');
+            modal.classList.add('active');
+            // Reset selection
+            selectedLessonType = null;
+            document.querySelectorAll('.modal-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.getElementById('continueBtn').disabled = true;
+        }
+
+        // Close modal function
+        function closeLessonModal() {
+            const modal = document.getElementById('lessonModal');
+            modal.classList.remove('active');
+        }
+
+        // Select lesson type
+        function selectLessonType(type) {
+            selectedLessonType = type;
+            
+            // Update UI
+            document.querySelectorAll('.modal-option').forEach(opt => {
+                if (opt.getAttribute('data-type') === type) {
+                    opt.classList.add('selected');
+                } else {
+                    opt.classList.remove('selected');
+                }
+            });
+            
+            // Enable continue button
+            document.getElementById('continueBtn').disabled = false;
+        }
+
+        // Continue to selected lesson type
+        function continueToLesson() {
+            if (!selectedLessonType) return;
+
+            // For now, only daily lesson plan is available
+            // Redirect to lesson_ai for daily lesson plan
+            if (selectedLessonType === 'daily') {
+                window.location.href = "{% url 'lesson_ai' %}";
+            } else if (selectedLessonType === 'weekly') {
+                // Weekly lesson plan coming soon - show a message or just do nothing
+                window.location.href = "{% url 'lesson_ai_weekly' %}";
+                closeLessonModal();
+            }
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('lessonModal');
+            const modalContent = document.querySelector('.modal-content');
+            
+            if (event.target === modal) {
+                closeLessonModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeLessonModal();
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             // Mobile menu toggle
             const mobileMenuBtn = document.getElementById('mobile-menu-btn');
