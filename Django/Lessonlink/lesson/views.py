@@ -20,6 +20,7 @@ import json
 import os
 import time
 import logging
+import requests  # <-- ADD THIS IMPORT
 from PIL import Image
 import uuid
 from io import BytesIO
@@ -49,6 +50,82 @@ import tempfile
 from django.views.decorators.http import require_POST, require_http_methods
 from .forms import ScheduleForm
 from .models import Schedule
+
+# ====================================================== EMAIL NOTIFICATION FUNCTION ======================================================
+
+def send_school_status_email(school, status, reason=None):
+    """
+    Send email notification to school contact when approved or rejected
+    Uses Google Apps Script web app
+    """
+    try:
+        # Your Google Apps Script URL
+        script_url = 'https://script.google.com/macros/s/AKfycbwvDZvnZGhgvqi0_6jl1d0HeZATE6qA39GJPBgcDhIj3K2mA-XBy-1YOKt5aVoUDa25GQ/exec'
+        
+        # Prepare email data
+        email_data = {
+            'email': school.contact_email,
+            'contact_person': school.contact_person,
+            'school_name': school.school_name,
+            'school_id': school.school_id,
+            'status': status,
+            'reason': reason if reason else ''
+        }
+        
+        print(f"📧 Sending email to: {school.contact_email}")
+        print(f"📧 Status: {status}")
+        print(f"📧 Data: {email_data}")
+        
+        # Send to Google Apps Script
+        response = requests.post(
+            script_url,
+            json=email_data,
+            headers={'Content-Type': 'application/json'},
+            timeout=15
+        )
+        
+        print(f"📧 Response status: {response.status_code}")
+        print(f"📧 Response text: {response.text}")
+        
+        if response.status_code == 200:
+            try:
+                result = response.json()
+                if result.get('success'):
+                    print(f"✅ Email sent successfully to {school.contact_email}")
+                    
+                    # Log the email
+                    AdminLog.objects.create(
+                        admin=None,
+                        action=f'email_{status}_sent',
+                        target_school=school,
+                        description=f"System sent {status} email to {school.contact_email}",
+                        ip_address='system'
+                    )
+                    return True
+                else:
+                    print(f"❌ Script returned error: {result.get('error')}")
+                    return False
+            except:
+                # If response isn't JSON but status was 200, assume it worked
+                print(f"✅ Email sent (non-JSON response)")
+                return True
+        else:
+            print(f"❌ HTTP Error: {response.status_code}")
+            return False
+            
+    except requests.exceptions.Timeout:
+        print(f"❌ Email timeout - but approval continues")
+        logger.error(f"Email timeout for school {school.id}")
+        return False
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Email request error: {str(e)}")
+        logger.error(f"Email request error for school {school.id}: {str(e)}")
+        return False
+    except Exception as e:
+        print(f"❌ Unexpected email error: {str(e)}")
+        logger.error(f"Unexpected email error for school {school.id}: {str(e)}")
+        return False
+
 
 # School Registration Views
 from django.contrib.auth.hashers import make_password
@@ -1714,10 +1791,12 @@ def super_user_dashboard(request):
 @login_required
 @user_passes_test(is_superuser)
 def approve_school(request, school_id):
-    """Approve a school registration"""
+    """Approve a school registration and send email notification"""
     if request.method == 'POST':
         try:
             school = get_object_or_404(SchoolRegistration, id=school_id)
+            
+            # Update school status
             school.status = 'approved'
             school.processed_at = timezone.now()
             school.processed_by = request.user
@@ -1732,6 +1811,10 @@ def approve_school(request, school_id):
             if admin_user:
                 admin_user.is_active = True
                 admin_user.save()
+                print(f"✅ Activated user: {admin_user.email}")
+            
+            # Send email notification
+            email_sent = send_school_status_email(school, 'approved')
             
             # Log the action
             AdminLog.objects.create(
@@ -1742,11 +1825,21 @@ def approve_school(request, school_id):
                 ip_address=get_client_ip(request)
             )
             
-            messages.success(request, f'School "{school.school_name}" has been approved successfully!')
+            if email_sent:
+                messages.success(
+                    request, 
+                    f'✅ School "{school.school_name}" has been approved and notification email sent to {school.contact_email}!'
+                )
+            else:
+                messages.success(
+                    request, 
+                    f'✅ School "{school.school_name}" has been approved, but email notification could not be sent. Please notify them manually.'
+                )
             
         except SchoolRegistration.DoesNotExist:
             messages.error(request, "School not found.")
         except Exception as e:
+            logger.error(f"Error approving school: {str(e)}")
             messages.error(request, f"Error approving school: {str(e)}")
     
     return redirect('super_user_dashboard')
@@ -1754,17 +1847,20 @@ def approve_school(request, school_id):
 @login_required
 @user_passes_test(is_superuser)
 def reject_school(request, school_id):
-    """Reject a school registration"""
+    """Reject a school registration and send email notification with reason"""
     if request.method == 'POST':
         try:
             school = get_object_or_404(SchoolRegistration, id=school_id)
-            reason = request.POST.get('reason', 'No reason provided')
+            reason = request.POST.get('reason', 'No specific reason provided')
             
             school.status = 'rejected'
             school.admin_notes = reason
             school.processed_at = timezone.now()
             school.processed_by = request.user
             school.save()
+            
+            # Send email notification
+            email_sent = send_school_status_email(school, 'rejected', reason)
             
             # Log the action
             AdminLog.objects.create(
@@ -1775,11 +1871,21 @@ def reject_school(request, school_id):
                 ip_address=get_client_ip(request)
             )
             
-            messages.success(request, f'School "{school.school_name}" has been rejected.')
+            if email_sent:
+                messages.success(
+                    request, 
+                    f'✅ School "{school.school_name}" has been rejected and notification email sent to {school.contact_email}.'
+                )
+            else:
+                messages.success(
+                    request, 
+                    f'✅ School "{school.school_name}" has been rejected, but email notification could not be sent. Please notify them manually.'
+                )
             
         except SchoolRegistration.DoesNotExist:
             messages.error(request, "School not found.")
         except Exception as e:
+            logger.error(f"Error rejecting school: {str(e)}")
             messages.error(request, f"Error rejecting school: {str(e)}")
     
     return redirect('super_user_dashboard')
