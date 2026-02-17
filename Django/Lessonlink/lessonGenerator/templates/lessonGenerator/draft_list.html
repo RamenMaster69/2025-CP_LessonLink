@@ -77,20 +77,171 @@
             z-index: 10;
         }
         
-        /* Modal styles */
-        #feedback-modal {
-            display: none !important;
-            z-index: 1000 !important;
-        }
-        
-        #feedback-modal.modal-visible {
-            display: flex !important;
-        }
-        
-        .modal-content {
-            pointer-events: auto;
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
 
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-option {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .modal-option:hover {
+            border-color: #9E5EFF;
+            background-color: #f9f5ff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(158, 94, 255, 0.1);
+        }
+
+        .modal-option.selected {
+            border-color: #9E5EFF;
+            background-color: #f9f5ff;
+        }
+
+        .modal-option-icon {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, #11468F, #9E5EFF);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+        }
+
+        .modal-option-icon i {
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .modal-option-text h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.25rem;
+        }
+
+        .modal-option-text p {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-size: 0.875rem;
+        }
+
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #11468F, #9E5EFF);
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .modal-btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: #374151;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-header p {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
         /* Notification styles */
         .notification-unread {
             background-color: #f0f9ff;
@@ -189,12 +340,6 @@
             </div></a>
             <!-- Right side actions -->
             <div class="flex items-center space-x-4">
-                <!-- Search -->
-                <!-- <div class="relative">
-                    <input type="text" placeholder="Search lessons..." class="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                </div> -->
-
                 <!-- Notifications -->
                 <div class="relative">
                     <button id="notification-btn" class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
@@ -268,62 +413,67 @@
     <!-- Main Layout -->
     <div class="flex">
         <!-- Sidebar -->
-        <!-- Sidebar - Fixed and sticky -->
-<aside id="sidebar"
-    class="w-64 bg-white shadow-lg h-[calc(100vh-4rem)] fixed top-16 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
-    <nav class="p-4 pt-8 space-y-2">
-        <!-- Create Lesson Button Container - Dynamically controlled by JavaScript -->
-        <div id="create-lesson-container"></div>
+        <aside id="sidebar"
+            class="w-64 bg-white shadow-lg h-[calc(100vh-4rem)] fixed top-16 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
+            <nav class="p-4 pt-8 space-y-2">
+                <!-- Create Lesson Button Container -->
+                <div id="create-lesson-container">
+                    <button onclick="openLessonModal()"
+                            class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
+                        <i class="fas fa-plus text-lg"></i>
+                        <span class="font-medium">Create Lesson</span>
+                    </button>
+                </div>
 
-        <!-- Navigation Items -->
-        <a href="{% url 'dashboard' %}"
-            class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-            <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-            <span>Dashboard</span>
-        </a>
-        <a href="{% url 'draft_list' %}"
-            class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
-            <i class="fas fa-file-alt text-lg w-5"></i>
-            <span class="font-medium">Drafts</span>
-        </a>
-        <a href="{% url 'task' %}"
-            class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-            <i class="fas fa-tasks text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-            <span>Tasks</span>
-        </a>
-        <a href="{% url 'schedule' %}"
-            class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-            <i class="fas fa-clock text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-            <span>Schedule</span>
-        </a>
-        <a href="{% url 'dep_calendar' %}"
-            class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-            <i class="fas fa-calendar text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-            <span>Calendar</span>
-        </a>
-        
-        <!-- My Students Menu Item - Only show if user is NOT a Student Teacher -->
-        {% if user.role != 'Student Teacher' %}
-        <a href="{% url 'teacher_student_list' %}"
-            class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-            <i class="fas fa-user-graduate text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-            <span>My Students</span>
-        </a>
-        {% endif %}
-        
-        <!-- Student Lesson Reviews Menu Item - Only show if user is NOT a Student Teacher -->
-        {% if user.role != 'Student Teacher' %}
-        <a href="{% url 'supervising_teacher_reviews' %}"
-            class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-            <i class="fas fa-clipboard-check text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-            <span>Student Lesson Reviews</span>
-            {% if pending_reviews_count %}
-            <span class="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{{ pending_reviews_count }}</span>
-            {% endif %}
-        </a>
-        {% endif %}
-    </nav>
-</aside>
+                <!-- Navigation Items -->
+                <a href="{% url 'dashboard' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'draft_list' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                    <i class="fas fa-file-alt text-lg w-5"></i>
+                    <span class="font-medium">Drafts</span>
+                </a>
+                <a href="{% url 'task' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-tasks text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Tasks</span>
+                </a>
+                <a href="{% url 'schedule' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-clock text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Schedule</span>
+                </a>
+                <a href="{% url 'dep_calendar' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-calendar text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Calendar</span>
+                </a>
+                
+                <!-- My Students Menu Item - Only show if user is NOT a Student Teacher -->
+                {% if user.role != 'Student Teacher' %}
+                <a href="{% url 'teacher_student_list' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-user-graduate text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>My Students</span>
+                </a>
+                {% endif %}
+                
+                <!-- Student Lesson Reviews Menu Item - Only show if user is NOT a Student Teacher -->
+                {% if user.role != 'Student Teacher' %}
+                <a href="{% url 'supervising_teacher_reviews' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-clipboard-check text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Student Lesson Reviews</span>
+                    {% if pending_reviews_count %}
+                    <span class="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{{ pending_reviews_count }}</span>
+                    {% endif %}
+                </a>
+                {% endif %}
+            </nav>
+        </aside>
 
         <!-- Main Content -->
         <main class="flex-1 ml-64 bg-gray-50 min-h-screen">
@@ -463,16 +613,6 @@
                             <button class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors delete-draft-btn" data-draft-id="{{ draft.id }}">
                                 <i class="fas fa-trash mr-2"></i>Delete
                             </button>
-
-                            <!-- {% if draft.status == 'draft' and not submission or submission.status == 'draft' %}
-                            <form method="post" action="{% url 'submit_lesson_plan' draft.id %}" class="inline-block w-full">
-                                {% csrf_token %}
-                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors" 
-                                        onclick="return confirm('Submit this lesson plan to your supervising teacher for approval?')">
-                                    <i class="fas fa-paper-plane mr-2"></i>Submit to Supervising Teacher
-                                </button>
-                            </form>
-                            {% endif %} -->
                         </div>
                     </div>
                     {% endwith %}
@@ -485,9 +625,9 @@
                     </div>
                     <h3 class="text-lg font-medium text-gray-900 mb-2">No lesson plans yet</h3>
                     <p class="text-gray-600 mb-6">Start creating your first lesson plan to see it here.</p>
-                    <a href="{% url 'lesson_ai' %}" class="bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white px-6 py-3 rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] inline-block transition-colors">
+                    <button onclick="openLessonModal()" class="bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white px-6 py-3 rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] inline-block transition-colors">
                         Create Your First Lesson
-                    </a>
+                    </button>
                 </div>
                 {% endif %}
             </div>
@@ -495,7 +635,7 @@
     </div>
 
     <!-- Feedback Modal -->
-    <div id="feedback-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div id="feedback-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 modal-content">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
@@ -516,14 +656,118 @@
         </div>
     </div>
 
+    <!-- Lesson Type Selection Modal -->
+    <div id="lessonModal" class="modal-overlay">
+        <div class="modal-content relative">
+            <button class="modal-close" onclick="closeLessonModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="modal-header">
+                <h2>Create New Lesson</h2>
+                <p>Choose the type of lesson plan you want to create</p>
+            </div>
+
+            <div class="space-y-3">
+                <!-- Daily Lesson Plan Option -->
+                <div class="modal-option" data-type="daily" onclick="selectLessonType('daily')">
+                    <div class="modal-option-icon">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div class="modal-option-text">
+                        <h3>Daily Lesson Plan</h3>
+                        <p>Create a detailed lesson plan for a single day</p>
+                    </div>
+                </div>
+
+                <!-- Weekly Lesson Plan Option -->
+                <div class="modal-option" data-type="weekly" onclick="selectLessonType('weekly')">
+                    <div class="modal-option-icon">
+                        <i class="fas fa-calendar-week"></i>
+                    </div>
+                    <div class="modal-option-text">
+                        <h3>Weekly Lesson Plan</h3>
+                        <p>Plan your lessons for an entire week</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" onclick="closeLessonModal()">
+                    Cancel
+                </button>
+                <button id="continueBtn" class="modal-btn modal-btn-primary" onclick="continueToLesson()" disabled>
+                    Continue
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Global variables
         let activeDropdown = null;
         let activeDropdownToggle = null;
+        let selectedLessonType = null;
 
         // Get user role and approval status from Django template
         const userRole = "{{ user.role }}".toLowerCase().trim();
         const userApprovalStatus = "{{ user.approval_status }}".toLowerCase().trim();
+
+        // ==================== LESSON MODAL FUNCTIONS ====================
+        // Open modal function
+        function openLessonModal() {
+            const modal = document.getElementById('lessonModal');
+            modal.classList.add('active');
+            // Reset selection
+            selectedLessonType = null;
+            document.querySelectorAll('.modal-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.getElementById('continueBtn').disabled = true;
+        }
+
+        // Close modal function
+        function closeLessonModal() {
+            const modal = document.getElementById('lessonModal');
+            modal.classList.remove('active');
+        }
+
+        // Select lesson type
+        function selectLessonType(type) {
+            selectedLessonType = type;
+            
+            // Update UI
+            document.querySelectorAll('.modal-option').forEach(opt => {
+                if (opt.getAttribute('data-type') === type) {
+                    opt.classList.add('selected');
+                } else {
+                    opt.classList.remove('selected');
+                }
+            });
+            
+            // Enable continue button
+            document.getElementById('continueBtn').disabled = false;
+        }
+
+        // Continue to selected lesson type
+        function continueToLesson() {
+            if (!selectedLessonType) return;
+
+            if (selectedLessonType === 'daily') {
+                window.location.href = "{% url 'lesson_ai' %}";
+            } else if (selectedLessonType === 'weekly') {
+                window.location.href = "{% url 'lesson_ai_weekly' %}";
+                closeLessonModal();
+            }
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('lessonModal');
+            if (event.target === modal) {
+                closeLessonModal();
+            }
+        });
 
         // Function to setup create lesson button based on role and approval
         function setupCreateLessonButton() {
@@ -536,7 +780,7 @@
             const isOtherNotApproved = (userRole !== 'student teacher' && userRole !== 'teacher' && userApprovalStatus !== 'approved');
             
             if (isStudentTeacherNotApproved || isOtherNotApproved) {
-                // LOCKED VERSION - Student Teacher not approved
+                // LOCKED VERSION
                 let lockMessage = '';
                 if (userRole === 'student teacher' && userApprovalStatus === 'pending') {
                     lockMessage = 'Waiting for teacher approval';
@@ -559,14 +803,13 @@
                     </div>
                 `;
             } else {
-                // UNLOCKED VERSION - Teacher, Approved Student Teacher, or Approved other roles
+                // UNLOCKED VERSION - Using modal
                 container.innerHTML = `
-                    <a href="{% url 'lesson_ai' %}">
-                        <button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
-                            <i class="fas fa-plus text-lg"></i>
-                            <span class="font-medium">Create Lesson</span>
-                        </button>
-                    </a>
+                    <button onclick="openLessonModal()"
+                            class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
+                        <i class="fas fa-plus text-lg"></i>
+                        <span class="font-medium">Create Lesson</span>
+                    </button>
                 `;
             }
         }
@@ -974,13 +1217,13 @@
                         feedbackContent.innerHTML = '<p class="text-gray-500 text-center py-4">No feedback provided by the department head.</p>';
                     }
                     
-                    feedbackModal.classList.add('modal-visible');
+                    feedbackModal.style.display = 'flex';
                 });
             });
 
             // Close feedback modal functions
             function closeModal() {
-                feedbackModal.classList.remove('modal-visible');
+                feedbackModal.style.display = 'none';
             }
 
             closeFeedback.addEventListener('click', function(e) {
@@ -1003,19 +1246,12 @@
             });
 
             // Prevent modal from closing when clicking inside modal content
-            const modalContent = document.querySelector('.modal-content');
+            const modalContent = document.querySelector('#feedback-modal .modal-content');
             if (modalContent) {
                 modalContent.addEventListener('click', function(e) {
                     e.stopPropagation();
                 });
             }
-
-            // Close modal with Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && feedbackModal.classList.contains('modal-visible')) {
-                    closeModal();
-                }
-            });
         }
 
         // ==================== DELETE DRAFT FUNCTIONALITY ====================
@@ -1202,8 +1438,14 @@
             if (e.key === 'Escape') {
                 // Close modals
                 const feedbackModal = document.getElementById('feedback-modal');
-                if (feedbackModal && feedbackModal.classList.contains('modal-visible')) {
-                    feedbackModal.classList.remove('modal-visible');
+                if (feedbackModal && feedbackModal.style.display === 'flex') {
+                    feedbackModal.style.display = 'none';
+                }
+                
+                // Close lesson modal
+                const lessonModal = document.getElementById('lessonModal');
+                if (lessonModal && lessonModal.classList.contains('active')) {
+                    lessonModal.classList.remove('active');
                 }
                 
                 // Close dropdowns

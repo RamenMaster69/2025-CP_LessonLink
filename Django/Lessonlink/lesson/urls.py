@@ -121,6 +121,6 @@ urlpatterns = [
     path('api/schedules/<int:schedule_id>/', views.delete_schedule_api, name='delete_schedule_api'),
     
     # Test endpoint
-    path('api/test/schedule/', views.test_schedule_api, name='test_schedule_api'),
+    # path('api/test/schedule/', views.test_schedule_api, name='test_schedule_api'),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

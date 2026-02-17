@@ -105,6 +105,171 @@
             animation: scaleIn 0.2s ease-out;
         }
 
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-option {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .modal-option:hover {
+            border-color: #9E5EFF;
+            background-color: #f9f5ff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(158, 94, 255, 0.1);
+        }
+
+        .modal-option.selected {
+            border-color: #9E5EFF;
+            background-color: #f9f5ff;
+        }
+
+        .modal-option-icon {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, #11468F, #9E5EFF);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+        }
+
+        .modal-option-icon i {
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .modal-option-text h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.25rem;
+        }
+
+        .modal-option-text p {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-size: 0.875rem;
+        }
+
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #11468F, #9E5EFF);
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .modal-btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: #374151;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-header p {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
         /* Task item styling */
         .task-item {
             transition: all 0.2s ease;
@@ -249,6 +414,53 @@
                         Delete
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lesson Type Selection Modal -->
+    <div id="lessonModal" class="modal-overlay">
+        <div class="modal-content relative">
+            <button class="modal-close" onclick="closeLessonModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="modal-header">
+                <h2>Create New Lesson</h2>
+                <p>Choose the type of lesson plan you want to create</p>
+            </div>
+
+            <div class="space-y-3">
+                <!-- Daily Lesson Plan Option -->
+                <div class="modal-option" data-type="daily" onclick="selectLessonType('daily')">
+                    <div class="modal-option-icon">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div class="modal-option-text">
+                        <h3>Daily Lesson Plan</h3>
+                        <p>Create a detailed lesson plan for a single day</p>
+                    </div>
+                </div>
+
+                <!-- Weekly Lesson Plan Option -->
+                <div class="modal-option" data-type="weekly" onclick="selectLessonType('weekly')">
+                    <div class="modal-option-icon">
+                        <i class="fas fa-calendar-week"></i>
+                    </div>
+                    <div class="modal-option-text">
+                        <h3>Weekly Lesson Plan</h3>
+                        <p>Plan your lessons for an entire week</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" onclick="closeLessonModal()">
+                    Cancel
+                </button>
+                <button id="continueBtn" class="modal-btn modal-btn-primary" onclick="continueToLesson()" disabled>
+                    Continue
+                </button>
             </div>
         </div>
     </div>
@@ -611,6 +823,64 @@
         const userRole = "{{ user.role }}".toLowerCase().trim();
         const userApprovalStatus = "{{ user.approval_status }}".toLowerCase().trim();
 
+        // ==================== LESSON MODAL FUNCTIONS ====================
+        let selectedLessonType = null;
+
+        // Open modal function
+        function openLessonModal() {
+            const modal = document.getElementById('lessonModal');
+            modal.classList.add('active');
+            // Reset selection
+            selectedLessonType = null;
+            document.querySelectorAll('.modal-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.getElementById('continueBtn').disabled = true;
+        }
+
+        // Close modal function
+        function closeLessonModal() {
+            const modal = document.getElementById('lessonModal');
+            modal.classList.remove('active');
+        }
+
+        // Select lesson type
+        function selectLessonType(type) {
+            selectedLessonType = type;
+            
+            // Update UI
+            document.querySelectorAll('.modal-option').forEach(opt => {
+                if (opt.getAttribute('data-type') === type) {
+                    opt.classList.add('selected');
+                } else {
+                    opt.classList.remove('selected');
+                }
+            });
+            
+            // Enable continue button
+            document.getElementById('continueBtn').disabled = false;
+        }
+
+        // Continue to selected lesson type
+        function continueToLesson() {
+            if (!selectedLessonType) return;
+
+            if (selectedLessonType === 'daily') {
+                window.location.href = "{% url 'lesson_ai' %}";
+            } else if (selectedLessonType === 'weekly') {
+                window.location.href = "{% url 'lesson_ai_weekly' %}";
+                closeLessonModal();
+            }
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('lessonModal');
+            if (event.target === modal) {
+                closeLessonModal();
+            }
+        });
+
         // Function to setup create lesson button based on role and approval
         function setupCreateLessonButton() {
             const container = document.getElementById('create-lesson-container');
@@ -645,14 +915,13 @@
                     </div>
                 `;
             } else {
-                // UNLOCKED VERSION - Teacher, Approved Student Teacher, or Approved other roles
+                // UNLOCKED VERSION - Using modal
                 container.innerHTML = `
-                    <a href="{% url 'lesson_ai' %}">
-                        <button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md min-h-[48px]">
-                            <i class="fas fa-plus text-lg"></i>
-                            <span class="font-medium">Create Lesson</span>
-                        </button>
-                    </a>
+                    <button onclick="openLessonModal()"
+                            class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md min-h-[48px]">
+                        <i class="fas fa-plus text-lg"></i>
+                        <span class="font-medium">Create Lesson</span>
+                    </button>
                 `;
             }
         }
@@ -1025,6 +1294,11 @@
                     }
                     if (!document.getElementById('confirm-delete-modal').classList.contains('hidden')) {
                         hideConfirmModal();
+                    }
+                    // Close lesson modal
+                    const lessonModal = document.getElementById('lessonModal');
+                    if (lessonModal && lessonModal.classList.contains('active')) {
+                        lessonModal.classList.remove('active');
                     }
                     notificationDropdown.classList.add('hidden');
                     profileDropdown.classList.add('hidden');

@@ -6,8 +6,274 @@
     <title>Student Lesson Plan Reviews - LessonLink</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-option {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .modal-option:hover {
+            border-color: #9E5EFF;
+            background-color: #f9f5ff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(158, 94, 255, 0.1);
+        }
+
+        .modal-option.selected {
+            border-color: #9E5EFF;
+            background-color: #f9f5ff;
+        }
+
+        .modal-option-icon {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, #11468F, #9E5EFF);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+        }
+
+        .modal-option-icon i {
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .modal-option-text h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.25rem;
+        }
+
+        .modal-option-text p {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-size: 0.875rem;
+        }
+
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #11468F, #9E5EFF);
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .modal-btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: #374151;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-header p {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .sidebar-transition {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Locked button styles */
+        .locked-button {
+            position: relative;
+            cursor: not-allowed !important;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .locked-button .lock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            color: white;
+            font-size: 1.25rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .locked-button:hover .lock-overlay {
+            opacity: 1;
+        }
+
+        .locked-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ef4444;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            margin-bottom: 8px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .locked-button:hover .locked-tooltip {
+            display: block;
+        }
+    </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
+    <!-- Lesson Type Selection Modal -->
+    <div id="lessonModal" class="modal-overlay">
+        <div class="modal-content relative">
+            <button class="modal-close" onclick="closeLessonModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="modal-header">
+                <h2>Create New Lesson</h2>
+                <p>Choose the type of lesson plan you want to create</p>
+            </div>
+
+            <div class="space-y-3">
+                <!-- Daily Lesson Plan Option -->
+                <div class="modal-option" data-type="daily" onclick="selectLessonType('daily')">
+                    <div class="modal-option-icon">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div class="modal-option-text">
+                        <h3>Daily Lesson Plan</h3>
+                        <p>Create a detailed lesson plan for a single day</p>
+                    </div>
+                </div>
+
+                <!-- Weekly Lesson Plan Option -->
+                <div class="modal-option" data-type="weekly" onclick="selectLessonType('weekly')">
+                    <div class="modal-option-icon">
+                        <i class="fas fa-calendar-week"></i>
+                    </div>
+                    <div class="modal-option-text">
+                        <h3>Weekly Lesson Plan</h3>
+                        <p>Plan your lessons for an entire week</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" onclick="closeLessonModal()">
+                    Cancel
+                </button>
+                <button id="continueBtn" class="modal-btn modal-btn-primary" onclick="continueToLesson()" disabled>
+                    Continue
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Header - Same as dashboard -->
     <header class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-40">
         <div class="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
@@ -44,7 +310,86 @@
 
             <!-- Right side actions (same as dashboard) -->
             <div class="flex items-center space-x-2 md:space-x-4">
-                <!-- Include the same notification and profile dropdown code from dashboard -->
+                <!-- Notifications -->
+                <div class="relative">
+                    <button id="notification-btn"
+                        class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span id="notification-badge"
+                            class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                    </button>
+
+                    <!-- Notifications Dropdown -->
+                    <div id="notification-dropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
+                        <div class="p-4 border-b border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-semibold text-gray-900">Notifications</h3>
+                                <button class="text-purple-600 text-sm hover:text-purple-700" onclick="markAllNotificationsAsRead()">
+                                    Mark all read
+                                </button>
+                            </div>
+                        </div>
+                        <div class="max-h-96 overflow-y-auto">
+                            <!-- Notifications will be loaded here dynamically -->
+                        </div>
+                        <div class="p-4 border-t border-gray-100">
+                            <button class="w-full text-center text-purple-600 text-sm hover:text-purple-700 font-medium">
+                                View all notifications
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile -->
+                <div class="relative">
+                    <button id="profile-btn"
+                        class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                        {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
+                            class="w-full h-full object-cover">
+                        {% else %}
+                        <i class="fas fa-user text-gray-500"></i>
+                        {% endif %}
+                    </button>
+
+                    <!-- Profile Dropdown -->
+                    <div id="profile-dropdown" class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50 dropdown-enter">
+                        <div class="p-4 border-b border-gray-100">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                                    {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
+                                        class="w-full h-full object-cover">
+                                    {% else %}
+                                    <i class="fas fa-user-tie text-white"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900">{{ user.full_name }}</p>
+                                    <p class="text-sm text-gray-500">{{ user.role }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="py-2">
+                            <a href="{% url 'profile' %}"
+                                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-user w-4"></i>
+                                <span>My Profile</span>
+                            </a>
+                            <a href="#"
+                                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-cog w-4"></i>
+                                <span>Settings</span>
+                            </a>
+                            <hr class="my-2">
+                            <a href="{% url 'logout' %}"
+                                class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
+                                <i class="fas fa-sign-out-alt w-4"></i>
+                                <span>Logout</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -53,12 +398,15 @@
         <!-- Sidebar -->
         <aside class="w-64 bg-white shadow-lg h-screen fixed top-20 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
             <nav class="p-4 space-y-2">
-                
-                <a href="{% url 'lesson_ai' %}"><button
-                        class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
+                <!-- Create Lesson Button - Using Modal -->
+                <div id="create-lesson-container">
+                    <button onclick="openLessonModal()"
+                            class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
                         <i class="fas fa-plus text-lg"></i>
                         <span class="font-medium">Create Lesson</span>
-                </button></a>
+                    </button>
+                </div>
+
                 <!-- Include your existing sidebar navigation -->
                 <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors">
                     <i class="fas fa-home text-lg w-5"></i>
@@ -92,13 +440,19 @@
                 <a href="{% url 'supervising_teacher_reviews' %}" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
                     <i class="fas fa-clipboard-check text-lg w-5"></i>
                     <span>Student Lesson Reviews</span>
+                    {% if pending_count %}
+                    <span class="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{{ pending_count }}</span>
+                    {% endif %}
                 </a>
             </nav>
             
         </aside>
 
+        <!-- Overlay for mobile -->
+        <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+
         <!-- Main Content -->
-        <main class="flex-1 p-6 ml-64">
+        <main class="flex-1 p-6 md:ml-64">
             <div class="mb-6">
                 <h1 class="text-2xl font-bold text-gray-900">Student Lesson Plan Reviews</h1>
                 <p class="text-gray-600">Review and provide feedback on your students' lesson plans</p>
@@ -247,6 +601,167 @@
     </div>
 
     <script>
+        // ==================== LESSON MODAL FUNCTIONS ====================
+        let selectedLessonType = null;
+
+        // Open modal function
+        function openLessonModal() {
+            const modal = document.getElementById('lessonModal');
+            modal.classList.add('active');
+            // Reset selection
+            selectedLessonType = null;
+            document.querySelectorAll('.modal-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.getElementById('continueBtn').disabled = true;
+        }
+
+        // Close modal function
+        function closeLessonModal() {
+            const modal = document.getElementById('lessonModal');
+            modal.classList.remove('active');
+        }
+
+        // Select lesson type
+        function selectLessonType(type) {
+            selectedLessonType = type;
+            
+            // Update UI
+            document.querySelectorAll('.modal-option').forEach(opt => {
+                if (opt.getAttribute('data-type') === type) {
+                    opt.classList.add('selected');
+                } else {
+                    opt.classList.remove('selected');
+                }
+            });
+            
+            // Enable continue button
+            document.getElementById('continueBtn').disabled = false;
+        }
+
+        // Continue to selected lesson type
+        function continueToLesson() {
+            if (!selectedLessonType) return;
+
+            if (selectedLessonType === 'daily') {
+                window.location.href = "{% url 'lesson_ai' %}";
+            } else if (selectedLessonType === 'weekly') {
+                window.location.href = "{% url 'lesson_ai_weekly' %}";
+                closeLessonModal();
+            }
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('lessonModal');
+            if (event.target === modal) {
+                closeLessonModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const lessonModal = document.getElementById('lessonModal');
+                if (lessonModal && lessonModal.classList.contains('active')) {
+                    lessonModal.classList.remove('active');
+                }
+                const reviewModal = document.getElementById('reviewModal');
+                if (reviewModal && !reviewModal.classList.contains('hidden')) {
+                    closeReviewModal();
+                }
+            }
+        });
+
+        // CSRF token helper function
+        function getCSRFToken() {
+            const name = 'csrftoken';
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Mobile menu functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const sidebar = document.querySelector('aside');
+            const overlay = document.getElementById('overlay');
+            
+            if (mobileMenuBtn && sidebar && overlay) {
+                mobileMenuBtn.addEventListener('click', () => {
+                    sidebar.classList.toggle('-translate-x-full');
+                    overlay.classList.toggle('hidden');
+                });
+                
+                overlay.addEventListener('click', () => {
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.add('hidden');
+                });
+            }
+
+            // Initialize notification and profile dropdowns
+            const notificationBtn = document.getElementById('notification-btn');
+            const notificationDropdown = document.getElementById('notification-dropdown');
+            const profileBtn = document.getElementById('profile-btn');
+            const profileDropdown = document.getElementById('profile-dropdown');
+
+            if (notificationBtn) {
+                notificationBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notificationDropdown.classList.toggle('hidden');
+                    if (profileDropdown) profileDropdown.classList.add('hidden');
+                });
+            }
+
+            if (profileBtn) {
+                profileBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    profileDropdown.classList.toggle('hidden');
+                    if (notificationDropdown) notificationDropdown.classList.add('hidden');
+                });
+            }
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', (e) => {
+                if (notificationBtn && !notificationBtn.contains(e.target) && notificationDropdown && !notificationDropdown.contains(e.target)) {
+                    notificationDropdown.classList.add('hidden');
+                }
+                if (profileBtn && !profileBtn.contains(e.target) && profileDropdown && !profileDropdown.contains(e.target)) {
+                    profileDropdown.classList.add('hidden');
+                }
+            });
+        });
+
+        // Notification functions
+        function markAllNotificationsAsRead() {
+            fetch('/notifications/notifications/mark-all-read/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('notification-badge').classList.add('hidden');
+                }
+            })
+            .catch(error => {
+                console.error('Error marking all notifications as read:', error);
+            });
+        }
+
+        // Review Modal Functions
         function showReviewModal(submissionId, action) {
             const modal = document.getElementById('reviewModal');
             const form = document.getElementById('reviewForm');
@@ -274,9 +789,10 @@
         
         function closeReviewModal() {
             document.getElementById('reviewModal').classList.add('hidden');
+            document.getElementById('reviewNotes').value = '';
         }
         
-        // Close modal when clicking outside
+        // Close review modal when clicking outside
         document.getElementById('reviewModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeReviewModal();
