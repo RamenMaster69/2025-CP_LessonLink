@@ -196,7 +196,7 @@ def generate_lesson_plan(request):
         
         # Format the prompt for the AI - INCLUDING INTELLIGENCE TYPE
         prompt = f"""
-        Create a comprehensive MELC-aligned lesson plan based on these details:
+        Generate this as a complete MATATAG-aligned lesson plan following DepEd Philippines MATATAG Curriculum standards.
         
         **INTELLIGENCE TYPE FOCUS:** {form_data['intelligence_type'].upper()}
         
