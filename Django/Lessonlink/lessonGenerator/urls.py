@@ -16,4 +16,5 @@ urlpatterns = [
     path('regenerate-lesson-content/', views.regenerate_lesson_content, name='regenerate_lesson_content'),
     path('get-ai-suggestions/', views.get_ai_suggestions, name='get_ai_suggestions'),
     path('check-exemplar-compatibility/', views.check_exemplar_compatibility, name='check_exemplar_compatibility'),
+    path('view_weekly_draft/', views.view_weekly_draft, name='view_weekly_draft'),
 ]

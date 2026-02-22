@@ -1038,3 +1038,6 @@ def check_exemplar_compatibility(request):
 
 def lesson_ai_weekly(request):
     return render(request, 'lessonGenerator/lesson_ai_weekly.html')
+
+def view_weekly_draft(request):
+    return render(request, 'lessonGenerator/view_weekly_draft.html')
