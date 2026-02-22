@@ -7,47 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Page Entrance Fade-in Animation */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-
-        .fade-in-delay-1 {
-            opacity: 0;
-            animation: fadeIn 0.5s ease-out 0.1s forwards;
-        }
-
-        .fade-in-delay-2 {
-            opacity: 0;
-            animation: fadeIn 0.5s ease-out 0.2s forwards;
-        }
-
-        .fade-in-delay-3 {
-            opacity: 0;
-            animation: fadeIn 0.5s ease-out 0.3s forwards;
-        }
-
-        .fade-in-delay-4 {
-            opacity: 0;
-            animation: fadeIn 0.5s ease-out 0.4s forwards;
-        }
-
-        .fade-in-delay-5 {
-            opacity: 0;
-            animation: fadeIn 0.5s ease-out 0.5s forwards;
-        }
-
         .gradient-bg {
             background: linear-gradient(135deg, #11468F 0%, #9E5EFF 100%);
         }
@@ -57,74 +16,6 @@
         .modal-backdrop {
             backdrop-filter: blur(4px);
         }
-        .lesson-plan-section {
-            background: linear-gradient(to bottom right, #f0f9ff, #e0f2fe);
-        }
-        
-        .loader-dots {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            margin: 20px 0;
-        }
-        
-        .loader-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #4F46E5;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-        
-        .loader-dot:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-        
-        .loader-dot:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-        
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(0.8);
-                opacity: 0.5;
-            }
-            50% {
-                transform: scale(1.2);
-                opacity: 1;
-            }
-        }
-        
-        .loader-bar {
-            height: 6px;
-            width: 100%;
-            background: #E5E7EB;
-            border-radius: 3px;
-            overflow: hidden;
-            margin: 20px 0;
-        }
-        
-        .loader-progress {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #4F46E5, #7C3AED);
-            border-radius: 3px;
-            animation: loading 3s ease-in-out infinite;
-        }
-        
-        @keyframes loading {
-            0% {
-                width: 0%;
-            }
-            50% {
-                width: 70%;
-            }
-            100% {
-                width: 100%;
-            }
-        }
-        
         .loader-spiral {
             width: 60px;
             height: 60px;
@@ -134,508 +25,322 @@
             animation: spin 1.5s linear infinite;
             margin: 20px auto;
         }
-        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
-        .loader-message {
-            text-align: center;
-            font-size: 1.1rem;
-            color: #374151;
-            margin: 10px 0;
-            min-height: 24px;
-        }
-        
-        .ai-thinking {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 20px 0;
-            background: #F3F4F6;
-            border-radius: 12px;
-            padding: 16px;
-        }
-        
-        .ai-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #11468F 0%, #9E5EFF 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 12px;
-            color: white;
-            font-weight: bold;
-        }
-        
-        .radio-option {
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .radio-option:hover {
-            background-color: #f9fafb;
-        }
-        
-        .radio-option input:checked + label {
-            background-color: #eff6ff;
-            border-color: #3b82f6;
-        }
-        
-        .ai-suggestion-card {
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .ai-suggestion-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .custom-textarea {
-            display: none;
-            margin-top: 10px;
-        }
-        
-        .custom-textarea.active {
-            display: block;
-        }
-
-        /* Weekly Lesson Plan specific styles */
-        .weekly-grid {
-            display: grid;
-            grid-template-columns: 100px repeat(5, 1fr);
-            gap: 8px;
-            overflow-x: auto;
-        }
-        
-        .weekly-grid-header {
-            font-weight: 600;
-            background: #f3f4f6;
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        
-        .weekly-grid-cell {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 12px;
-            min-width: 200px;
-        }
-        
-        .weekly-grid-row-label {
-            font-weight: 600;
-            background: #f3f4f6;
-            padding: 12px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .day-column {
-            background: #f9fafb;
-            border-radius: 8px;
-            padding: 8px;
-        }
-        
-        .day-header {
-            font-weight: 600;
-            color: #11468F;
-            text-align: center;
-            padding: 8px;
-            border-bottom: 2px solid #9E5EFF;
-            margin-bottom: 8px;
-        }
-        
-        .pro-tip {
-            background: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 16px;
-            border-radius: 8px;
-        }
-        
-        .vocab-tag {
-            background: #e0e7ff;
-            color: #11468F;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            display: inline-block;
-            margin: 0 4px 4px 0;
-        }
-
-        /* Responsive fixes */
-        @media (max-width: 640px) {
-            .weekly-grid {
-                grid-template-columns: 80px repeat(5, 1fr);
-            }
-            
-            .weekly-grid-cell {
-                min-width: 150px;
-                padding: 8px;
-            }
-        }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <!-- Header with fade-in -->
-    <div class="gradient-bg text-white px-4 sm:px-6 py-4 fade-in">
-        <!-- Logo -->
-            <a href="{% url 'dashboard' %}"><div class="flex items-center space-x-3 flex-1 md:flex-none">
-                {% if user_school and user_school.school_logo %}
-                <div class="w-10 h-10 rounded-full overflow-hidden shadow-md">
-                    <img src="{{ user_school.school_logo.url }}" 
-                        alt="{{ user_school.school_name }}" 
-                        class="w-full h-full object-cover"
-                        onerror="this.onerror=null; this.parentElement.classList.add('bg-gradient-to-r', 'from-[#11468F]', 'to-[#9E5EFF]'); this.style.display='none';">
-                </div>
-                {% else %}
-                <div class="w-10 h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
-                {% endif %}
-                
-                <div class="hidden sm:block">
-                    <h1 class="text-xl font-bold text-white">LessonLink</h1>
-                    <p class="text-sm text-gray-400 hidden lg:block">
-                        {% if user_school %}
-                            {{ user_school.school_name }}
-                        {% else %}
-                            {{ user.email|default:"LessonLink" }}
-                        {% endif %}
-                    </p>
-                </div>
-            </div></a>
-    </div>
-
-    <div class="flex relative">
-        <!-- Main Content -->
-        <div class="flex-1 p-4 sm:p-6 w-full md:w-auto">
-            <!-- Back Button with fade-in delay 1 -->
-            <button class="flex items-center text-gray-600 hover:text-gray-800 mb-4 sm:mb-6 fade-in-delay-1" onclick="window.history.back()">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                </svg>
-                Back to Dashboard
-            </button>
-
-            <!-- Page Header with fade-in delay 2 -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 fade-in-delay-2">
-                <div>
-                    <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Weekly Lesson Plan</h2>
-                    <p class="text-sm text-gray-600 mt-1">Create a high-level overview of your week's flow</p>
-                </div>
-                <div class="mt-4 sm:mt-0 flex items-center space-x-2 text-sm text-gray-600">
-                    <i class="fas fa-lightbulb text-yellow-500"></i>
-                    <span>Pro Tip: Theme your days for predictable rhythm</span>
-                </div>
-            </div>
-
-            <!-- Form Container with fade-in delay 3 -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 fade-in-delay-3">
-                <form id="weekly-lesson-form" class="space-y-8">
-                    <!-- Basic Info Section -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="fade-in-delay-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                            <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent transition-all duration-200">
-                                <option value="">Select Subject</option>
-                                <option value="Mathematics">Mathematics</option>
-                                <option value="Science">Science</option>
-                                <option value="English">English</option>
-                                <option value="ArPan">Araling Panlipunan (ARPAN)</option>
-                                <option value="MAPEH">MAPEH</option>
-                                <option value="TLE">TLE</option>
-                                <option value="Filipino">Filipino</option>
-                            </select>
-                        </div>
-                        <div class="fade-in-delay-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Week of</label>
-                            <input type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent transition-all duration-200">
-                        </div>
-                        <div class="fade-in-delay-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Unit/Theme</label>
-                            <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent transition-all duration-200" placeholder="e.g., Forces and Motion">
-                        </div>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- Header -->
+    <div class="gradient-bg text-white px-6 py-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between">
+                <a href="{% url 'dashboard' %}" class="flex items-center space-x-3">
+                    {% if user_school and user_school.school_logo %}
+                    <div class="w-10 h-10 rounded-full overflow-hidden bg-white">
+                        <img src="{{ user_school.school_logo.url }}" 
+                            alt="{{ user_school.school_name }}" 
+                            class="w-full h-full object-cover">
                     </div>
-
-                    <!-- Weekly Goals Section -->
-                    <div class="border-t border-gray-200 pt-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4 fade-in-delay-4">1. Weekly Goals</h3>
-                        <div class="space-y-4">
-                            <div class="fade-in-delay-5">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Big Idea</label>
-                                <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent transition-all duration-200" placeholder="What should students understand by Friday?">
-                            </div>
-                            <div class="fade-in-delay-5">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Key Standards</label>
-                                <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent transition-all duration-200" placeholder="Standard codes or descriptions">
-                            </div>
-                            <div class="fade-in-delay-5">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Essential Question</label>
-                                <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#11468F] focus:border-transparent transition-all duration-200" placeholder='e.g., "How does gravity affect our daily lives?"'>
-                            </div>
-                        </div>
+                    {% else %}
+                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-calendar-week text-white text-xl"></i>
                     </div>
-
-                    <!-- Instructional Grid Section -->
-                    <div class="border-t border-gray-200 pt-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4 fade-in-delay-5">2. Instructional Grid</h3>
-                        
-                        <!-- Desktop Grid View -->
-                        <div class="hidden md:block overflow-x-auto fade-in-delay-5">
-                            <div class="weekly-grid">
-                                <!-- Header Row -->
-                                <div class="weekly-grid-header"></div>
-                                <div class="weekly-grid-header bg-purple-50">Monday</div>
-                                <div class="weekly-grid-header bg-purple-50">Tuesday</div>
-                                <div class="weekly-grid-header bg-purple-50">Wednesday</div>
-                                <div class="weekly-grid-header bg-purple-50">Thursday</div>
-                                <div class="weekly-grid-header bg-purple-50">Friday</div>
-                                
-                                <!-- Topic/Objective Row -->
-                                <div class="weekly-grid-row-label">Topic / Objective</div>
-                                <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Introduction: What's the hook?">
-                                </div>
-                                <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Skill Building: New concept">
-                                </div>
-                                <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Deep Dive: Application">
-                                </div>
-                                <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Refinement: Practice">
-                                </div>
-                                <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Synthesis: Wrap-up">
-                                </div>
-                                
-                                <!-- Activities & Methods Row -->
-                                <div class="weekly-grid-row-label">Activities & Methods</div>
-                                <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Direct instruction, video, or brainstorm">
-                                </div>
-                                <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Guided practice, group work">
-                                </div>
-                                <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Lab, creative project, or debate">
-                                </div>
-                                <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Independent work, centers, or review">
-                                </div>
-                                <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Final project, test, or presentation">
-                                </div>
-                                
-                                <!-- Assessment/Evidence Row -->
-                                <div class="weekly-grid-row-label">Assessment / Evidence</div>
-                                <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Observation, entry ticket">
-                                </div>
-                                <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Worksheet, class discussion">
-                                </div>
-                                <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Drafting, peer feedback">
-                                </div>
-                                <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Check-in quiz, informal check">
-                                </div>
-                                <div class="weekly-grid-cell">
-                                    <input type="text" class="w-full text-sm border-0 focus:ring-0 p-0 transition-all duration-200" placeholder="Graded assessment/Exit slip">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Mobile Grid View (Stacked) -->
-                        <div class="md:hidden space-y-6 fade-in-delay-5">
-                            <!-- Monday -->
-                            <div class="day-column">
-                                <div class="day-header">Monday - Introduction</div>
-                                <div class="space-y-3">
-                                    <div>
-                                        <label class="text-xs font-medium text-gray-600">Topic/Objective</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="What's the hook?">
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium text-gray-600">Activities & Methods</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Direct instruction, video, or brainstorm">
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium text-gray-600">Assessment/Evidence</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Observation, entry ticket">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Tuesday -->
-                            <div class="day-column">
-                                <div class="day-header">Tuesday - Skill Building</div>
-                                <div class="space-y-3">
-                                    <div>
-                                        <label class="text-xs font-medium text-gray-600">Topic/Objective</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="New concept">
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium text-gray-600">Activities & Methods</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Guided practice, group work">
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium text-gray-600">Assessment/Evidence</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Worksheet, class discussion">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Wednesday -->
-                            <div class="day-column">
-                                <div class="day-header">Wednesday - Deep Dive</div>
-                                <div class="space-y-3">
-                                    <div>
-                                        <label class="text-xs font-medium text-gray-600">Topic/Objective</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Application">
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium text-gray-600">Activities & Methods</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Lab, creative project, or debate">
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium text-gray-600">Assessment/Evidence</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Drafting, peer feedback">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Thursday -->
-                            <div class="day-column">
-                                <div class="day-header">Thursday - Refinement</div>
-                                <div class="space-y-3">
-                                    <div>
-                                        <label class="text-xs font-medium text-gray-600">Topic/Objective</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Practice">
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium text-gray-600">Activities & Methods</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Independent work, centers, or review">
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium text-gray-600">Assessment/Evidence</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Check-in quiz, informal check">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Friday -->
-                            <div class="day-column">
-                                <div class="day-header">Friday - Synthesis</div>
-                                <div class="space-y-3">
-                                    <div>
-                                        <label class="text-xs font-medium text-gray-600">Topic/Objective</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Wrap-up">
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium text-gray-600">Activities & Methods</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Final project, test, or presentation">
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium text-gray-600">Assessment/Evidence</label>
-                                        <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 transition-all duration-200" placeholder="Graded assessment/Exit slip">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    {% endif %}
+                    <div>
+                        <h1 class="text-xl font-bold">LessonLink</h1>
+                        <p class="text-sm text-gray-200">
+                            {% if user_school %}
+                                {{ user_school.school_name }}
+                            {% else %}
+                                {{ user.email|default:"Weekly Lesson Planner" }}
+                            {% endif %}
+                        </p>
                     </div>
-
-                    <!-- Pro Tips Section -->
-                    <div class="pro-tip fade-in-delay-5">
-                        <div class="flex items-start space-x-3">
-                            <i class="fas fa-lightbulb text-yellow-500 mt-1"></i>
-                            <div>
-                                <h4 class="font-semibold text-gray-900 mb-1">Pro Tips for Weekly Planning:</h4>
-                                <ul class="text-sm text-gray-700 space-y-1">
-                                    <li>• <strong>Theme your days:</strong> Use "Monday Hook," "Wednesday Workshop," and "Friday Review" for predictable rhythm</li>
-                                    <li>• <strong>Batch your prep:</strong> Identify all photocopies or digital uploads needed for the week</li>
-                                    <li>• <strong>Build in flexibility:</strong> Leave room for unexpected interruptions like fire drills or lessons that need extra time</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="mt-8 flex gap-3 fade-in-delay-5">
-                        <button type="button" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
-                            <i class="fas fa-save mr-2"></i>Save as Draft
-                        </button>
-                        <button type="submit" class="flex-1 gradient-bg hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
-                            <i class="fas fa-paper-plane mr-2"></i>Generate Weekly Plan
-                        </button>
-                    </div>
-                </form>
+                </a>
+                <button class="text-white hover:text-gray-200">
+                    <i class="fas fa-user-circle text-2xl"></i>
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Loading Overlay with fade animation -->
-    <div id="loading-overlay" class="fixed inset-0 bg-gray-800 bg-opacity-90 flex items-center justify-center hidden z-50 transition-opacity duration-300">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0" id="loading-content">
-            <div class="text-center">
-                <div class="ai-thinking">
-                    <div class="ai-icon">
-                        <i class="fas fa-calendar-week text-white"></i>
+    <div class="flex-1">
+        <!-- Main Content - Centered -->
+        <div class="max-w-4xl mx-auto px-4 py-8">
+            <!-- Back to Dashboard link -->
+            <a href="{% url 'dashboard' %}" class="inline-flex items-center text-gray-600 hover:text-gray-800 mb-6">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Back to Dashboard
+            </a>
+
+            <!-- Main Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                <!-- Header -->
+                <h2 class="text-2xl font-bold text-gray-800 mb-8">Create a Weekly Lesson Plan</h2>
+
+                <!-- Weekly Lesson Title -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Weekly Lesson Title</label>
+                    <input type="text" 
+                           id="weekly-lesson-title"
+                           class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#11468F] focus:border-transparent" 
+                           placeholder="e.g., Computer Systems Networking Week 1">
+                </div>
+
+                <!-- First Row - Subject & Grade Level (with complete K-12) -->
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                        <select id="subject" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#11468F] focus:border-transparent bg-white">
+                            <option value="">Select Subject</option>
+                            <option value="TLE-ICT">TLE-ICT (Computer Systems Servicing)</option>
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="Science">Science</option>
+                            <option value="English">English</option>
+                            <option value="Filipino">Filipino</option>
+                            <option value="ArPan">Araling Panlipunan</option>
+                            <option value="MAPEH">MAPEH</option>
+                            <option value="ESP">Edukasyon sa Pagpapakatao</option>
+                        </select>
                     </div>
-                    <div class="ai-text">
-                        <p class="text-sm font-medium text-gray-700">Creating your weekly plan</p>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
+                        <select id="grade-level" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#11468F] focus:border-transparent bg-white">
+                            <option value="">Select Grade</option>
+                            <!-- Kindergarten -->
+                            <option value="Kindergarten">Kindergarten</option>
+                            <!-- Elementary (Grades 1-6) -->
+                            <option value="1">Grade 1</option>
+                            <option value="2">Grade 2</option>
+                            <option value="3">Grade 3</option>
+                            <option value="4">Grade 4</option>
+                            <option value="5">Grade 5</option>
+                            <option value="6">Grade 6</option>
+                            <!-- Junior High School (Grades 7-10) -->
+                            <option value="7">Grade 7</option>
+                            <option value="8">Grade 8</option>
+                            <option value="9">Grade 9</option>
+                            <option value="10">Grade 10</option>
+                            <!-- Senior High School (Grades 11-12) -->
+                            <option value="11">Grade 11</option>
+                            <option value="12">Grade 12</option>
+                        </select>
                     </div>
                 </div>
-                
-                <div class="loader-bar">
-                    <div class="loader-progress"></div>
+
+                <!-- Second Row - Week & Quarter -->
+                <div class="grid grid-cols-2 gap-6 mb-8">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Week Number</label>
+                        <select id="week-number" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#11468F] focus:border-transparent bg-white">
+                            <option value="">Select Week</option>
+                            <option value="1">Week 1</option>
+                            <option value="2">Week 2</option>
+                            <option value="3">Week 3</option>
+                            <option value="4">Week 4</option>
+                            <option value="5">Week 5</option>
+                            <option value="6">Week 6</option>
+                            <option value="7">Week 7</option>
+                            <option value="8">Week 8</option>
+                            <option value="9">Week 9</option>
+                            <option value="10">Week 10</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Quarter</label>
+                        <select id="quarter" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#11468F] focus:border-transparent bg-white">
+                            <option value="">Select Quarter</option>
+                            <option value="1">1st Quarter</option>
+                            <option value="2">2nd Quarter</option>
+                            <option value="3">3rd Quarter</option>
+                            <option value="4">4th Quarter</option>
+                        </select>
+                    </div>
                 </div>
-                
-                <div class="loader-dots">
-                    <div class="loader-dot"></div>
-                    <div class="loader-dot"></div>
-                    <div class="loader-dot"></div>
+
+                <!-- Select Exemplar (Fully Functional) -->
+                <div class="mb-8 border border-gray-200 rounded-lg p-5 bg-gray-50">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Select Exemplar (Optional)</label>
+                    <select id="exemplar-select" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#11468F] focus:border-transparent bg-white mb-2">
+                        <option value="">No exemplar selected</option>
+                        <!-- Exemplars will be loaded here -->
+                    </select>
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs text-gray-500" id="exemplar-count">Loading exemplars...</p>
+                        <button type="button" onclick="refreshExemplars()" class="text-xs text-[#11468F] hover:text-[#9E5EFF] flex items-center">
+                            <i class="fas fa-sync-alt mr-1"></i> Refresh
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">Choose an exemplar uploaded by your department head as reference for structure and quality</p>
                 </div>
-                
-                <div class="loader-message" id="loading-message">Organizing your week...</div>
-                
-                <p class="text-gray-600 text-sm mt-4">Please wait while we create your weekly lesson plan</p>
-                <p class="text-gray-500 text-xs mt-2">This may take a few moments</p>
+
+                <!-- Weekly Theme Focus - Professional Icons (No Emojis) -->
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Weekly Theme Focus</label>
+                    <div class="grid grid-cols-5 gap-3">
+                        <div class="day-card border border-gray-200 rounded-lg p-4 text-center hover:border-[#11468F] cursor-pointer transition-colors" data-day="monday">
+                            <i class="fas fa-book-open text-2xl text-[#11468F] mb-2"></i>
+                            <div class="text-sm font-medium text-gray-800">Introduction</div>
+                            <div class="text-xs text-gray-400 mt-1">Monday</div>
+                        </div>
+                        <div class="day-card border border-gray-200 rounded-lg p-4 text-center hover:border-[#11468F] cursor-pointer transition-colors" data-day="tuesday">
+                            <i class="fas fa-hammer text-2xl text-[#11468F] mb-2"></i>
+                            <div class="text-sm font-medium text-gray-800">Skill Building</div>
+                            <div class="text-xs text-gray-400 mt-1">Tuesday</div>
+                        </div>
+                        <div class="day-card border border-gray-200 rounded-lg p-4 text-center hover:border-[#11468F] cursor-pointer transition-colors" data-day="wednesday">
+                            <i class="fas fa-microscope text-2xl text-[#11468F] mb-2"></i>
+                            <div class="text-sm font-medium text-gray-800">Deep Dive</div>
+                            <div class="text-xs text-gray-400 mt-1">Wednesday</div>
+                        </div>
+                        <div class="day-card border border-gray-200 rounded-lg p-4 text-center hover:border-[#11468F] cursor-pointer transition-colors" data-day="thursday">
+                            <i class="fas fa-pencil-alt text-2xl text-[#11468F] mb-2"></i>
+                            <div class="text-sm font-medium text-gray-800">Practice</div>
+                            <div class="text-xs text-gray-400 mt-1">Thursday</div>
+                        </div>
+                        <div class="day-card border border-gray-200 rounded-lg p-4 text-center hover:border-[#11468F] cursor-pointer transition-colors" data-day="friday">
+                            <i class="fas fa-clipboard-check text-2xl text-[#11468F] mb-2"></i>
+                            <div class="text-sm font-medium text-gray-800">Assessment</div>
+                            <div class="text-xs text-gray-400 mt-1">Friday</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="weekly-theme" value="">
+                    <p class="text-xs text-gray-400 mt-2">Select the focus for each day of the week</p>
+                </div>
+
+                <!-- Content Standards (Weekly) -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Content Standards (Weekly)</label>
+                    <textarea id="content-standards" rows="3" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#11468F] focus:border-transparent" placeholder="The learners demonstrate an understanding of..."></textarea>
+                </div>
+
+                <!-- Performance Standards (Weekly) -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Performance Standards (Weekly)</label>
+                    <textarea id="performance-standards" rows="3" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#11468F] focus:border-transparent" placeholder="The learners shall be able to..."></textarea>
+                </div>
+
+                <!-- Weekly Learning Objectives - One per day -->
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Weekly Learning Objectives</label>
+                    <p class="text-sm text-gray-500 mb-4">By the end of this week, students will be able to...</p>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <span class="w-20 text-xs font-medium text-gray-500">MONDAY</span>
+                            <i class="fas fa-circle text-[6px] text-[#11468F]"></i>
+                            <input type="text" id="objective-mon" class="flex-1 border-0 border-b border-gray-200 focus:ring-0 focus:border-[#11468F] pb-1 px-0" placeholder="Identify network components and their functions">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-20 text-xs font-medium text-gray-500">TUESDAY</span>
+                            <i class="fas fa-circle text-[6px] text-[#11468F]"></i>
+                            <input type="text" id="objective-tue" class="flex-1 border-0 border-b border-gray-200 focus:ring-0 focus:border-[#11468F] pb-1 px-0" placeholder="Design a simple computer network layout">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-20 text-xs font-medium text-gray-500">WEDNESDAY</span>
+                            <i class="fas fa-circle text-[6px] text-[#11468F]"></i>
+                            <input type="text" id="objective-wed" class="flex-1 border-0 border-b border-gray-200 focus:ring-0 focus:border-[#11468F] pb-1 px-0" placeholder="Create Ethernet cables following T568B standard">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-20 text-xs font-medium text-gray-500">THURSDAY</span>
+                            <i class="fas fa-circle text-[6px] text-[#11468F]"></i>
+                            <input type="text" id="objective-thu" class="flex-1 border-0 border-b border-gray-200 focus:ring-0 focus:border-[#11468F] pb-1 px-0" placeholder="Configure basic router settings">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-20 text-xs font-medium text-gray-500">FRIDAY</span>
+                            <i class="fas fa-circle text-[6px] text-[#11468F]"></i>
+                            <input type="text" id="objective-fri" class="flex-1 border-0 border-b border-gray-200 focus:ring-0 focus:border-[#11468F] pb-1 px-0" placeholder="Test and troubleshoot network connectivity">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Intelligence Type Focus -->
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Intelligence Type Focus</label>
+                    <select id="intelligence-type" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#11468F] focus:border-transparent bg-white">
+                        <option value="comprehensive">Comprehensive (IQ+EQ+SQ+AQ)</option>
+                        <option value="cognitive">Cognitive Focus (IQ)</option>
+                        <option value="emotional">Emotional Focus (EQ)</option>
+                        <option value="social">Social Focus (SQ)</option>
+                        <option value="resilience">Resilience Focus (AQ)</option>
+                        <option value="differentiated">Differentiated Mix</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Select how to adapt the lesson for different intelligence types</p>
+                </div>
+
+                <!-- Teaching Approach -->
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Weekly Teaching Approach</label>
+                    <div class="grid grid-cols-4 gap-3">
+                        <div class="approach-card border border-gray-200 rounded-lg p-4 text-center hover:border-[#11468F] cursor-pointer transition-colors" data-approach="direct">
+                            <i class="fas fa-chalkboard-teacher text-2xl text-[#11468F] mb-2"></i>
+                            <div class="text-sm font-medium">Direct</div>
+                        </div>
+                        <div class="approach-card border border-gray-200 rounded-lg p-4 text-center hover:border-[#11468F] cursor-pointer transition-colors" data-approach="collaborative">
+                            <i class="fas fa-users text-2xl text-[#11468F] mb-2"></i>
+                            <div class="text-sm font-medium">Collaborative</div>
+                        </div>
+                        <div class="approach-card border border-gray-200 rounded-lg p-4 text-center hover:border-[#11468F] cursor-pointer transition-colors" data-approach="hands-on">
+                            <i class="fas fa-tools text-2xl text-[#11468F] mb-2"></i>
+                            <div class="text-sm font-medium">Hands-on</div>
+                        </div>
+                        <div class="approach-card border border-gray-200 rounded-lg p-4 text-center hover:border-[#11468F] cursor-pointer transition-colors" data-approach="inquiry">
+                            <i class="fas fa-search text-2xl text-[#11468F] mb-2"></i>
+                            <div class="text-sm font-medium">Inquiry</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="teaching-approach" value="">
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-4 mt-8 pt-4 border-t border-gray-100">
+                    <button type="button" id="preview-btn" class="flex-1 border-2 border-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-300 transition-all">
+                        <i class="fas fa-eye mr-2"></i>
+                        Preview Weekly Plan
+                    </button>
+                    <button type="button" id="generate-btn" class="flex-1 gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-all shadow-sm hover:shadow">
+                        <i class="fas fa-magic mr-2"></i>
+                        Generate Weekly Lesson Plan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loading-modal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center">
+            <div class="loader-spiral mx-auto mb-4"></div>
+            <h3 class="text-lg font-semibold mb-2">Generating Your Weekly Lesson Plan</h3>
+            <p class="text-gray-600 text-sm mb-4" id="loading-message">Analyzing your inputs...</p>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="gradient-bg h-2 rounded-full" style="width: 0%" id="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="preview-modal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
+            <div class="gradient-bg text-white px-6 py-4 flex items-center justify-between">
+                <h3 class="text-lg font-semibold">Weekly Lesson Plan Preview</h3>
+                <button id="close-preview" class="p-2 hover:bg-white/10 rounded-lg">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="overflow-y-auto max-h-[calc(90vh-120px)] p-6" id="preview-content">
+                <!-- Preview content will be loaded here -->
+            </div>
+            <div class="border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+                <button id="close-preview-footer" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">Close</button>
+                <button id="generate-from-preview" class="gradient-bg text-white px-6 py-2 rounded-lg font-medium hover:opacity-90">Generate Plan</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Loading overlay animation functions
-        function showLoadingOverlay() {
-            const overlay = document.getElementById('loading-overlay');
-            const content = document.getElementById('loading-content');
-            
-            overlay.classList.remove('hidden');
-            setTimeout(() => {
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 10);
-        }
-
-        function hideLoadingOverlay() {
-            const overlay = document.getElementById('loading-overlay');
-            const content = document.getElementById('loading-content');
-            
-            content.classList.add('scale-95', 'opacity-0');
-            content.classList.remove('scale-100', 'opacity-100');
-            
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-            }, 300);
-        }
-
         // Get CSRF token
         function getCookie(name) {
             let cookieValue = null;
@@ -652,94 +357,253 @@
             return cookieValue;
         }
 
-        // Show success message with animation
-        function showSuccessMessage(message) {
-            const successMsg = document.createElement('div');
-            successMsg.className = 'fixed top-6 right-6 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500 ease-out';
-            successMsg.innerHTML = `
-                <div class="flex items-center">
-                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <div>
-                        <p class="font-bold">Success!</p>
-                        <p class="text-sm text-green-100">${message}</p>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(successMsg);
-            setTimeout(() => successMsg.classList.remove('translate-x-full'), 100);
-            setTimeout(() => {
-                successMsg.classList.add('translate-x-full');
-                setTimeout(() => document.body.contains(successMsg) && document.body.removeChild(successMsg), 500);
-            }, 4000);
-        }
-
-        // Show error message with animation
-        function showErrorMessage(message) {
-            const errorMsg = document.createElement('div');
-            errorMsg.className = 'fixed top-6 right-6 bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500 ease-out';
-            errorMsg.innerHTML = `
-                <div class="flex items-center">
-                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <div>
-                        <p class="font-bold">Error</p>
-                        <p class="text-sm text-red-100">${message}</p>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(errorMsg);
-            setTimeout(() => errorMsg.classList.remove('translate-x-full'), 100);
-            setTimeout(() => {
-                errorMsg.classList.add('translate-x-full');
-                setTimeout(() => document.body.contains(errorMsg) && document.body.removeChild(errorMsg), 500);
-            }, 4000);
-        }
-
-        // Form submission
-        document.getElementById('weekly-lesson-form').addEventListener('submit', function(e) {
-            e.preventDefault();
+        // Load exemplars from department
+        async function loadDepartmentExemplars() {
+            const exemplarSelect = document.getElementById('exemplar-select');
+            const exemplarCount = document.getElementById('exemplar-count');
             
-            // Show loading overlay with animation
-            showLoadingOverlay();
-            
-            // Simulate generation (replace with actual API call)
-            setTimeout(() => {
-                hideLoadingOverlay();
-                showSuccessMessage('Weekly lesson plan generated successfully!');
+            try {
+                const response = await fetch('/api/exemplars/department/', {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    }
+                });
                 
-                // Redirect to view page after delay
-                setTimeout(() => {
-                    window.location.href = '/weekly-plan-result/';
-                }, 1500);
-            }, 3000);
-        });
-
-        // Save as draft functionality
-        document.querySelector('button[type="button"]').addEventListener('click', function() {
-            showSuccessMessage('Weekly lesson plan saved as draft!');
-        });
-
-        // Mobile menu functionality (if needed)
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        if (mobileMenuBtn) {
-            mobileMenuBtn.addEventListener('click', () => {
-                // Add mobile menu toggle functionality if needed
-                console.log('Mobile menu clicked');
-            });
+                if (!response.ok) throw new Error('Failed to load exemplars');
+                
+                const data = await response.json();
+                
+                // Clear existing options (keep the first one)
+                while (exemplarSelect.options.length > 1) {
+                    exemplarSelect.remove(1);
+                }
+                
+                if (data.success && data.exemplars && data.exemplars.length > 0) {
+                    data.exemplars.forEach(exemplar => {
+                        const option = document.createElement('option');
+                        option.value = exemplar.id;
+                        
+                        let displayText = exemplar.name;
+                        if (exemplar.file_size_display) {
+                            displayText += ` (${exemplar.file_size_display})`;
+                        }
+                        if (exemplar.upload_date) {
+                            const date = new Date(exemplar.upload_date).toLocaleDateString();
+                            displayText += ` - ${date}`;
+                        }
+                        
+                        option.textContent = displayText;
+                        exemplarSelect.appendChild(option);
+                    });
+                    
+                    exemplarCount.textContent = `${data.exemplars.length} exemplar(s) available`;
+                } else {
+                    exemplarCount.textContent = 'No exemplars available';
+                }
+            } catch (error) {
+                console.error('Error loading exemplars:', error);
+                exemplarCount.textContent = 'Error loading exemplars';
+            }
         }
 
-        // Add vocabulary tags styling
-        document.querySelectorAll('.vocab-tag').forEach(tag => {
-            tag.addEventListener('click', function() {
-                this.classList.add('bg-[#11468F]', 'text-white');
-                setTimeout(() => {
-                    this.classList.remove('bg-[#11468F]', 'text-white');
-                }, 200);
+        // Refresh exemplars
+        function refreshExemplars() {
+            document.getElementById('exemplar-count').textContent = 'Loading exemplars...';
+            loadDepartmentExemplars();
+        }
+
+        // Day card selection
+        document.querySelectorAll('.day-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.day-card').forEach(c => {
+                    c.classList.remove('border-[#11468F]', 'bg-blue-50');
+                });
+                this.classList.add('border-[#11468F]', 'bg-blue-50');
+                document.getElementById('weekly-theme').value = this.dataset.day;
             });
         });
+
+        // Approach card selection
+        document.querySelectorAll('.approach-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.approach-card').forEach(c => {
+                    c.classList.remove('border-[#11468F]', 'bg-blue-50');
+                });
+                this.classList.add('border-[#11468F]', 'bg-blue-50');
+                document.getElementById('teaching-approach').value = this.dataset.approach;
+            });
+        });
+
+        // Show/hide modal functions
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Show success message
+        function showSuccessMessage(message) {
+            const msg = document.createElement('div');
+            msg.className = 'fixed top-6 right-6 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-6 py-4 rounded-lg shadow-2xl z-50 transform transition-transform duration-500';
+            msg.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(msg);
+            setTimeout(() => {
+                msg.remove();
+            }, 3000);
+        }
+
+        // Show error message
+        function showErrorMessage(message) {
+            const msg = document.createElement('div');
+            msg.className = 'fixed top-6 right-6 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4 rounded-lg shadow-2xl z-50 transform transition-transform duration-500';
+            msg.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(msg);
+            setTimeout(() => {
+                msg.remove();
+            }, 3000);
+        }
+
+        // Collect form data
+        function getFormData() {
+            return {
+                title: document.getElementById('weekly-lesson-title').value,
+                subject: document.getElementById('subject').value,
+                grade_level: document.getElementById('grade-level').value,
+                week: document.getElementById('week-number').value,
+                quarter: document.getElementById('quarter').value,
+                exemplar_id: document.getElementById('exemplar-select').value,
+                theme: document.getElementById('weekly-theme').value,
+                content_standards: document.getElementById('content-standards').value,
+                performance_standards: document.getElementById('performance-standards').value,
+                objectives: {
+                    monday: document.getElementById('objective-mon').value,
+                    tuesday: document.getElementById('objective-tue').value,
+                    wednesday: document.getElementById('objective-wed').value,
+                    thursday: document.getElementById('objective-thu').value,
+                    friday: document.getElementById('objective-fri').value
+                },
+                intelligence_type: document.getElementById('intelligence-type').value,
+                approach: document.getElementById('teaching-approach').value
+            };
+        }
+
+        // Generate preview
+        document.getElementById('preview-btn').addEventListener('click', function() {
+            const data = getFormData();
+            const previewContent = document.getElementById('preview-content');
+            
+            previewContent.innerHTML = `
+                <div class="space-y-6">
+                    <div class="text-center border-b pb-4">
+                        <h3 class="text-2xl font-bold text-gray-900">${data.title || 'Weekly Lesson Plan'}</h3>
+                        <p class="text-gray-600">${data.subject || 'Subject'} - Grade ${data.grade_level || 'N/A'} | Week ${data.week || 'N/A'}, ${data.quarter ? data.quarter + ' Quarter' : ''}</p>
+                    </div>
+                    
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <p class="text-sm text-purple-700">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            This preview shows your inputs. Click Generate to create the complete DepEd format weekly lesson plan.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-gray-900 mb-2">Content Standards</h4>
+                            <p class="text-sm text-gray-700">${data.content_standards || 'Not specified'}</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-gray-900 mb-2">Performance Standards</h4>
+                            <p class="text-sm text-gray-700">${data.performance_standards || 'Not specified'}</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-semibold text-gray-900 mb-3">Daily Objectives</h4>
+                        <div class="space-y-2">
+                            <div class="flex"><span class="w-24 text-sm font-medium">Monday:</span><span class="text-sm text-gray-700">${data.objectives.monday || 'Not set'}</span></div>
+                            <div class="flex"><span class="w-24 text-sm font-medium">Tuesday:</span><span class="text-sm text-gray-700">${data.objectives.tuesday || 'Not set'}</span></div>
+                            <div class="flex"><span class="w-24 text-sm font-medium">Wednesday:</span><span class="text-sm text-gray-700">${data.objectives.wednesday || 'Not set'}</span></div>
+                            <div class="flex"><span class="w-24 text-sm font-medium">Thursday:</span><span class="text-sm text-gray-700">${data.objectives.thursday || 'Not set'}</span></div>
+                            <div class="flex"><span class="w-24 text-sm font-medium">Friday:</span><span class="text-sm text-gray-700">${data.objectives.friday || 'Not set'}</span></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            showModal('preview-modal');
+        });
+
+        // Generate lesson plan
+        document.getElementById('generate-btn').addEventListener('click', async function() {
+            const data = getFormData();
+            
+            // Validate required fields
+            if (!data.subject || !data.grade_level || !data.week || !data.quarter) {
+                showErrorMessage('Please fill in all required fields');
+                return;
+            }
+            
+            showModal('loading-modal');
+            document.getElementById('loading-message').textContent = 'Creating your weekly lesson plan...';
+            
+            try {
+                const response = await fetch('/generate-weekly-lesson-plan/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) throw new Error('Generation failed');
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    hideModal('loading-modal');
+                    showSuccessMessage('Weekly lesson plan generated successfully!');
+                    
+                    setTimeout(() => {
+                        window.location.href = '/view-weekly-lesson-plan/';
+                    }, 1000);
+                } else {
+                    throw new Error(result.error || 'Unknown error');
+                }
+            } catch (error) {
+                hideModal('loading-modal');
+                showErrorMessage('Error: ' + error.message);
+            }
+        });
+
+        // Modal close handlers
+        document.getElementById('close-preview').addEventListener('click', () => hideModal('preview-modal'));
+        document.getElementById('close-preview-footer').addEventListener('click', () => hideModal('preview-modal'));
+        document.getElementById('generate-from-preview').addEventListener('click', () => {
+            hideModal('preview-modal');
+            document.getElementById('generate-btn').click();
+        });
+
+        // Load exemplars on page load
+        document.addEventListener('DOMContentLoaded', loadDepartmentExemplars);
     </script>
 </body>
 </html>

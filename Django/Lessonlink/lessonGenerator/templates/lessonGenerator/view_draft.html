@@ -11,7 +11,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-        }
+        }   
         
         /* Print button at top */
         .print-button-top {
@@ -451,9 +451,9 @@
 
     <!-- Back Button -->
     <div class="max-w-7xl mx-auto px-6 py-4 no-print">
-        <button onclick="goBack()" class="text-blue-600 hover:text-blue-800 font-medium">
+        <a href="{% url 'draft_list' %}"><button" class="text-blue-600 hover:text-blue-800 font-medium">
             <i class="fas fa-arrow-left mr-2"></i>Back to department drafts
-        </button>
+        </button></a>
     </div>
 
     <!-- Main Content -->
