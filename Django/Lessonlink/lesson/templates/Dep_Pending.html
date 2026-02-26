@@ -147,22 +147,22 @@
                     </div>
                 </div>
 
-                    <div class="relative">
-                        <button id="profile-btn"
-                            class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
-                            {% if user.profile_picture %}
-                            <img src="{{ user.profile_picture.url }}" 
-                                alt="Profile Picture" 
-                                class="w-full h-full object-cover"
-                                id="header-profile-img">
-                            {% else %}
-                            <i class="fas fa-user text-gray-500" id="header-profile-icon"></i>
-                            {% endif %}
-                        </button>
-                    </div>
+                <!-- Profile Section -->
+                <div class="relative">
+                    <button id="profile-btn"
+                        class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                        {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" 
+                            alt="Profile Picture" 
+                            class="w-full h-full object-cover"
+                            id="header-profile-img">
+                        {% else %}
+                        <i class="fas fa-user text-gray-500" id="header-profile-icon"></i>
+                        {% endif %}
+                    </button>
 
                     <!-- Profile Dropdown -->
-                    <div id="profile-dropdown" class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
+                    <div id="profile-dropdown" class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50 dropdown-enter">
                         <div class="p-4 border-b border-gray-100">
                             <div class="flex items-center space-x-3">
                                 <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
@@ -187,11 +187,7 @@
                                 <i class="fas fa-user w-4"></i>
                                 <span>My Profile</span>
                             </a>
-                            <a href="#"
-                                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
-                                <i class="fas fa-cog w-4"></i>
-                                <span>Settings</span>
-                            </a>
+                           
                             <hr class="my-2">
                             <a href="{% url 'logout' %}"
                             class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
@@ -208,7 +204,7 @@
     <div class="flex pt-16">
         <!-- Sidebar - Fixed and sticky -->
         <aside id="sidebar"
-            class="w-64 bg-white shadow-lg h-screen fixed top-20 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
+            class="w-64 bg-white shadow-lg h-screen fixed top-16 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
             <nav class="p-4 space-y-2">
                 <!-- Quick Actions Button -->
                 <a href="{% url 'lesson_ai' %}">
@@ -313,44 +309,120 @@
     </div>
 
     <script>
-        // Toggle mobile menu
+        // Get DOM elements
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('overlay');
-
-        mobileMenuBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('-translate-x-full');
-            overlay.classList.toggle('hidden');
-        });
-
-        overlay.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
-        });
-
-        // Toggle dropdowns
         const notificationBtn = document.getElementById('notification-btn');
         const notificationDropdown = document.getElementById('notification-dropdown');
         const profileBtn = document.getElementById('profile-btn');
         const profileDropdown = document.getElementById('profile-dropdown');
+        const notificationBadge = document.getElementById('notification-badge');
 
-        notificationBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            notificationDropdown.classList.toggle('hidden');
-            profileDropdown.classList.add('hidden');
-        });
+        // Mobile menu functionality
+        if (mobileMenuBtn && sidebar && overlay) {
+            mobileMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('hidden');
+                document.body.classList.toggle('overflow-hidden');
+            });
 
-        profileBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            profileDropdown.classList.toggle('hidden');
-            notificationDropdown.classList.add('hidden');
-        });
+            overlay.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            });
+        }
+
+        // Notification dropdown functionality
+        if (notificationBtn && notificationDropdown) {
+            notificationBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notificationDropdown.classList.toggle('hidden');
+                if (!notificationDropdown.classList.contains('hidden')) {
+                    notificationDropdown.classList.add('dropdown-enter');
+                    // Hide notification badge when opened
+                    if (notificationBadge) {
+                        notificationBadge.classList.add('hidden');
+                    }
+                    // Close profile dropdown if open
+                    if (profileDropdown) {
+                        profileDropdown.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        // Profile dropdown functionality
+        if (profileBtn && profileDropdown) {
+            profileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('hidden');
+                if (!profileDropdown.classList.contains('hidden')) {
+                    profileDropdown.classList.add('dropdown-enter');
+                    // Close notifications dropdown if open
+                    if (notificationDropdown) {
+                        notificationDropdown.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        // Prevent dropdowns from closing when clicking inside them
+        if (profileDropdown) {
+            profileDropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+
+        if (notificationDropdown) {
+            notificationDropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
 
         // Close dropdowns when clicking outside
-        document.addEventListener('click', () => {
-            notificationDropdown.classList.add('hidden');
-            profileDropdown.classList.add('hidden');
+        document.addEventListener('click', (e) => {
+            if (profileBtn && profileDropdown && !profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+                profileDropdown.classList.add('hidden');
+            }
+            if (notificationBtn && notificationDropdown && !notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+                notificationDropdown.classList.add('hidden');
+            }
         });
+
+        // Close dropdowns on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (profileDropdown && !profileDropdown.classList.contains('hidden')) {
+                    profileDropdown.classList.add('hidden');
+                }
+                if (notificationDropdown && !notificationDropdown.classList.contains('hidden')) {
+                    notificationDropdown.classList.add('hidden');
+                }
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                if (sidebar) sidebar.classList.remove('-translate-x-full');
+                if (overlay) overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            } else {
+                if (sidebar) sidebar.classList.add('-translate-x-full');
+                if (overlay) overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+        });
+
+        // Show notification badge after page load (simulate new notifications)
+        setTimeout(() => {
+            if (notificationBadge) {
+                notificationBadge.classList.remove('hidden');
+            }
+        }, 2000);
     </script>
 </body>
 </html>

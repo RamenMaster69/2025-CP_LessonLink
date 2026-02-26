@@ -163,7 +163,7 @@
 
 <body class="bg-gray-50 min-h-screen">
     <!-- Header - Fixed at top -->
-    <header class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-40">
+    <header class="bg-white shadow-sm border fixed top-0 left-0 right-0 z-40">
         <div class="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
             <!-- Mobile menu button -->
             <button id="mobile-menu-btn"
@@ -244,22 +244,22 @@
                     </div>
                 </div>
 
-                    <div class="relative">
-                        <button id="profile-btn"
-                            class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
-                            {% if user.profile_picture %}
-                            <img src="{{ user.profile_picture.url }}" 
-                                alt="Profile Picture" 
-                                class="w-full h-full object-cover"
-                                id="header-profile-img">
-                            {% else %}
-                            <i class="fas fa-user text-gray-500" id="header-profile-icon"></i>
-                            {% endif %}
-                        </button>
-                    </div>
+                <!-- Profile Section -->
+                <div class="relative">
+                    <button id="profile-btn"
+                        class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                        {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" 
+                            alt="Profile Picture" 
+                            class="w-full h-full object-cover"
+                            id="header-profile-img">
+                        {% else %}
+                        <i class="fas fa-user text-gray-500" id="header-profile-icon"></i>
+                        {% endif %}
+                    </button>
 
                     <!-- Profile Dropdown -->
-                    <div id="profile-dropdown" class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
+                    <div id="profile-dropdown" class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50 dropdown-enter">
                         <div class="p-4 border-b border-gray-100">
                             <div class="flex items-center space-x-3">
                                 <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
@@ -284,11 +284,7 @@
                                 <i class="fas fa-user w-4"></i>
                                 <span>My Profile</span>
                             </a>
-                            <a href="#"
-                                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
-                                <i class="fas fa-cog w-4"></i>
-                                <span>Settings</span>
-                            </a>
+                            
                             <hr class="my-2">
                             <a href="{% url 'logout' %}"
                             class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
@@ -305,7 +301,7 @@
     <div class="flex pt-16">
         <!-- Sidebar - Fixed and sticky -->
         <aside id="sidebar"
-            class="w-64 bg-white shadow-lg h-screen fixed top-20 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
+            class="w-64 bg-white shadow-lg h-screen fixed top-16 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
             <nav class="p-4 space-y-2">
                 <!-- Quick Actions Button -->
                 <a href="{% url 'lesson_ai' %}">
@@ -332,7 +328,7 @@
                     <span>Exemplar</span>
                 </a>
                 <a href="{% url 'dep_calendar' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group]">
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-calendar text-lg w-5"></i>
                     <span class="font-medium">Calendar</span>
                 </a>
@@ -584,54 +580,80 @@
             document.body.classList.toggle('overflow-hidden');
         }
 
-        mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+        }
 
-        overlay.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-        });
+        if (overlay) {
+            overlay.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            });
+        }
 
         // Profile dropdown functionality
         const profileBtn = document.getElementById('profile-btn');
         const profileDropdown = document.getElementById('profile-dropdown');
-
-        profileBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            profileDropdown.classList.toggle('hidden');
-            if (!profileDropdown.classList.contains('hidden')) {
-                profileDropdown.classList.add('dropdown-enter');
-                // Close notifications dropdown if open
-                document.getElementById('notification-dropdown').classList.add('hidden');
-            }
-        });
-
-        // Notification dropdown functionality
         const notificationBtn = document.getElementById('notification-btn');
         const notificationDropdown = document.getElementById('notification-dropdown');
         const notificationBadge = document.getElementById('notification-badge');
 
-        notificationBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            notificationDropdown.classList.toggle('hidden');
-            if (!notificationDropdown.classList.contains('hidden')) {
-                notificationDropdown.classList.add('dropdown-enter');
-                // Hide notification badge when opened
-                notificationBadge.classList.add('hidden');
-                // Close profile dropdown if open
-                profileDropdown.classList.add('hidden');
-            }
-        });
+        if (profileBtn && profileDropdown) {
+            profileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('hidden');
+                if (!profileDropdown.classList.contains('hidden')) {
+                    profileDropdown.classList.add('dropdown-enter');
+                    // Close notifications dropdown if open
+                    if (notificationDropdown) {
+                        notificationDropdown.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        // Notification dropdown functionality
+        if (notificationBtn && notificationDropdown) {
+            notificationBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notificationDropdown.classList.toggle('hidden');
+                if (!notificationDropdown.classList.contains('hidden')) {
+                    notificationDropdown.classList.add('dropdown-enter');
+                    // Hide notification badge when opened
+                    if (notificationBadge) {
+                        notificationBadge.classList.add('hidden');
+                    }
+                    // Close profile dropdown if open
+                    if (profileDropdown) {
+                        profileDropdown.classList.add('hidden');
+                    }
+                }
+            });
+        }
 
         // Close dropdowns when clicking outside
         document.addEventListener('click', (e) => {
-            if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+            if (profileBtn && profileDropdown && !profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
                 profileDropdown.classList.add('hidden');
             }
-            if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+            if (notificationBtn && notificationDropdown && !notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
                 notificationDropdown.classList.add('hidden');
             }
         });
+
+        // Prevent dropdowns from closing when clicking inside them
+        if (profileDropdown) {
+            profileDropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+
+        if (notificationDropdown) {
+            notificationDropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
 
         // Real-time data refresh functionality
         const refreshBtn = document.getElementById('refresh-btn');
@@ -640,13 +662,17 @@
         async function refreshFacultyData() {
             try {
                 // Show loading state
-                refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Refreshing...</span>';
-                refreshBtn.disabled = true;
+                if (refreshBtn) {
+                    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Refreshing...</span>';
+                    refreshBtn.disabled = true;
+                }
 
                 // Add updating animation to stats cards
-                statsCards.querySelectorAll('> div').forEach(card => {
-                    card.classList.add('updating');
-                });
+                if (statsCards) {
+                    statsCards.querySelectorAll('> div').forEach(card => {
+                        card.classList.add('updating');
+                    });
+                }
 
                 // Simulate API call to refresh data
                 // In a real application, you would make an AJAX call to your backend
@@ -658,19 +684,25 @@
             } catch (error) {
                 console.error('Error refreshing data:', error);
                 // Reset button state
-                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i><span>Refresh</span>';
-                refreshBtn.disabled = false;
+                if (refreshBtn) {
+                    refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i><span>Refresh</span>';
+                    refreshBtn.disabled = false;
+                }
                 
                 // Remove updating animation
-                statsCards.querySelectorAll('> div').forEach(card => {
-                    card.classList.remove('updating');
-                });
+                if (statsCards) {
+                    statsCards.querySelectorAll('> div').forEach(card => {
+                        card.classList.remove('updating');
+                    });
+                }
 
                 alert('Error refreshing data. Please try again.');
             }
         }
 
-        refreshBtn.addEventListener('click', refreshFacultyData);
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', refreshFacultyData);
+        }
 
         // Auto-refresh data every 5 minutes
         setInterval(refreshFacultyData, 5 * 60 * 1000);
@@ -681,87 +713,99 @@
         const printTableBody = document.getElementById('print-table-body');
         const printDate = document.getElementById('print-date');
 
-        printBtn.addEventListener('click', () => {
-            // Clear previous content
-            printTableBody.innerHTML = '';
-            
-            // Get current date and time
-            const now = new Date();
-            const dateOptions = { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            };
-            printDate.textContent = now.toLocaleDateString('en-US', dateOptions);
-            
-            // Extract data from the main table
-            const mainTable = document.getElementById('faculty-table');
-            const rows = mainTable.querySelectorAll('tbody tr');
-            
-            rows.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                if (cells.length > 0) {
-                    // Extract faculty name and email
-                    const nameCell = cells[0];
-                    const nameElement = nameCell.querySelector('.text-gray-900');
-                    const emailElement = nameCell.querySelector('.text-gray-500');
+        if (printBtn) {
+            printBtn.addEventListener('click', () => {
+                // Clear previous content
+                if (printTableBody) {
+                    printTableBody.innerHTML = '';
+                }
+                
+                // Get current date and time
+                const now = new Date();
+                const dateOptions = { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                };
+                if (printDate) {
+                    printDate.textContent = now.toLocaleDateString('en-US', dateOptions);
+                }
+                
+                // Extract data from the main table
+                const mainTable = document.getElementById('faculty-table');
+                if (mainTable) {
+                    const rows = mainTable.querySelectorAll('tbody tr');
                     
-                    const name = nameElement ? nameElement.textContent.trim() : '';
-                    const email = emailElement ? emailElement.textContent.trim() : '';
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length > 0) {
+                            // Extract faculty name and email
+                            const nameCell = cells[0];
+                            const nameElement = nameCell ? nameCell.querySelector('.text-gray-900') : null;
+                            const emailElement = nameCell ? nameCell.querySelector('.text-gray-500') : null;
+                            
+                            const name = nameElement ? nameElement.textContent.trim() : '';
+                            const email = emailElement ? emailElement.textContent.trim() : '';
+                            
+                            // Extract role
+                            const roleSpan = cells[1] ? cells[1].querySelector('span') : null;
+                            const role = roleSpan ? roleSpan.textContent.trim() : '';
+                            
+                            // Extract status
+                            const statusSpan = cells[2] ? cells[2].querySelector('span') : null;
+                            const status = statusSpan ? statusSpan.textContent.trim() : '';
+                            
+                            // Extract last active
+                            const lastActive = cells[3] ? cells[3].textContent.trim() : '';
+                            
+                            // Extract pending reviews
+                            const pendingSpan = cells[4] ? cells[4].querySelector('span') : null;
+                            const pendingReviews = pendingSpan ? pendingSpan.textContent.trim() : '';
+                            
+                            // Create print table row
+                            const printRow = document.createElement('tr');
+                            printRow.innerHTML = `
+                                <td>${name}</td>
+                                <td>${email}</td>
+                                <td>${role}</td>
+                                <td>${status}</td>
+                                <td>${lastActive}</td>
+                                <td>${pendingReviews}</td>
+                            `;
+                            if (printTableBody) {
+                                printTableBody.appendChild(printRow);
+                            }
+                        }
+                    });
+                }
+                
+                // Show the printable section and trigger print
+                if (printableSection) {
+                    printableSection.style.display = 'block';
                     
-                    // Extract role
-                    const roleSpan = cells[1].querySelector('span');
-                    const role = roleSpan ? roleSpan.textContent.trim() : '';
-                    
-                    // Extract status
-                    const statusSpan = cells[2].querySelector('span');
-                    const status = statusSpan ? statusSpan.textContent.trim() : '';
-                    
-                    // Extract last active
-                    const lastActive = cells[3] ? cells[3].textContent.trim() : '';
-                    
-                    // Extract pending reviews
-                    const pendingSpan = cells[4].querySelector('span');
-                    const pendingReviews = pendingSpan ? pendingSpan.textContent.trim() : '';
-                    
-                    // Create print table row
-                    const printRow = document.createElement('tr');
-                    printRow.innerHTML = `
-                        <td>${name}</td>
-                        <td>${email}</td>
-                        <td>${role}</td>
-                        <td>${status}</td>
-                        <td>${lastActive}</td>
-                        <td>${pendingReviews}</td>
-                    `;
-                    printTableBody.appendChild(printRow);
+                    // Use setTimeout to ensure the content is rendered before printing
+                    setTimeout(() => {
+                        window.print();
+                        // Hide the printable section after print dialog closes/completes
+                        setTimeout(() => {
+                            printableSection.style.display = 'none';
+                        }, 100);
+                    }, 100);
                 }
             });
-            
-            // Show the printable section and trigger print
-            printableSection.style.display = 'block';
-            
-            // Use setTimeout to ensure the content is rendered before printing
-            setTimeout(() => {
-                window.print();
-                // Hide the printable section after print dialog closes/completes
-                setTimeout(() => {
-                    printableSection.style.display = 'none';
-                }, 100);
-            }, 100);
-        });
+        }
 
         // Handle window resize
         window.addEventListener('resize', () => {
             if (window.innerWidth >= 768) {
-                sidebar.classList.remove('-translate-x-full');
-                overlay.classList.add('hidden');
+                if (sidebar) sidebar.classList.remove('-translate-x-full');
+                if (overlay) overlay.classList.add('hidden');
                 document.body.classList.remove('overflow-hidden');
             } else {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
+                if (sidebar) sidebar.classList.add('-translate-x-full');
+                if (overlay) overlay.classList.add('hidden');
                 document.body.classList.remove('overflow-hidden');
             }
         });
@@ -826,13 +870,15 @@
 
         // Show notification badge after page load (simulate new notifications)
         setTimeout(() => {
-            notificationBadge.classList.remove('hidden');
+            if (notificationBadge) {
+                notificationBadge.classList.remove('hidden');
+            }
         }, 2000);
 
         // Handle print events
         window.addEventListener('beforeprint', () => {
             // Ensure printable section is visible before printing
-            if (printableSection.style.display === 'none') {
+            if (printableSection && printableSection.style.display === 'none') {
                 printableSection.style.display = 'block';
             }
         });
@@ -840,7 +886,9 @@
         window.addEventListener('afterprint', () => {
             // Hide printable section after printing
             setTimeout(() => {
-                printableSection.style.display = 'none';
+                if (printableSection) {
+                    printableSection.style.display = 'none';
+                }
             }, 100);
         });
 
