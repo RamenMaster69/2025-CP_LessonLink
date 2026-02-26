@@ -551,13 +551,27 @@
             showModal('preview-modal');
         });
 
-        // Generate lesson plan
+        // Update the generate button click handler
         document.getElementById('generate-btn').addEventListener('click', async function() {
             const data = getFormData();
             
             // Validate required fields
             if (!data.subject || !data.grade_level || !data.week || !data.quarter) {
                 showErrorMessage('Please fill in all required fields');
+                return;
+            }
+            
+            // Check if at least one objective is provided
+            const objectives = [
+                document.getElementById('objective-mon').value,
+                document.getElementById('objective-tue').value,
+                document.getElementById('objective-wed').value,
+                document.getElementById('objective-thu').value,
+                document.getElementById('objective-fri').value
+            ];
+            
+            if (!objectives.some(obj => obj.trim() !== '')) {
+                showErrorMessage('Please provide at least one daily learning objective');
                 return;
             }
             
@@ -574,14 +588,22 @@
                     body: JSON.stringify(data)
                 });
                 
-                if (!response.ok) throw new Error('Generation failed');
-                
                 const result = await response.json();
+                
+                if (!response.ok) {
+                    if (result.validation_error) {
+                        hideModal('loading-modal');
+                        showValidationError(result);
+                        return;
+                    }
+                    throw new Error(result.error || `HTTP error! status: ${response.status}`);
+                }
                 
                 if (result.success) {
                     hideModal('loading-modal');
                     showSuccessMessage('Weekly lesson plan generated successfully!');
                     
+                    // Store in session and redirect
                     setTimeout(() => {
                         window.location.href = '/view-weekly-lesson-plan/';
                     }, 1000);
@@ -594,6 +616,35 @@
             }
         });
 
+        // Add validation error display function
+        function showValidationError(errorData) {
+            const errorModal = document.createElement('div');
+            errorModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            errorModal.innerHTML = `
+                <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6">
+                    <div class="flex items-center text-red-600 mb-4">
+                        <i class="fas fa-exclamation-circle text-2xl mr-3"></i>
+                        <h3 class="text-lg font-semibold">Input Validation Error</h3>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-gray-700">${errorData.error}</p>
+                        ${errorData.analysis_explanation ? `
+                        <div class="mt-3 p-3 bg-yellow-50 rounded">
+                            <p class="text-sm text-yellow-800">${errorData.analysis_explanation}</p>
+                        </div>
+                        ` : ''}
+                    </div>
+                    <div class="flex justify-end">
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                                class="px-4 py-2 bg-[#11468F] text-white rounded-lg hover:bg-[#0d3a7a]">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(errorModal);
+}
+
         // Modal close handlers
         document.getElementById('close-preview').addEventListener('click', () => hideModal('preview-modal'));
         document.getElementById('close-preview-footer').addEventListener('click', () => hideModal('preview-modal'));
@@ -604,6 +655,234 @@
 
         // Load exemplars on page load
         document.addEventListener('DOMContentLoaded', loadDepartmentExemplars);
+
+        
+        // Add to your existing lesson_ai_weekly.html script section
+
+        // ==================== WEEKLY LESSON PLAN VALIDATION ====================
+
+        function validateWeeklyForm() {
+            const subject = document.getElementById('subject').value;
+            const gradeLevel = document.getElementById('grade-level').value;
+            const week = document.getElementById('week-number').value;
+            const quarter = document.getElementById('quarter').value;
+            
+            if (!subject) {
+                showErrorMessage('Please select a subject');
+                return false;
+            }
+            if (!gradeLevel) {
+                showErrorMessage('Please select a grade level');
+                return false;
+            }
+            if (!week) {
+                showErrorMessage('Please select a week number');
+                return false;
+            }
+            if (!quarter) {
+                showErrorMessage('Please select a quarter');
+                return false;
+            }
+            
+            // Check if at least one objective is provided
+            const objectives = [
+                document.getElementById('objective-mon').value,
+                document.getElementById('objective-tue').value,
+                document.getElementById('objective-wed').value,
+                document.getElementById('objective-thu').value,
+                document.getElementById('objective-fri').value
+            ];
+            
+            if (!objectives.some(obj => obj.trim() !== '')) {
+                showErrorMessage('Please provide at least one daily learning objective');
+                return false;
+            }
+            
+            return true;
+        }
+
+        // ==================== EXEMPLAR COMPATIBILITY CHECK ====================
+
+        async function checkWeeklyExemplarCompatibility() {
+            const exemplarId = document.getElementById('exemplar-select').value;
+            const subject = document.getElementById('subject').value;
+            
+            if (!exemplarId || !subject) return;
+            
+            try {
+                const response = await fetch('/check-exemplar-compatibility/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify({
+                        subject: subject,
+                        exemplar_id: exemplarId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                const exemplarSelect = document.getElementById('exemplar-select');
+                
+                if (!data.compatible) {
+                    exemplarSelect.classList.add('border-yellow-500', 'bg-yellow-50');
+                    
+                    // Show warning
+                    let warning = document.getElementById('exemplar-warning');
+                    if (!warning) {
+                        warning = document.createElement('p');
+                        warning.id = 'exemplar-warning';
+                        warning.className = 'text-xs text-yellow-600 mt-1';
+                        exemplarSelect.parentElement.appendChild(warning);
+                    }
+                    warning.textContent = '⚠️ This exemplar may not match your subject. Consider selecting a different one.';
+                } else {
+                    exemplarSelect.classList.remove('border-yellow-500', 'bg-yellow-50');
+                    const warning = document.getElementById('exemplar-warning');
+                    if (warning) warning.remove();
+                }
+            } catch (error) {
+                console.error('Compatibility check failed:', error);
+            }
+        }
+
+        // ==================== SAVE WEEKLY PLAN AS DRAFT ====================
+
+        async function saveWeeklyPlanAsDraft() {
+            const data = getFormData();
+            
+            // Validate
+            if (!data.subject || !data.grade_level || !data.week || !data.quarter) {
+                showErrorMessage('Please fill in all required fields');
+                return;
+            }
+            
+            showModal('loading-modal');
+            document.getElementById('loading-message').textContent = 'Saving weekly lesson plan...';
+            
+            try {
+                const response = await fetch('/save-weekly-lesson-plan/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                hideModal('loading-modal');
+                
+                if (result.success) {
+                    showSuccessMessage(result.message);
+                    setTimeout(() => {
+                        window.location.href = result.redirect_url || '/drafts/weekly/';
+                    }, 1500);
+                } else {
+                    showErrorMessage(result.error || 'Failed to save');
+                }
+            } catch (error) {
+                hideModal('loading-modal');
+                showErrorMessage('Network error');
+            }
+        }
+
+        // ==================== AUTO-SAVE FUNCTIONALITY ====================
+
+        let autoSaveTimer;
+        function setupAutoSave() {
+            const formInputs = document.querySelectorAll('input, select, textarea');
+            
+            formInputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    clearTimeout(autoSaveTimer);
+                    autoSaveTimer = setTimeout(() => {
+                        // Auto-save to localStorage
+                        const data = getFormData();
+                        localStorage.setItem('weekly_plan_draft', JSON.stringify({
+                            data: data,
+                            timestamp: new Date().toISOString()
+                        }));
+                        console.log('Auto-saved to localStorage');
+                    }, 3000);
+                });
+            });
+        }
+
+        function loadAutoSavedDraft() {
+            const saved = localStorage.getItem('weekly_plan_draft');
+            if (saved) {
+                try {
+                    const { data, timestamp } = JSON.parse(saved);
+                    const savedTime = new Date(timestamp);
+                    const now = new Date();
+                    const hoursDiff = (now - savedTime) / (1000 * 60 * 60);
+                    
+                    // Only load if saved less than 24 hours ago
+                    if (hoursDiff < 24) {
+                        if (confirm('You have an unsaved draft from ' + savedTime.toLocaleString() + '. Would you like to restore it?')) {
+                            // Restore form data
+                            document.getElementById('weekly-lesson-title').value = data.title || '';
+                            document.getElementById('subject').value = data.subject || '';
+                            document.getElementById('grade-level').value = data.grade_level || '';
+                            document.getElementById('week-number').value = data.week || '';
+                            document.getElementById('quarter').value = data.quarter || '';
+                            document.getElementById('content-standards').value = data.content_standards || '';
+                            document.getElementById('performance-standards').value = data.performance_standards || '';
+                            document.getElementById('objective-mon').value = data.objectives?.monday || '';
+                            document.getElementById('objective-tue').value = data.objectives?.tuesday || '';
+                            document.getElementById('objective-wed').value = data.objectives?.wednesday || '';
+                            document.getElementById('objective-thu').value = data.objectives?.thursday || '';
+                            document.getElementById('objective-fri').value = data.objectives?.friday || '';
+                            document.getElementById('intelligence-type').value = data.intelligence_type || 'comprehensive';
+                            
+                            showSuccessMessage('Draft restored!');
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error loading draft:', e);
+                }
+            }
+        }
+
+        // ==================== INITIALIZATION ====================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load exemplars
+            loadDepartmentExemplars();
+            
+            // Setup auto-save
+            setupAutoSave();
+            
+            // Load auto-saved draft
+            loadAutoSavedDraft();
+            
+            // Add event listeners for exemplar compatibility
+            document.getElementById('subject').addEventListener('change', checkWeeklyExemplarCompatibility);
+            document.getElementById('exemplar-select').addEventListener('change', checkWeeklyExemplarCompatibility);
+            
+            // Override generate button to include validation
+            const generateBtn = document.getElementById('generate-btn');
+            if (generateBtn) {
+                const originalClick = generateBtn.onclick;
+                generateBtn.onclick = function(e) {
+                    if (!validateWeeklyForm()) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    return originalClick ? originalClick.call(this, e) : null;
+                };
+            }
+            
+            // Add save as draft button functionality if exists
+            const saveDraftBtn = document.getElementById('save-draft-btn');
+            if (saveDraftBtn) {
+                saveDraftBtn.addEventListener('click', saveWeeklyPlanAsDraft);
+            }
+        });
     </script>
 </body>
 </html>

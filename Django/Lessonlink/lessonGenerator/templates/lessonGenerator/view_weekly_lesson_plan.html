@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LessonLink - Weekly Lesson Plan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #11468F 0%, #9E5EFF 100%);
+        }
+        .lesson-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .lesson-table th, .lesson-table td {
+            border: 1px solid #e5e7eb;
+            padding: 12px;
+            vertical-align: top;
+        }
+        .lesson-table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+        .section-header {
+            background-color: #f3f4f6;
+            font-weight: 700;
+            color: #11468F;
+            padding: 12px;
+            border-left: 4px solid #9E5EFF;
+            margin-top: 24px;
+            margin-bottom: 16px;
+        }
+        .content-box {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            background-color: #ffffff;
+            min-height: 80px;
+        }
+        .day-header {
+            background-color: #11468F;
+            color: white;
+            padding: 8px 12px;
+            font-weight: 600;
+            border-radius: 4px 4px 0 0;
+        }
+        .procedure-step {
+            margin-bottom: 12px;
+            border-bottom: 1px dashed #e5e7eb;
+            padding-bottom: 8px;
+        }
+        .procedure-step:last-child {
+            border-bottom: none;
+        }
+        .step-label {
+            font-weight: 600;
+            color: #11468F;
+            display: inline-block;
+            width: 30px;
+        }
+        
+        /* Print styles */
+        @media print {
+            .print\:hidden {
+                display: none !important;
+            }
+            .gradient-bg {
+                background: #11468F !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .lesson-table th, .lesson-table td {
+                border: 1px solid #000 !important;
+            }
+            .section-header {
+                background-color: #f3f4f6 !important;
+                border-left: 4px solid #9E5EFF !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- Header -->
+    <div class="gradient-bg text-white px-6 py-4 print:bg-black">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between">
+                <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 print:hidden">
+                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-calendar-week text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">LessonLink</h1>
+                        <p class="text-sm text-gray-200">Weekly Lesson Plan</p>
+                    </div>
+                </a>
+                <div class="flex items-center space-x-3 print:hidden">
+                    <button onclick="window.print()" class="bg-white text-[#11468F] px-4 py-2 rounded-lg hover:bg-gray-100">
+                        <i class="fas fa-print mr-2"></i>Print
+                    </button>
+                    <a href="{% url 'save_weekly_lesson_plan' %}" 
+                       class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 save-draft-btn">
+                        <i class="fas fa-save mr-2"></i>Save as Draft
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-1">
+        <div class="max-w-6xl mx-auto px-4 py-8">
+            <!-- Generated Weekly Lesson Plan Content -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden p-8">
+                {{ weekly_plan|safe }}
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="mt-6 flex justify-end space-x-3 print:hidden">
+                <a href="{% url 'lesson_ai_weekly' %}" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    <i class="fas fa-edit mr-2"></i>Edit Inputs
+                </a>
+                <button onclick="saveAsDraft()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 save-draft-btn">
+                    <i class="fas fa-save mr-2"></i>Save as Draft
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function saveAsDraft() {
+            const btn = document.querySelector('.save-draft-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+            
+            // Make sure this is a POST request
+            fetch('/save-weekly-lesson-plan/', {
+                method: 'POST',  // Must be POST, not GET
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+                // Empty body is fine since we're using session data
+                body: JSON.stringify({})
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    showMessage('success', data.message);
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url || '/drafts/weekly/';
+                    }, 1500);
+                } else {
+                    showMessage('error', data.error || 'Failed to save');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save as Draft';
+                }
+            })
+            .catch(error => {
+                console.error('Save error:', error);
+                showMessage('error', 'Network error: ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save as Draft';
+            });
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function showMessage(type, text) {
+            const msg = document.createElement('div');
+            msg.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} z-50`;
+            msg.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>${text}`;
+            document.body.appendChild(msg);
+            setTimeout(() => msg.remove(), 3000);
+        }
+    </script>
+</body>
+</html>

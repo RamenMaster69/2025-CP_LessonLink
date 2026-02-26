@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LessonLink - Weekly Lesson Plan Template</title>
+    <title>LessonLink - View Weekly Draft</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -38,408 +38,309 @@
             border-radius: 8px;
             padding: 16px;
             background-color: #ffffff;
-            min-height: 100px;
+            min-height: 80px;
         }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-draft { background-color: #f3f4f6; color: #374151; }
+        .status-submitted { background-color: #fef3c7; color: #92400e; }
+        .status-approved { background-color: #d1fae5; color: #065f46; }
+        .status-needs_revision { background-color: #ffedd5; color: #9a3412; }
+        .status-rejected { background-color: #fee2e2; color: #991b1b; }
+        .status-final { background-color: #dbeafe; color: #1e40af; }
         
-        /* Print styles - Hide specific elements when printing */
         @media print {
-            /* Hide back button */
-            .print\:hidden, 
-            a[href*="dashboard"],
-            .back-button {
+            .print\:hidden {
                 display: none !important;
             }
-            
-            /* Hide instruction box */
-            .print\:hidden,
-            .bg-blue-50 {
-                display: none !important;
-            }
-            
-            /* Hide print and copy buttons */
-            .print\:hidden,
-            button[onclick="window.print()"],
-            button#copy-template,
-            .border-t.border-gray-200.p-4.flex {
-                display: none !important;
-            }
-            
-            /* Ensure content takes full width */
-            .max-w-6xl {
-                max-width: 100% !important;
-                padding: 0 !important;
-            }
-            
-            /* Remove shadows and borders for cleaner print */
-            .bg-white.rounded-xl.shadow-sm {
-                box-shadow: none !important;
-                border: 1px solid #000 !important;
-            }
-            
-            /* Keep header visible */
-            .gradient-bg {
-                background: #11468F !important;
-                color: white !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            
-            /* Ensure table borders print */
             .lesson-table th, .lesson-table td {
                 border: 1px solid #000 !important;
-            }
-            
-            /* Keep section headers colored */
-            .section-header {
-                background-color: #f3f4f6 !important;
-                border-left: 4px solid #9E5EFF !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
             }
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col">
-    <!-- Header exactly like the image - Always visible -->
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
     <div class="gradient-bg text-white px-6 py-4">
-        <div class="max-w-7xl mx-auto">
-            <div class="flex items-center justify-between">
-                <a href="{% url 'dashboard' %}" class="flex items-center space-x-3">
-                    {% if user_school and user_school.school_logo %}
-                    <div class="w-10 h-10 rounded-full overflow-hidden bg-white">
-                        <img src="{{ user_school.school_logo.url }}" 
-                            alt="{{ user_school.school_name }}" 
-                            class="w-full h-full object-cover">
-                    </div>
-                    {% else %}
-                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                        <i class="fas fa-calendar-week text-white text-xl"></i>
-                    </div>
-                    {% endif %}
-                    <div>
-                        <h1 class="text-xl font-bold">LessonLink</h1>
-                        <p class="text-sm text-gray-200">
-                            {% if user_school %}
-                                {{ user_school.school_name }}
-                            {% else %}
-                                {{ user.email|default:"Weekly Lesson Planner" }}
-                            {% endif %}
-                        </p>
-                    </div>
-                </a>
-                <button class="text-white hover:text-gray-200 print:hidden">
-                    <i class="fas fa-user-circle text-2xl"></i>
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <a href="{% url 'dashboard' %}" class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                    <i class="fas fa-calendar-week text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold">LessonLink</h1>
+                    <p class="text-sm text-gray-200">Weekly Lesson Plan</p>
+                </div>
+            </a>
+            <div class="flex items-center space-x-3">
+                <span class="status-badge status-{{ draft.status }}">{{ draft.get_status_display }}</span>
+                <button onclick="window.print()" class="bg-white text-[#11468F] px-4 py-2 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-print mr-2"></i>Print
                 </button>
             </div>
         </div>
     </div>
 
     <div class="flex-1">
-        <!-- Main Content -->
         <div class="max-w-6xl mx-auto px-4 py-8">
-            <!-- Back to Dashboard link - Hidden on print -->
-            <a href="{% url 'dashboard' %}" class="inline-flex items-center text-gray-600 hover:text-gray-800 mb-6 back-button print:hidden">
-                <i class="fas fa-arrow-left mr-2"></i>
-                Back to Dashboard
-            </a>
-
-            <!-- Main Card - Lesson Plan Template -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <!-- School Header Table - Exactly like the image -->
-                <table class="lesson-table">
-                    <tr>
-                        <th class="w-24">School</th>
-                        <td class="w-64" id="school-display">TUBAY NATIONAL HIGH SCHOOL</td>
-                        <th class="w-28">Grade Level</th>
-                        <td id="grade-display">GRADE 11 TVL-ICT</td>
-                    </tr>
-                    <tr>
-                        <th>Teacher</th>
-                        <td id="teacher-display">JAY MARK G. BANDOY</td>
-                        <th>Learning Area</th>
-                        <td id="learning-area-display">COMPUTER SYSTEMS SERVICING NC II</td>
-                    </tr>
-                    <tr>
-                        <th>Teaching Date and Time</th>
-                        <td id="date-display"></td>
-                        <th>Semester/Quarter</th>
-                        <td id="quarter-display">1ST SEMESTER/1ST QUARTER</td>
-                    </tr>
-                </table>
-
-                <!-- Days of the Week Row -->
-                <div class="grid grid-cols-5 border-b border-t border-gray-200 bg-gray-50">
-                    <div class="p-3 text-center font-semibold text-[#11468F] border-r">MONDAY</div>
-                    <div class="p-3 text-center font-semibold text-[#11468F] border-r">TUESDAY</div>
-                    <div class="p-3 text-center font-semibold text-[#11468F] border-r">WEDNESDAY</div>
-                    <div class="p-3 text-center font-semibold text-[#11468F] border-r">THURSDAY</div>
-                    <div class="p-3 text-center font-semibold text-[#11468F]">FRIDAY</div>
-                </div>
-
-                <!-- Lesson Plan Content Area - Paste your generated content here -->
-                <div class="p-6 space-y-6" id="lesson-content">
-                    <!-- I. OBJECTIVES -->
-                    <div>
-                        <div class="section-header">I. OBJECTIVES</div>
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <h3 class="font-semibold text-gray-700">A. Content Standards</h3>
-                                <div class="content-box mt-1" id="content-standards">
-                                    The learners demonstrate an understanding of concepts and principles in setting up computer networks
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <h3 class="font-semibold text-gray-700">B. Performance Standards</h3>
-                                <div class="content-box mt-1" id="performance-standards">
-                                    The learners shall be able to set up computer networks based established procedures and system requirements for hardware
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <h3 class="font-semibold text-gray-700">C. Learning Competencies/Objectives</h3>
-                                <div class="content-box mt-1" id="learning-competencies">
-                                    <!-- Paste daily objectives here -->
-                                    <div class="space-y-2">
-                                        <div><span class="font-medium">Monday:</span> Identify network components and their functions</div>
-                                        <div><span class="font-medium">Tuesday:</span> Design a simple computer network layout</div>
-                                        <div><span class="font-medium">Wednesday:</span> Create Ethernet cables following T568B standard</div>
-                                        <div><span class="font-medium">Thursday:</span> Configure basic router settings</div>
-                                        <div><span class="font-medium">Friday:</span> Test and troubleshoot network connectivity</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- II. CONTENT -->
-                    <div>
-                        <div class="section-header">II. CONTENT</div>
-                        <div class="grid grid-cols-5 gap-3 mt-2" id="daily-content">
-                            <div class="border rounded-lg p-3">
-                                <div class="font-medium text-[#11468F] text-sm mb-1">MONDAY</div>
-                                <div class="text-sm">Network inspection procedures</div>
-                            </div>
-                            <div class="border rounded-lg p-3">
-                                <div class="font-medium text-[#11468F] text-sm mb-1">TUESDAY</div>
-                                <div class="text-sm">Network design and planning</div>
-                            </div>
-                            <div class="border rounded-lg p-3">
-                                <div class="font-medium text-[#11468F] text-sm mb-1">WEDNESDAY</div>
-                                <div class="text-sm">Cable creation and testing</div>
-                            </div>
-                            <div class="border rounded-lg p-3">
-                                <div class="font-medium text-[#11468F] text-sm mb-1">THURSDAY</div>
-                                <div class="text-sm">Router configuration</div>
-                            </div>
-                            <div class="border rounded-lg p-3">
-                                <div class="font-medium text-[#11468F] text-sm mb-1">FRIDAY</div>
-                                <div class="text-sm">Network testing and troubleshooting</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- III. LEARNING RESOURCES -->
-                    <div>
-                        <div class="section-header">III. LEARNING RESOURCES</div>
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <h3 class="font-semibold text-gray-700">A. References</h3>
-                                <div class="grid grid-cols-2 gap-4 mt-2">
-                                    <div>
-                                        <div class="text-sm font-medium text-gray-600">1. Teacher's Guide</div>
-                                        <div class="content-box mt-1 text-sm" id="teachers-guide">Pages 45-52</div>
-                                    </div>
-                                    <div>
-                                        <div class="text-sm font-medium text-gray-600">2. Learning Materials</div>
-                                        <div class="content-box mt-1 text-sm" id="learning-materials">Module 3: Network Setup</div>
-                                    </div>
-                                    <div>
-                                        <div class="text-sm font-medium text-gray-600">3. Textbook Page</div>
-                                        <div class="content-box mt-1 text-sm" id="textbook-pages">pp. 78-95</div>
-                                    </div>
-                                    <div>
-                                        <div class="text-sm font-medium text-gray-600">4. Additional Materials from LR Portal</div>
-                                        <div class="content-box mt-1 text-sm" id="lr-portal">LRMDS Portal - Network Configuration Videos</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <h3 class="font-semibold text-gray-700">B. Other Learning Resources</h3>
-                                <div class="content-box mt-1" id="other-resources">
-                                    <ul class="list-disc list-inside text-sm space-y-1">
-                                        <li>YouTube videos on network setup</li>
-                                        <li>Network simulation software (Cisco Packet Tracer)</li>
-                                        <li>Actual routers, switches, and cables</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- IV. PROCEDURE - Daily breakdown -->
-                    <div>
-                        <div class="section-header">IV. PROCEDURE</div>
-                        
-                        <!-- Monday -->
-                        <div class="mb-6 border-l-4 border-[#11468F] pl-4">
-                            <h3 class="font-semibold text-[#11468F] mb-3">MONDAY</h3>
-                            
-                            <div class="space-y-4">
-                                <div>
-                                    <div class="font-medium text-gray-700">A. Reviewing previous lesson or presenting the new lesson</div>
-                                    <div class="content-box mt-1 text-sm" id="mon-proc-a">Review basic network concepts: IP addresses, routers, switches. Ask students to share their internet experience at home.</div>
-                                </div>
-                                <div>
-                                    <div class="font-medium text-gray-700">B. Establishing a purpose for the lesson</div>
-                                    <div class="content-box mt-1 text-sm" id="mon-proc-b">Discuss why understanding network components is essential in today's connected world.</div>
-                                </div>
-                                <div>
-                                    <div class="font-medium text-gray-700">C. Presenting examples/instances of the new lesson</div>
-                                    <div class="content-box mt-1 text-sm" id="mon-proc-c">Show actual network devices (router, switch, modem, cables) and their functions.</div>
-                                </div>
-                                <div>
-                                    <div class="font-medium text-gray-700">D. Discussing new concepts and practicing new skills #1</div>
-                                    <div class="content-box mt-1 text-sm" id="mon-proc-d">Explain the OSI model and TCP/IP layers with diagrams.</div>
-                                </div>
-                                <div>
-                                    <div class="font-medium text-gray-700">E. Discussing new concepts and practicing new skills #2</div>
-                                    <div class="content-box mt-1 text-sm" id="mon-proc-e">Group activity: Identify network components in a given diagram.</div>
-                                </div>
-                                <div>
-                                    <div class="font-medium text-gray-700">F. Developing mastery</div>
-                                    <div class="content-box mt-1 text-sm" id="mon-proc-f">Students label a network diagram and explain each component's function.</div>
-                                </div>
-                                <div>
-                                    <div class="font-medium text-gray-700">G. Finding practical applications</div>
-                                    <div class="content-box mt-1 text-sm" id="mon-proc-g">Discuss how network knowledge applies to home networking, school LAN, and business settings.</div>
-                                </div>
-                                <div>
-                                    <div class="font-medium text-gray-700">H. Making generalizations</div>
-                                    <div class="content-box mt-1 text-sm" id="mon-proc-h">Ask students to summarize the key components of a network and their relationships.</div>
-                                </div>
-                                <div>
-                                    <div class="font-medium text-gray-700">I. Evaluating learning</div>
-                                    <div class="content-box mt-1 text-sm" id="mon-proc-i">Short quiz on network components and their functions.</div>
-                                </div>
-                                <div>
-                                    <div class="font-medium text-gray-700">J. Additional activities</div>
-                                    <div class="content-box mt-1 text-sm" id="mon-proc-j">Research different network topologies for the next meeting.</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Tuesday -->
-                        <div class="mb-6 border-l-4 border-gray-300 pl-4">
-                            <h3 class="font-semibold text-gray-600 mb-3">TUESDAY</h3>
-                            
-                            <div class="space-y-4">
-                                <div>
-                                    <div class="font-medium text-gray-700">A. Reviewing previous lesson or presenting the new lesson</div>
-                                    <div class="content-box mt-1 text-sm bg-gray-50" id="tue-proc-a">Quick recap of network components. Introduce network design concepts.</div>
-                                </div>
-                                <div>
-                                    <div class="font-medium text-gray-700">B. Establishing a purpose for the lesson</div>
-                                    <div class="content-box mt-1 text-sm bg-gray-50" id="tue-proc-b">Explain why proper network planning prevents issues and ensures efficiency.</div>
-                                </div>
-                                <!-- Add more Tuesday sections as needed -->
-                            </div>
-                        </div>
-
-                        <!-- Wednesday -->
-                        <div class="mb-6 border-l-4 border-gray-300 pl-4">
-                            <h3 class="font-semibold text-gray-600 mb-3">WEDNESDAY</h3>
-                            <div class="content-box bg-gray-50">
-                                <!-- Wednesday content will go here -->
-                            </div>
-                        </div>
-
-                        <!-- Thursday -->
-                        <div class="mb-6 border-l-4 border-gray-300 pl-4">
-                            <h3 class="font-semibold text-gray-600 mb-3">THURSDAY</h3>
-                            <div class="content-box bg-gray-50">
-                                <!-- Thursday content will go here -->
-                            </div>
-                        </div>
-
-                        <!-- Friday -->
-                        <div class="mb-6 border-l-4 border-gray-300 pl-4">
-                            <h3 class="font-semibold text-gray-600 mb-3">FRIDAY</h3>
-                            <div class="content-box bg-gray-50">
-                                <!-- Friday content will go here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Print/Export Buttons - Hidden on print -->
-                <div class="border-t border-gray-200 p-4 flex justify-end gap-3 print:hidden">
-                    <button onclick="window.print()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
-                        <i class="fas fa-print mr-2"></i>Print
-                    </button>
-                    <button id="copy-template" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
-                        <i class="fas fa-copy mr-2"></i>Copy Template
-                    </button>
+            <!-- Back and Action Buttons -->
+            <div class="flex items-center justify-between mb-6 print:hidden">
+                <a href="{% url 'draft_list' %}" class="flex items-center text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Drafts
+                </a>
+                <div class="flex space-x-3">
+                    <a href="{% url 'edit_weekly_draft' draft.id %}" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                        <i class="fas fa-edit mr-2"></i>Edit
+                    </a>
+                    {% if draft.status == 'draft' %}
+                    <form method="post" action="{% url 'submit_weekly_plan' draft.id %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                            <i class="fas fa-paper-plane mr-2"></i>Submit for Review
+                        </button>
+                    </form>
+                    {% endif %}
                 </div>
             </div>
 
-            <!-- Instructions for pasting content - Hidden on print -->
-            <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 print:hidden">
-                <div class="flex items-start">
-                    <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
-                    <div>
-                        <h3 class="font-semibold text-blue-800 mb-1">How to use this template:</h3>
-                        <p class="text-sm text-blue-700">Copy your generated weekly lesson plan and paste it into the content areas above. Each section (Objectives, Content, Resources, Procedure) has designated boxes where you can replace the placeholder text with your actual lesson content.</p>
+            <!-- Main Lesson Plan Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden p-8">
+                <!-- School Header Table -->
+                <table class="lesson-table mb-8">
+                    <tr>
+                        <th class="w-24">School</th>
+                        <td>{{ draft.school|default:"TUBAY NATIONAL HIGH SCHOOL" }}</td>
+                        <th class="w-28">Grade Level</th>
+                        <td>{{ draft.grade_level|upper }}</td>
+                    </tr>
+                    <tr>
+                        <th>Teacher</th>
+                        <td>{{ draft.teacher|default:draft.created_by.get_full_name }}</td>
+                        <th>Learning Area</th>
+                        <td>{{ draft.subject|upper }}</td>
+                    </tr>
+                    <tr>
+                        <th>Teaching Date</th>
+                        <td>{{ draft.teaching_date|default:"Week "|add:draft.week_number }}</td>
+                        <th>Quarter</th>
+                        <td>{{ draft.quarter|upper }}</td>
+                    </tr>
+                </table>
+
+                <!-- I. OBJECTIVES -->
+                <div>
+                    <div class="section-header">I. OBJECTIVES</div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="font-semibold text-gray-700">A. Content Standards</h3>
+                            <div class="content-box mt-1">
+                                {{ draft.content_standard|linebreaks }}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-semibold text-gray-700">B. Performance Standards</h3>
+                            <div class="content-box mt-1">
+                                {{ draft.performance_standard|linebreaks }}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-semibold text-gray-700">C. Learning Competencies/Objectives</h3>
+                            <div class="content-box mt-1">
+                                <div class="space-y-2">
+                                    {% if objectives.monday %}<div><span class="font-medium">Monday:</span> {{ objectives.monday }}</div>{% endif %}
+                                    {% if objectives.tuesday %}<div><span class="font-medium">Tuesday:</span> {{ objectives.tuesday }}</div>{% endif %}
+                                    {% if objectives.wednesday %}<div><span class="font-medium">Wednesday:</span> {{ objectives.wednesday }}</div>{% endif %}
+                                    {% if objectives.thursday %}<div><span class="font-medium">Thursday:</span> {{ objectives.thursday }}</div>{% endif %}
+                                    {% if objectives.friday %}<div><span class="font-medium">Friday:</span> {{ objectives.friday }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </div>
+
+                <!-- II. CONTENT -->
+                <div class="mt-8">
+                    <div class="section-header">II. CONTENT</div>
+                    <div class="grid grid-cols-5 gap-3 mt-2">
+                        <div class="border rounded-lg p-3">
+                            <div class="font-medium text-[#11468F] text-sm mb-1">MONDAY</div>
+                            <div class="text-sm">{{ content.monday|default:"Introduction" }}</div>
+                        </div>
+                        <div class="border rounded-lg p-3">
+                            <div class="font-medium text-[#11468F] text-sm mb-1">TUESDAY</div>
+                            <div class="text-sm">{{ content.tuesday|default:"Skill Building" }}</div>
+                        </div>
+                        <div class="border rounded-lg p-3">
+                            <div class="font-medium text-[#11468F] text-sm mb-1">WEDNESDAY</div>
+                            <div class="text-sm">{{ content.wednesday|default:"Deep Dive" }}</div>
+                        </div>
+                        <div class="border rounded-lg p-3">
+                            <div class="font-medium text-[#11468F] text-sm mb-1">THURSDAY</div>
+                            <div class="text-sm">{{ content.thursday|default:"Practice" }}</div>
+                        </div>
+                        <div class="border rounded-lg p-3">
+                            <div class="font-medium text-[#11468F] text-sm mb-1">FRIDAY</div>
+                            <div class="text-sm">{{ content.friday|default:"Assessment" }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- III. LEARNING RESOURCES -->
+                <div class="mt-8">
+                    <div class="section-header">III. LEARNING RESOURCES</div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="font-semibold text-gray-700">A. References</h3>
+                            <div class="grid grid-cols-2 gap-4 mt-2">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-600">1. Teacher's Guide</div>
+                                    <div class="content-box mt-1 text-sm">{{ draft.teachers_guide|default:"Pages 45-52" }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-600">2. Learning Materials</div>
+                                    <div class="content-box mt-1 text-sm">{{ draft.learning_materials|default:"Module 3" }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-600">3. Textbook Page</div>
+                                    <div class="content-box mt-1 text-sm">{{ draft.textbook_pages|default:"pp. 78-95" }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-600">4. Additional Materials from LR Portal</div>
+                                    <div class="content-box mt-1 text-sm">{{ draft.lr_portal|default:"LRMDS Portal" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-semibold text-gray-700">B. Other Learning Resources</h3>
+                            <div class="content-box mt-1">
+                                {{ draft.other_resources|default:"Videos, real objects, online simulations"|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IV. PROCEDURE - Daily breakdown -->
+                <div class="mt-8">
+                    <div class="section-header">IV. PROCEDURE</div>
+                    
+                    {% for day, day_procedures in procedures.items %}
+                    <div class="mb-8 {% if day == 'monday' %}border-l-4 border-[#11468F] pl-4{% else %}border-l-4 border-gray-300 pl-4{% endif %}">
+                        <h3 class="font-semibold text-{% if day == 'monday' %}[#11468F]{% else %}gray-600{% endif %} mb-3">{{ day|upper }}</h3>
+                        
+                        <div class="space-y-3">
+                            {% if day_procedures.a %}
+                            <div class="procedure-step">
+                                <span class="step-label">A.</span> {{ day_procedures.a }}
+                            </div>
+                            {% endif %}
+                            {% if day_procedures.b %}
+                            <div class="procedure-step">
+                                <span class="step-label">B.</span> {{ day_procedures.b }}
+                            </div>
+                            {% endif %}
+                            {% if day_procedures.c %}
+                            <div class="procedure-step">
+                                <span class="step-label">C.</span> {{ day_procedures.c }}
+                            </div>
+                            {% endif %}
+                            {% if day_procedures.d %}
+                            <div class="procedure-step">
+                                <span class="step-label">D.</span> {{ day_procedures.d }}
+                            </div>
+                            {% endif %}
+                            {% if day_procedures.e %}
+                            <div class="procedure-step">
+                                <span class="step-label">E.</span> {{ day_procedures.e }}
+                            </div>
+                            {% endif %}
+                            {% if day_procedures.f %}
+                            <div class="procedure-step">
+                                <span class="step-label">F.</span> {{ day_procedures.f }}
+                            </div>
+                            {% endif %}
+                            {% if day_procedures.g %}
+                            <div class="procedure-step">
+                                <span class="step-label">G.</span> {{ day_procedures.g }}
+                            </div>
+                            {% endif %}
+                            {% if day_procedures.h %}
+                            <div class="procedure-step">
+                                <span class="step-label">H.</span> {{ day_procedures.h }}
+                            </div>
+                            {% endif %}
+                            {% if day_procedures.i %}
+                            <div class="procedure-step">
+                                <span class="step-label">I.</span> {{ day_procedures.i }}
+                            </div>
+                            {% endif %}
+                            {% if day_procedures.j %}
+                            <div class="procedure-step">
+                                <span class="step-label">J.</span> {{ day_procedures.j }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Submission Info -->
+                {% if latest_submission %}
+                <div class="mt-8 p-4 bg-gray-50 rounded-lg">
+                    <h3 class="font-semibold text-gray-900 mb-2">Submission Status</h3>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-600">Status:</span>
+                            <span class="status-badge status-{{ latest_submission.status }} ml-2">
+                                {{ latest_submission.get_status_display }}
+                            </span>
+                        </div>
+                        <div><span class="text-gray-600">Submitted to:</span> {{ latest_submission.submitted_to.full_name }}</div>
+                        <div><span class="text-gray-600">Date:</span> {{ latest_submission.submission_date|date:"F d, Y" }}</div>
+                        {% if latest_submission.reviewed_at %}
+                        <div><span class="text-gray-600">Reviewed:</span> {{ latest_submission.reviewed_at|date:"F d, Y" }}</div>
+                        {% endif %}
+                    </div>
+                    {% if latest_submission.feedback %}
+                    <div class="mt-3">
+                        <span class="text-gray-600">Feedback:</span>
+                        <div class="mt-1 p-3 bg-white rounded border">
+                            {{ latest_submission.feedback|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Intelligence Type Badge -->
+                <div class="mt-4 text-right text-sm text-gray-500">
+                    <i class="fas fa-brain mr-1"></i> {{ intelligence_display }}
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Function to populate template with generated data
-        function populateTemplate(data) {
-            // School info
-            if (data.school) document.getElementById('school-display').textContent = data.school;
-            if (data.teacher) document.getElementById('teacher-display').textContent = data.teacher;
-            if (data.grade) document.getElementById('grade-display').textContent = data.grade;
-            if (data.learningArea) document.getElementById('learning-area-display').textContent = data.learningArea;
-            if (data.date) document.getElementById('date-display').textContent = data.date;
-            if (data.quarter) document.getElementById('quarter-display').textContent = data.quarter;
-            
-            // Objectives
-            if (data.contentStandards) document.getElementById('content-standards').innerHTML = data.contentStandards;
-            if (data.performanceStandards) document.getElementById('performance-standards').innerHTML = data.performanceStandards;
-            if (data.learningCompetencies) document.getElementById('learning-competencies').innerHTML = data.learningCompetencies;
-            
-            // Add more population logic as needed
-        }
-
-        // Copy template to clipboard
-        document.getElementById('copy-template').addEventListener('click', function() {
-            const template = document.getElementById('lesson-content').innerHTML;
-            navigator.clipboard.writeText(template).then(() => {
-                alert('Template copied to clipboard!');
-            }).catch(() => {
-                alert('Failed to copy template');
-            });
-        });
-
-        // Check for data in localStorage (if coming from generator)
-        window.addEventListener('load', function() {
-            const savedData = localStorage.getItem('weeklyLessonResult');
-            if (savedData) {
-                try {
-                    const data = JSON.parse(savedData);
-                    populateTemplate(data);
-                } catch (e) {
-                    console.error('Error loading saved data:', e);
-                }
-            }
-        });
+        // Show success/error messages from Django
+        {% if messages %}
+            {% for message in messages %}
+            setTimeout(() => {
+                const msg = document.createElement('div');
+                msg.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white ${message.tags === 'success' ? 'bg-green-500' : 'bg-red-500'} z-50`;
+                msg.innerHTML = `<i class="fas fa-${message.tags === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>${message}`;
+                document.body.appendChild(msg);
+                setTimeout(() => msg.remove(), 3000);
+            }, 100);
+            {% endfor %}
+        {% endif %}
     </script>
 </body>
 </html>

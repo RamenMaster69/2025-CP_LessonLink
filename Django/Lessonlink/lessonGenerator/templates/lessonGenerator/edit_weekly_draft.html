@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LessonLink - Edit Weekly Draft</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #11468F 0%, #9E5EFF 100%);
+        }
+        .section-tab {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .section-tab.active {
+            border-bottom-color: #11468F;
+            color: #11468F;
+            font-weight: 600;
+        }
+        .day-tab {
+            padding: 8px 12px;
+            cursor: pointer;
+            background-color: #f3f4f6;
+            border-radius: 4px 4px 0 0;
+        }
+        .day-tab.active {
+            background-color: #11468F;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="gradient-bg text-white px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <h1 class="text-xl font-bold">Edit Weekly Lesson Plan</h1>
+            <a href="{% url 'view_weekly_draft' draft.id %}" class="bg-white text-[#11468F] px-4 py-2 rounded-lg hover:bg-gray-100">
+                <i class="fas fa-eye mr-2"></i>View Mode
+            </a>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Basic Info Section -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold mb-4">Basic Information</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                        <input type="text" name="title" value="{{ draft.title }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                        <input type="text" name="subject" value="{{ draft.subject }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Grade Level</label>
+                        <input type="text" name="grade_level" value="{{ draft.grade_level }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Quarter</label>
+                        <input type="text" name="quarter" value="{{ draft.quarter }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Week Number</label>
+                        <input type="number" name="week_number" value="{{ draft.week_number }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Teaching Date</label>
+                        <input type="text" name="teaching_date" value="{{ draft.teaching_date }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">School</label>
+                        <input type="text" name="school" value="{{ draft.school }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Teacher</label>
+                        <input type="text" name="teacher" value="{{ draft.teacher }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Standards -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold mb-4">Weekly Standards</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Content Standards</label>
+                        <textarea name="content_standard" rows="3" class="w-full border rounded-lg px-3 py-2">{{ draft.content_standard }}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Performance Standards</label>
+                        <textarea name="performance_standard" rows="3" class="w-full border rounded-lg px-3 py-2">{{ draft.performance_standard }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Objectives -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold mb-4">Daily Learning Objectives</h2>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Monday</label>
+                        <input type="text" name="objective_monday" value="{{ objectives.monday }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tuesday</label>
+                        <input type="text" name="objective_tuesday" value="{{ objectives.tuesday }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Wednesday</label>
+                        <input type="text" name="objective_wednesday" value="{{ objectives.wednesday }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Thursday</label>
+                        <input type="text" name="objective_thursday" value="{{ objectives.thursday }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Friday</label>
+                        <input type="text" name="objective_friday" value="{{ objectives.friday }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Content -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold mb-4">Daily Content/Topics</h2>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Monday</label>
+                        <input type="text" name="content_monday" value="{{ content.monday }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tuesday</label>
+                        <input type="text" name="content_tuesday" value="{{ content.tuesday }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Wednesday</label>
+                        <input type="text" name="content_wednesday" value="{{ content.wednesday }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Thursday</label>
+                        <input type="text" name="content_thursday" value="{{ content.thursday }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Friday</label>
+                        <input type="text" name="content_friday" value="{{ content.friday }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Resources -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold mb-4">Learning Resources</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Teacher's Guide</label>
+                        <input type="text" name="teachers_guide" value="{{ draft.teachers_guide }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Learning Materials</label>
+                        <input type="text" name="learning_materials" value="{{ draft.learning_materials }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Textbook Pages</label>
+                        <input type="text" name="textbook_pages" value="{{ draft.textbook_pages }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">LR Portal</label>
+                        <input type="text" name="lr_portal" value="{{ draft.lr_portal }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Other Resources</label>
+                        <textarea name="other_resources" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.other_resources }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Procedures Tabs -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="flex border-b">
+                    <div class="day-tab active" onclick="showDay('monday')">MONDAY</div>
+                    <div class="day-tab" onclick="showDay('tuesday')">TUESDAY</div>
+                    <div class="day-tab" onclick="showDay('wednesday')">WEDNESDAY</div>
+                    <div class="day-tab" onclick="showDay('thursday')">THURSDAY</div>
+                    <div class="day-tab" onclick="showDay('friday')">FRIDAY</div>
+                </div>
+                
+                <div class="p-6">
+                    <!-- Monday -->
+                    <div id="monday-procedures" class="day-procedures">
+                        <h3 class="font-semibold mb-4">Monday Procedures</h3>
+                        <div class="space-y-4">
+                            <div><label class="block text-sm font-medium">A. Reviewing previous lesson</label><textarea name="monday_procedure_a" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.monday_procedure_a }}</textarea></div>
+                            <div><label class="block text-sm font-medium">B. Establishing purpose</label><textarea name="monday_procedure_b" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.monday_procedure_b }}</textarea></div>
+                            <div><label class="block text-sm font-medium">C. Presenting examples</label><textarea name="monday_procedure_c" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.monday_procedure_c }}</textarea></div>
+                            <div><label class="block text-sm font-medium">D. Discussing concepts #1</label><textarea name="monday_procedure_d" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.monday_procedure_d }}</textarea></div>
+                            <div><label class="block text-sm font-medium">E. Discussing concepts #2</label><textarea name="monday_procedure_e" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.monday_procedure_e }}</textarea></div>
+                            <div><label class="block text-sm font-medium">F. Developing mastery</label><textarea name="monday_procedure_f" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.monday_procedure_f }}</textarea></div>
+                            <div><label class="block text-sm font-medium">G. Practical applications</label><textarea name="monday_procedure_g" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.monday_procedure_g }}</textarea></div>
+                            <div><label class="block text-sm font-medium">H. Generalizations</label><textarea name="monday_procedure_h" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.monday_procedure_h }}</textarea></div>
+                            <div><label class="block text-sm font-medium">I. Evaluating learning</label><textarea name="monday_procedure_i" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.monday_procedure_i }}</textarea></div>
+                            <div><label class="block text-sm font-medium">J. Additional activities</label><textarea name="monday_procedure_j" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.monday_procedure_j }}</textarea></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tuesday (similar structure) - hidden initially -->
+                    <div id="tuesday-procedures" class="day-procedures hidden">
+                        <h3 class="font-semibold mb-4">Tuesday Procedures</h3>
+                        <div class="space-y-4">
+                            <div><label class="block text-sm font-medium">A. Reviewing previous lesson</label><textarea name="tuesday_procedure_a" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.tuesday_procedure_a }}</textarea></div>
+                            <div><label class="block text-sm font-medium">B. Establishing purpose</label><textarea name="tuesday_procedure_b" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.tuesday_procedure_b }}</textarea></div>
+                            <div><label class="block text-sm font-medium">C. Presenting examples</label><textarea name="tuesday_procedure_c" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.tuesday_procedure_c }}</textarea></div>
+                            <div><label class="block text-sm font-medium">D. Discussing concepts #1</label><textarea name="tuesday_procedure_d" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.tuesday_procedure_d }}</textarea></div>
+                            <div><label class="block text-sm font-medium">E. Discussing concepts #2</label><textarea name="tuesday_procedure_e" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.tuesday_procedure_e }}</textarea></div>
+                            <div><label class="block text-sm font-medium">F. Developing mastery</label><textarea name="tuesday_procedure_f" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.tuesday_procedure_f }}</textarea></div>
+                            <div><label class="block text-sm font-medium">G. Practical applications</label><textarea name="tuesday_procedure_g" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.tuesday_procedure_g }}</textarea></div>
+                            <div><label class="block text-sm font-medium">H. Generalizations</label><textarea name="tuesday_procedure_h" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.tuesday_procedure_h }}</textarea></div>
+                            <div><label class="block text-sm font-medium">I. Evaluating learning</label><textarea name="tuesday_procedure_i" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.tuesday_procedure_i }}</textarea></div>
+                            <div><label class="block text-sm font-medium">J. Additional activities</label><textarea name="tuesday_procedure_j" rows="2" class="w-full border rounded-lg mt-1 px-3 py-2">{{ draft.tuesday_procedure_j }}</textarea></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Add similar for Wednesday, Thursday, Friday -->
+                </div>
+            </div>
+
+            <!-- Metadata -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold mb-4">Additional Settings</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Intelligence Type</label>
+                        <select name="intelligence_type" class="w-full border rounded-lg px-3 py-2">
+                            {% for value, label in intelligence_choices %}
+                            <option value="{{ value }}" {% if draft.intelligence_type == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Weekly Theme</label>
+                        <select name="weekly_theme" class="w-full border rounded-lg px-3 py-2">
+                            <option value="">Select Theme</option>
+                            {% for value, label in theme_choices %}
+                            <option value="{{ value }}" {% if draft.weekly_theme == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Teaching Approach</label>
+                        <select name="teaching_approach" class="w-full border rounded-lg px-3 py-2">
+                            <option value="">Select Approach</option>
+                            {% for value, label in approach_choices %}
+                            <option value="{{ value }}" {% if draft.teaching_approach == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">MELC Codes</label>
+                        <input type="text" name="melc_codes" value="{{ draft.melc_codes }}" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'view_weekly_draft' draft.id %}" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </a>
+                <button type="submit" class="px-6 py-3 gradient-bg text-white rounded-lg hover:opacity-90">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function showDay(day) {
+            // Hide all day procedures
+            document.querySelectorAll('.day-procedures').forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            // Show selected day
+            document.getElementById(day + '-procedures').classList.remove('hidden');
+            
+            // Update tabs
+            document.querySelectorAll('.day-tab').forEach(tab => {
+                tab.classList.remove('active', 'bg-[#11468F]', 'text-white');
+                tab.classList.add('bg-gray-100', 'text-gray-700');
+            });
+            event.target.classList.remove('bg-gray-100', 'text-gray-700');
+            event.target.classList.add('active', 'bg-[#11468F]', 'text-white');
+        }
+    </script>
+</body>
+</html>

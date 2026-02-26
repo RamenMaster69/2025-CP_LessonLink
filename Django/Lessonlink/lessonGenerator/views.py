@@ -15,6 +15,9 @@ from .ai_instructions import (
     INTELLIGENCE_ADAPTATION_INSTRUCTION,
     get_system_instruction
 )
+import markdown
+from .models import WeeklyLessonPlan, LessonPlanSubmission
+from .ai_instructions import get_weekly_system_instruction, WEEKLY_LESSON_PLANNER_INSTRUCTION
 
 # Configure the Gemini API
 try:
@@ -1037,7 +1040,801 @@ def check_exemplar_compatibility(request):
         })
 
 def lesson_ai_weekly(request):
+    """Render the weekly lesson plan form"""
     return render(request, 'lessonGenerator/lesson_ai_weekly.html')
 
-def view_weekly_draft(request):
-    return render(request, 'lessonGenerator/view_weekly_draft.html')
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def generate_weekly_lesson_plan(request):
+    """
+    Generate a weekly lesson plan using AI
+    Implements same input validation as lesson_ai.html
+    """
+    try:
+        # Check if Gemini is configured properly
+        if model is None:
+            return JsonResponse({
+                'success': False,
+                'error': 'AI service is not configured properly. Please check your API key.'
+            }, status=500)
+        
+        # Parse JSON data
+        try:
+            data = json.loads(request.body)
+            print("Weekly plan data received:", data)
+        except json.JSONDecodeError as e:
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid JSON data received.'
+            }, status=400)
+        
+        # Validate required fields
+        required_fields = ['subject', 'grade_level', 'week', 'quarter']
+        for field in required_fields:
+            if field not in data or not data.get(field, '').strip():
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Missing required field: {field}'
+                }, status=400)
+        
+        # Extract form data
+        form_data = {
+            'title': data.get('title', '').strip(),
+            'subject': data.get('subject', '').strip(),
+            'grade_level': data.get('grade_level', '').strip(),
+            'week': data.get('week', '').strip(),
+            'quarter': data.get('quarter', '').strip(),
+            'exemplar_id': data.get('exemplar_id', '').strip(),
+            'theme': data.get('theme', '').strip(),
+            'content_standards': data.get('content_standards', '').strip(),
+            'performance_standards': data.get('performance_standards', '').strip(),
+            'objectives': data.get('objectives', {}),
+            'intelligence_type': data.get('intelligence_type', 'comprehensive'),
+            'approach': data.get('approach', '').strip(),
+        }
+        
+        # Validate daily objectives
+        objectives = form_data['objectives']
+        if not isinstance(objectives, dict):
+            objectives = {}
+        
+        # Check if at least some objectives are provided
+        has_objectives = any(objectives.get(day, '').strip() for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])
+        if not has_objectives:
+            return JsonResponse({
+                'success': False,
+                'error': 'Please provide at least one daily learning objective.'
+            }, status=400)
+        
+        # Get exemplar content if selected
+        exemplar_content = ""
+        exemplar_name = ""
+        if form_data['exemplar_id']:
+            try:
+                from lesson.models import Exemplar
+                exemplar = Exemplar.objects.get(id=form_data['exemplar_id'])
+                exemplar_content = exemplar.extracted_text
+                exemplar_name = exemplar.name
+                print(f"Weekly exemplar loaded: {exemplar_name}")
+                
+                # REAL-TIME INPUT VALIDATION: Check if inputs are related to exemplar
+                print("Analyzing weekly plan inputs against exemplar...")
+                is_related, explanation, confidence = analyze_weekly_input_relation(
+                    form_data, 
+                    exemplar_content, 
+                    exemplar_name
+                )
+                
+                if not is_related:
+                    return JsonResponse({
+                        'success': False,
+                        'error': f'INPUT VALIDATION ERROR: Your weekly lesson inputs are not sufficiently related to the selected exemplar "{exemplar_name}".\n\n'
+                                f'Analysis: {explanation}\n\n'
+                                f'Please either:\n'
+                                f'1. Choose a different exemplar that matches your subject/topic\n'
+                                f'2. Adjust your weekly lesson inputs\n'
+                                f'3. Deselect the exemplar',
+                        'validation_error': True,
+                        'exemplar_name': exemplar_name,
+                        'confidence_score': confidence,
+                        'analysis_explanation': explanation
+                    }, status=400)
+                    
+            except Exemplar.DoesNotExist:
+                print("Selected exemplar not found")
+            except Exception as e:
+                print(f"Error loading exemplar: {str(e)}")
+        
+        # Format daily objectives for prompt
+        daily_objectives_text = ""
+        for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']:
+            day_obj = objectives.get(day, '').strip()
+            if day_obj:
+                daily_objectives_text += f"{day.upper()}: {day_obj}\n"
+            else:
+                daily_objectives_text += f"{day.upper()}: [To be developed based on weekly theme]\n"
+        
+        # Format the prompt for the AI
+        prompt = f"""
+        Generate a complete MATATAG-aligned WEEKLY LESSON PLAN following DepEd Philippines standards.
+        
+        WEEKLY TITLE: {form_data['title'] or f"Week {form_data['week']}: {form_data['subject']}"}
+        
+        SUBJECT: {form_data['subject']}
+        GRADE LEVEL: {form_data['grade_level']}
+        WEEK NUMBER: {form_data['week']}
+        QUARTER: {form_data['quarter']}
+        
+        WEEKLY THEME FOCUS: {form_data['theme'] or 'Comprehensive weekly progression'}
+        TEACHING APPROACH: {form_data['approach'] or 'Varied instructional strategies'}
+        INTELLIGENCE TYPE FOCUS: {form_data['intelligence_type']}
+        
+        CONTENT STANDARDS (Weekly):
+        {form_data['content_standards'] or 'To be aligned with MATATAG curriculum'}
+        
+        PERFORMANCE STANDARDS (Weekly):
+        {form_data['performance_standards'] or 'To be aligned with MATATAG curriculum'}
+        
+        DAILY LEARNING OBJECTIVES:
+        {daily_objectives_text}
+
+        {'REFERENCE EXEMPLAR: ' + exemplar_name if exemplar_name else ''}
+        {'EXEMPLAR CONTENT FOR REFERENCE: ' + exemplar_content[:2000] + '...' if exemplar_content else ''}
+
+        Generate a comprehensive weekly lesson plan following DepEd MATATAG format with:
+        1. Complete school header (School, Teacher, Grade Level, Dates, Quarter)
+        2. I. OBJECTIVES (Content Standards, Performance Standards, Learning Competencies/Objectives by day)
+        3. II. CONTENT (Daily topics/themes)
+        4. III. LEARNING RESOURCES (References, Materials, Textbook pages, LR Portal)
+        5. IV. PROCEDURE (Complete MATATAG 10-step procedure for EACH DAY: A-J)
+        6. V. REMARKS (Reflection section)
+        7. VI. REFLECTION (For teacher's notes)
+        
+        Format each day's procedure with proper MATATAG structure:
+        A. Reviewing previous lesson or presenting the new lesson
+        B. Establishing a purpose for the lesson
+        C. Presenting examples/instances of the new lesson
+        D. Discussing new concepts and practicing new skills #1
+        E. Discussing new concepts and practicing new skills #2
+        F. Developing mastery (Leads to Formative Assessment)
+        G. Finding practical applications of concepts and skills
+        H. Making generalizations and abstractions about the lesson
+        I. Evaluating learning
+        J. Additional activities for application or remediation
+        
+        Ensure all content is MATATAG-aligned and appropriate for the grade level.
+        """
+        
+        # Generate the lesson plan using Gemini
+        try:
+            has_exemplar = bool(form_data['exemplar_id'] and exemplar_content)
+            
+            # Use weekly-specific system instruction
+            system_instruction = get_weekly_system_instruction(
+                has_exemplar=has_exemplar,
+                intelligence_type=form_data['intelligence_type']
+            )
+            
+            response = model.generate_content([
+                system_instruction,
+                prompt
+            ])
+            
+            print("Weekly AI response received")
+            
+            # Store in session
+            request.session['generated_weekly_plan'] = response.text
+            request.session['weekly_form_data'] = form_data
+            request.session.modified = True
+            
+            return JsonResponse({
+                'success': True,
+                'weekly_plan': response.text,
+                'exemplar_used': has_exemplar,
+                'intelligence_type': form_data['intelligence_type'],
+                'exemplar_id': form_data['exemplar_id'] if has_exemplar else None,
+                'exemplar_name': exemplar_name if has_exemplar else None,
+                'validation_passed': True if has_exemplar else None
+            })
+            
+        except Exception as ai_error:
+            print(f"Weekly AI error: {str(ai_error)}")
+            return JsonResponse({
+                'success': False,
+                'error': f'AI service error: {str(ai_error)}'
+            }, status=500)
+        
+    except Exception as e:
+        print(f"Server error in weekly generation: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': f'Server error: {str(e)}'
+        }, status=500)
+
+
+def analyze_weekly_input_relation(user_inputs, exemplar_content, exemplar_name):
+    """
+    Analyze if weekly lesson inputs are related to the selected exemplar
+    Same validation as daily lesson plans
+    """
+    try:
+        if not exemplar_content or not user_inputs:
+            return True, "No exemplar selected", 1.0
+        
+        # Get objectives
+        objectives = user_inputs.get('objectives', {})
+        objectives_text = ' '.join([
+            objectives.get('monday', ''), 
+            objectives.get('tuesday', ''),
+            objectives.get('wednesday', ''),
+            objectives.get('thursday', ''),
+            objectives.get('friday', '')
+        ])
+        
+        # Prepare analysis prompt
+        analysis_prompt = f"""
+        Analyze the relationship between the user's weekly lesson inputs and the selected exemplar.
+        
+        USER INPUTS:
+        Subject: {user_inputs.get('subject', '')}
+        Grade Level: {user_inputs.get('grade_level', '')}
+        Week: {user_inputs.get('week', '')}
+        Quarter: {user_inputs.get('quarter', '')}
+        Content Standards: {user_inputs.get('content_standards', '')[:200]}
+        Learning Objectives: {objectives_text[:300]}
+        
+        SELECTED EXEMPLAR: {exemplar_name}
+        EXEMPLAR CONTENT (first 2000 chars): {exemplar_content[:2000]}
+        
+        ANALYSIS TASK:
+        Determine if the weekly lesson inputs are related to the exemplar.
+        Check for subject alignment, grade level appropriateness, and topic compatibility.
+        
+        Return ONLY a JSON object:
+        {{
+            "is_related": true/false,
+            "confidence_score": 0.0-1.0,
+            "explanation": "Detailed explanation",
+            "specific_issues": ["Issues if unrelated"],
+            "suggestions": ["Suggestions for alignment"]
+        }}
+        """
+        
+        response = model.generate_content([
+            "You are an educational content analyst. Return only JSON.",
+            analysis_prompt
+        ])
+        
+        # Extract JSON from response
+        json_match = re.search(r'\{.*\}', response.text, re.DOTALL)
+        if json_match:
+            analysis_result = json.loads(json_match.group())
+            return (
+                analysis_result.get('is_related', True),
+                analysis_result.get('explanation', ''),
+                analysis_result.get('confidence_score', 0.0)
+            )
+        else:
+            return True, "Analysis failed, proceeding with caution", 0.5
+            
+    except Exception as e:
+        print(f"Weekly relationship analysis error: {str(e)}")
+        return True, f"Analysis error: {str(e)}", 0.5
+
+
+def view_weekly_lesson_plan(request):
+    """Render the weekly lesson plan result page"""
+    weekly_plan = request.session.get('generated_weekly_plan', '')
+    form_data = request.session.get('weekly_form_data', {})
+    
+    if not weekly_plan:
+        messages.error(request, 'No weekly lesson plan found. Please generate one first.')
+        return redirect('lesson_ai_weekly')
+    
+    # Process markdown
+    import markdown
+    weekly_plan_html = markdown.markdown(weekly_plan, extensions=['extra', 'nl2br', 'tables'])
+    
+    return render(request, 'lessonGenerator/view_weekly_lesson_plan.html', {
+        'weekly_plan': weekly_plan_html,
+        'form_data': form_data,
+        'intelligence_type': form_data.get('intelligence_type', 'comprehensive')
+    })
+
+
+@login_required
+@csrf_exempt
+@require_http_methods(["POST"])
+def save_weekly_lesson_plan(request):
+    """
+    Save the generated weekly lesson plan as a draft
+    Must save before editing - appears in draft list with weekly indicator
+    """
+    try:
+        # Get data from session
+        generated_content = request.session.get('generated_weekly_plan', '')
+        form_data = request.session.get('weekly_form_data', {})
+        
+        print(f"Session data - generated_content length: {len(generated_content) if generated_content else 0}")
+        print(f"Session data - form_data: {form_data}")
+        
+        if not generated_content:
+            return JsonResponse({
+                'success': False,
+                'error': 'No weekly lesson plan content found. Please generate one first.'
+            }, status=400)
+        
+        # Check if user is department head for auto-approval
+        is_department_head = hasattr(request.user, 'role') and request.user.role == 'Department Head'
+        
+        # Parse the generated content to extract structured data
+        parsed_data = parse_weekly_lesson_plan(generated_content, form_data)
+        
+        # Create weekly lesson plan object
+        weekly_plan = WeeklyLessonPlan(
+            title=parsed_data.get('title', form_data.get('title', f"Week {form_data.get('week', '')} Lesson Plan")),
+            subject=form_data.get('subject', ''),
+            grade_level=form_data.get('grade_level', ''),
+            quarter=form_data.get('quarter', ''),
+            week_number=int(form_data.get('week', 0)) if str(form_data.get('week', '')).isdigit() else 0,
+            
+            # School info from parsed data
+            school=parsed_data.get('school', ''),
+            teacher=parsed_data.get('teacher', request.user.get_full_name() or request.user.username),
+            teaching_date=parsed_data.get('teaching_date', ''),
+            
+            # Standards
+            content_standard=parsed_data.get('content_standard', form_data.get('content_standards', '')),
+            performance_standard=parsed_data.get('performance_standard', form_data.get('performance_standards', '')),
+            
+            # Daily objectives
+            objective_monday=parsed_data.get('objective_monday', form_data.get('objectives', {}).get('monday', '')),
+            objective_tuesday=parsed_data.get('objective_tuesday', form_data.get('objectives', {}).get('tuesday', '')),
+            objective_wednesday=parsed_data.get('objective_wednesday', form_data.get('objectives', {}).get('wednesday', '')),
+            objective_thursday=parsed_data.get('objective_thursday', form_data.get('objectives', {}).get('thursday', '')),
+            objective_friday=parsed_data.get('objective_friday', form_data.get('objectives', {}).get('friday', '')),
+            
+            # Daily content
+            content_monday=parsed_data.get('content_monday', ''),
+            content_tuesday=parsed_data.get('content_tuesday', ''),
+            content_wednesday=parsed_data.get('content_wednesday', ''),
+            content_thursday=parsed_data.get('content_thursday', ''),
+            content_friday=parsed_data.get('content_friday', ''),
+            
+            # Learning Resources
+            teachers_guide=parsed_data.get('teachers_guide', ''),
+            learning_materials=parsed_data.get('learning_materials', ''),
+            textbook_pages=parsed_data.get('textbook_pages', ''),
+            lr_portal=parsed_data.get('lr_portal', ''),
+            other_resources=parsed_data.get('other_resources', ''),
+            
+            # Generated content
+            generated_content=generated_content,
+            
+            # Metadata
+            weekly_theme=form_data.get('theme', ''),
+            teaching_approach=form_data.get('approach', ''),
+            intelligence_type=form_data.get('intelligence_type', 'comprehensive'),
+            
+            # Status
+            status=WeeklyLessonPlan.FINAL if is_department_head else WeeklyLessonPlan.DRAFT,
+            auto_approved=is_department_head,
+            created_by=request.user,
+        )
+        
+        # Set all procedure fields from parsed_data
+        days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+        steps = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
+        
+        for day in days:
+            for step in steps:
+                field_name = f'{day}_procedure_{step}'
+                setattr(weekly_plan, field_name, parsed_data.get(field_name, ''))
+        
+        # Set exemplar if used
+        if form_data.get('exemplar_id'):
+            try:
+                from lesson.models import Exemplar
+                weekly_plan.exemplar_used = Exemplar.objects.get(id=form_data['exemplar_id'])
+            except:
+                pass
+        
+        weekly_plan.save()
+        print(f"Weekly lesson plan saved with ID: {weekly_plan.id}")
+        
+        # Clear session data
+        if 'generated_weekly_plan' in request.session:
+            del request.session['generated_weekly_plan']
+        if 'weekly_form_data' in request.session:
+            del request.session['weekly_form_data']
+        
+        message = 'Weekly lesson plan saved as draft successfully!'
+        if is_department_head:
+            message = 'Weekly lesson plan created and automatically approved!'
+        
+        return JsonResponse({
+            'success': True,
+            'draft_id': weekly_plan.id,
+            'message': message,
+            'intelligence_type': form_data.get('intelligence_type', 'comprehensive'),
+            'auto_approved': is_department_head,
+            'redirect_url': '/drafts/weekly/'
+        })
+        
+    except Exception as e:
+        import traceback
+        print(f"Error saving weekly lesson plan: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'error': f'Error saving weekly lesson plan: {str(e)}'
+        }, status=500)
+
+
+def parse_weekly_lesson_plan(content, form_data):
+    """
+    Parse AI-generated weekly lesson plan into structured fields
+    """
+    parsed = {
+        'title': form_data.get('title', ''),
+        'school': '',
+        'teacher': '',
+        'teaching_date': '',
+        'content_standard': '',
+        'performance_standard': '',
+        'objective_monday': '',
+        'objective_tuesday': '',
+        'objective_wednesday': '',
+        'objective_thursday': '',
+        'objective_friday': '',
+        'content_monday': '',
+        'content_tuesday': '',
+        'content_wednesday': '',
+        'content_thursday': '',
+        'content_friday': '',
+        'teachers_guide': '',
+        'learning_materials': '',
+        'textbook_pages': '',
+        'lr_portal': '',
+        'other_resources': '',
+        'melc_codes': '',
+        'values_integration': '',
+        'cross_curricular': '',
+    }
+    
+    # Initialize procedure fields for all days
+    days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+    steps = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
+    
+    for day in days:
+        for step in steps:
+            parsed[f'{day}_procedure_{step}'] = ''
+    
+    # Parse school header
+    school_match = re.search(r'School[:\s]+([^\n]+)', content, re.IGNORECASE)
+    if school_match:
+        parsed['school'] = school_match.group(1).strip()
+    
+    teacher_match = re.search(r'Teacher[:\s]+([^\n]+)', content, re.IGNORECASE)
+    if teacher_match:
+        parsed['teacher'] = teacher_match.group(1).strip()
+    
+    date_match = re.search(r'Teaching Date and Time[:\s]+([^\n]+)', content, re.IGNORECASE)
+    if date_match:
+        parsed['teaching_date'] = date_match.group(1).strip()
+    
+    # Parse I. OBJECTIVES section
+    objectives_section = extract_section(content, r'I\.?\s*OBJECTIVES', r'II\.?\s*CONTENT')
+    
+    if objectives_section:
+        # Content Standards
+        cs_match = re.search(r'Content Standards?[:\s]+(.*?)(?=Performance Standards?|$)', objectives_section, re.DOTALL | re.IGNORECASE)
+        if cs_match:
+            parsed['content_standard'] = cs_match.group(1).strip()
+        
+        # Performance Standards
+        ps_match = re.search(r'Performance Standards?[:\s]+(.*?)(?=Learning Competencies?|Learning Objectives?|$)', objectives_section, re.DOTALL | re.IGNORECASE)
+        if ps_match:
+            parsed['performance_standard'] = ps_match.group(1).strip()
+        
+        # Daily objectives
+        for day in days:
+            day_pattern = rf'{day.capitalize()}[:\s]+(.*?)(?={day.capitalize()}|Tuesday|Wednesday|Thursday|Friday|$|\[|\(|\))'
+            day_match = re.search(day_pattern, objectives_section, re.DOTALL | re.IGNORECASE)
+            if day_match:
+                parsed[f'objective_{day}'] = day_match.group(1).strip()
+    
+    # Parse II. CONTENT section
+    content_section = extract_section(content, r'II\.?\s*CONTENT', r'III\.?\s*LEARNING RESOURCES')
+    
+    if content_section:
+        for day in days:
+            day_pattern = rf'{day.capitalize()}[:\s]+(.*?)(?={day.capitalize()}|Tuesday|Wednesday|Thursday|Friday|$|\[|\(|\))'
+            day_match = re.search(day_pattern, content_section, re.DOTALL | re.IGNORECASE)
+            if day_match:
+                parsed[f'content_{day}'] = day_match.group(1).strip()
+    
+    # Parse III. LEARNING RESOURCES
+    resources_section = extract_section(content, r'III\.?\s*LEARNING RESOURCES', r'IV\.?\s*PROCEDURE')
+    
+    if resources_section:
+        tg_match = re.search(r'Teacher\'?s Guide[:\s]+([^\n]+)', resources_section, re.IGNORECASE)
+        if tg_match:
+            parsed['teachers_guide'] = tg_match.group(1).strip()
+        
+        lm_match = re.search(r'Learning Materials?[:\s]+([^\n]+)', resources_section, re.IGNORECASE)
+        if lm_match:
+            parsed['learning_materials'] = lm_match.group(1).strip()
+        
+        tb_match = re.search(r'Textbook Pages?[:\s]+([^\n]+)', resources_section, re.IGNORECASE)
+        if tb_match:
+            parsed['textbook_pages'] = tb_match.group(1).strip()
+        
+        lr_match = re.search(r'LR Portal[:\s]+([^\n]+)', resources_section, re.IGNORECASE)
+        if lr_match:
+            parsed['lr_portal'] = lr_match.group(1).strip()
+        
+        other_match = re.search(r'Other Learning Resources?[:\s]+(.*?)(?=IV|$)', resources_section, re.DOTALL | re.IGNORECASE)
+        if other_match:
+            parsed['other_resources'] = other_match.group(1).strip()
+    
+    # Parse IV. PROCEDURE for each day
+    procedure_section = extract_section(content, r'IV\.?\s*PROCEDURE', r'V\.?\s*REMARKS')
+    
+    if procedure_section:
+        for day in days:
+            # Find this day's subsection
+            day_pattern = rf'{day.capitalize()}\s*(.*?)(?={day.capitalize()}|Tuesday|Wednesday|Thursday|Friday|V\.|$|\[|\(|\))'
+            day_match = re.search(day_pattern, procedure_section, re.DOTALL | re.IGNORECASE)
+            
+            if day_match:
+                day_content = day_match.group(1)
+                
+                # Extract each step A-J
+                for step in steps:
+                    step_upper = step.upper()
+                    step_pattern = rf'{step_upper}\.?[\)\.]?\s*(.*?)(?={step_upper}|[A-J]\.|$|\[|\(|\))'
+                    step_match = re.search(step_pattern, day_content, re.DOTALL | re.IGNORECASE)
+                    if step_match:
+                        parsed[f'{day}_procedure_{step}'] = step_match.group(1).strip()
+    
+    return parsed
+
+
+def extract_section(content, start_pattern, end_pattern):
+    """Extract a section between two patterns"""
+    start_match = re.search(start_pattern, content, re.IGNORECASE)
+    if not start_match:
+        return ""
+    
+    start_pos = start_match.end()
+    
+    end_match = re.search(end_pattern, content[start_pos:], re.IGNORECASE)
+    if end_match:
+        end_pos = start_pos + end_match.start()
+        return content[start_pos:end_pos].strip()
+    else:
+        return content[start_pos:].strip()
+
+
+@login_required
+def weekly_draft_list(request):
+    """Display list of weekly lesson plan drafts"""
+    # Get all weekly drafts for the user
+    drafts = WeeklyLessonPlan.objects.filter(
+        created_by=request.user
+    ).order_by('-created_at')
+    
+    # Get submission status for each draft
+    draft_data = []
+    for draft in drafts:
+        draft_data.append({
+            'draft': draft,
+            'latest_submission': draft.get_latest_submission()
+        })
+    
+    # Count by status
+    draft_count = drafts.filter(status=WeeklyLessonPlan.DRAFT).count()
+    final_count = drafts.filter(status=WeeklyLessonPlan.FINAL).count()
+    
+    return render(request, 'lessonGenerator/weekly_draft_list.html', {
+        'draft_data': draft_data,
+        'draft_count': draft_count,
+        'final_count': final_count,
+        'is_weekly': True
+    })
+
+
+@login_required
+def view_weekly_draft(request, draft_id):
+    """View a weekly lesson draft in read-only format with template"""
+    draft = get_object_or_404(WeeklyLessonPlan, id=draft_id, created_by=request.user)
+    
+    # Get submission status if exists
+    latest_submission = draft.get_latest_submission()
+    
+    # Get intelligence type display
+    intelligence_display = dict(WeeklyLessonPlan.INTELLIGENCE_TYPE_CHOICES).get(
+        draft.intelligence_type, 
+        draft.intelligence_type
+    )
+    
+    # Get daily procedures
+    procedures = {}
+    for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']:
+        procedures[day] = draft.get_procedure_for_day(day)
+    
+    return render(request, 'lessonGenerator/view_weekly_draft.html', {
+        'draft': draft,
+        'procedures': procedures,
+        'latest_submission': latest_submission,
+        'intelligence_display': intelligence_display,
+        'objectives': draft.get_objectives_dict(),
+        'content': draft.get_content_dict(),
+    })
+
+
+@login_required
+def edit_weekly_draft(request, draft_id):
+    """Edit a saved weekly draft"""
+    draft = get_object_or_404(WeeklyLessonPlan, id=draft_id, created_by=request.user)
+    
+    if request.method == 'POST':
+        # Update basic info
+        draft.title = request.POST.get('title', draft.title)
+        draft.subject = request.POST.get('subject', draft.subject)
+        draft.grade_level = request.POST.get('grade_level', draft.grade_level)
+        draft.quarter = request.POST.get('quarter', draft.quarter)
+        draft.week_number = int(request.POST.get('week_number', draft.week_number))
+        
+        # Update school info
+        draft.school = request.POST.get('school', draft.school)
+        draft.teacher = request.POST.get('teacher', draft.teacher)
+        draft.teaching_date = request.POST.get('teaching_date', draft.teaching_date)
+        
+        # Update standards
+        draft.content_standard = request.POST.get('content_standard', draft.content_standard)
+        draft.performance_standard = request.POST.get('performance_standard', draft.performance_standard)
+        
+        # Update daily objectives
+        draft.objective_monday = request.POST.get('objective_monday', draft.objective_monday)
+        draft.objective_tuesday = request.POST.get('objective_tuesday', draft.objective_tuesday)
+        draft.objective_wednesday = request.POST.get('objective_wednesday', draft.objective_wednesday)
+        draft.objective_thursday = request.POST.get('objective_thursday', draft.objective_thursday)
+        draft.objective_friday = request.POST.get('objective_friday', draft.objective_friday)
+        
+        # Update daily content
+        draft.content_monday = request.POST.get('content_monday', draft.content_monday)
+        draft.content_tuesday = request.POST.get('content_tuesday', draft.content_tuesday)
+        draft.content_wednesday = request.POST.get('content_wednesday', draft.content_wednesday)
+        draft.content_thursday = request.POST.get('content_thursday', draft.content_thursday)
+        draft.content_friday = request.POST.get('content_friday', draft.content_friday)
+        
+        # Update resources
+        draft.teachers_guide = request.POST.get('teachers_guide', draft.teachers_guide)
+        draft.learning_materials = request.POST.get('learning_materials', draft.learning_materials)
+        draft.textbook_pages = request.POST.get('textbook_pages', draft.textbook_pages)
+        draft.lr_portal = request.POST.get('lr_portal', draft.lr_portal)
+        draft.other_resources = request.POST.get('other_resources', draft.other_resources)
+        
+        # Update all procedures - Monday
+        for step in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']:
+            # Monday
+            field_name = f'monday_procedure_{step}'
+            setattr(draft, field_name, request.POST.get(field_name, getattr(draft, field_name)))
+            
+            # Tuesday
+            field_name = f'tuesday_procedure_{step}'
+            setattr(draft, field_name, request.POST.get(field_name, getattr(draft, field_name)))
+            
+            # Wednesday
+            field_name = f'wednesday_procedure_{step}'
+            setattr(draft, field_name, request.POST.get(field_name, getattr(draft, field_name)))
+            
+            # Thursday
+            field_name = f'thursday_procedure_{step}'
+            setattr(draft, field_name, request.POST.get(field_name, getattr(draft, field_name)))
+            
+            # Friday
+            field_name = f'friday_procedure_{step}'
+            setattr(draft, field_name, request.POST.get(field_name, getattr(draft, field_name)))
+        
+        # Update metadata
+        draft.intelligence_type = request.POST.get('intelligence_type', draft.intelligence_type)
+        draft.weekly_theme = request.POST.get('weekly_theme', draft.weekly_theme)
+        draft.teaching_approach = request.POST.get('teaching_approach', draft.teaching_approach)
+        draft.melc_codes = request.POST.get('melc_codes', draft.melc_codes)
+        draft.values_integration = request.POST.get('values_integration', draft.values_integration)
+        draft.cross_curricular = request.POST.get('cross_curricular', draft.cross_curricular)
+        
+        draft.save()
+        
+        messages.success(request, 'Weekly draft updated successfully!')
+        return redirect('weekly_draft_list')
+    
+    # Prepare data for template
+    procedures = {}
+    for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']:
+        procedures[day] = draft.get_procedure_for_day(day)
+    
+    return render(request, 'lessonGenerator/edit_weekly_draft.html', {
+        'draft': draft,
+        'procedures': procedures,
+        'objectives': draft.get_objectives_dict(),
+        'content': draft.get_content_dict(),
+        'intelligence_choices': WeeklyLessonPlan.INTELLIGENCE_TYPE_CHOICES,
+        'theme_choices': WeeklyLessonPlan.WEEK_DAYS,
+        'approach_choices': [
+            ('direct', 'Direct Instruction'),
+            ('collaborative', 'Collaborative Learning'),
+            ('hands_on', 'Hands-on/Practical'),
+            ('inquiry', 'Inquiry-Based'),
+        ],
+    })
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def delete_weekly_draft(request, draft_id):
+    """Delete a weekly lesson draft"""
+    try:
+        draft = get_object_or_404(WeeklyLessonPlan, id=draft_id, created_by=request.user)
+        draft.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Weekly lesson plan deleted successfully!'
+        })
+        
+    except WeeklyLessonPlan.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Weekly lesson plan not found.'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Error deleting: {str(e)}'
+        }, status=500)
+
+
+@login_required
+def submit_weekly_plan(request, draft_id):
+    """Submit weekly plan to department head for review"""
+    if request.method != 'POST':
+        return redirect('view_weekly_draft', draft_id=draft_id)
+    
+    draft = get_object_or_404(WeeklyLessonPlan, id=draft_id, created_by=request.user)
+    
+    # Check if department head exists
+    if not hasattr(request.user, 'department') or not request.user.department:
+        messages.error(request, "You don't have a department assigned. Please contact your administrator.")
+        return redirect('view_weekly_draft', draft_id=draft_id)
+    
+    # Find department head
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    
+    department_head = User.objects.filter(
+        role='Department Head',
+        department=request.user.department,
+        school=request.user.school
+    ).first()
+    
+    if not department_head:
+        messages.error(request, "No department head found for your department.")
+        return redirect('view_weekly_draft', draft_id=draft_id)
+    
+    # Submit
+    success, message = draft.submit_for_approval(department_head)
+    
+    if success:
+        messages.success(request, message)
+    else:
+        messages.error(request, message)
+    
+    return redirect('view_weekly_draft', draft_id=draft_id)

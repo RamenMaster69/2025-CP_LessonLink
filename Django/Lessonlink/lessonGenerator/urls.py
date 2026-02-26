@@ -17,4 +17,18 @@ urlpatterns = [
     path('get-ai-suggestions/', views.get_ai_suggestions, name='get_ai_suggestions'),
     path('check-exemplar-compatibility/', views.check_exemplar_compatibility, name='check_exemplar_compatibility'),
     path('view_weekly_draft/', views.view_weekly_draft, name='view_weekly_draft'),
+    
+   # Weekly Lesson Plan URLs
+    path('lesson_ai_weekly/', views.lesson_ai_weekly, name='lesson_ai_weekly'),
+    path('generate-weekly-lesson-plan/', views.generate_weekly_lesson_plan, name='generate_weekly_lesson_plan'),
+    path('view-weekly-lesson-plan/', views.view_weekly_lesson_plan, name='view_weekly_lesson_plan'),
+    path('save-weekly-lesson-plan/', views.save_weekly_lesson_plan, name='save_weekly_lesson_plan'),
+    
+    # Weekly Draft Management
+    path('drafts/weekly/', views.weekly_draft_list, name='weekly_draft_list'),
+    path('drafts/weekly/<int:draft_id>/view/', views.view_weekly_draft, name='view_weekly_draft'),
+    path('drafts/weekly/<int:draft_id>/edit/', views.edit_weekly_draft, name='edit_weekly_draft'),
+    path('drafts/weekly/<int:draft_id>/delete/', views.delete_weekly_draft, name='delete_weekly_draft'),
+    path('drafts/weekly/<int:draft_id>/submit/', views.submit_weekly_plan, name='submit_weekly_plan'),
+
 ]
