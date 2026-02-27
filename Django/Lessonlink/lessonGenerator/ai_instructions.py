@@ -1,4 +1,5 @@
 # ai_instructions.py - COMPLETE VERSION WITH INTELLIGENCE TYPE INTEGRATION
+import re  
 """
 AI Instructions for LessonLink Lesson Generator
 This file contains system instructions and JSON structure for AI-generated lesson plans
@@ -539,6 +540,31 @@ if __name__ == "__main__":
     print(f"Instruction length: {len(instruction)} characters")
     print(f"First 500 chars:\n{instruction[:500]}...")
 
+# At the top of ai_instructions.py, add this template
+LEARNING_RESOURCES_TEMPLATE = """
+III. LEARNING RESOURCES
+
+{exemplar_reference_line}
+
+A. References
+1. Teacher's Guide pages: {tg_instruction}
+2. Learning Materials pages: {lm_instruction}
+3. Textbook pages: {textbook_instruction}
+4. Additional Materials from LR Portal: {lr_instruction}
+
+B. Other Learning Resources
+{other_resources_instruction}
+
+Include a mix of:
+- Subject-appropriate multimedia resources (videos, presentations, simulations) - be specific with titles/platforms
+- Subject-specific materials, tools, or equipment - name actual items
+- Relevant websites or online platforms - include URLs if applicable
+- Printed materials specific to the topic - include authors/titles if possible
+- Community or real-world resources relevant to the subject
+
+CRITICAL: Generate SPECIFIC, REALISTIC resources. NOT generic lists. Each resource should be something a teacher could actually find/use.
+"""
+
 WEEKLY_LESSON_PLANNER_INSTRUCTION = """
 You are "LessonLink Weekly Planner", an AI instructional design specialist specialized in DepEd Philippines MATATAG Curriculum standards for WEEKLY LESSON PLANNING.
 
@@ -588,24 +614,7 @@ Wednesday: [Topic/Content for Wednesday - Deep dive into key concepts]
 Thursday: [Topic/Content for Thursday - Application and practice]
 Friday: [Topic/Content for Friday - Assessment and integration]
 
-III. LEARNING RESOURCES
-A. References
-1. Teacher's Guide pages: [Generate realistic page numbers based on the subject and grade level, appropriate for the specific topic]
-2. Learning Materials pages: [Generate realistic page numbers based on the subject and grade level, appropriate for the specific topic]
-3. Textbook pages: [Generate realistic textbook references with page numbers appropriate for the specific subject and topic]
-4. Additional Materials from LR Portal: [Generate appropriate LRMDS links or references based on the subject, grade level, and specific learning competency]
-
-B. Other Learning Resources
-[Based on the specific subject, grade level, and topic, list 3-5 detailed resources that would actually be used in teaching this specific lesson. Include a mix of:
-- Subject-appropriate multimedia resources (videos, presentations, simulations)
-- Subject-specific materials, tools, or equipment
-- Relevant websites or online platforms
-- Printed materials specific to the topic
-- Community or real-world resources relevant to the subject
-
-For example, if the subject is Science, include science equipment, lab materials, science videos; if Math, include manipulatives, graphing tools, math software;
-if English, include reading materials, writing tools, language apps; if TLE, include tools, equipment, materials specific to the competency; 
-if MAPEH, include sports equipment, art materials, musical instruments, etc.]
+{learning_resources_section}
 
 IV. PROCEDURE
 
@@ -801,11 +810,129 @@ For DIFFERENTIATED:
 You are creating a complete, ready-to-use weekly lesson plan. Teachers should be able to implement it immediately without adding missing content. Be detailed, specific, and practical in all descriptions.
 """
 
-
-def get_weekly_system_instruction(has_exemplar=False, intelligence_type="comprehensive"):
-    """Generate complete system instruction for weekly lesson planning"""
+def get_weekly_system_instruction(has_exemplar=False, intelligence_type="comprehensive", 
+                                   subject="", grade_level="", exemplar_name="", 
+                                   exemplar_content=""):
+    """
+    Generate complete system instruction for weekly lesson planning
     
-    instruction = WEEKLY_LESSON_PLANNER_INSTRUCTION
+    Args:
+        has_exemplar (bool): Whether an exemplar is provided
+        intelligence_type (str): Selected intelligence type
+        subject (str): Subject for the lesson
+        grade_level (str): Grade level
+        exemplar_name (str): Name of the exemplar if provided
+        exemplar_content (str): The actual exemplar text to extract references from
+    
+    Returns:
+        str: Complete system instruction for AI
+    """
+    
+    # Extract exemplar references if content is provided
+    exemplar_reference_examples = ""
+    if has_exemplar and exemplar_content:
+        # Extract Teacher's Guide from exemplar
+        tg_match = re.search(r'Teacher\'?s?\s*Guide[:\s]*([^\n]+)', exemplar_content, re.IGNORECASE)
+        tg_example = tg_match.group(1).strip() if tg_match else "Not found in exemplar"
+        
+        # Extract Learning Materials from exemplar
+        lm_match = re.search(r'(?:Learner\'?s?\s*)?Materials?[:\s]*([^\n]+)', exemplar_content, re.IGNORECASE)
+        lm_example = lm_match.group(1).strip() if lm_match else "Not found in exemplar"
+        
+        # Extract Textbook from exemplar
+        tb_match = re.search(r'Textbook[:\s]*([^\n]+)', exemplar_content, re.IGNORECASE)
+        tb_example = tb_match.group(1).strip() if tb_match else "Not found in exemplar"
+        
+        # Extract LR Portal from exemplar
+        lr_match = re.search(r'LR\s*Portal[:\s]*([^\n]+)', exemplar_content, re.IGNORECASE)
+        lr_example = lr_match.group(1).strip() if lr_match else "Not found in exemplar"
+        
+        # Extract Other Resources (bullet points)
+        other_pattern = r'Other\s*Learning\s*Resources[:\s]*(.*?)(?=IV\.|$)'
+        other_match = re.search(other_pattern, exemplar_content, re.DOTALL | re.IGNORECASE)
+        other_examples = []
+        if other_match:
+            bullets = re.findall(r'[•\-]\s*([^\n]+)', other_match.group(1))
+            other_examples = bullets[:3]  # Get first 3 examples
+        
+        exemplar_reference_examples = f"""
+**REFERENCE EXEMPLAR FORMATS FROM "{exemplar_name}":**
+
+The exemplar contains these reference formats that you MUST use as templates:
+
+Teacher's Guide format from exemplar:
+"{tg_example}"
+
+Learning Materials format from exemplar:
+"{lm_example}"
+
+Textbook format from exemplar:
+"{tb_example}"
+
+LR Portal format from exemplar:
+"{lr_example}"
+
+Other Resources format from exemplar:
+{chr(10).join(['- ' + r for r in other_examples]) if other_examples else "- No examples found"}
+
+**YOUR TASK:**
+Generate references for {subject} Grade {grade_level} that follow these EXACT formats.
+Copy the structure, punctuation, and style. Adapt only the content to match the subject.
+
+CRITICAL RULES:
+1. Copy the FORMAT exactly (punctuation, structure, elements included)
+2. Adapt the CONTENT to match {subject} Grade {grade_level}
+3. Use REAL Philippine textbook titles and publishers
+4. Use REAL DepEd materials naming conventions
+5. Generate 5 specific Other Learning Resources
+6. **IMPORTANT: DO NOT include page numbers in ANY reference**
+
+"""
+    else:
+        exemplar_reference_examples = ""
+    
+    # Build the learning resources section with proper variable interpolation
+    # UPDATED: Removed all references to page numbers
+    exemplar_reference_line = ""
+    tg_instruction = f"Generate realistic Teacher's Guide references based on the subject ({subject}) and grade level ({grade_level}), appropriate for the specific topic. IMPORTANT: DO NOT include page numbers - only the title, source, and quarter/week information."
+    
+    lm_instruction = f"Generate realistic Learner's Material references based on the subject ({subject}) and grade level ({grade_level}), appropriate for the specific topic. IMPORTANT: DO NOT include page numbers - only the title, source, and quarter/week information."
+    
+    textbook_instruction = f"Generate realistic textbook titles used in Philippine schools for {subject} Grade {grade_level}. Include publisher names. IMPORTANT: DO NOT include page numbers - only the book title and publisher."
+    
+    lr_instruction = f"Generate appropriate LRMDS links or references based on the subject ({subject}), grade level ({grade_level}), and specific learning competency. Include the resource title, quarter/week, and a brief description. DO NOT include page numbers."
+    
+    other_resources_instruction = f"Based on the specific subject ({subject}), grade level ({grade_level}), and topic, list 3-5 detailed resources that would actually be used in teaching this specific lesson. IMPORTANT: DO NOT include page numbers - focus on materials, tools, websites, and real-world resources."
+    
+    if has_exemplar and exemplar_name:
+        exemplar_reference_line = f"REFERENCE EXEMPLAR USED: {exemplar_name}. Use this exemplar as a guide for the QUALITY and TYPE of resources to list."
+        tg_instruction += f" Look at the exemplar for examples of how to format teacher guide references WITHOUT page numbers."
+        lm_instruction += f" Look at the exemplar for examples of how to format learning material references WITHOUT page numbers."
+        textbook_instruction += f" Look at the exemplar for examples of how to format textbook references WITHOUT page numbers."
+        lr_instruction += f" If the exemplar contains LRMDS references, use similar formatting WITHOUT page numbers."
+        other_resources_instruction += f"\n\n参考 THE EXEMPLAR: The provided exemplar '{exemplar_name}' contains examples of quality resources. Use it as a guide for the level of specificity and relevance needed, but REMOVE any page numbers."
+    
+    # Format the learning resources section
+    learning_resources_section = LEARNING_RESOURCES_TEMPLATE.format(
+        exemplar_reference_line=exemplar_reference_line,
+        tg_instruction=tg_instruction,
+        lm_instruction=lm_instruction,
+        textbook_instruction=textbook_instruction,
+        lr_instruction=lr_instruction,
+        other_resources_instruction=other_resources_instruction
+    )
+    
+    # Start with the base instruction and replace the placeholder
+    instruction = WEEKLY_LESSON_PLANNER_INSTRUCTION.format(
+        learning_resources_section=learning_resources_section
+    )
+    
+    # Insert the exemplar reference examples BEFORE the learning resources section
+    if exemplar_reference_examples:
+        parts = instruction.split("{learning_resources_section}")
+        if len(parts) == 2:
+            instruction = parts[0] + exemplar_reference_examples + "{learning_resources_section}" + parts[1]
+            instruction = instruction.format(learning_resources_section=learning_resources_section)
     
     # Add intelligence-specific adaptation
     intelligence_context = f"""
@@ -850,7 +977,7 @@ def get_weekly_system_instruction(has_exemplar=False, intelligence_type="compreh
         """
         instruction += exemplar_context
     
-    # Add output verification
+    # Add output verification - UPDATED to remove page number references
     verification = """
     
     **OUTPUT VERIFICATION - CHECK BEFORE FINALIZING:**
@@ -860,7 +987,7 @@ def get_weekly_system_instruction(has_exemplar=False, intelligence_type="compreh
     ✓ Complete school header with School, Teacher, Grade Level, Teaching Date, Quarter
     ✓ I. OBJECTIVES with A. Content Standards, B. Performance Standards, C. Learning Competencies/Objectives for all 5 days
     ✓ II. CONTENT with daily topics for all 5 days
-    ✓ III. LEARNING RESOURCES with A. References (4 items) and B. Other Learning Resources (3-5 items)
+    ✓ III. LEARNING RESOURCES with A. References (4 items) and B. Other Learning Resources (3-5 items) - NO PAGE NUMBERS ANYWHERE
     ✓ IV. PROCEDURE with ALL 10 steps (A-J) for EACH of the 5 days (50 total steps)
     ✓ V. REMARKS with reflection table
     ✓ VI. REFLECTION with A-G items
@@ -870,6 +997,7 @@ def get_weekly_system_instruction(has_exemplar=False, intelligence_type="compreh
     Intelligence adaptation must be visible in every activity.
     
     NO PLACEHOLDERS. EVERY SECTION MUST HAVE COMPLETE CONTENT.
+    **REMEMBER: NO PAGE NUMBERS IN LEARNING RESOURCES SECTION!**
     """
     
     instruction += verification

@@ -245,10 +245,13 @@ def generate_lesson_plan(request):
             has_exemplar = bool(form_data['selected_exemplar'] and exemplar_content)
             
             # Use appropriate system instruction with intelligence type
-            system_instruction = get_system_instruction(
-                has_exemplar=has_exemplar,
-                intelligence_type=form_data['intelligence_type']
-            )
+            system_instruction = get_weekly_system_instruction(
+    has_exemplar=has_exemplar,
+    intelligence_type=form_data['intelligence_type'],
+    subject=form_data['subject'],  
+    grade_level=form_data['grade_level'],  
+    exemplar_name=exemplar_name  
+)
             
             print(f"Using system instruction with intelligence type: {form_data['intelligence_type']}")  # Debugging
             
@@ -1291,10 +1294,14 @@ def generate_weekly_lesson_plan(request):
         try:
             has_exemplar = bool(form_data['exemplar_id'] and exemplar_content)
             
-            # Use weekly-specific system instruction
+            # Use weekly-specific system instruction with ALL parameters
             system_instruction = get_weekly_system_instruction(
                 has_exemplar=has_exemplar,
-                intelligence_type=form_data['intelligence_type']
+                intelligence_type=form_data['intelligence_type'],
+                subject=form_data['subject'],
+                grade_level=form_data['grade_level'],
+                exemplar_name=exemplar_name,
+                exemplar_content=exemplar_content  # Now passing the actual exemplar text
             )
             
             # Add additional strict formatting instructions
@@ -1355,7 +1362,6 @@ def generate_weekly_lesson_plan(request):
             'success': False,
             'error': f'Server error: {str(e)}'
         }, status=500)
-
 
 def analyze_weekly_input_relation(user_inputs, exemplar_content, exemplar_name):
     """
@@ -1615,6 +1621,7 @@ def parse_weekly_lesson_plan(content, form_data):
         'textbook_pages': '',
         'lr_portal': '',
         'other_resources': '',
+        'other_resources_list': [],  # NEW: Store as list for better template rendering
         'melc_codes': '',
         'values_integration': '',
         'cross_curricular': '',
@@ -1643,61 +1650,6 @@ def parse_weekly_lesson_plan(content, form_data):
         for step in steps:
             parsed[f'{day}_procedure_{step}'] = ''
             parsed['procedures'][day][step] = ''
-    
-    # Extract the PROCEDURE section
-    procedure_pattern = r'IV\.?\s*PROCEDURE\s*(.*?)(?=V\.?\s*REMARKS|$)'
-    procedure_match = re.search(procedure_pattern, content, re.DOTALL | re.IGNORECASE)
-    
-    if procedure_match:
-        procedure_section = procedure_match.group(1)
-        
-        # Split by days
-        for day in days:
-            day_upper = day.upper()
-            
-            # Pattern to find each day's section - more flexible
-            day_pattern = rf'{day_upper}[\s\n]*(.*?)(?={", ".join([d.upper() for d in days if d != day])}|V\.?\s*REMARKS|$)'
-            day_match = re.search(day_pattern, procedure_section, re.DOTALL | re.IGNORECASE)
-            
-            if day_match:
-                day_content = day_match.group(1).strip()
-                
-                # Extract each step A-J
-                for i, step in enumerate(steps):
-                    step_upper = step.upper()
-                    
-                    # Try multiple patterns for each step
-                    step_patterns = [
-                        # Pattern 1: A. content (with newline after)
-                        rf'{step_upper}\.\s*(.*?)(?={chr(ord(step_upper)+1)}\.|\n\n|$)',
-                        # Pattern 2: A. content (with possible spaces)
-                        rf'{step_upper}\.\s*([^\n]+(?:\n(?!{chr(ord(step_upper)+1)}\.)[^\n]+)*)',
-                        # Pattern 3: Just look for the step letter and take everything until next step
-                        rf'{step_upper}\.\s*(.*?)(?=[A-J]\.|$)',
-                    ]
-                    
-                    step_text = ""
-                    for pattern in step_patterns:
-                        step_match = re.search(pattern, day_content, re.DOTALL | re.IGNORECASE)
-                        if step_match:
-                            step_text = step_match.group(1).strip()
-                            break
-                    
-                    # If no match found with patterns, try line-by-line approach
-                    if not step_text:
-                        lines = day_content.split('\n')
-                        for line in lines:
-                            if line.strip().startswith(f'{step_upper}.'):
-                                step_text = line.strip()[2:].strip()
-                                break
-                    
-                    # Store the raw text first (don't clean it yet)
-                    if step_text:
-                        parsed[f'{day}_procedure_{step}'] = step_text
-                        parsed['procedures'][day][step] = step_text
-    
-    # Parse other sections (school header, objectives, etc.)
-    # ... (keep your existing parsing code for other sections)
     
     # Parse school header
     school_match = re.search(r'School[:\s]+([^\n]+)', content, re.IGNORECASE)
@@ -1751,6 +1703,211 @@ def parse_weekly_lesson_plan(content, form_data):
             cont_match = re.search(cont_pattern, content_section, re.DOTALL | re.IGNORECASE)
             if cont_match:
                 parsed[f'content_{day}'] = cont_match.group(1).strip()
+    
+    # ========== COMPLETE LEARNING RESOURCES PARSING ==========
+    resources_pattern = r'III\.?\s*LEARNING RESOURCES\s*(.*?)(?=IV\.?\s*PROCEDURE|$)'
+    resources_match = re.search(resources_pattern, content, re.DOTALL | re.IGNORECASE)
+    
+    if resources_match:
+        resources_section = resources_match.group(1)
+        
+        # ===== A. References subsection =====
+        references_pattern = r'A\.?\s*References?\s*(.*?)(?=B\.?\s*Other Learning Resources|$)'
+        references_match = re.search(references_pattern, resources_section, re.DOTALL | re.IGNORECASE)
+        
+        if references_match:
+            references_text = references_match.group(1)
+            
+            # 1. Teacher's Guide pages
+            tg_patterns = [
+                r'1\.?\s*Teacher\'?s?\s*Guide\s*(?:pages?)?:?\s*([^\n]+)',
+                r'Teacher\'?s?\s*Guide\s*(?:pages?)?:?\s*([^\n]+)',
+                r'Teacher\'?s?\s*Guide.*?pages?\s*([^\n]+)',
+                r'Teacher\'?s?\s*Guide[:\s]*([^\n]+)'
+            ]
+            for pattern in tg_patterns:
+                tg_match = re.search(pattern, references_text, re.IGNORECASE)
+                if tg_match:
+                    parsed['teachers_guide'] = tg_match.group(1).strip()
+                    break
+            
+            # 2. Learning Materials pages
+            lm_patterns = [
+                r'2\.?\s*(?:Learner\'?s?\s*)?Materials?\s*(?:pages?)?:?\s*([^\n]+)',
+                r'(?:Learner\'?s?\s*)?Materials?\s*(?:pages?)?:?\s*([^\n]+)',
+                r'(?:Learner\'?s?\s*)?Materials?.*?pages?\s*([^\n]+)',
+                r'(?:Learner\'?s?\s*)?Materials?[:\s]*([^\n]+)'
+            ]
+            for pattern in lm_patterns:
+                lm_match = re.search(pattern, references_text, re.IGNORECASE)
+                if lm_match:
+                    parsed['learning_materials'] = lm_match.group(1).strip()
+                    break
+            
+            # 3. Textbook pages
+            tb_patterns = [
+                r'3\.?\s*Textbook\s*(?:pages?)?:?\s*([^\n]+)',
+                r'Textbook\s*(?:pages?)?:?\s*([^\n]+)',
+                r'Textbook.*?pages?\s*([^\n]+)',
+                r'Textbook[:\s]*([^\n]+)'
+            ]
+            for pattern in tb_patterns:
+                tb_match = re.search(pattern, references_text, re.IGNORECASE)
+                if tb_match:
+                    parsed['textbook_pages'] = tb_match.group(1).strip()
+                    break
+            
+            # 4. Additional Materials from LR Portal
+            lr_patterns = [
+                r'4\.?\s*(?:Additional\s*)?Materials?\s*from\s*LR\s*Portal:?\s*([^\n]+)',
+                r'(?:Additional\s*)?Materials?\s*from\s*LR\s*Portal:?\s*([^\n]+)',
+                r'LR\s*Portal[:\s]*([^\n]+)',
+                r'LRMDS[:\s]*([^\n]+)',
+                r'Additional Materials from LR Portal:?\s*([^\n]+)'
+            ]
+            for pattern in lr_patterns:
+                lr_match = re.search(pattern, references_text, re.IGNORECASE)
+                if lr_match:
+                    parsed['lr_portal'] = lr_match.group(1).strip()
+                    break
+        
+        # ===== B. Other Learning Resources subsection =====
+        other_pattern = r'B\.?\s*Other\s*Learning\s*Resources?\s*(.*?)(?=IV\.?\s*PROCEDURE|$)'
+        other_match = re.search(other_pattern, resources_section, re.DOTALL | re.IGNORECASE)
+        
+        if other_match:
+            other_text = other_match.group(1).strip()
+            
+            # Clean up markdown and extra formatting
+            other_text = re.sub(r'\*\*', '', other_text)  # Remove bold markers
+            other_text = re.sub(r'#{1,6}\s*', '', other_text)  # Remove headers
+            other_text = re.sub(r'_{2,}', '', other_text)  # Remove underscores
+            
+            # Store the full text
+            parsed['other_resources'] = other_text.strip()
+            
+            # Extract as list for better template rendering
+            # Split by bullet points, numbers, or newlines
+            resource_items = []
+            
+            # Try to split by bullet points first
+            bullet_matches = re.findall(r'[•\-]\s*([^\n]+)', other_text)
+            if bullet_matches:
+                resource_items = [item.strip() for item in bullet_matches if item.strip()]
+            else:
+                # Try numbered list
+                number_matches = re.findall(r'\d+\.\s*([^\n]+)', other_text)
+                if number_matches:
+                    resource_items = [item.strip() for item in number_matches if item.strip()]
+                else:
+                    # Split by newlines and clean
+                    lines = other_text.split('\n')
+                    for line in lines:
+                        line = line.strip()
+                        if line and not line.startswith('For example') and not line.startswith('Include'):
+                            # Remove any remaining bullet indicators
+                            line = re.sub(r'^[•\-]\s*', '', line)
+                            resource_items.append(line)
+            
+            parsed['other_resources_list'] = resource_items
+    
+    # ========== Parse IV. PROCEDURE section ==========
+    procedure_pattern = r'IV\.?\s*PROCEDURE\s*(.*?)(?=V\.?\s*REMARKS|$)'
+    procedure_match = re.search(procedure_pattern, content, re.DOTALL | re.IGNORECASE)
+    
+    if procedure_match:
+        procedure_section = procedure_match.group(1)
+        
+        # Split by days
+        for day in days:
+            day_upper = day.upper()
+            
+            # Pattern to find each day's section - more flexible
+            day_pattern = rf'{day_upper}[\s\n]*(?:\[[^\]]*\])?[\s\n]*(.*?)(?={", ".join([d.upper() for d in days if d != day])}|V\.?\s*REMARKS|$)'
+            day_match = re.search(day_pattern, procedure_section, re.DOTALL | re.IGNORECASE)
+            
+            if day_match:
+                day_content = day_match.group(1).strip()
+                
+                # Extract each step A-J
+                for i, step in enumerate(steps):
+                    step_upper = step.upper()
+                    
+                    # Try multiple patterns for each step
+                    step_patterns = [
+                        # Pattern 1: A. content (with next step letter or double newline)
+                        rf'{step_upper}\.\s*(.*?)(?={chr(ord(step_upper)+1)}\.|\n\n|$)',
+                        # Pattern 2: A. content (with possible spaces and line breaks)
+                        rf'{step_upper}\.\s*([^\n]+(?:\n(?!{chr(ord(step_upper)+1)}\.)[^\n]+)*)',
+                        # Pattern 3: Just look for the step letter and take everything until next step
+                        rf'{step_upper}\.\s*(.*?)(?=[A-J]\.|$)',
+                        # Pattern 4: Look for step with possible theme in brackets
+                        rf'{step_upper}\.\s*(?:\[[^\]]*\]\s*)?(.*?)(?=[A-J]\.|$)'
+                    ]
+                    
+                    step_text = ""
+                    for pattern in step_patterns:
+                        step_match = re.search(pattern, day_content, re.DOTALL | re.IGNORECASE)
+                        if step_match:
+                            step_text = step_match.group(1).strip()
+                            break
+                    
+                    # If no match found with patterns, try line-by-line approach
+                    if not step_text:
+                        lines = day_content.split('\n')
+                        for line in lines:
+                            if line.strip().startswith(f'{step_upper}.'):
+                                step_text = line.strip()[2:].strip()
+                                break
+                    
+                    # Store the raw text
+                    if step_text:
+                        # Clean up any remaining theme indicators
+                        step_text = re.sub(r'\[Theme:[^\]]*\]', '', step_text).strip()
+                        parsed[f'{day}_procedure_{step}'] = step_text
+                        parsed['procedures'][day][step] = step_text
+    
+    # ========== Parse V. REMARKS section ==========
+    remarks_pattern = r'V\.?\s*REMARKS\s*(.*?)(?=VI\.?\s*REFLECTION|$)'
+    remarks_match = re.search(remarks_pattern, content, re.DOTALL | re.IGNORECASE)
+    
+    if remarks_match:
+        parsed['remarks'] = remarks_match.group(1).strip()
+    
+    # ========== Parse VI. REFLECTION section ==========
+    reflection_pattern = r'VI\.?\s*REFLECTION\s*(.*?)(?=$)'
+    reflection_match = re.search(reflection_pattern, content, re.DOTALL | re.IGNORECASE)
+    
+    if reflection_match:
+        reflection_section = reflection_match.group(1)
+        
+        # Parse reflection items A-G
+        reflection_items = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+        for item in reflection_items:
+            item_upper = item.upper()
+            # Pattern for A. [content] or A. content
+            item_pattern = rf'{item_upper}\.?\s*(.*?)(?={chr(ord(item_upper)+1)}\.|$)'
+            item_match = re.search(item_pattern, reflection_section, re.DOTALL | re.IGNORECASE)
+            if item_match:
+                parsed[f'reflection_{item}'] = item_match.group(1).strip()
+    
+    # ========== Parse MELC codes if present ==========
+    melc_pattern = r'MELC(?:\s*Code)?[:\s]*([^\n]+)'
+    melc_match = re.search(melc_pattern, content, re.IGNORECASE)
+    if melc_match:
+        parsed['melc_codes'] = melc_match.group(1).strip()
+    
+    # ========== Parse Values Integration if present ==========
+    values_pattern = r'Values(?:\s*Integration)?[:\s]*([^\n]+(?:\n[^\n]+)*?)(?=\n\n|\n[A-Z]\.|$)'
+    values_match = re.search(values_pattern, content, re.DOTALL | re.IGNORECASE)
+    if values_match:
+        parsed['values_integration'] = values_match.group(1).strip()
+    
+    # ========== Parse Cross-curricular Integration if present ==========
+    cross_pattern = r'Cross[- ]?curricular(?:\s*Integration)?[:\s]*([^\n]+(?:\n[^\n]+)*?)(?=\n\n|\n[A-Z]\.|$)'
+    cross_match = re.search(cross_pattern, content, re.DOTALL | re.IGNORECASE)
+    if cross_match:
+        parsed['cross_curricular'] = cross_match.group(1).strip()
     
     return parsed
 
