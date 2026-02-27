@@ -6,6 +6,7 @@
     <title>LessonLink - Weekly Lesson Plan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    {% load custom_filters %}
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #11468F 0%, #9E5EFF 100%);
@@ -33,8 +34,23 @@
             margin-top: 24px;
             margin-bottom: 16px;
         }
+        .content-box {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            background-color: #ffffff;
+            min-height: 80px;
+        }
+        .procedure-step {
+            padding: 8px 0;
+            border-bottom: 1px dashed #e5e7eb;
+        }
+        .step-label {
+            font-weight: 600;
+            color: #11468F;
+            margin-right: 8px;
+        }
         
-        /* Print styles */
         @media print {
             .print\:hidden {
                 display: none !important;
@@ -44,6 +60,9 @@
                 color: white !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+            }
+            .lesson-table th, .lesson-table td {
+                border: 1px solid #000 !important;
             }
         }
     </style>
@@ -63,6 +82,17 @@
                     </div>
                 </a>
                 <div class="flex items-center space-x-3 print:hidden">
+                    <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">
+                        <i class="fas fa-brain mr-1"></i>
+                        {% if form_data.intelligence_type == 'comprehensive' %}Comprehensive (IQ+EQ+SQ+AQ)
+                        {% elif form_data.intelligence_type == 'cognitive' %}Cognitive Focus (IQ)
+                        {% elif form_data.intelligence_type == 'emotional' %}Emotional Focus (EQ)
+                        {% elif form_data.intelligence_type == 'social' %}Social Focus (SQ)
+                        {% elif form_data.intelligence_type == 'resilience' %}Resilience Focus (AQ)
+                        {% elif form_data.intelligence_type == 'differentiated' %}Differentiated Mix
+                        {% else %}{{ form_data.intelligence_type|title }}
+                        {% endif %}
+                    </span>
                     <button onclick="window.print()" class="bg-white text-[#11468F] px-4 py-2 rounded-lg hover:bg-gray-100">
                         <i class="fas fa-print mr-2"></i>Print
                     </button>
@@ -77,9 +107,480 @@
 
     <div class="flex-1">
         <div class="max-w-6xl mx-auto px-4 py-8">
-            <!-- Generated Weekly Lesson Plan Content -->
+            <!-- Back Button -->
+            <div class="mb-4 print:hidden">
+                <a href="{% url 'lesson_ai_weekly' %}" class="text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Form
+                </a>
+            </div>
+
+            <!-- Generated Weekly Lesson Plan Content - Structured Format -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden p-8">
-                {{ weekly_plan|safe }}
+                {% if parsed_plan %}
+                <!-- School Header Table -->
+                <table class="lesson-table mb-8">
+                    <tr>
+                        <th class="w-24">School</th>
+                        <td>{{ parsed_plan.school|default:"TUBAY NATIONAL HIGH SCHOOL" }}</td>
+                        <th class="w-28">Grade Level</th>
+                        <td>{{ form_data.grade_level|upper }}</td>
+                    </tr>
+                    <tr>
+                        <th>Teacher</th>
+                        <td>
+                            {% if user.is_authenticated %}
+                                {{ parsed_plan.teacher|default:user.get_full_name }}
+                            {% else %}
+                                {{ parsed_plan.teacher|default:"Teacher" }}
+                            {% endif %}
+                        </td>
+                        <th>Learning Area</th>
+                        <td>{{ form_data.subject|upper }}</td>
+                    </tr>
+                    <tr>
+                        <th>Teaching Date</th>
+                        <td>{{ parsed_plan.teaching_date|default:"Week " }}{{ form_data.week }}</td>
+                        <th>Quarter</th>
+                        <td>{{ form_data.quarter|upper }}</td>
+                    </tr>
+                    <tr>
+                        <th>Week No.</th>
+                        <td>{{ form_data.week }}</td>
+                        <th>Duration</th>
+                        <td>Week {{ form_data.week }} (5 days)</td>
+                    </tr>
+                </table>
+
+                <!-- I. OBJECTIVES -->
+                <div>
+                    <div class="section-header">I. OBJECTIVES</div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="font-semibold text-gray-700">A. Content Standards</h3>
+                            <div class="content-box mt-1">
+                                {{ parsed_plan.content_standard|default:form_data.content_standards|default:"The learner demonstrates understanding of..."|linebreaks }}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-semibold text-gray-700">B. Performance Standards</h3>
+                            <div class="content-box mt-1">
+                                {{ parsed_plan.performance_standard|default:form_data.performance_standards|default:"The learner is able to..."|linebreaks }}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-semibold text-gray-700">C. Learning Competencies/Objectives</h3>
+                            <div class="content-box mt-1">
+                                <div class="space-y-2">
+                                    {% if parsed_plan.objective_monday %}
+                                    <div><span class="font-medium">Monday:</span> {{ parsed_plan.objective_monday }}</div>
+                                    {% elif form_data.objectives.monday %}
+                                    <div><span class="font-medium">Monday:</span> {{ form_data.objectives.monday }}</div>
+                                    {% endif %}
+                                    
+                                    {% if parsed_plan.objective_tuesday %}
+                                    <div><span class="font-medium">Tuesday:</span> {{ parsed_plan.objective_tuesday }}</div>
+                                    {% elif form_data.objectives.tuesday %}
+                                    <div><span class="font-medium">Tuesday:</span> {{ form_data.objectives.tuesday }}</div>
+                                    {% endif %}
+                                    
+                                    {% if parsed_plan.objective_wednesday %}
+                                    <div><span class="font-medium">Wednesday:</span> {{ parsed_plan.objective_wednesday }}</div>
+                                    {% elif form_data.objectives.wednesday %}
+                                    <div><span class="font-medium">Wednesday:</span> {{ form_data.objectives.wednesday }}</div>
+                                    {% endif %}
+                                    
+                                    {% if parsed_plan.objective_thursday %}
+                                    <div><span class="font-medium">Thursday:</span> {{ parsed_plan.objective_thursday }}</div>
+                                    {% elif form_data.objectives.thursday %}
+                                    <div><span class="font-medium">Thursday:</span> {{ form_data.objectives.thursday }}</div>
+                                    {% endif %}
+                                    
+                                    {% if parsed_plan.objective_friday %}
+                                    <div><span class="font-medium">Friday:</span> {{ parsed_plan.objective_friday }}</div>
+                                    {% elif form_data.objectives.friday %}
+                                    <div><span class="font-medium">Friday:</span> {{ form_data.objectives.friday }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- II. CONTENT -->
+                <div class="mt-8">
+                    <div class="section-header">II. CONTENT</div>
+                    <div class="grid grid-cols-5 gap-3 mt-2">
+                        <div class="border rounded-lg p-3">
+                            <div class="font-medium text-[#11468F] text-sm mb-1">MONDAY</div>
+                            <div class="text-sm">{{ parsed_plan.content_monday|default:"Introduction to Topic" }}</div>
+                        </div>
+                        <div class="border rounded-lg p-3">
+                            <div class="font-medium text-[#11468F] text-sm mb-1">TUESDAY</div>
+                            <div class="text-sm">{{ parsed_plan.content_tuesday|default:"Skill Building" }}</div>
+                        </div>
+                        <div class="border rounded-lg p-3">
+                            <div class="font-medium text-[#11468F] text-sm mb-1">WEDNESDAY</div>
+                            <div class="text-sm">{{ parsed_plan.content_wednesday|default:"Deep Dive" }}</div>
+                        </div>
+                        <div class="border rounded-lg p-3">
+                            <div class="font-medium text-[#11468F] text-sm mb-1">THURSDAY</div>
+                            <div class="text-sm">{{ parsed_plan.content_thursday|default:"Application" }}</div>
+                        </div>
+                        <div class="border rounded-lg p-3">
+                            <div class="font-medium text-[#11468F] text-sm mb-1">FRIDAY</div>
+                            <div class="text-sm">{{ parsed_plan.content_friday|default:"Assessment" }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- III. LEARNING RESOURCES -->
+                <div class="mt-8">
+                    <div class="section-header">III. LEARNING RESOURCES</div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="font-semibold text-gray-700">A. References</h3>
+                            <div class="grid grid-cols-2 gap-4 mt-2">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-600">1. Teacher's Guide</div>
+                                    <div class="content-box mt-1 text-sm">{{ parsed_plan.teachers_guide|default:"Pages 45-52" }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-600">2. Learning Materials</div>
+                                    <div class="content-box mt-1 text-sm">{{ parsed_plan.learning_materials|default:"Module 3" }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-600">3. Textbook Pages</div>
+                                    <div class="content-box mt-1 text-sm">{{ parsed_plan.textbook_pages|default:"pp. 78-95" }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-600">4. Additional Materials from LR Portal</div>
+                                    <div class="content-box mt-1 text-sm">{{ parsed_plan.lr_portal|default:"LRMDS Portal" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-semibold text-gray-700">B. Other Learning Resources</h3>
+                            <div class="content-box mt-1">
+                                {{ parsed_plan.other_resources|default:"Videos, real objects, online simulations, PowerPoint presentations"|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IV. PROCEDURE - Daily breakdown -->
+<div class="mt-8">
+    <div class="section-header">IV. PROCEDURE</div>
+    
+    {% with days="monday tuesday wednesday thursday friday" %}
+    {% for day in days.split %}
+    {% with day_proc=parsed_plan.procedures|get_item:day %}
+    <div class="mb-8 border-l-4 pl-4 {% if day == 'monday' %}border-[#11468F]{% else %}border-gray-300{% endif %}">
+        <h3 class="font-semibold text-{% if day == 'monday' %}[#11468F]{% else %}gray-600{% endif %} mb-3">{{ day|upper }}</h3>
+        
+        <div class="space-y-3">
+            <!-- A. Reviewing previous lesson -->
+            <div class="procedure-step">
+                <span class="step-label">A.</span> 
+                {% if day_proc and day_proc.a %}
+                    {% with step_text=day_proc.a|clean_markdown %}
+                        {% if step_text %}
+                            {% if step_text|is_fragment %}
+                                <span class="text-amber-600">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    [Content incomplete - Save as draft to edit]
+                                </span>
+                            {% else %}
+                                {{ step_text }}
+                            {% endif %}
+                        {% else %}
+                            <span class="text-gray-400 italic">No content available</span>
+                        {% endif %}
+                    {% endwith %}
+                {% else %}
+                    <span class="text-gray-400 italic">No content available</span>
+                {% endif %}
+            </div>
+            
+            <!-- B. Establishing purpose -->
+            <div class="procedure-step">
+                <span class="step-label">B.</span> 
+                {% if day_proc and day_proc.b %}
+                    {% with step_text=day_proc.b|clean_markdown %}
+                        {% if step_text %}
+                            {% if step_text|is_fragment %}
+                                <span class="text-amber-600">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    [Content incomplete - Save as draft to edit]
+                                </span>
+                            {% else %}
+                                {{ step_text }}
+                            {% endif %}
+                        {% else %}
+                            <span class="text-gray-400 italic">No content available</span>
+                        {% endif %}
+                    {% endwith %}
+                {% else %}
+                    <span class="text-gray-400 italic">No content available</span>
+                {% endif %}
+            </div>
+            
+            <!-- C. Presenting examples -->
+            <div class="procedure-step">
+                <span class="step-label">C.</span> 
+                {% if day_proc and day_proc.c %}
+                    {% with step_text=day_proc.c|clean_markdown %}
+                        {% if step_text %}
+                            {% if step_text|is_fragment %}
+                                <span class="text-amber-600">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    [Content incomplete - Save as draft to edit]
+                                </span>
+                            {% else %}
+                                {{ step_text }}
+                            {% endif %}
+                        {% else %}
+                            <span class="text-gray-400 italic">No content available</span>
+                        {% endif %}
+                    {% endwith %}
+                {% else %}
+                    <span class="text-gray-400 italic">No content available</span>
+                {% endif %}
+            </div>
+            
+            <!-- D. Discussing new concepts #1 -->
+            <div class="procedure-step">
+                <span class="step-label">D.</span> 
+                {% if day_proc and day_proc.d %}
+                    {% with step_text=day_proc.d|clean_markdown %}
+                        {% if step_text %}
+                            {% if step_text|is_fragment %}
+                                <span class="text-amber-600">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    [Content incomplete - Save as draft to edit]
+                                </span>
+                            {% else %}
+                                {{ step_text }}
+                            {% endif %}
+                        {% else %}
+                            <span class="text-gray-400 italic">No content available</span>
+                        {% endif %}
+                    {% endwith %}
+                {% else %}
+                    <span class="text-gray-400 italic">No content available</span>
+                {% endif %}
+            </div>
+            
+            <!-- E. Discussing new concepts #2 -->
+            <div class="procedure-step">
+                <span class="step-label">E.</span> 
+                {% if day_proc and day_proc.e %}
+                    {% with step_text=day_proc.e|clean_markdown %}
+                        {% if step_text %}
+                            {% if step_text|is_fragment %}
+                                <span class="text-amber-600">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    [Content incomplete - Save as draft to edit]
+                                </span>
+                            {% else %}
+                                {{ step_text }}
+                            {% endif %}
+                        {% else %}
+                            <span class="text-gray-400 italic">No content available</span>
+                        {% endif %}
+                    {% endwith %}
+                {% else %}
+                    <span class="text-gray-400 italic">No content available</span>
+                {% endif %}
+            </div>
+            
+            <!-- F. Developing mastery -->
+            <div class="procedure-step">
+                <span class="step-label">F.</span> 
+                {% if day_proc and day_proc.f %}
+                    {% with step_text=day_proc.f|clean_markdown %}
+                        {% if step_text %}
+                            {% if step_text|is_fragment %}
+                                <span class="text-amber-600">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    [Content incomplete - Save as draft to edit]
+                                </span>
+                            {% else %}
+                                {{ step_text }}
+                            {% endif %}
+                        {% else %}
+                            <span class="text-gray-400 italic">No content available</span>
+                        {% endif %}
+                    {% endwith %}
+                {% else %}
+                    <span class="text-gray-400 italic">No content available</span>
+                {% endif %}
+            </div>
+            
+            <!-- G. Finding practical applications -->
+            <div class="procedure-step">
+                <span class="step-label">G.</span> 
+                {% if day_proc and day_proc.g %}
+                    {% with step_text=day_proc.g|clean_markdown %}
+                        {% if step_text %}
+                            {% if step_text|is_fragment %}
+                                <span class="text-amber-600">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    [Content incomplete - Save as draft to edit]
+                                </span>
+                            {% else %}
+                                {{ step_text }}
+                            {% endif %}
+                        {% else %}
+                            <span class="text-gray-400 italic">No content available</span>
+                        {% endif %}
+                    {% endwith %}
+                {% else %}
+                    <span class="text-gray-400 italic">No content available</span>
+                {% endif %}
+            </div>
+            
+            <!-- H. Making generalizations -->
+            <div class="procedure-step">
+                <span class="step-label">H.</span> 
+                {% if day_proc and day_proc.h %}
+                    {% with step_text=day_proc.h|clean_markdown %}
+                        {% if step_text %}
+                            {% if step_text|is_fragment %}
+                                <span class="text-amber-600">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    [Content incomplete - Save as draft to edit]
+                                </span>
+                            {% else %}
+                                {{ step_text }}
+                            {% endif %}
+                        {% else %}
+                            <span class="text-gray-400 italic">No content available</span>
+                        {% endif %}
+                    {% endwith %}
+                {% else %}
+                    <span class="text-gray-400 italic">No content available</span>
+                {% endif %}
+            </div>
+            
+            <!-- I. Evaluating learning -->
+            <div class="procedure-step">
+                <span class="step-label">I.</span> 
+                {% if day_proc and day_proc.i %}
+                    {% with step_text=day_proc.i|clean_markdown %}
+                        {% if step_text %}
+                            {% if step_text|is_fragment %}
+                                <span class="text-amber-600">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    [Content incomplete - Save as draft to edit]
+                                </span>
+                            {% else %}
+                                {{ step_text }}
+                            {% endif %}
+                        {% else %}
+                            <span class="text-gray-400 italic">No content available</span>
+                        {% endif %}
+                    {% endwith %}
+                {% else %}
+                    <span class="text-gray-400 italic">No content available</span>
+                {% endif %}
+            </div>
+            
+            <!-- J. Additional activities -->
+            <div class="procedure-step">
+                <span class="step-label">J.</span> 
+                {% if day_proc and day_proc.j %}
+                    {% with step_text=day_proc.j|clean_markdown %}
+                        {% if step_text %}
+                            {% if step_text|is_fragment %}
+                                <span class="text-amber-600">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    [Content incomplete - Save as draft to edit]
+                                </span>
+                            {% else %}
+                                {{ step_text }}
+                            {% endif %}
+                        {% else %}
+                            <span class="text-gray-400 italic">No content available</span>
+                        {% endif %}
+                    {% endwith %}
+                {% else %}
+                    <span class="text-gray-400 italic">No content available</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+    {% endwith %}
+    
+
+                <!-- V. REMARKS -->
+                <div class="mt-8">
+                    <div class="section-header">V. REMARKS</div>
+                    <div class="content-box">
+                        {{ parsed_plan.remarks|default:"Reflection on the week's implementation will be added after teaching."|linebreaks }}
+                    </div>
+                </div>
+
+                <!-- VI. REFLECTION -->
+                <div class="mt-8">
+                    <div class="section-header">VI. REFLECTION</div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="content-box">
+                            <p class="font-medium text-gray-700">A. No. of learners who earned 80% in the evaluation</p>
+                            <p class="mt-2">{{ parsed_plan.reflection_a|default:"___ out of ___" }}</p>
+                        </div>
+                        <div class="content-box">
+                            <p class="font-medium text-gray-700">B. No. of learners who require additional activities</p>
+                            <p class="mt-2">{{ parsed_plan.reflection_b|default:"___" }}</p>
+                        </div>
+                        <div class="content-box">
+                            <p class="font-medium text-gray-700">C. Did the remedial lessons work?</p>
+                            <p class="mt-2">{{ parsed_plan.reflection_c|default:"___" }}</p>
+                        </div>
+                        <div class="content-box">
+                            <p class="font-medium text-gray-700">D. No. of learners who continue to require remediation</p>
+                            <p class="mt-2">{{ parsed_plan.reflection_d|default:"___" }}</p>
+                        </div>
+                        <div class="content-box">
+                            <p class="font-medium text-gray-700">E. Which teaching strategies worked well?</p>
+                            <p class="mt-2">{{ parsed_plan.reflection_e|default:"___" }}</p>
+                        </div>
+                        <div class="content-box">
+                            <p class="font-medium text-gray-700">F. What difficulties did I encounter?</p>
+                            <p class="mt-2">{{ parsed_plan.reflection_f|default:"___" }}</p>
+                        </div>
+                        <div class="content-box col-span-2">
+                            <p class="font-medium text-gray-700">G. What innovation/localized materials did I use?</p>
+                            <p class="mt-2">{{ parsed_plan.reflection_g|default:"___" }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Intelligence Type Badge -->
+                <div class="mt-6 text-right text-sm text-gray-500">
+                    <i class="fas fa-brain mr-1"></i> 
+                    {% if form_data.intelligence_type == 'comprehensive' %}Comprehensive (IQ+EQ+SQ+AQ)
+                    {% elif form_data.intelligence_type == 'cognitive' %}Cognitive Focus (IQ) - Logical & Analytical
+                    {% elif form_data.intelligence_type == 'emotional' %}Emotional Focus (EQ) - Self & Social Awareness
+                    {% elif form_data.intelligence_type == 'social' %}Social Focus (SQ) - Collaboration & Communication
+                    {% elif form_data.intelligence_type == 'resilience' %}Resilience Focus (AQ) - Perseverance & Adaptability
+                    {% elif form_data.intelligence_type == 'differentiated' %}Differentiated Mix - All Types
+                    {% else %}{{ form_data.intelligence_type|title }}
+                    {% endif %}
+                </div>
+
+                {% else %}
+                <!-- Fallback to raw markdown if parsing fails -->
+                <div class="prose max-w-none">
+                    {{ weekly_plan|safe }}
+                </div>
+                {% endif %}
             </div>
             
             <!-- Action Buttons -->
@@ -157,7 +658,7 @@
             setTimeout(() => msg.remove(), 3000);
         }
 
-        // Save weekly plan function - FIXED: Now properly makes POST request
+        // Save weekly plan function
         function saveWeeklyPlan() {
             const btn = document.querySelector('.save-draft-btn');
             btn.disabled = true;
@@ -165,14 +666,13 @@
             
             showLoadingModal('Saving your weekly lesson plan...');
             
-            // Make POST request to save endpoint
             fetch('/save-weekly-lesson-plan/', {
-                method: 'POST',  // Explicitly set to POST
+                method: 'POST',
                 headers: {
                     'X-CSRFToken': getCookie('csrftoken'),
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({})  // Empty body is fine - we use session data
+                body: JSON.stringify({})
             })
             .then(response => {
                 if (!response.ok) {
@@ -185,7 +685,6 @@
                 if (data.success) {
                     showMessage('success', data.message);
                     setTimeout(() => {
-                        // Redirect to weekly drafts list
                         window.location.href = data.redirect_url || '/drafts/weekly/';
                     }, 1500);
                 } else {

@@ -1155,11 +1155,49 @@ def generate_weekly_lesson_plan(request):
             else:
                 daily_objectives_text += f"{day.upper()}: [To be developed based on weekly theme]\n"
         
-        # Format the prompt for the AI
-        prompt = f"""
-        Generate a complete MATATAG-aligned WEEKLY LESSON PLAN following DepEd Philippines standards.
+        # Get intelligence type description
+        intelligence_descriptions = {
+            'comprehensive': 'Balanced approach incorporating all intelligence types: cognitive (logical/analytical), emotional (self-awareness/empathy), social (collaboration/communication), and resilience (perseverance/growth mindset). EVERY activity must include elements from multiple intelligence types.',
+            'cognitive': 'Focus on logical, mathematical, and analytical intelligence. ALL activities must emphasize: problem-solving, pattern recognition, critical analysis, logical reasoning, data interpretation, and systematic thinking.',
+            'emotional': 'Focus on emotional awareness and management. ALL activities must include: self-reflection, emotion identification, empathy exercises, values clarification, perspective-taking, and emotional regulation.',
+            'social': 'Focus on interpersonal and communication skills. ALL activities must emphasize: collaboration, teamwork, communication exercises, peer interaction, group projects, and community building.',
+            'resilience': 'Focus on perseverance and adaptability. ALL activities must include: challenging tasks with multiple attempts, growth mindset activities, failure analysis, stress management, and adaptability exercises.',
+            'differentiated': 'Provide varied activities for different intelligence types. Include multiple activity options labeled by intelligence type, choice boards, learning stations, and flexible grouping strategies.'
+        }
         
-        WEEKLY TITLE: {form_data['title'] or f"Week {form_data['week']}: {form_data['subject']}"}
+        intelligence_desc = intelligence_descriptions.get(
+            form_data['intelligence_type'], 
+            'Balanced approach to intelligence development.'
+        )
+        
+        # Get theme progression
+        theme_progression = {
+            'introduction': 'Monday: Introduction, Tuesday: Skill Building, Wednesday: Deep Dive, Thursday: Application, Friday: Assessment',
+            'skill_building': 'Monday: Foundation, Tuesday: Guided Practice, Wednesday: Independent Practice, Thursday: Application, Friday: Assessment',
+            'deep_dive': 'Monday: Overview, Tuesday: Analysis, Wednesday: Synthesis, Thursday: Evaluation, Friday: Assessment',
+            'practice': 'Monday: Review, Tuesday: Modeling, Wednesday: Guided Practice, Thursday: Independent Practice, Friday: Assessment',
+            'assessment': 'Monday: Pre-assessment, Tuesday: Instruction, Wednesday: Practice, Thursday: Review, Friday: Summative Assessment'
+        }
+        
+        theme_text = theme_progression.get(form_data['theme'], 'Monday: Introduction, Tuesday: Skill Building, Wednesday: Deep Dive, Thursday: Application, Friday: Assessment')
+        
+        # Get approach description
+        approach_descriptions = {
+            'direct': 'Direct Instruction with clear modeling, guided practice, and independent work. Teacher-centered with explicit teaching.',
+            'collaborative': 'Collaborative Learning with group work, peer teaching, discussions, and cooperative activities. Student-centered with teacher as facilitator.',
+            'hands_on': 'Hands-on/Practical approach with manipulatives, experiments, real objects, and experiential learning. Learning by doing.',
+            'inquiry': 'Inquiry-Based Learning with questions, investigations, research, and discovery. Students explore and construct knowledge.'
+        }
+        
+        approach_desc = approach_descriptions.get(form_data['approach'], 'Varied instructional strategies throughout the week.')
+        
+        # Format the enhanced prompt for the AI
+        prompt = f"""
+        Generate a COMPLETE, DETAILED, MATATAG-aligned WEEKLY LESSON PLAN following DepEd Philippines standards.
+        
+        **IMPORTANT: You MUST fill EVERY section with COMPLETE content. No placeholders. No empty brackets. Generate specific, detailed activities for each day and step.**
+        
+        WEEKLY TITLE: {form_data['title'] or f"Week {form_data['week']}: {form_data['subject']} - Grade {form_data['grade_level']}"}
         
         SUBJECT: {form_data['subject']}
         GRADE LEVEL: {form_data['grade_level']}
@@ -1167,43 +1205,86 @@ def generate_weekly_lesson_plan(request):
         QUARTER: {form_data['quarter']}
         
         WEEKLY THEME FOCUS: {form_data['theme'] or 'Comprehensive weekly progression'}
+        THEME PROGRESSION: {theme_text}
+        
         TEACHING APPROACH: {form_data['approach'] or 'Varied instructional strategies'}
+        APPROACH DESCRIPTION: {approach_desc}
+        
         INTELLIGENCE TYPE FOCUS: {form_data['intelligence_type']}
+        INTELLIGENCE DESCRIPTION: {intelligence_desc}
         
         CONTENT STANDARDS (Weekly):
-        {form_data['content_standards'] or 'To be aligned with MATATAG curriculum'}
+        {form_data['content_standards'] or f"The learners demonstrate an understanding of {form_data['subject']} concepts and principles for Grade {form_data['grade_level']} Quarter {form_data['quarter']}."}
         
         PERFORMANCE STANDARDS (Weekly):
-        {form_data['performance_standards'] or 'To be aligned with MATATAG curriculum'}
+        {form_data['performance_standards'] or f"The learners shall be able to apply {form_data['subject']} concepts and skills in real-life situations."}
         
         DAILY LEARNING OBJECTIVES:
         {daily_objectives_text}
 
         {'REFERENCE EXEMPLAR: ' + exemplar_name if exemplar_name else ''}
-        {'EXEMPLAR CONTENT FOR REFERENCE: ' + exemplar_content[:2000] + '...' if exemplar_content else ''}
+        {'EXEMPLAR CONTENT FOR REFERENCE (use for quality and structure, not content): ' + exemplar_content[:2000] + '...' if exemplar_content else ''}
 
+        **INTELLIGENCE TYPE ADAPTATION REQUIREMENTS - YOU MUST FOLLOW:**
+        
+        For {form_data['intelligence_type'].upper()} intelligence focus:
+        {intelligence_desc}
+        
+        Apply this adaptation to EVERY activity in EVERY day's procedure:
+        - Monday activities must develop {form_data['intelligence_type']} intelligence through introduction activities
+        - Tuesday activities must develop {form_data['intelligence_type']} intelligence through skill-building
+        - Wednesday activities must develop {form_data['intelligence_type']} intelligence through deep exploration
+        - Thursday activities must develop {form_data['intelligence_type']} intelligence through application
+        - Friday assessment must measure {form_data['intelligence_type']} intelligence development
+        
+        **DAILY PROCEDURE REQUIREMENTS - YOU MUST FOLLOW:**
+        
+        For EACH day (Monday through Friday), you MUST provide ALL 10 steps (A-J) with 2-4 DETAILED sentences each:
+        
+        A. Reviewing previous lesson or presenting the new lesson: [Specific activity that connects to prior knowledge]
+        B. Establishing a purpose for the lesson: [Clear statement of why today's lesson matters]
+        C. Presenting examples/instances of the new lesson: [2-3 specific examples with descriptions]
+        D. Discussing new concepts and practicing new skills #1: [Detailed teacher-led discussion with student interaction]
+        E. Discussing new concepts and practicing new skills #2: [Guided practice activity with specific steps]
+        F. Developing mastery (Leads to Formative Assessment): [Independent practice with teacher guidance]
+        G. Finding practical applications of concepts and skills: [Real-world connections with specific examples]
+        H. Making generalizations and abstractions about the lesson: [Student summary and abstraction activity]
+        I. Evaluating learning: [Specific 3-5 question formative assessment]
+        J. Additional activities for application or remediation: [Both extension and remediation activities]
+        
+        **CONTENT REQUIREMENTS BY GRADE LEVEL:**
+        
+        For Grade {form_data['grade_level']}:
+        - Use age-appropriate language and concepts
+        - Activities should match developmental level
+        - Assessment should be appropriate for the grade level
+        - Include grade-appropriate materials and resources
+        
         Generate a comprehensive weekly lesson plan following DepEd MATATAG format with:
-        1. Complete school header (School, Teacher, Grade Level, Dates, Quarter)
+        1. Complete school header (School: TUBAY NATIONAL HIGH SCHOOL, Teacher: [generate name], Grade Level: {form_data['grade_level']}, Teaching Date: [generate realistic date range], Quarter: {form_data['quarter']})
         2. I. OBJECTIVES (Content Standards, Performance Standards, Learning Competencies/Objectives by day)
-        3. II. CONTENT (Daily topics/themes)
-        4. III. LEARNING RESOURCES (References, Materials, Textbook pages, LR Portal)
-        5. IV. PROCEDURE (Complete MATATAG 10-step procedure for EACH DAY: A-J)
-        6. V. REMARKS (Reflection section)
-        7. VI. REFLECTION (For teacher's notes)
+        3. II. CONTENT (Daily topics/themes with specific, detailed content for each day)
+        4. III. LEARNING RESOURCES (A. References with specific pages, B. Other Learning Resources with 3-5 specific items)
+        5. IV. PROCEDURE (Complete MATATAG 10-step procedure for EACH DAY: A-J with 2-4 sentences each)
+        6. V. REMARKS (Reflection table format)
+        7. VI. REFLECTION (A-G with thoughtful prompts)
         
-        Format each day's procedure with proper MATATAG structure:
-        A. Reviewing previous lesson or presenting the new lesson
-        B. Establishing a purpose for the lesson
-        C. Presenting examples/instances of the new lesson
-        D. Discussing new concepts and practicing new skills #1
-        E. Discussing new concepts and practicing new skills #2
-        F. Developing mastery (Leads to Formative Assessment)
-        G. Finding practical applications of concepts and skills
-        H. Making generalizations and abstractions about the lesson
-        I. Evaluating learning
-        J. Additional activities for application or remediation
+        **FORMAT CHECKLIST - VERIFY BEFORE OUTPUTTING:**
+        ✓ All sections present (I-VI)
+        ✓ All daily objectives present (Monday-Friday)
+        ✓ All daily content topics present (Monday-Friday)
+        ✓ Learning Resources complete with specific references
+        ✓ Monday procedure: ALL 10 steps with 2-4 sentences each
+        ✓ Tuesday procedure: ALL 10 steps with 2-4 sentences each
+        ✓ Wednesday procedure: ALL 10 steps with 2-4 sentences each
+        ✓ Thursday procedure: ALL 10 steps with 2-4 sentences each
+        ✓ Friday procedure: ALL 10 steps with 2-4 sentences each
+        ✓ Remarks section with reflection table
+        ✓ Reflection section with A-G prompts
+        ✓ Intelligence adaptation visible in ALL activities
+        ✓ Grade-appropriate content throughout
         
-        Ensure all content is MATATAG-aligned and appropriate for the grade level.
+        Ensure all content is MATATAG-aligned and appropriate for Grade {form_data['grade_level']} students.
         """
         
         # Generate the lesson plan using Gemini
@@ -1216,21 +1297,42 @@ def generate_weekly_lesson_plan(request):
                 intelligence_type=form_data['intelligence_type']
             )
             
+            # Add additional strict formatting instructions
+            system_instruction += """
+            
+            **STRICT FORMATTING REMINDER:**
+            You MUST output the complete weekly lesson plan in the EXACT format shown in WEEKLY_LESSON_PLANNER_INSTRUCTION.
+            - EVERY section must be filled with COMPLETE content
+            - EVERY day's procedure must have ALL 10 steps (A-J) with 2-4 DETAILED sentences each
+            - NO placeholders like "[content]" or empty brackets
+            - Generate SPECIFIC, IMPLEMENTABLE activities that a teacher can use immediately
+            - Include REALISTIC page numbers, resource titles, and materials
+            - Ensure Friday includes a comprehensive assessment covering all week's objectives
+            """
+            
             response = model.generate_content([
                 system_instruction,
                 prompt
             ])
             
             print("Weekly AI response received")
+            print(f"Response length: {len(response.text)} characters")
+            
+            # Verify the response has all required sections
+            response_text = response.text
+            
+            # Check if response is too short (might be incomplete)
+            if len(response_text) < 2000:
+                print("WARNING: Response seems too short, might be incomplete")
             
             # Store in session
-            request.session['generated_weekly_plan'] = response.text
+            request.session['generated_weekly_plan'] = response_text
             request.session['weekly_form_data'] = form_data
             request.session.modified = True
             
             return JsonResponse({
                 'success': True,
-                'weekly_plan': response.text,
+                'weekly_plan': response_text,
                 'exemplar_used': has_exemplar,
                 'intelligence_type': form_data['intelligence_type'],
                 'exemplar_id': form_data['exemplar_id'] if has_exemplar else None,
@@ -1325,8 +1427,9 @@ def analyze_weekly_input_relation(user_inputs, exemplar_content, exemplar_name):
         return True, f"Analysis error: {str(e)}", 0.5
 
 
+@login_required
 def view_weekly_lesson_plan(request):
-    """Render the weekly lesson plan result page"""
+    """Render the weekly lesson plan result page with structured format"""
     weekly_plan = request.session.get('generated_weekly_plan', '')
     form_data = request.session.get('weekly_form_data', {})
     
@@ -1334,15 +1437,26 @@ def view_weekly_lesson_plan(request):
         messages.error(request, 'No weekly lesson plan found. Please generate one first.')
         return redirect('lesson_ai_weekly')
     
-    # Process markdown
-    import markdown
-    weekly_plan_html = markdown.markdown(weekly_plan, extensions=['extra', 'nl2br', 'tables'])
+    # Parse the weekly plan to extract structured data
+    parsed_plan = parse_weekly_lesson_plan(weekly_plan, form_data)
+    
+    # Day names for display
+    day_names = {
+        'monday': 'MONDAY',
+        'tuesday': 'TUESDAY', 
+        'wednesday': 'WEDNESDAY',
+        'thursday': 'THURSDAY',
+        'friday': 'FRIDAY'
+    }
     
     return render(request, 'lessonGenerator/view_weekly_lesson_plan.html', {
-        'weekly_plan': weekly_plan_html,
+        'weekly_plan': weekly_plan,  # Keep raw for fallback
+        'parsed_plan': parsed_plan,
         'form_data': form_data,
+        'day_names': day_names,
         'intelligence_type': form_data.get('intelligence_type', 'comprehensive')
     })
+
 
 
 @login_required
@@ -1477,6 +1591,7 @@ def save_weekly_lesson_plan(request):
 def parse_weekly_lesson_plan(content, form_data):
     """
     Parse AI-generated weekly lesson plan into structured fields
+    Enhanced version with better pattern matching for procedure steps
     """
     parsed = {
         'title': form_data.get('title', ''),
@@ -1503,6 +1618,21 @@ def parse_weekly_lesson_plan(content, form_data):
         'melc_codes': '',
         'values_integration': '',
         'cross_curricular': '',
+        'remarks': '',
+        'reflection_a': '',
+        'reflection_b': '',
+        'reflection_c': '',
+        'reflection_d': '',
+        'reflection_e': '',
+        'reflection_f': '',
+        'reflection_g': '',
+        'procedures': {
+            'monday': {},
+            'tuesday': {},
+            'wednesday': {},
+            'thursday': {},
+            'friday': {}
+        }
     }
     
     # Initialize procedure fields for all days
@@ -1512,6 +1642,62 @@ def parse_weekly_lesson_plan(content, form_data):
     for day in days:
         for step in steps:
             parsed[f'{day}_procedure_{step}'] = ''
+            parsed['procedures'][day][step] = ''
+    
+    # Extract the PROCEDURE section
+    procedure_pattern = r'IV\.?\s*PROCEDURE\s*(.*?)(?=V\.?\s*REMARKS|$)'
+    procedure_match = re.search(procedure_pattern, content, re.DOTALL | re.IGNORECASE)
+    
+    if procedure_match:
+        procedure_section = procedure_match.group(1)
+        
+        # Split by days
+        for day in days:
+            day_upper = day.upper()
+            
+            # Pattern to find each day's section - more flexible
+            day_pattern = rf'{day_upper}[\s\n]*(.*?)(?={", ".join([d.upper() for d in days if d != day])}|V\.?\s*REMARKS|$)'
+            day_match = re.search(day_pattern, procedure_section, re.DOTALL | re.IGNORECASE)
+            
+            if day_match:
+                day_content = day_match.group(1).strip()
+                
+                # Extract each step A-J
+                for i, step in enumerate(steps):
+                    step_upper = step.upper()
+                    
+                    # Try multiple patterns for each step
+                    step_patterns = [
+                        # Pattern 1: A. content (with newline after)
+                        rf'{step_upper}\.\s*(.*?)(?={chr(ord(step_upper)+1)}\.|\n\n|$)',
+                        # Pattern 2: A. content (with possible spaces)
+                        rf'{step_upper}\.\s*([^\n]+(?:\n(?!{chr(ord(step_upper)+1)}\.)[^\n]+)*)',
+                        # Pattern 3: Just look for the step letter and take everything until next step
+                        rf'{step_upper}\.\s*(.*?)(?=[A-J]\.|$)',
+                    ]
+                    
+                    step_text = ""
+                    for pattern in step_patterns:
+                        step_match = re.search(pattern, day_content, re.DOTALL | re.IGNORECASE)
+                        if step_match:
+                            step_text = step_match.group(1).strip()
+                            break
+                    
+                    # If no match found with patterns, try line-by-line approach
+                    if not step_text:
+                        lines = day_content.split('\n')
+                        for line in lines:
+                            if line.strip().startswith(f'{step_upper}.'):
+                                step_text = line.strip()[2:].strip()
+                                break
+                    
+                    # Store the raw text first (don't clean it yet)
+                    if step_text:
+                        parsed[f'{day}_procedure_{step}'] = step_text
+                        parsed['procedures'][day][step] = step_text
+    
+    # Parse other sections (school header, objectives, etc.)
+    # ... (keep your existing parsing code for other sections)
     
     # Parse school header
     school_match = re.search(r'School[:\s]+([^\n]+)', content, re.IGNORECASE)
@@ -1522,84 +1708,49 @@ def parse_weekly_lesson_plan(content, form_data):
     if teacher_match:
         parsed['teacher'] = teacher_match.group(1).strip()
     
-    date_match = re.search(r'Teaching Date and Time[:\s]+([^\n]+)', content, re.IGNORECASE)
-    if date_match:
-        parsed['teaching_date'] = date_match.group(1).strip()
+    teaching_date_match = re.search(r'Teaching Date[:\s]+([^\n]+)', content, re.IGNORECASE)
+    if teaching_date_match:
+        parsed['teaching_date'] = teaching_date_match.group(1).strip()
     
     # Parse I. OBJECTIVES section
-    objectives_section = extract_section(content, r'I\.?\s*OBJECTIVES', r'II\.?\s*CONTENT')
+    objectives_pattern = r'I\.?\s*OBJECTIVES\s*(.*?)(?=II\.?\s*CONTENT|$)'
+    objectives_match = re.search(objectives_pattern, content, re.DOTALL | re.IGNORECASE)
     
-    if objectives_section:
+    if objectives_match:
+        objectives_section = objectives_match.group(1)
+        
         # Content Standards
-        cs_match = re.search(r'Content Standards?[:\s]+(.*?)(?=Performance Standards?|$)', objectives_section, re.DOTALL | re.IGNORECASE)
+        cs_match = re.search(r'Content Standards?[:\s]*(.*?)(?=Performance Standards?|$)', 
+                            objectives_section, re.DOTALL | re.IGNORECASE)
         if cs_match:
             parsed['content_standard'] = cs_match.group(1).strip()
         
         # Performance Standards
-        ps_match = re.search(r'Performance Standards?[:\s]+(.*?)(?=Learning Competencies?|Learning Objectives?|$)', objectives_section, re.DOTALL | re.IGNORECASE)
+        ps_match = re.search(r'Performance Standards?[:\s]*(.*?)(?=Learning Competencies?/Objectives?|$)', 
+                            objectives_section, re.DOTALL | re.IGNORECASE)
         if ps_match:
             parsed['performance_standard'] = ps_match.group(1).strip()
         
         # Daily objectives
         for day in days:
-            day_pattern = rf'{day.capitalize()}[:\s]+(.*?)(?={day.capitalize()}|Tuesday|Wednesday|Thursday|Friday|$|\[|\(|\))'
-            day_match = re.search(day_pattern, objectives_section, re.DOTALL | re.IGNORECASE)
-            if day_match:
-                parsed[f'objective_{day}'] = day_match.group(1).strip()
+            day_cap = day.capitalize()
+            obj_pattern = rf'{day_cap}[:\s]*(.*?)(?=Monday|Tuesday|Wednesday|Thursday|Friday|$)'
+            obj_match = re.search(obj_pattern, objectives_section, re.DOTALL | re.IGNORECASE)
+            if obj_match:
+                parsed[f'objective_{day}'] = obj_match.group(1).strip()
     
     # Parse II. CONTENT section
-    content_section = extract_section(content, r'II\.?\s*CONTENT', r'III\.?\s*LEARNING RESOURCES')
+    content_pattern = r'II\.?\s*CONTENT\s*(.*?)(?=III\.?\s*LEARNING RESOURCES|$)'
+    content_match = re.search(content_pattern, content, re.DOTALL | re.IGNORECASE)
     
-    if content_section:
+    if content_match:
+        content_section = content_match.group(1)
         for day in days:
-            day_pattern = rf'{day.capitalize()}[:\s]+(.*?)(?={day.capitalize()}|Tuesday|Wednesday|Thursday|Friday|$|\[|\(|\))'
-            day_match = re.search(day_pattern, content_section, re.DOTALL | re.IGNORECASE)
-            if day_match:
-                parsed[f'content_{day}'] = day_match.group(1).strip()
-    
-    # Parse III. LEARNING RESOURCES
-    resources_section = extract_section(content, r'III\.?\s*LEARNING RESOURCES', r'IV\.?\s*PROCEDURE')
-    
-    if resources_section:
-        tg_match = re.search(r'Teacher\'?s Guide[:\s]+([^\n]+)', resources_section, re.IGNORECASE)
-        if tg_match:
-            parsed['teachers_guide'] = tg_match.group(1).strip()
-        
-        lm_match = re.search(r'Learning Materials?[:\s]+([^\n]+)', resources_section, re.IGNORECASE)
-        if lm_match:
-            parsed['learning_materials'] = lm_match.group(1).strip()
-        
-        tb_match = re.search(r'Textbook Pages?[:\s]+([^\n]+)', resources_section, re.IGNORECASE)
-        if tb_match:
-            parsed['textbook_pages'] = tb_match.group(1).strip()
-        
-        lr_match = re.search(r'LR Portal[:\s]+([^\n]+)', resources_section, re.IGNORECASE)
-        if lr_match:
-            parsed['lr_portal'] = lr_match.group(1).strip()
-        
-        other_match = re.search(r'Other Learning Resources?[:\s]+(.*?)(?=IV|$)', resources_section, re.DOTALL | re.IGNORECASE)
-        if other_match:
-            parsed['other_resources'] = other_match.group(1).strip()
-    
-    # Parse IV. PROCEDURE for each day
-    procedure_section = extract_section(content, r'IV\.?\s*PROCEDURE', r'V\.?\s*REMARKS')
-    
-    if procedure_section:
-        for day in days:
-            # Find this day's subsection
-            day_pattern = rf'{day.capitalize()}\s*(.*?)(?={day.capitalize()}|Tuesday|Wednesday|Thursday|Friday|V\.|$|\[|\(|\))'
-            day_match = re.search(day_pattern, procedure_section, re.DOTALL | re.IGNORECASE)
-            
-            if day_match:
-                day_content = day_match.group(1)
-                
-                # Extract each step A-J
-                for step in steps:
-                    step_upper = step.upper()
-                    step_pattern = rf'{step_upper}\.?[\)\.]?\s*(.*?)(?={step_upper}|[A-J]\.|$|\[|\(|\))'
-                    step_match = re.search(step_pattern, day_content, re.DOTALL | re.IGNORECASE)
-                    if step_match:
-                        parsed[f'{day}_procedure_{step}'] = step_match.group(1).strip()
+            day_cap = day.capitalize()
+            cont_pattern = rf'{day_cap}[:\s]*(.*?)(?=Monday|Tuesday|Wednesday|Thursday|Friday|$)'
+            cont_match = re.search(cont_pattern, content_section, re.DOTALL | re.IGNORECASE)
+            if cont_match:
+                parsed[f'content_{day}'] = cont_match.group(1).strip()
     
     return parsed
 
