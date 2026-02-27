@@ -76,7 +76,12 @@
                     </div>
                     {% if submission %}
                     <div class="absolute top-3 left-3">
-                        <span class="px-2 py-1 rounded-full text-xs font-medium status-{{ submission.status }}">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium 
+                            {% if submission.status == 'submitted' %}status-submitted
+                            {% elif submission.status == 'approved' %}status-approved
+                            {% elif submission.status == 'needs_revision' %}status-needs_revision
+                            {% elif submission.status == 'rejected' %}status-rejected
+                            {% else %}status-draft{% endif %}">
                             {{ submission.get_status_display }}
                         </span>
                     </div>
@@ -86,7 +91,7 @@
                 <div class="p-4">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-xs font-medium text-gray-500">Week {{ draft.week_number }} • {{ draft.quarter }}</span>
-                        <span class="text-xs text-gray-500">{{ draft.created_at|date:"M d" }}</span>
+                        <span class="text-xs text-gray-500">{{ draft.created_at|date:"M d, Y" }}</span>
                     </div>
                     
                     <h3 class="font-semibold text-gray-900 mb-1">{{ draft.title }}</h3>
@@ -98,16 +103,23 @@
                     </div>
                     
                     <div class="flex items-center justify-between">
-                        <span class="text-xs px-2 py-1 bg-gray-100 rounded-full status-{{ draft.status }}">
+                        <span class="text-xs px-2 py-1 bg-gray-100 rounded-full 
+                            {% if draft.status == 'draft' %}status-draft
+                            {% elif draft.status == 'final' %}status-final{% endif %}">
                             {{ draft.get_status_display }}
                         </span>
-                        <div class="flex space-x-2">
+                        <div class="flex space-x-3">
                             <a href="{% url 'view_weekly_draft' draft.id %}" class="text-[#11468F] hover:text-[#0d3a7a]" title="View">
                                 <i class="fas fa-eye"></i>
                             </a>
                             <a href="{% url 'edit_weekly_draft' draft.id %}" class="text-gray-600 hover:text-gray-800" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
+                            {% if draft.status == 'draft' %}
+                            <button onclick="deleteDraft({{ draft.id }})" class="text-red-500 hover:text-red-700" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -128,5 +140,47 @@
         </div>
         {% endif %}
     </div>
+
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function deleteDraft(draftId) {
+            if (!confirm('Are you sure you want to delete this weekly lesson plan?')) {
+                return;
+            }
+            
+            fetch(`/drafts/weekly/${draftId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Network error: ' + error.message);
+            });
+        }
+    </script>
 </body>
 </html>

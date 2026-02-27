@@ -33,34 +33,6 @@
             margin-top: 24px;
             margin-bottom: 16px;
         }
-        .content-box {
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 16px;
-            background-color: #ffffff;
-            min-height: 80px;
-        }
-        .day-header {
-            background-color: #11468F;
-            color: white;
-            padding: 8px 12px;
-            font-weight: 600;
-            border-radius: 4px 4px 0 0;
-        }
-        .procedure-step {
-            margin-bottom: 12px;
-            border-bottom: 1px dashed #e5e7eb;
-            padding-bottom: 8px;
-        }
-        .procedure-step:last-child {
-            border-bottom: none;
-        }
-        .step-label {
-            font-weight: 600;
-            color: #11468F;
-            display: inline-block;
-            width: 30px;
-        }
         
         /* Print styles */
         @media print {
@@ -73,21 +45,12 @@
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-            .lesson-table th, .lesson-table td {
-                border: 1px solid #000 !important;
-            }
-            .section-header {
-                background-color: #f3f4f6 !important;
-                border-left: 4px solid #9E5EFF !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
         }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
     <!-- Header -->
-    <div class="gradient-bg text-white px-6 py-4 print:bg-black">
+    <div class="gradient-bg text-white px-6 py-4">
         <div class="max-w-7xl mx-auto">
             <div class="flex items-center justify-between">
                 <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 print:hidden">
@@ -103,10 +66,10 @@
                     <button onclick="window.print()" class="bg-white text-[#11468F] px-4 py-2 rounded-lg hover:bg-gray-100">
                         <i class="fas fa-print mr-2"></i>Print
                     </button>
-                    <a href="{% url 'save_weekly_lesson_plan' %}" 
-                       class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 save-draft-btn">
+                    <button onclick="saveWeeklyPlan()" 
+                            class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 save-draft-btn">
                         <i class="fas fa-save mr-2"></i>Save as Draft
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -124,55 +87,40 @@
                 <a href="{% url 'lesson_ai_weekly' %}" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
                     <i class="fas fa-edit mr-2"></i>Edit Inputs
                 </a>
-                <button onclick="saveAsDraft()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 save-draft-btn">
+                <button onclick="saveWeeklyPlan()" class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 save-draft-btn">
                     <i class="fas fa-save mr-2"></i>Save as Draft
                 </button>
             </div>
         </div>
     </div>
 
-    <script>
-        function saveAsDraft() {
-            const btn = document.querySelector('.save-draft-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
-            
-            // Make sure this is a POST request
-            fetch('/save-weekly-lesson-plan/', {
-                method: 'POST',  // Must be POST, not GET
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'Content-Type': 'application/json',
-                },
-                // Empty body is fine since we're using session data
-                body: JSON.stringify({})
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    showMessage('success', data.message);
-                    setTimeout(() => {
-                        window.location.href = data.redirect_url || '/drafts/weekly/';
-                    }, 1500);
-                } else {
-                    showMessage('error', data.error || 'Failed to save');
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save as Draft';
-                }
-            })
-            .catch(error => {
-                console.error('Save error:', error);
-                showMessage('error', 'Network error: ' + error.message);
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save as Draft';
-            });
-        }
+    <!-- Loading Modal -->
+    <div id="loading-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center">
+            <div class="loader-spiral mx-auto mb-4"></div>
+            <h3 class="text-lg font-semibold mb-2">Saving Weekly Lesson Plan</h3>
+            <p class="text-gray-600 text-sm" id="loading-message">Please wait...</p>
+        </div>
+    </div>
 
+    <style>
+        .loader-spiral {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #E5E7EB;
+            border-top: 4px solid #4F46E5;
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+    <script>
+        // Get CSRF token
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -188,6 +136,19 @@
             return cookieValue;
         }
 
+        // Show/hide modal
+        function showLoadingModal(message) {
+            document.getElementById('loading-message').textContent = message || 'Please wait...';
+            document.getElementById('loading-modal').classList.remove('hidden');
+            document.getElementById('loading-modal').classList.add('flex');
+        }
+
+        function hideLoadingModal() {
+            document.getElementById('loading-modal').classList.add('hidden');
+            document.getElementById('loading-modal').classList.remove('flex');
+        }
+
+        // Show message
         function showMessage(type, text) {
             const msg = document.createElement('div');
             msg.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} z-50`;
@@ -195,6 +156,60 @@
             document.body.appendChild(msg);
             setTimeout(() => msg.remove(), 3000);
         }
+
+        // Save weekly plan function - FIXED: Now properly makes POST request
+        function saveWeeklyPlan() {
+            const btn = document.querySelector('.save-draft-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+            
+            showLoadingModal('Saving your weekly lesson plan...');
+            
+            // Make POST request to save endpoint
+            fetch('/save-weekly-lesson-plan/', {
+                method: 'POST',  // Explicitly set to POST
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})  // Empty body is fine - we use session data
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                hideLoadingModal();
+                if (data.success) {
+                    showMessage('success', data.message);
+                    setTimeout(() => {
+                        // Redirect to weekly drafts list
+                        window.location.href = data.redirect_url || '/drafts/weekly/';
+                    }, 1500);
+                } else {
+                    showMessage('error', data.error || 'Failed to save');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save as Draft';
+                }
+            })
+            .catch(error => {
+                hideLoadingModal();
+                console.error('Save error:', error);
+                showMessage('error', 'Network error: ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save as Draft';
+            });
+        }
+
+        // Add keyboard shortcut (Ctrl+S) to save
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                saveWeeklyPlan();
+            }
+        });
     </script>
 </body>
 </html>
