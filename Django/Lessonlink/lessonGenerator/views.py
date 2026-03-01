@@ -230,7 +230,8 @@ def generate_lesson_plan(request):
         1. Design activities specifically aligned with the {form_data['intelligence_type']} intelligence focus
         2. Include assessment methods appropriate for measuring the targeted intelligence
         3. Provide clear differentiation strategies for the selected intelligence focus
-        4. Maintain MELC alignment while incorporating intelligence adaptation
+        4. Maintain MATATAG alignment while incorporating intelligence adaptation
+
         
         {'Use the reference exemplar as a guide for structure, depth, and quality standards while maintaining originality.' if exemplar_content else ''}
         """
@@ -244,16 +245,16 @@ def generate_lesson_plan(request):
             # Check if exemplar is provided
             has_exemplar = bool(form_data['selected_exemplar'] and exemplar_content)
             
-            # Use appropriate system instruction with intelligence type
-            system_instruction = get_weekly_system_instruction(
-    has_exemplar=has_exemplar,
-    intelligence_type=form_data['intelligence_type'],
-    subject=form_data['subject'],  
-    grade_level=form_data['grade_level'],  
-    exemplar_name=exemplar_name  
-)
+            # FIXED: Use get_system_instruction for DAILY lesson plans
+            # This was incorrectly calling get_weekly_system_instruction before
+            system_instruction = get_system_instruction(
+                has_exemplar=has_exemplar,
+                intelligence_type=form_data['intelligence_type']
+                # Note: get_system_instruction only takes has_exemplar and intelligence_type
+            )
             
-            print(f"Using system instruction with intelligence type: {form_data['intelligence_type']}")  # Debugging
+            print(f"Using DAILY system instruction with intelligence type: {form_data['intelligence_type']}")  # Debugging
+
             
             response = model.generate_content([
                 system_instruction,
@@ -694,7 +695,7 @@ def regenerate_lesson_content(request):
         EVALUATION: {data.get('evaluation', '').strip()}
         ASSESSMENT: {data.get('assessment', '').strip()}
 
-        Generate this as a complete MELC-aligned lesson plan following DepEd Philippines standards.
+        Generate this as a complete MATATAG-aligned lesson plan following DepEd Philippines standards.
         Focus on {intelligence_type} intelligence development while maintaining curriculum alignment.
         Include appropriate MELC codes, content standards, performance standards, and learning competencies.
         Design activities specifically for {intelligence_type} intelligence development.

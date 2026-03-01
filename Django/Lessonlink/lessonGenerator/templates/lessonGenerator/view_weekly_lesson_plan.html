@@ -121,7 +121,7 @@
                 <table class="lesson-table mb-8">
                     <tr>
                         <th class="w-24">School</th>
-                        <td>{{ parsed_plan.school|default:"TUBAY NATIONAL HIGH SCHOOL" }}</td>
+                        <td>{{ user_school.school_name }}</td>
                         <th class="w-28">Grade Level</th>
                         <td>{{ form_data.grade_level|upper }}</td>
                     </tr>
@@ -129,7 +129,11 @@
                         <th>Teacher</th>
                         <td>
                             {% if user.is_authenticated %}
-                                {{ parsed_plan.teacher|default:user.get_full_name }}
+                                {{ user.first_name }}
+                                {% if user.middle_name and user.middle_name.strip %}
+                                {{ user.middle_name }}
+                                {% endif %}
+                                {{ user.last_name }}
                             {% else %}
                                 {{ parsed_plan.teacher|default:"Teacher" }}
                             {% endif %}
@@ -139,7 +143,9 @@
                     </tr>
                     <tr>
                         <th>Teaching Date</th>
-                        <td>{{ parsed_plan.teaching_date|default:"Week " }}{{ form_data.week }}</td>
+                        <td>
+                            {% now "F d, Y h:i A" %}
+                        </td>
                         <th>Quarter</th>
                         <td>{{ form_data.quarter|upper }}</td>
                     </tr>

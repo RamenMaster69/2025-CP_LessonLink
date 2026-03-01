@@ -430,7 +430,7 @@ def get_matatag_learning_area_code(subject):
 
 def get_system_instruction(has_exemplar=False, intelligence_type="comprehensive"):
     """
-    Generate complete system instruction with intelligence type adaptation
+    Generate complete system instruction for DAILY lesson planning
     
     Args:
         has_exemplar (bool): Whether an exemplar is provided
