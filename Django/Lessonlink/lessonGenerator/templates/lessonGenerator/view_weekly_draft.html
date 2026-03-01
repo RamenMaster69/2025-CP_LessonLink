@@ -113,13 +113,22 @@
                 <table class="lesson-table mb-8">
                     <tr>
                         <th class="w-24">School</th>
-                        <td>{{ draft.school|default:"TUBAY NATIONAL HIGH SCHOOL" }}</td>
+                        <td>{{ user_school.school_name }}</td>
                         <th class="w-28">Grade Level</th>
                         <td>{{ draft.grade_level|upper }}</td>
                     </tr>
                     <tr>
                         <th>Teacher</th>
-                        <td>{{ draft.teacher|default:draft.created_by.get_full_name }}</td>
+                        <td>{% if user.is_authenticated %}
+                                {{ user.first_name }}
+                                {% if user.middle_name and user.middle_name.strip %}
+                                {{ user.middle_name }}
+                                {% endif %}
+                                {{ user.last_name }}
+                            {% else %}
+                                {{ parsed_plan.teacher|default:"Teacher" }}
+                            {% endif %}
+                        </td>
                         <th>Learning Area</th>
                         <td>{{ draft.subject|upper }}</td>
                     </tr>

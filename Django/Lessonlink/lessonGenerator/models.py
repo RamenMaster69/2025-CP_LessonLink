@@ -3,6 +3,7 @@ import re
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 class LessonPlan(models.Model):
     DRAFT = 'draft'
@@ -737,6 +738,8 @@ class WeeklyLessonPlan(models.Model):
     
     def submit_for_approval(self, reviewer):
         """Submit this weekly plan for approval"""
+        from django.utils import timezone
+
         self.submission_status = 'submitted'
         self.submitted_to = reviewer
         self.submitted_at = timezone.now()
@@ -761,6 +764,8 @@ class WeeklyLessonPlan(models.Model):
     
     def approve(self, reviewer, notes=""):
         """Approve this weekly plan"""
+        from django.utils import timezone
+
         self.submission_status = 'approved'
         self.reviewed_by = reviewer
         self.reviewed_at = timezone.now()
@@ -786,6 +791,8 @@ class WeeklyLessonPlan(models.Model):
     
     def reject(self, reviewer, notes):
         """Reject this weekly plan"""
+        from django.utils import timezone
+
         self.submission_status = 'rejected'
         self.reviewed_by = reviewer
         self.reviewed_at = timezone.now()
@@ -811,6 +818,8 @@ class WeeklyLessonPlan(models.Model):
     
     def needs_revision(self, reviewer, notes):
         """Request revision for this weekly plan"""
+        from django.utils import timezone
+
         self.submission_status = 'needs_revision'
         self.reviewed_by = reviewer
         self.reviewed_at = timezone.now()

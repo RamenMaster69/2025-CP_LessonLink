@@ -1,64 +1,631 @@
 {% load custom_filters %}
-<div class="space-y-6">
-    <div class="border-b pb-4">
-        <h3 class="text-lg font-semibold text-gray-900">{{ draft.title }}</h3>
-        <div class="flex items-center space-x-4 mt-2 text-sm text-gray-600">
-            <span><strong>Teacher:</strong> {{ draft.created_by.get_full_name }}</span>
-            <span><strong>Subject:</strong> {{ draft.subject }} - {{ draft.grade_level }}</span>
-            <span><strong>Week {{ draft.week_number }}</strong> | {{ draft.quarter }}</span>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Weekly Lesson Plan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .section-header {
+            background-color: #f3f4f6;
+            font-weight: 700;
+            color: #11468F;
+            padding: 12px;
+            border-left: 4px solid #9E5EFF;
+            margin-top: 24px;
+            margin-bottom: 16px;
+        }
+        .content-box {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            background-color: #ffffff;
+            min-height: 80px;
+        }
+        .procedure-step {
+            padding: 8px 0;
+            border-bottom: 1px dashed #e5e7eb;
+        }
+        .step-label {
+            font-weight: 600;
+            color: #11468F;
+            margin-right: 8px;
+            min-width: 30px;
+            display: inline-block;
+        }
+        .day-tab {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .day-tab.active {
+            background-color: #11468F;
+            color: white;
+        }
+        .day-content {
+            display: none;
+        }
+        .day-content.active {
+            display: block;
+        }
+        .review-actions {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 16px;
+            margin-top: 24px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-6xl mx-auto p-6">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">{{ draft.title }}</h2>
+                    <p class="text-gray-600">{{ draft.subject }} - {{ draft.grade_level }} | Week {{ draft.week_number }} | {{ draft.quarter }}</p>
+                </div>
+                <div class="text-right">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                        {% if draft.submission_status == 'submitted' %}bg-yellow-100 text-yellow-800
+                        {% elif draft.submission_status == 'approved' %}bg-green-100 text-green-800
+                        {% elif draft.submission_status == 'rejected' %}bg-red-100 text-red-800
+                        {% elif draft.submission_status == 'needs_revision' %}bg-orange-100 text-orange-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ draft.get_submission_status_display_custom }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600 mt-4">
+                <div><strong>Teacher:</strong> {{ draft.created_by.get_full_name }}</div>
+                <div><strong>School:</strong> {{ draft.school|default:"Not specified" }}</div>
+                <div><strong>Submitted:</strong> {{ draft.submitted_at|date:"M d, Y h:i A" }}</div>
+                <div><strong>Intelligence Focus:</strong> {{ draft.get_intelligence_type_display }}</div>
+            </div>
         </div>
-    </div>
-    
-    <!-- Quick Preview -->
-    <div class="grid grid-cols-2 gap-4 text-sm">
-        <div>
-            <h4 class="font-medium text-gray-700 mb-2">Objectives</h4>
-            <ul class="list-disc pl-5 space-y-1 text-gray-600">
-                {% if objectives.monday %}<li><span class="font-medium">Mon:</span> {{ objectives.monday|truncatechars:50 }}</li>{% endif %}
-                {% if objectives.tuesday %}<li><span class="font-medium">Tue:</span> {{ objectives.tuesday|truncatechars:50 }}</li>{% endif %}
-                {% if objectives.wednesday %}<li><span class="font-medium">Wed:</span> {{ objectives.wednesday|truncatechars:50 }}</li>{% endif %}
-                {% if objectives.thursday %}<li><span class="font-medium">Thu:</span> {{ objectives.thursday|truncatechars:50 }}</li>{% endif %}
-                {% if objectives.friday %}<li><span class="font-medium">Fri:</span> {{ objectives.friday|truncatechars:50 }}</li>{% endif %}
-            </ul>
+
+        <!-- School Header Table -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <table class="w-full border-collapse">
+                <tr class="border-b">
+                    <th class="text-left p-2 bg-gray-50 w-1/4">School</th>
+                    <td class="p-2">{{ draft.school|default:"TUBAY NATIONAL HIGH SCHOOL" }}</td>
+                    <th class="text-left p-2 bg-gray-50 w-1/4">Grade Level</th>
+                    <td class="p-2">{{ draft.grade_level }}</td>
+                </tr>
+                <tr class="border-b">
+                    <th class="text-left p-2 bg-gray-50">Teacher</th>
+                    <td class="p-2">{{ draft.teacher|default:draft.created_by.get_full_name }}</td>
+                    <th class="text-left p-2 bg-gray-50">Learning Area</th>
+                    <td class="p-2">{{ draft.subject }}</td>
+                </tr>
+                <tr class="border-b">
+                    <th class="text-left p-2 bg-gray-50">Teaching Date</th>
+                    <td class="p-2">{{ draft.teaching_date|default:draft.submitted_at|date:"F d, Y" }}</td>
+                    <th class="text-left p-2 bg-gray-50">Quarter</th>
+                    <td class="p-2">{{ draft.quarter }}</td>
+                </tr>
+                <tr>
+                    <th class="text-left p-2 bg-gray-50">Week No.</th>
+                    <td class="p-2">{{ draft.week_number }}</td>
+                    <th class="text-left p-2 bg-gray-50">Duration</th>
+                    <td class="p-2">Week {{ draft.week_number }} (5 days)</td>
+                </tr>
+            </table>
         </div>
-        <div>
-            <h4 class="font-medium text-gray-700 mb-2">Intelligence Focus</h4>
-            <p class="text-gray-600 mb-2">{{ draft.get_intelligence_type_display }}</p>
-            <h4 class="font-medium text-gray-700 mb-2 mt-4">Teaching Approach</h4>
-            <p class="text-gray-600">{{ draft.get_teaching_approach_display|default:"Not specified" }}</p>
+
+        <!-- I. OBJECTIVES -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div class="section-header">I. OBJECTIVES</div>
+            
+            <div class="space-y-4">
+                <div>
+                    <h3 class="font-semibold text-gray-700 mb-2">A. Content Standards</h3>
+                    <div class="content-box">
+                        {{ draft.content_standard|default:"The learner demonstrates understanding of..."|linebreaks }}
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-gray-700 mb-2">B. Performance Standards</h3>
+                    <div class="content-box">
+                        {{ draft.performance_standard|default:"The learner is able to..."|linebreaks }}
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-gray-700 mb-2">C. Learning Competencies/Objectives</h3>
+                    <div class="content-box">
+                        <div class="space-y-2">
+                            {% if objectives.monday %}
+                            <div><span class="font-medium text-[#11468F]">Monday:</span> {{ objectives.monday|linebreaks }}</div>
+                            {% endif %}
+                            {% if objectives.tuesday %}
+                            <div><span class="font-medium text-[#11468F]">Tuesday:</span> {{ objectives.tuesday|linebreaks }}</div>
+                            {% endif %}
+                            {% if objectives.wednesday %}
+                            <div><span class="font-medium text-[#11468F]">Wednesday:</span> {{ objectives.wednesday|linebreaks }}</div>
+                            {% endif %}
+                            {% if objectives.thursday %}
+                            <div><span class="font-medium text-[#11468F]">Thursday:</span> {{ objectives.thursday|linebreaks }}</div>
+                            {% endif %}
+                            {% if objectives.friday %}
+                            <div><span class="font-medium text-[#11468F]">Friday:</span> {{ objectives.friday|linebreaks }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-    
-    <div>
-        <h4 class="font-medium text-gray-700 mb-2">Content Standards</h4>
-        <p class="text-sm text-gray-600 p-3 bg-gray-50 rounded-lg">{{ draft.content_standard|truncatechars:100 }}</p>
-    </div>
-    
-    <div>
-        <h4 class="font-medium text-gray-700 mb-2">Performance Standards</h4>
-        <p class="text-sm text-gray-600 p-3 bg-gray-50 rounded-lg">{{ draft.performance_standard|truncatechars:100 }}</p>
-    </div>
-    
-    <!-- Review Form -->
-    <div class="border-t pt-4">
-        <h4 class="font-medium text-gray-700 mb-3">Review Notes</h4>
-        <textarea id="review_notes" rows="4" 
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            placeholder="Enter your feedback, suggestions, or comments..."></textarea>
-        
-        <div class="grid grid-cols-3 gap-3 mt-4">
-            <button onclick="submitReview('approve')" 
-                class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                <i class="fas fa-check mr-2"></i>Approve
-            </button>
-            <button onclick="submitReview('needs_revision')" 
-                class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                <i class="fas fa-edit mr-2"></i>Needs Revision
-            </button>
-            <button onclick="submitReview('reject')" 
-                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                <i class="fas fa-times mr-2"></i>Reject
-            </button>
+
+        <!-- II. CONTENT -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div class="section-header">II. CONTENT</div>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                <div class="border rounded-lg p-3 bg-gray-50">
+                    <div class="font-medium text-[#11468F] text-sm mb-1">MONDAY</div>
+                    <div class="text-sm">{{ draft.content_monday|default:"Introduction to Topic"|truncatechars:100 }}</div>
+                </div>
+                <div class="border rounded-lg p-3 bg-gray-50">
+                    <div class="font-medium text-[#11468F] text-sm mb-1">TUESDAY</div>
+                    <div class="text-sm">{{ draft.content_tuesday|default:"Skill Building"|truncatechars:100 }}</div>
+                </div>
+                <div class="border rounded-lg p-3 bg-gray-50">
+                    <div class="font-medium text-[#11468F] text-sm mb-1">WEDNESDAY</div>
+                    <div class="text-sm">{{ draft.content_wednesday|default:"Deep Dive"|truncatechars:100 }}</div>
+                </div>
+                <div class="border rounded-lg p-3 bg-gray-50">
+                    <div class="font-medium text-[#11468F] text-sm mb-1">THURSDAY</div>
+                    <div class="text-sm">{{ draft.content_thursday|default:"Application"|truncatechars:100 }}</div>
+                </div>
+                <div class="border rounded-lg p-3 bg-gray-50">
+                    <div class="font-medium text-[#11468F] text-sm mb-1">FRIDAY</div>
+                    <div class="text-sm">{{ draft.content_friday|default:"Assessment"|truncatechars:100 }}</div>
+                </div>
+            </div>
         </div>
+
+        <!-- III. LEARNING RESOURCES -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div class="section-header">III. LEARNING RESOURCES</div>
+            
+            <div class="space-y-4">
+                <div>
+                    <h3 class="font-semibold text-gray-700 mb-2">A. References</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="border rounded-lg p-3">
+                            <div class="text-sm font-medium text-gray-600">1. Teacher's Guide</div>
+                            <div class="mt-1">{{ draft.teachers_guide|default:"Pages 45-52" }}</div>
+                        </div>
+                        <div class="border rounded-lg p-3">
+                            <div class="text-sm font-medium text-gray-600">2. Learning Materials</div>
+                            <div class="mt-1">{{ draft.learning_materials|default:"Module 3" }}</div>
+                        </div>
+                        <div class="border rounded-lg p-3">
+                            <div class="text-sm font-medium text-gray-600">3. Textbook Pages</div>
+                            <div class="mt-1">{{ draft.textbook_pages|default:"pp. 78-95" }}</div>
+                        </div>
+                        <div class="border rounded-lg p-3">
+                            <div class="text-sm font-medium text-gray-600">4. Additional Materials from LR Portal</div>
+                            <div class="mt-1">{{ draft.lr_portal|default:"LRMDS Portal" }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-gray-700 mb-2">B. Other Learning Resources</h3>
+                    <div class="content-box">
+                        {{ draft.other_resources|default:"Videos, real objects, online simulations, PowerPoint presentations"|linebreaks }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- IV. PROCEDURE - Day Tabs -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div class="section-header">IV. PROCEDURE</div>
+            
+            <!-- Day Tabs -->
+            <div class="flex flex-wrap gap-2 mb-6 border-b pb-2" id="dayTabs">
+                <button onclick="showDay('monday')" class="day-tab px-4 py-2 rounded-lg bg-[#11468F] text-white" id="tab-monday">MONDAY</button>
+                <button onclick="showDay('tuesday')" class="day-tab px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200" id="tab-tuesday">TUESDAY</button>
+                <button onclick="showDay('wednesday')" class="day-tab px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200" id="tab-wednesday">WEDNESDAY</button>
+                <button onclick="showDay('thursday')" class="day-tab px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200" id="tab-thursday">THURSDAY</button>
+                <button onclick="showDay('friday')" class="day-tab px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200" id="tab-friday">FRIDAY</button>
+            </div>
+            
+            <!-- Monday Content -->
+            <div id="day-monday" class="day-content active">
+                <h3 class="text-lg font-semibold text-[#11468F] mb-4">MONDAY - {{ draft.content_monday|default:"Introduction"|truncatechars:50 }}</h3>
+                <div class="space-y-4">
+                    <div class="procedure-step">
+                        <span class="step-label">A.</span> {{ procedures.monday.a|default:"Review previous lesson through quick oral questions."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">B.</span> {{ procedures.monday.b|default:"State the learning objectives for the day."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">C.</span> {{ procedures.monday.c|default:"Present examples related to the topic."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">D.</span> {{ procedures.monday.d|default:"Discuss new concepts through interactive lecture."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">E.</span> {{ procedures.monday.e|default:"Guide students through practice activities."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">F.</span> {{ procedures.monday.f|default:"Students work independently on tasks."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">G.</span> {{ procedures.monday.g|default:"Connect concepts to real-life situations."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">H.</span> {{ procedures.monday.h|default:"Guide students to formulate generalizations."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">I.</span> {{ procedures.monday.i|default:"Conduct formative assessment."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">J.</span> {{ procedures.monday.j|default:"Provide enrichment or remediation activities."|clean_markdown }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tuesday Content -->
+            <div id="day-tuesday" class="day-content">
+                <h3 class="text-lg font-semibold text-[#11468F] mb-4">TUESDAY - {{ draft.content_tuesday|default:"Skill Building"|truncatechars:50 }}</h3>
+                <div class="space-y-4">
+                    <div class="procedure-step">
+                        <span class="step-label">A.</span> {{ procedures.tuesday.a|default:"Review Monday's lesson through quick activities."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">B.</span> {{ procedures.tuesday.b|default:"Connect today's lesson to previous learning."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">C.</span> {{ procedures.tuesday.c|default:"Present new examples building on previous knowledge."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">D.</span> {{ procedures.tuesday.d|default:"Deepen understanding through guided discussion."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">E.</span> {{ procedures.tuesday.e|default:"Students practice skills with teacher guidance."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">F.</span> {{ procedures.tuesday.f|default:"Independent practice with skill application."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">G.</span> {{ procedures.tuesday.g|default:"Apply skills to practical scenarios."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">H.</span> {{ procedures.tuesday.h|default:"Students summarize key learning points."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">I.</span> {{ procedures.tuesday.i|default:"Check for understanding through quick checks."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">J.</span> {{ procedures.tuesday.j|default:"Provide additional practice activities."|clean_markdown }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Wednesday Content -->
+            <div id="day-wednesday" class="day-content">
+                <h3 class="text-lg font-semibold text-[#11468F] mb-4">WEDNESDAY - {{ draft.content_wednesday|default:"Deep Dive"|truncatechars:50 }}</h3>
+                <div class="space-y-4">
+                    <div class="procedure-step">
+                        <span class="step-label">A.</span> {{ procedures.wednesday.a|default:"Review previous days' learning."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">B.</span> {{ procedures.wednesday.b|default:"Set context for deeper exploration."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">C.</span> {{ procedures.wednesday.c|default:"Present complex examples and cases."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">D.</span> {{ procedures.wednesday.d|default:"Facilitate in-depth discussion of concepts."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">E.</span> {{ procedures.wednesday.e|default:"Guide analysis of complex problems."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">F.</span> {{ procedures.wednesday.f|default:"Students demonstrate mastery through tasks."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">G.</span> {{ procedures.wednesday.g|default:"Apply learning to real-world challenges."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">H.</span> {{ procedures.wednesday.h|default:"Guide synthesis of key concepts."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">I.</span> {{ procedures.wednesday.i|default:"Conduct mid-week assessment."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">J.</span> {{ procedures.wednesday.j|default:"Provide targeted interventions."|clean_markdown }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Thursday Content -->
+            <div id="day-thursday" class="day-content">
+                <h3 class="text-lg font-semibold text-[#11468F] mb-4">THURSDAY - {{ draft.content_thursday|default:"Application"|truncatechars:50 }}</h3>
+                <div class="space-y-4">
+                    <div class="procedure-step">
+                        <span class="step-label">A.</span> {{ procedures.thursday.a|default:"Review key concepts from the week."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">B.</span> {{ procedures.thursday.b|default:"Set purpose for application activities."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">C.</span> {{ procedures.thursday.c|default:"Present application scenarios."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">D.</span> {{ procedures.thursday.d|default:"Discuss how to apply concepts."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">E.</span> {{ procedures.thursday.e|default:"Guide application through group work."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">F.</span> {{ procedures.thursday.f|default:"Students independently apply learning."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">G.</span> {{ procedures.thursday.g|default:"Connect to real-life applications."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">H.</span> {{ procedures.thursday.h|default:"Students generalize application principles."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">I.</span> {{ procedures.thursday.i|default:"Assess application skills."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">J.</span> {{ procedures.thursday.j|default:"Provide extension activities."|clean_markdown }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Friday Content -->
+            <div id="day-friday" class="day-content">
+                <h3 class="text-lg font-semibold text-[#11468F] mb-4">FRIDAY - {{ draft.content_friday|default:"Assessment"|truncatechars:50 }}</h3>
+                <div class="space-y-4">
+                    <div class="procedure-step">
+                        <span class="step-label">A.</span> {{ procedures.friday.a|default:"Review the week's learning."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">B.</span> {{ procedures.friday.b|default:"Set purpose for assessment day."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">C.</span> {{ procedures.friday.c|default:"Present review examples."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">D.</span> {{ procedures.friday.d|default:"Review key concepts with students."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">E.</span> {{ procedures.friday.e|default:"Guide final practice activities."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">F.</span> {{ procedures.friday.f|default:"Students demonstrate mastery."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">G.</span> {{ procedures.friday.g|default:"Connect to real-world applications."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">H.</span> {{ procedures.friday.h|default:"Students synthesize week's learning."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">I.</span> {{ procedures.friday.i|default:"Conduct summative assessment."|clean_markdown }}
+                    </div>
+                    <div class="procedure-step">
+                        <span class="step-label">J.</span> {{ procedures.friday.j|default:"Provide feedback and next steps."|clean_markdown }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- V. REMARKS -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div class="section-header">V. REMARKS</div>
+            <div class="content-box">
+                {{ draft.remarks|default:"Reflection on the week's implementation will be added after teaching."|linebreaks }}
+            </div>
+        </div>
+
+        <!-- VI. REFLECTION -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div class="section-header">VI. REFLECTION</div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="border rounded-lg p-4">
+                    <p class="font-medium text-gray-700">A. No. of learners who earned 80% in the evaluation</p>
+                    <p class="mt-2 text-gray-600">___ out of ___</p>
+                </div>
+                <div class="border rounded-lg p-4">
+                    <p class="font-medium text-gray-700">B. No. of learners who require additional activities</p>
+                    <p class="mt-2 text-gray-600">___</p>
+                </div>
+                <div class="border rounded-lg p-4">
+                    <p class="font-medium text-gray-700">C. Did the remedial lessons work?</p>
+                    <p class="mt-2 text-gray-600">___</p>
+                </div>
+                <div class="border rounded-lg p-4">
+                    <p class="font-medium text-gray-700">D. No. of learners who continue to require remediation</p>
+                    <p class="mt-2 text-gray-600">___</p>
+                </div>
+                <div class="border rounded-lg p-4">
+                    <p class="font-medium text-gray-700">E. Which teaching strategies worked well?</p>
+                    <p class="mt-2 text-gray-600">___</p>
+                </div>
+                <div class="border rounded-lg p-4">
+                    <p class="font-medium text-gray-700">F. What difficulties did I encounter?</p>
+                    <p class="mt-2 text-gray-600">___</p>
+                </div>
+                <div class="border rounded-lg p-4 col-span-2">
+                    <p class="font-medium text-gray-700">G. What innovation/localized materials did I use?</p>
+                    <p class="mt-2 text-gray-600">___</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Intelligence and Theme Info -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6 text-sm text-gray-600">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div><span class="font-medium">Intelligence Focus:</span> {{ draft.get_intelligence_type_display }}</div>
+                <div><span class="font-medium">Weekly Theme:</span> {{ draft.get_weekly_theme_display|default:"Not specified" }}</div>
+                <div><span class="font-medium">Teaching Approach:</span> {{ draft.get_teaching_approach_display|default:"Not specified" }}</div>
+                <div><span class="font-medium">MELC Codes:</span> {{ draft.melc_codes|default:"Not specified" }}</div>
+            </div>
+        </div>
+
+        <!-- Review Form (if can review) -->
+        {% if can_review %}
+        <div class="review-actions bg-white rounded-lg shadow-lg">
+            <h3 class="font-semibold text-gray-900 mb-4">Review Decision</h3>
+            
+            <div class="mb-4">
+                <label for="review_notes" class="block text-sm font-medium text-gray-700 mb-2">
+                    Review Notes <span class="text-gray-500">(Required for rejection/revision)</span>
+                </label>
+                <textarea id="review_notes" rows="4" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Provide feedback, suggestions, or reason for rejection..."></textarea>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="submitReview('approve')" 
+                    class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center">
+                    <i class="fas fa-check mr-2"></i>Approve
+                </button>
+                <button onclick="submitReview('needs_revision')" 
+                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center">
+                    <i class="fas fa-edit mr-2"></i>Needs Revision
+                </button>
+                <button onclick="submitReview('reject')" 
+                    class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center">
+                    <i class="fas fa-times mr-2"></i>Reject
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- View Only (if already reviewed) -->
+        {% if not can_review and draft.review_notes %}
+        <div class="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-6 mt-6">
+            <h3 class="font-semibold text-gray-900 mb-2">Review Notes</h3>
+            <p class="text-gray-700">{{ draft.review_notes|linebreaks }}</p>
+            <p class="text-sm text-gray-500 mt-2">
+                Reviewed by {{ draft.reviewed_by.get_full_name }} on {{ draft.reviewed_at|date:"F d, Y h:i A" }}
+            </p>
+        </div>
+        {% endif %}
     </div>
-</div>
+
+    <script>
+        // Make sure the function is defined in the global scope
+        window.showDay = function(day) {
+            console.log('Showing day:', day); // Debug log
+            
+            // Hide all day contents
+            document.querySelectorAll('.day-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.day-tab').forEach(el => {
+                el.classList.remove('active', 'bg-[#11468F]', 'text-white');
+                el.classList.add('bg-gray-100', 'text-gray-700');
+            });
+            
+            // Show selected day
+            const dayElement = document.getElementById(`day-${day}`);
+            if (dayElement) {
+                dayElement.classList.add('active');
+            } else {
+                console.error(`Day element not found: day-${day}`);
+            }
+            
+            // Activate selected tab
+            const tab = document.getElementById(`tab-${day}`);
+            if (tab) {
+                tab.classList.remove('bg-gray-100', 'text-gray-700');
+                tab.classList.add('active', 'bg-[#11468F]', 'text-white');
+            } else {
+                console.error(`Tab element not found: tab-${day}`);
+            }
+        };
+
+        // Initialize when DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing tabs');
+            // Ensure Monday is active
+            window.showDay('monday');
+        });
+
+        // Review submission function
+        window.submitReview = function(action) {
+            const reviewNotes = document.getElementById('review_notes').value;
+            
+            if ((action === 'reject' || action === 'needs_revision') && !reviewNotes.trim()) {
+                alert('Please provide review notes for this action.');
+                return;
+            }
+            
+            // Disable buttons to prevent double submission
+            document.querySelectorAll('.review-actions button').forEach(btn => {
+                btn.disabled = true;
+            });
+            
+            fetch('/reviews/weekly/{{ draft.id }}/review/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: action,
+                    review_notes: reviewNotes
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message || 'Review submitted successfully!');
+                    if (data.redirect_url) {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        window.location.href = '/reviews/weekly/';
+                    }
+                } else {
+                    alert('Error: ' + data.error);
+                    // Re-enable buttons
+                    document.querySelectorAll('.review-actions button').forEach(btn => {
+                        btn.disabled = false;
+                    });
+                }
+            })
+            .catch(error => {
+                alert('Network error: ' + error.message);
+                document.querySelectorAll('.review-actions button').forEach(btn => {
+                    btn.disabled = false;
+                });
+            });
+        };
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

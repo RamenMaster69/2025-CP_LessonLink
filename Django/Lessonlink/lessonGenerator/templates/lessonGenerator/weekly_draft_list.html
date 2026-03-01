@@ -192,6 +192,12 @@
                 return;
             }
             
+            // Disable button to prevent double submission
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...';
+            
             fetch(`/drafts/weekly/${draftId}/submit/`, {
                 method: 'POST',
                 headers: {
@@ -202,15 +208,45 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    location.reload();
+                    // Show success message
+                    showMessage('success', data.message || 'Submitted successfully!');
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url || '/drafts/weekly/';
+                    }, 1500);
                 } else {
-                    alert('Error: ' + data.error);
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    showMessage('error', data.error || 'Failed to submit');
                 }
             })
             .catch(error => {
-                alert('Network error: ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                showMessage('error', 'Network error: ' + error.message);
             });
         }
+
+        // Helper function to show messages
+        function showMessage(type, text) {
+            const msg = document.createElement('div');
+            msg.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} z-50 animate-fade-in`;
+            msg.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>${text}`;
+            document.body.appendChild(msg);
+            setTimeout(() => msg.remove(), 3000);
+        }
+
+        // Add animation style
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(-20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fade-in {
+                animation: fadeIn 0.3s ease-out;
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
