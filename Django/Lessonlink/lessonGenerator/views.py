@@ -514,7 +514,10 @@ def format_subject_matter(subject_matter_dict):
 @login_required
 def draft_list(request):
     """Display list of saved drafts with submission status"""
-    # Get all drafts for the user
+    # Get the active tab from query parameters (default to 'daily')
+    active_tab = request.GET.get('type', 'daily')
+    
+    # Get all daily drafts for the user
     drafts = LessonPlan.objects.filter(created_by=request.user).order_by('-created_at')
     
     # Prefetch related submissions to avoid N+1 queries
@@ -568,6 +571,21 @@ def draft_list(request):
     revision_count = user_submissions.filter(status='needs_revision').count()
     rejected_count = user_submissions.filter(status='rejected').count()
     
+    # Get weekly drafts data
+    weekly_drafts = WeeklyLessonPlan.objects.filter(
+        created_by=request.user
+    ).order_by('-created_at')
+    
+    weekly_draft_data = []
+    for draft in weekly_drafts:
+        weekly_draft_data.append({
+            'draft': draft,
+            'latest_submission': draft.get_latest_submission()
+        })
+    
+    weekly_draft_count = weekly_drafts.filter(status=WeeklyLessonPlan.DRAFT).count()
+    weekly_final_count = weekly_drafts.filter(status=WeeklyLessonPlan.FINAL).count()
+    
     return render(request, 'lessonGenerator/draft_list.html', {
         'draft_data': draft_data,
         'draft_count': draft_count,
@@ -575,7 +593,11 @@ def draft_list(request):
         'approved_count': approved_count,
         'revision_count': revision_count,
         'rejected_count': rejected_count,
-        'intelligence_counts': intelligence_counts  # NEW: Add intelligence insights
+        'intelligence_counts': intelligence_counts,
+        'weekly_draft_data': weekly_draft_data,
+        'weekly_draft_count': weekly_draft_count,
+        'weekly_final_count': weekly_final_count,
+        'active_tab': active_tab,
     })
 
 @login_required
