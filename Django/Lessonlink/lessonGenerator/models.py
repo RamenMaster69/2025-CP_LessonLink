@@ -700,6 +700,156 @@ class WeeklyLessonPlan(models.Model):
             return True, f"Weekly plan submitted successfully to {department_head.full_name}!"
         except Exception as e:
             return False, f"Error submitting: {str(e)}"
+    
+      # Add submission status field (can be separate from DRAFT/FINAL)
+    submission_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('not_submitted', 'Not Submitted'),
+            ('submitted', 'Submitted'),
+            ('approved', 'Approved'),
+            ('rejected', 'Rejected'),
+            ('needs_revision', 'Needs Revision'),
+        ],
+        default='not_submitted'
+    )
+    
+    # Add fields for submission tracking
+    submitted_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='weekly_plans_received'
+    )
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='weekly_plans_reviewed'
+    )
+    review_notes = models.TextField(blank=True)
+    
+    # ... rest of existing fields ...
+    
+    def submit_for_approval(self, reviewer):
+        """Submit this weekly plan for approval"""
+        self.submission_status = 'submitted'
+        self.submitted_to = reviewer
+        self.submitted_at = timezone.now()
+        self.status = self.FINAL  # Change status to FINAL when submitted
+        self.save()
+        
+        # Create notification for reviewer
+        try:
+            from lessonlinkNotif.models import Notification
+            Notification.objects.create(
+                user=reviewer,
+                title=f"Weekly Plan Submitted: {self.title}",
+                message=f"{self.created_by.get_full_name()} submitted a weekly lesson plan for review.",
+                notification_type='lesson_submitted',
+                related_id=self.id,
+                related_type='weekly_lesson_plan'
+            )
+        except:
+            pass
+        
+        return True, f"Weekly plan submitted successfully to {reviewer.get_full_name()}!"
+    
+    def approve(self, reviewer, notes=""):
+        """Approve this weekly plan"""
+        self.submission_status = 'approved'
+        self.reviewed_by = reviewer
+        self.reviewed_at = timezone.now()
+        self.review_notes = notes
+        self.status = self.FINAL
+        self.save()
+        
+        # Create notification for creator
+        try:
+            from lessonlinkNotif.models import Notification
+            Notification.objects.create(
+                user=self.created_by,
+                title=f"Weekly Plan Approved: {self.title}",
+                message=f"Your weekly lesson plan has been approved by {reviewer.get_full_name()}.",
+                notification_type='draft_approved',
+                related_id=self.id,
+                related_type='weekly_lesson_plan'
+            )
+        except:
+            pass
+        
+        return True, "Weekly plan approved successfully!"
+    
+    def reject(self, reviewer, notes):
+        """Reject this weekly plan"""
+        self.submission_status = 'rejected'
+        self.reviewed_by = reviewer
+        self.reviewed_at = timezone.now()
+        self.review_notes = notes
+        self.status = self.DRAFT  # Revert to draft
+        self.save()
+        
+        # Create notification for creator
+        try:
+            from lessonlinkNotif.models import Notification
+            Notification.objects.create(
+                user=self.created_by,
+                title=f"Weekly Plan Needs Revision: {self.title}",
+                message=f"Your weekly lesson plan needs revision. Feedback: {notes[:100]}...",
+                notification_type='draft_rejected',
+                related_id=self.id,
+                related_type='weekly_lesson_plan'
+            )
+        except:
+            pass
+        
+        return True, "Weekly plan rejected with feedback."
+    
+    def needs_revision(self, reviewer, notes):
+        """Request revision for this weekly plan"""
+        self.submission_status = 'needs_revision'
+        self.reviewed_by = reviewer
+        self.reviewed_at = timezone.now()
+        self.review_notes = notes
+        self.status = self.DRAFT
+        self.save()
+        
+        # Create notification for creator
+        try:
+            from lessonlinkNotif.models import Notification
+            Notification.objects.create(
+                user=self.created_by,
+                title=f"Weekly Plan Needs Revision: {self.title}",
+                message=f"Your weekly lesson plan needs revision. Feedback: {notes[:100]}...",
+                notification_type='draft_rejected',
+                related_id=self.id,
+                related_type='weekly_lesson_plan'
+            )
+        except:
+            pass
+        
+        return True, "Weekly plan marked for revision with feedback."
+
+    @property
+    def get_submission_status_display_custom(self):
+        """Get human-readable submission status"""
+        status_map = {
+            'not_submitted': 'Not Submitted',
+            'submitted': 'Submitted',
+            'approved': 'Approved',
+            'rejected': 'Rejected',
+            'needs_revision': 'Needs Revision',
+        }
+        return status_map.get(self.submission_status, self.submission_status)
+    
+    @property
+    def can_submit(self):
+        """Check if this weekly plan can be submitted"""
+        return self.submission_status in ['not_submitted', 'rejected', 'needs_revision']
 
 
 # Add is_weekly field to LessonPlanSubmission

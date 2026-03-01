@@ -72,17 +72,17 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
                 <div class="h-24 bg-gradient-to-r from-purple-100 to-blue-100 relative">
                     <div class="absolute top-3 right-3">
-                        <span class="weekly-badge">WEEKLY</span>
+                        <span class="bg-purple-600 text-white text-xs px-2 py-1 rounded-full">WEEKLY</span>
                     </div>
-                    {% if submission %}
+                    <!-- Add submission status badge -->
+                    {% if draft.submission_status != 'not_submitted' %}
                     <div class="absolute top-3 left-3">
                         <span class="px-2 py-1 rounded-full text-xs font-medium 
-                            {% if submission.status == 'submitted' %}status-submitted
-                            {% elif submission.status == 'approved' %}status-approved
-                            {% elif submission.status == 'needs_revision' %}status-needs_revision
-                            {% elif submission.status == 'rejected' %}status-rejected
-                            {% else %}status-draft{% endif %}">
-                            {{ submission.get_status_display }}
+                            {% if draft.submission_status == 'submitted' %}bg-yellow-100 text-yellow-800
+                            {% elif draft.submission_status == 'approved' %}bg-green-100 text-green-800
+                            {% elif draft.submission_status == 'needs_revision' %}bg-orange-100 text-orange-800
+                            {% elif draft.submission_status == 'rejected' %}bg-red-100 text-red-800{% endif %}">
+                            {{ draft.get_submission_status_display_custom }}
                         </span>
                     </div>
                     {% endif %}
@@ -102,7 +102,7 @@
                         <span><i class="fas fa-brain mr-1"></i> {{ draft.get_intelligence_type_display|truncatechars:15 }}</span>
                     </div>
                     
-                    <div class="flex items-center justify-between">
+                   <div class="flex items-center justify-between">
                         <span class="text-xs px-2 py-1 bg-gray-100 rounded-full 
                             {% if draft.status == 'draft' %}status-draft
                             {% elif draft.status == 'final' %}status-final{% endif %}">
@@ -112,10 +112,15 @@
                             <a href="{% url 'view_weekly_draft' draft.id %}" class="text-[#11468F] hover:text-[#0d3a7a]" title="View">
                                 <i class="fas fa-eye"></i>
                             </a>
+                            {% if draft.can_submit %}
+                            <button onclick="submitForReview({{ draft.id }})" class="text-green-600 hover:text-green-800" title="Submit for Review">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                            {% endif %}
+                            {% if draft.status == 'draft' and draft.submission_status == 'not_submitted' %}
                             <a href="{% url 'edit_weekly_draft' draft.id %}" class="text-gray-600 hover:text-gray-800" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            {% if draft.status == 'draft' %}
                             <button onclick="deleteDraft({{ draft.id }})" class="text-red-500 hover:text-red-700" title="Delete">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -163,6 +168,31 @@
             }
             
             fetch(`/drafts/weekly/${draftId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Network error: ' + error.message);
+            });
+        }
+
+        function submitForReview(draftId) {
+            if (!confirm('Submit this weekly lesson plan for review?')) {
+                return;
+            }
+            
+            fetch(`/drafts/weekly/${draftId}/submit/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': getCookie('csrftoken'),

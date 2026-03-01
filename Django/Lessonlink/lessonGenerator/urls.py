@@ -26,9 +26,15 @@ urlpatterns = [
     
     # Weekly Draft Management
     path('drafts/weekly/', views.weekly_draft_list, name='weekly_draft_list'),
+    path('drafts/weekly/<int:draft_id>/submit/', views.submit_weekly_plan, name='submit_weekly_plan'),
     path('drafts/weekly/<int:draft_id>/view/', views.view_weekly_draft, name='view_weekly_draft'),
     path('drafts/weekly/<int:draft_id>/edit/', views.edit_weekly_draft, name='edit_weekly_draft'),
     path('drafts/weekly/<int:draft_id>/delete/', views.delete_weekly_draft, name='delete_weekly_draft'),
-    path('drafts/weekly/<int:draft_id>/submit/', views.submit_weekly_plan, name='submit_weekly_plan'),
+
+    # Weekly Review URLs
+    path('reviews/weekly/', views.weekly_reviews_page, name='weekly_reviews'),
+    path('reviews/weekly/<int:draft_id>/', views.view_weekly_for_review, name='view_weekly_for_review'),
+    path('reviews/weekly/<int:draft_id>/review/', views.review_weekly_plan, name='review_weekly_plan'),
+    path('reviews/weekly/<int:draft_id>/detail/', views.weekly_review_detail, name='weekly_review_detail'),
 
 ]

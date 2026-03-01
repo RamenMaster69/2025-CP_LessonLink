@@ -2,6 +2,7 @@ import json
 import google.generativeai as genai
 from django.conf import settings
 from django.http import JsonResponse
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
@@ -1953,39 +1954,66 @@ def extract_section(content, start_pattern, end_pattern):
 
 @login_required
 def weekly_draft_list(request):
-    """Display list of weekly lesson plan drafts"""
-    # Get all weekly drafts for the user
-    drafts = WeeklyLessonPlan.objects.filter(
-        created_by=request.user
-    ).order_by('-created_at')
+    """Display list of weekly lesson plan drafts with submission status"""
+    # Get active tab from query parameters
+    active_tab = request.GET.get('tab', 'all')
     
-    # Get submission status for each draft
+    # Base queryset
+    base_queryset = WeeklyLessonPlan.objects.filter(created_by=request.user)
+    
+    # Apply filters based on tab
+    if active_tab == 'drafts':
+        drafts = base_queryset.filter(submission_status='not_submitted').order_by('-created_at')
+    elif active_tab == 'submitted':
+        drafts = base_queryset.filter(submission_status='submitted').order_by('-submitted_at')
+    elif active_tab == 'approved':
+        drafts = base_queryset.filter(submission_status='approved').order_by('-reviewed_at')
+    elif active_tab == 'revision':
+        drafts = base_queryset.filter(submission_status='needs_revision').order_by('-reviewed_at')
+    else:  # all
+        drafts = base_queryset.order_by('-created_at')
+    
+    # Calculate statistics
+    stats = {
+        'total': base_queryset.count(),
+        'drafts': base_queryset.filter(submission_status='not_submitted').count(),
+        'submitted': base_queryset.filter(submission_status='submitted').count(),
+        'approved': base_queryset.filter(submission_status='approved').count(),
+        'revision': base_queryset.filter(submission_status='needs_revision').count(),
+        'rejected': base_queryset.filter(submission_status='rejected').count(),
+    }
+    
+    # Prepare data for template
     draft_data = []
     for draft in drafts:
+        # Get department head info if submitted
+        department_head = None
+        if draft.submitted_to:
+            department_head = {
+                'name': draft.submitted_to.get_full_name(),
+                'email': draft.submitted_to.email
+            }
+        
         draft_data.append({
             'draft': draft,
-            'latest_submission': draft.get_latest_submission()
+            'submission_status': draft.get_submission_status_display_custom,
+            'submitted_to': department_head,
+            'submitted_at': draft.submitted_at,
+            'reviewed_at': draft.reviewed_at,
+            'review_notes': draft.review_notes[:100] + '...' if draft.review_notes and len(draft.review_notes) > 100 else draft.review_notes,
         })
-    
-    # Count by status
-    draft_count = drafts.filter(status=WeeklyLessonPlan.DRAFT).count()
-    final_count = drafts.filter(status=WeeklyLessonPlan.FINAL).count()
     
     return render(request, 'lessonGenerator/weekly_draft_list.html', {
         'draft_data': draft_data,
-        'draft_count': draft_count,
-        'final_count': final_count,
+        'stats': stats,
+        'active_tab': active_tab,
         'is_weekly': True
     })
 
-
 @login_required
 def view_weekly_draft(request, draft_id):
-    """View a weekly lesson draft in read-only format with template"""
+    """View a weekly lesson draft in read-only format with submission status"""
     draft = get_object_or_404(WeeklyLessonPlan, id=draft_id, created_by=request.user)
-    
-    # Get submission status if exists
-    latest_submission = draft.get_latest_submission()
     
     # Get intelligence type display
     intelligence_display = dict(WeeklyLessonPlan.INTELLIGENCE_TYPE_CHOICES).get(
@@ -1998,13 +2026,17 @@ def view_weekly_draft(request, draft_id):
     for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']:
         procedures[day] = draft.get_procedure_for_day(day)
     
+    # Check if user can submit
+    can_submit = draft.can_submit
+    
     return render(request, 'lessonGenerator/view_weekly_draft.html', {
         'draft': draft,
         'procedures': procedures,
-        'latest_submission': latest_submission,
         'intelligence_display': intelligence_display,
         'objectives': draft.get_objectives_dict(),
         'content': draft.get_content_dict(),
+        'can_submit': can_submit,
+        'submission_status': draft.get_submission_status_display_custom,
     })
 
 
@@ -2134,26 +2166,25 @@ def delete_weekly_draft(request, draft_id):
 
 
 @login_required
+@require_http_methods(["POST"])
 def submit_weekly_plan(request, draft_id):
     """Submit weekly plan to department head for review"""
-    if request.method != 'POST':
-        return redirect('view_weekly_draft', draft_id=draft_id)
-    
     draft = get_object_or_404(WeeklyLessonPlan, id=draft_id, created_by=request.user)
     
-    # Check if department head exists
-    if not hasattr(request.user, 'department') or not request.user.department:
-        messages.error(request, "You don't have a department assigned. Please contact your administrator.")
+    # Check if can submit
+    if not draft.can_submit:
+        messages.error(request, "This weekly plan cannot be submitted.")
         return redirect('view_weekly_draft', draft_id=draft_id)
     
-    # Find department head
+    # Find department head (same school and department)
     from django.contrib.auth import get_user_model
     User = get_user_model()
     
     department_head = User.objects.filter(
         role='Department Head',
         department=request.user.department,
-        school=request.user.school
+        school=request.user.school,
+        is_active=True
     ).first()
     
     if not department_head:
@@ -2169,3 +2200,148 @@ def submit_weekly_plan(request, draft_id):
         messages.error(request, message)
     
     return redirect('view_weekly_draft', draft_id=draft_id)
+
+@login_required
+def weekly_reviews_page(request):
+    """Department head's page to review weekly lesson plans"""
+    user = request.user
+    
+    # Only department heads can access
+    if user.role != "Department Head":
+        messages.error(request, "You are not authorized to access this page.")
+        return redirect('dashboard')
+    
+    # Get pending weekly submissions
+    pending_submissions = WeeklyLessonPlan.objects.filter(
+        submitted_to=user,
+        submission_status='submitted'
+    ).order_by('-submitted_at')
+    
+    # Get reviewed submissions
+    reviewed_submissions = WeeklyLessonPlan.objects.filter(
+        submitted_to=user,
+        submission_status__in=['approved', 'rejected', 'needs_revision']
+    ).order_by('-reviewed_at')[:20]
+    
+    # Calculate statistics
+    stats = {
+        'pending': pending_submissions.count(),
+        'approved': WeeklyLessonPlan.objects.filter(
+            submitted_to=user, 
+            submission_status='approved'
+        ).count(),
+        'revision': WeeklyLessonPlan.objects.filter(
+            submitted_to=user, 
+            submission_status='needs_revision'
+        ).count(),
+        'rejected': WeeklyLessonPlan.objects.filter(
+            submitted_to=user, 
+            submission_status='rejected'
+        ).count(),
+    }
+    
+    return render(request, 'lessonGenerator/weekly_reviews.html', {
+        'user': user,
+        'pending_submissions': pending_submissions,
+        'reviewed_submissions': reviewed_submissions,
+        'stats': stats,
+    })
+
+@login_required
+def view_weekly_for_review(request, draft_id):
+    """View weekly lesson plan for review (for department head)"""
+    user = request.user
+    
+    # Only department heads can access
+    if user.role != "Department Head":
+        messages.error(request, "You are not authorized to access this page.")
+        return redirect('dashboard')
+    
+    # Get the weekly plan
+    draft = get_object_or_404(WeeklyLessonPlan, id=draft_id, submitted_to=user)
+    
+    # Get procedures
+    procedures = {}
+    for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']:
+        procedures[day] = draft.get_procedure_for_day(day)
+    
+    return render(request, 'lessonGenerator/review_weekly.html', {
+        'draft': draft,
+        'procedures': procedures,
+        'objectives': draft.get_objectives_dict(),
+        'content': draft.get_content_dict(),
+        'intelligence_display': dict(WeeklyLessonPlan.INTELLIGENCE_TYPE_CHOICES).get(
+            draft.intelligence_type, draft.intelligence_type
+        ),
+        'can_review': draft.submission_status == 'submitted',
+    })
+
+@login_required
+@require_http_methods(["POST"])
+def review_weekly_plan(request, draft_id):
+    """Process review action for weekly plan (approve/reject/needs_revision)"""
+    user = request.user
+    
+    # Only department heads can review
+    if user.role != "Department Head":
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
+    
+    draft = get_object_or_404(WeeklyLessonPlan, id=draft_id, submitted_to=user)
+    
+    # Check if still pending
+    if draft.submission_status != 'submitted':
+        return JsonResponse({'success': False, 'error': 'This plan has already been reviewed'}, status=400)
+    
+    try:
+        data = json.loads(request.body)
+        action = data.get('action')
+        review_notes = data.get('review_notes', '').strip()
+        
+        if action == 'approve':
+            success, message = draft.approve(user, review_notes)
+        elif action == 'reject':
+            if not review_notes:
+                return JsonResponse({'success': False, 'error': 'Rejection reason is required'}, status=400)
+            success, message = draft.reject(user, review_notes)
+        elif action == 'needs_revision':
+            if not review_notes:
+                return JsonResponse({'success': False, 'error': 'Revision notes are required'}, status=400)
+            success, message = draft.needs_revision(user, review_notes)
+        else:
+            return JsonResponse({'success': False, 'error': 'Invalid action'}, status=400)
+        
+        return JsonResponse({
+            'success': success,
+            'message': message,
+            'redirect_url': '/reviews/weekly/'
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+def weekly_review_detail(request, draft_id):
+    """View details of a reviewed weekly plan"""
+    user = request.user
+    draft = get_object_or_404(WeeklyLessonPlan, id=draft_id)
+    
+    # Check authorization (either creator or reviewer)
+    if draft.created_by != user and draft.submitted_to != user:
+        messages.error(request, "You are not authorized to view this page.")
+        return redirect('dashboard')
+    
+    # Get procedures
+    procedures = {}
+    for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']:
+        procedures[day] = draft.get_procedure_for_day(day)
+    
+    return render(request, 'lessonGenerator/review_detail.html', {
+        'draft': draft,
+        'procedures': procedures,
+        'objectives': draft.get_objectives_dict(),
+        'content': draft.get_content_dict(),
+        'is_reviewer': draft.submitted_to == user,
+        'is_creator': draft.created_by == user,
+    })

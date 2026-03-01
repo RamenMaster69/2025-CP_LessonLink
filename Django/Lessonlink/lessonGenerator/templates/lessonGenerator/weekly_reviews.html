@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LessonLink - Weekly Plan Reviews</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #11468F 0%, #9E5EFF 100%);
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .status-submitted { background-color: #fef3c7; color: #92400e; }
+        .status-approved { background-color: #d1fae5; color: #065f46; }
+        .status-needs_revision { background-color: #ffedd5; color: #9a3412; }
+        .status-rejected { background-color: #fee2e2; color: #991b1b; }
+        .review-card {
+            transition: all 0.3s ease;
+        }
+        .review-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <div class="gradient-bg text-white px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <a href="{% url 'Dep_Dash' %}" class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                    <i class="fas fa-calendar-week text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold">LessonLink</h1>
+                    <p class="text-sm text-gray-200">Weekly Plan Reviews</p>
+                </div>
+            </a>
+            <div class="flex items-center space-x-4">
+                <span class="bg-white bg-opacity-20 px-4 py-2 rounded-lg">
+                    <i class="fas fa-users mr-2"></i>{{ user.department }} Department
+                </span>
+                <a href="{% url 'Dep_Pending' %}" class="bg-white text-[#11468F] px-4 py-2 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-calendar-day mr-2"></i>Daily Reviews
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Pending Reviews</p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.pending }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Approved</p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.approved }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Needs Revision</p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.revision }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-edit text-orange-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Rejected</p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.rejected }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="border-b border-gray-200 mb-6">
+            <div class="flex space-x-8">
+                <button onclick="showTab('pending')" class="tab-btn active pb-2 px-1 border-b-2 border-[#11468F] text-[#11468F] font-medium" data-tab="pending">
+                    Pending ({{ stats.pending }})
+                </button>
+                <button onclick="showTab('reviewed')" class="tab-btn pb-2 px-1 text-gray-500 hover:text-gray-700" data-tab="reviewed">
+                    Reviewed
+                </button>
+            </div>
+        </div>
+
+        <!-- Pending Tab -->
+        <div id="pending-tab" class="tab-content">
+            {% if pending_submissions %}
+            <div class="space-y-4">
+                {% for draft in pending_submissions %}
+                <div class="bg-white rounded-lg border border-gray-200 p-6 review-card cursor-pointer" onclick="openReviewModal({{ draft.id }})">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <h3 class="text-lg font-semibold text-gray-900">{{ draft.title }}</h3>
+                                <span class="status-badge status-submitted">Pending Review</span>
+                                <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">Week {{ draft.week_number }}</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
+                                <div><strong>Teacher:</strong> {{ draft.created_by.get_full_name }}</div>
+                                <div><strong>Subject:</strong> {{ draft.subject }} - {{ draft.grade_level }}</div>
+                                <div><strong>Submitted:</strong> {{ draft.submitted_at|timesince }} ago</div>
+                            </div>
+                            <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                <span><i class="fas fa-calendar mr-1"></i> Week {{ draft.week_number }}, {{ draft.quarter }}</span>
+                                <span><i class="fas fa-brain mr-1"></i> {{ draft.get_intelligence_type_display|truncatechars:20 }}</span>
+                            </div>
+                        </div>
+                        <button class="bg-[#11468F] text-white px-4 py-2 rounded-lg hover:bg-[#0d3a7a] ml-4" onclick="event.stopPropagation(); openReviewModal({{ draft.id }})">
+                            <i class="fas fa-check mr-2"></i>Review
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <div class="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-calendar-check text-3xl text-purple-500"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No pending weekly reviews</h3>
+                <p class="text-gray-600">All weekly lesson plans have been reviewed.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Reviewed Tab -->
+        <div id="reviewed-tab" class="tab-content hidden">
+            {% if reviewed_submissions %}
+            <div class="space-y-4">
+                {% for draft in reviewed_submissions %}
+                <div class="bg-white rounded-lg border border-gray-200 p-6">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <h3 class="text-lg font-semibold text-gray-900">{{ draft.title }}</h3>
+                                <span class="status-badge 
+                                    {% if draft.submission_status == 'approved' %}status-approved
+                                    {% elif draft.submission_status == 'needs_revision' %}status-needs_revision
+                                    {% elif draft.submission_status == 'rejected' %}status-rejected{% endif %}">
+                                    {{ draft.get_submission_status_display_custom }}
+                                </span>
+                                <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">Week {{ draft.week_number }}</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
+                                <div><strong>Teacher:</strong> {{ draft.created_by.get_full_name }}</div>
+                                <div><strong>Subject:</strong> {{ draft.subject }} - {{ draft.grade_level }}</div>
+                                <div><strong>Reviewed:</strong> {{ draft.reviewed_at|timesince }} ago</div>
+                            </div>
+                            {% if draft.review_notes %}
+                            <div class="mt-3 p-3 bg-gray-50 rounded-lg text-sm">
+                                <span class="font-medium text-gray-700">Review Notes:</span>
+                                <p class="text-gray-600 mt-1">{{ draft.review_notes|linebreaks }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'view_weekly_draft' draft.id %}" class="text-[#11468F] hover:text-[#0d3a7a] ml-4">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <p class="text-gray-600">No reviewed weekly plans yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div id="reviewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200 sticky top-0 bg-white">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-gray-900">Review Weekly Lesson Plan</h2>
+                    <button onclick="closeReviewModal()" class="p-2 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-times text-gray-500"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6" id="modalContent">
+                <!-- Content will be loaded via AJAX -->
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-3xl text-[#11468F]"></i>
+                    <p class="mt-2 text-gray-600">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDraftId = null;
+
+        function showTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'border-[#11468F]', 'text-[#11468F]');
+                btn.classList.add('text-gray-500');
+            });
+            
+            const activeBtn = document.querySelector(`[data-tab="${tab}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active', 'border-[#11468F]', 'text-[#11468F]');
+                activeBtn.classList.remove('text-gray-500');
+            }
+            
+            // Show/hide tab content
+            document.getElementById('pending-tab').classList.toggle('hidden', tab !== 'pending');
+            document.getElementById('reviewed-tab').classList.toggle('hidden', tab !== 'reviewed');
+        }
+
+        function openReviewModal(draftId) {
+            currentDraftId = draftId;
+            const modal = document.getElementById('reviewModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Load content via AJAX
+            fetch(`/reviews/weekly/${draftId}/`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('modalContent').innerHTML = html;
+                })
+                .catch(error => {
+                    document.getElementById('modalContent').innerHTML = `
+                        <div class="text-center py-8 text-red-600">
+                            <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
+                            <p>Error loading content. Please try again.</p>
+                        </div>
+                    `;
+                });
+        }
+
+        function closeReviewModal() {
+            document.getElementById('reviewModal').classList.add('hidden');
+            document.getElementById('reviewModal').classList.remove('flex');
+            currentDraftId = null;
+        }
+
+        function submitReview(action) {
+            const reviewNotes = document.getElementById('review_notes').value;
+            
+            if ((action === 'reject' || action === 'needs_revision') && !reviewNotes.trim()) {
+                alert('Please provide review notes for this action.');
+                return;
+            }
+            
+            fetch(`/reviews/weekly/${currentDraftId}/review/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: action,
+                    review_notes: reviewNotes
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeReviewModal();
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Network error: ' + error.message);
+            });
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(e) {
+            const modal = document.getElementById('reviewModal');
+            if (e.target === modal) {
+                closeReviewModal();
+            }
+        });
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeReviewModal();
+            }
+        });
+    </script>
+</body>
+</html>

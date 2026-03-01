@@ -1,0 +1,64 @@
+{% load custom_filters %}
+<div class="space-y-6">
+    <div class="border-b pb-4">
+        <h3 class="text-lg font-semibold text-gray-900">{{ draft.title }}</h3>
+        <div class="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+            <span><strong>Teacher:</strong> {{ draft.created_by.get_full_name }}</span>
+            <span><strong>Subject:</strong> {{ draft.subject }} - {{ draft.grade_level }}</span>
+            <span><strong>Week {{ draft.week_number }}</strong> | {{ draft.quarter }}</span>
+        </div>
+    </div>
+    
+    <!-- Quick Preview -->
+    <div class="grid grid-cols-2 gap-4 text-sm">
+        <div>
+            <h4 class="font-medium text-gray-700 mb-2">Objectives</h4>
+            <ul class="list-disc pl-5 space-y-1 text-gray-600">
+                {% if objectives.monday %}<li><span class="font-medium">Mon:</span> {{ objectives.monday|truncatechars:50 }}</li>{% endif %}
+                {% if objectives.tuesday %}<li><span class="font-medium">Tue:</span> {{ objectives.tuesday|truncatechars:50 }}</li>{% endif %}
+                {% if objectives.wednesday %}<li><span class="font-medium">Wed:</span> {{ objectives.wednesday|truncatechars:50 }}</li>{% endif %}
+                {% if objectives.thursday %}<li><span class="font-medium">Thu:</span> {{ objectives.thursday|truncatechars:50 }}</li>{% endif %}
+                {% if objectives.friday %}<li><span class="font-medium">Fri:</span> {{ objectives.friday|truncatechars:50 }}</li>{% endif %}
+            </ul>
+        </div>
+        <div>
+            <h4 class="font-medium text-gray-700 mb-2">Intelligence Focus</h4>
+            <p class="text-gray-600 mb-2">{{ draft.get_intelligence_type_display }}</p>
+            <h4 class="font-medium text-gray-700 mb-2 mt-4">Teaching Approach</h4>
+            <p class="text-gray-600">{{ draft.get_teaching_approach_display|default:"Not specified" }}</p>
+        </div>
+    </div>
+    
+    <div>
+        <h4 class="font-medium text-gray-700 mb-2">Content Standards</h4>
+        <p class="text-sm text-gray-600 p-3 bg-gray-50 rounded-lg">{{ draft.content_standard|truncatechars:100 }}</p>
+    </div>
+    
+    <div>
+        <h4 class="font-medium text-gray-700 mb-2">Performance Standards</h4>
+        <p class="text-sm text-gray-600 p-3 bg-gray-50 rounded-lg">{{ draft.performance_standard|truncatechars:100 }}</p>
+    </div>
+    
+    <!-- Review Form -->
+    <div class="border-t pt-4">
+        <h4 class="font-medium text-gray-700 mb-3">Review Notes</h4>
+        <textarea id="review_notes" rows="4" 
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            placeholder="Enter your feedback, suggestions, or comments..."></textarea>
+        
+        <div class="grid grid-cols-3 gap-3 mt-4">
+            <button onclick="submitReview('approve')" 
+                class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                <i class="fas fa-check mr-2"></i>Approve
+            </button>
+            <button onclick="submitReview('needs_revision')" 
+                class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                <i class="fas fa-edit mr-2"></i>Needs Revision
+            </button>
+            <button onclick="submitReview('reject')" 
+                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                <i class="fas fa-times mr-2"></i>Reject
+            </button>
+        </div>
+    </div>
+</div>
