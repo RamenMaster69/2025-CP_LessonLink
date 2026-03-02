@@ -86,21 +86,24 @@
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i class="fas fa-envelope text-gray-400"></i>
                             </div>
-                            <input type="email" id="email" name="email" value="{{ email|default:'' }}"
-                                class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 {% if email %}error-border{% endif %}"
+                            {% with email_value=email|default:'' %}
+                            <input type="email" id="email" name="email" 
+                                value="{% if email_value != 'True' and email_value != True %}{{ email_value }}{% endif %}"
+                                class="input-focus block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 {% if show_error and email_message %}error-border{% endif %}"
                                 placeholder="Email Address" required autocomplete="email">
+                            {% endwith %}
                         </div>
                         
-                        <!-- Client-side email validation error -->
-                        <div id="emailError" class="hidden bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
+                        <!-- Client-side email validation error - Only shown for format validation, not for account not found -->
+                        <div id="emailFormatError" class="hidden bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
                             <div class="flex items-start">
                                 <i class="fas fa-exclamation-triangle text-red-500 mr-2 mt-0.5"></i>
-                                <span id="emailErrorText" class="text-red-700 text-sm flex-1">Please enter a valid email address</span>
+                                <span id="emailFormatErrorText" class="text-red-700 text-sm flex-1">Please enter a valid email address</span>
                             </div>
                         </div>
                         
-                        <!-- Django validation error for email -->
-                        {% if show_error and email %}
+                        <!-- Django validation error for email - Only shown when email is not found in database -->
+                        {% if show_error and email_message and not password_message and not authentication %}
                         <div class="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
                             <div class="flex items-start">
                                 <i class="fas fa-exclamation-triangle text-red-500 mr-2 mt-0.5"></i>
@@ -117,7 +120,7 @@
                                 <i class="fas fa-lock text-gray-400"></i>
                             </div>
                             <input type="password" id="password" name="password"
-                                class="input-focus block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 {% if password %}error-border{% endif %}"
+                                class="input-focus block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 {% if show_error and password_message %}error-border{% endif %}"
                                 placeholder="Password" required autocomplete="current-password">
                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                                 <button type="button" class="text-gray-400 hover:text-gray-600"
@@ -136,7 +139,7 @@
                         </div>
                         
                         <!-- Django validation error for password -->
-                        {% if show_error and password %}
+                        {% if show_error and password_message %}
                         <div class="text-red-500 text-sm mt-2">
                             <div class="flex items-center">
                                 <i class="fas fa-exclamation-circle mr-2"></i>
@@ -146,7 +149,7 @@
                         {% endif %}
                     </div>
 
-                    <!-- Authentication Error Section -->
+                    <!-- Authentication Error Section - Shown for wrong password with correct email -->
                     {% if show_error and authentication %}
                     <div class="bg-red-50 border border-red-200 rounded-lg p-3">
                         <div class="flex items-center">
@@ -254,7 +257,6 @@
             
             if (textElement) {
                 textElement.textContent = message;
-                textElement.style.display = 'block';
             }
             
             if (inputField) {
@@ -275,7 +277,7 @@
 
         function validateForm(event) {
             // Reset all error messages
-            hideError('emailError', document.getElementById('email'));
+            hideError('emailFormatError', document.getElementById('email'));
             hideError('passwordError', document.getElementById('password'));
             
             // Get form values
@@ -284,12 +286,12 @@
             
             let isValid = true;
             
-            // Email validation
+            // Email validation - Only check format, not existence
             if (!email) {
-                showError('emailError', 'Email address is required', document.getElementById('email'));
+                showError('emailFormatError', 'Email address is required', document.getElementById('email'));
                 isValid = false;
             } else if (!validateEmail(email)) {
-                showError('emailError', 'Please enter a valid email address', document.getElementById('email'));
+                showError('emailFormatError', 'Please enter a valid email address', document.getElementById('email'));
                 isValid = false;
             }
             
@@ -317,20 +319,20 @@
             return true;
         }
 
-        // Real-time email validation
+        // Real-time email format validation
         document.getElementById('email').addEventListener('blur', function() {
             const email = this.value.trim();
             
             if (email && !validateEmail(email)) {
-                showError('emailError', 'Please enter a valid email address', this);
+                showError('emailFormatError', 'Please enter a valid email address', this);
             } else if (email) {
-                hideError('emailError', this);
+                hideError('emailFormatError', this);
             }
         });
 
         // Clear errors when user starts typing
         document.getElementById('email').addEventListener('input', function() {
-            hideError('emailError', this);
+            hideError('emailFormatError', this);
         });
 
         document.getElementById('password').addEventListener('input', function() {
@@ -339,11 +341,19 @@
 
         // Auto-focus on error fields if they exist on page load
         document.addEventListener('DOMContentLoaded', function() {
-            {% if email %}
+            {% if email and email != 'True' and email != True %}
                 document.getElementById('email').focus();
             {% elif password %}
                 document.getElementById('password').focus();
             {% endif %}
+        });
+
+        // Additional check to clear any "True" value that might appear
+        document.addEventListener('DOMContentLoaded', function() {
+            const emailInput = document.getElementById('email');
+            if (emailInput.value === 'True') {
+                emailInput.value = '';
+            }
         });
     </script>
 </body>
