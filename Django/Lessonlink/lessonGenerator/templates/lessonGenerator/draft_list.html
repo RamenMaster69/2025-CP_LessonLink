@@ -525,8 +525,8 @@
 
                 <!-- Tabs -->
                 <div class="flex border-b border-gray-200 mb-6">
-                    <a href="?type=daily" class="px-4 py-2 {% if active_tab == 'daily' %}text-gray-700{% else %}text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300{% endif %}">Daily Plans</a>
-                    <a href="{% url 'weekly_draft_list' %}" class="px-4 py-2 {% if active_tab == 'weekly' %}text-gray-700 border-b-2 border-gray-300{% else %}text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300{% endif %}">Weekly Plans</a>
+                    <a href="?type=daily" class="px-4 py-2 {% if active_tab == 'daily' %}tab-active{% else %}tab-inactive{% endif %}">Daily Plans</a>
+                    <a href="?type=weekly" class="px-4 py-2 {% if active_tab == 'weekly' %}tab-active{% else %}tab-inactive{% endif %}">Weekly Plans</a>
                 </div>
 
                 {% if active_tab == 'daily' %}
@@ -673,17 +673,81 @@
                 {% endif %}
 
                 {% else %}
-                <!-- Weekly Plans Tab Content -->
+                <!-- Weekly Plans Content -->
+                <!-- Summary Stats for Weekly -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-white rounded-lg p-4 shadow-sm border">
+                        <div class="text-sm text-gray-600">Drafts</div>
+                        <div class="text-2xl font-bold">{{ weekly_draft_count }}</div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 shadow-sm border">
+                        <div class="text-sm text-gray-600">Final/Approved</div>
+                        <div class="text-2xl font-bold">{{ weekly_final_count }}</div>
+                    </div>
+                </div>
+
+                {% if weekly_draft_data %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for item in weekly_draft_data %}
+                    {% with draft=item.draft submission=item.latest_submission %}
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                        <div class="h-24 bg-gradient-to-r from-purple-100 to-blue-100 relative">
+                            <div class="absolute top-3 right-3">
+                                <span class="weekly-badge">WEEKLY</span>
+                            </div>
+                            {% if submission %}
+                            <div class="absolute top-3 left-3">
+                                <span class="px-2 py-1 rounded-full text-xs font-medium status-{{ submission.status }}">
+                                    {{ submission.get_status_display }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-medium text-gray-500">Week {{ draft.week_number }} • {{ draft.quarter }}</span>
+                                <span class="text-xs text-gray-500">{{ draft.created_at|date:"M d" }}</span>
+                            </div>
+                            
+                            <h3 class="font-semibold text-gray-900 mb-1">{{ draft.title }}</h3>
+                            <p class="text-sm text-gray-600 mb-3">{{ draft.subject }} - {{ draft.grade_level }}</p>
+                            
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                <span><i class="fas fa-calendar mr-1"></i> Week {{ draft.week_number }}</span>
+                                <span><i class="fas fa-brain mr-1"></i> {{ draft.get_intelligence_type_display|truncatechars:15 }}</span>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs px-2 py-1 bg-gray-100 rounded-full status-{{ draft.status }}">
+                                    {{ draft.get_status_display }}
+                                </span>
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'view_weekly_draft' draft.id %}" class="text-[#11468F] hover:text-[#0d3a7a]" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'edit_weekly_draft' draft.id %}" class="text-gray-600 hover:text-gray-800" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endwith %}
+                    {% endfor %}
+                </div>
+                {% else %}
                 <div class="text-center py-12">
                     <div class="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <i class="fas fa-calendar-week text-3xl text-purple-500"></i>
                     </div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No weekly lesson plans available</h3>
-                    <p class="text-gray-600 mb-6">Weekly lesson plans feature is coming soon.</p>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No weekly lesson plans yet</h3>
+                    <p class="text-gray-600 mb-6">Start planning your week with a comprehensive weekly lesson plan.</p>
                     <a href="{% url 'lesson_ai_weekly' %}" class="bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white px-6 py-3 rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] inline-block transition-colors">
                         Create Your First Weekly Plan
                     </a>
                 </div>
+                {% endif %}
                 {% endif %}
             </div>
         </main>
