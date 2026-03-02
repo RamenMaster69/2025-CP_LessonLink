@@ -272,6 +272,105 @@
         .exemplar-match-bad {
             color: #dc2626;
         }
+
+        /* New styles for objective buttons */
+        .objective-input-wrapper {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .remove-objective-btn {
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ef4444;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .objective-input-wrapper:hover .remove-objective-btn {
+            opacity: 1;
+        }
+
+        .remove-objective-btn:hover {
+            background: #dc2626;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .add-objective-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .add-objective-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+        }
+
+        .ai-suggest-btn {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .ai-suggest-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(139, 92, 246, 0.2);
+        }
+
+        .ai-suggestion-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ai-suggestion-item:hover {
+            border-color: #8b5cf6;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.1);
+            transform: translateX(4px);
+        }
+
+        .ai-suggestion-item.selected {
+            background: #f5f3ff;
+            border-color: #8b5cf6;
+            border-width: 2px;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -406,19 +505,49 @@
                         </div>
                     </div>
 
-                    <!-- Learning Objectives - Three Input Fields -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Learning Objectives</label>
-                        <div class="space-y-3">
-                            <div class="animate-field delay-6">
+                    <!-- Learning Objectives Section with Buttons -->
+                    <div class="animate-field delay-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-medium text-gray-700">Learning Objectives</label>
+                            <div class="flex gap-2">
+                                <button type="button" id="ai-suggest-objectives" class="ai-suggest-btn">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                    </svg>
+                                    AI Suggest
+                                </button>
+                                <button type="button" id="add-objective" class="add-objective-btn">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    Add Objective
+                                </button>
+                            </div>
+                        </div>
+                        <div id="objectives-container" class="space-y-3">
+                            <div class="objective-input-wrapper relative">
                                 <input type="text" id="learning-objective-1" name="learning_objective_1" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" placeholder="At the end of the lesson, students will be able to..." required>
                             </div>
-                            <div class="animate-field delay-7">
-                                <input type="text" id="learning-objective-2" name="learning_objective_2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" placeholder="Additional learning objective..." required>
-                            </div>
-                            <div class="animate-field delay-8">
-                                <input type="text" id="learning-objective-3" name="learning_objective_3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" placeholder="Additional learning objective..." required>
-                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Suggestions Panel (Hidden by default) -->
+                    <div id="ai-suggestions-panel" class="hidden mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg animate-field">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-sm font-semibold text-purple-800">AI Suggested Objectives</h4>
+                            <button type="button" id="close-suggestions" class="text-purple-600 hover:text-purple-800">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="suggestions-list" class="space-y-2 max-h-60 overflow-y-auto">
+                            <!-- AI suggestions will be populated here -->
+                        </div>
+                        <div class="mt-3 flex justify-end">
+                            <button type="button" id="apply-selected-suggestions" class="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-all duration-200">
+                                Apply Selected
+                            </button>
                         </div>
                     </div>
 
@@ -434,110 +563,6 @@
                 </form>
             </div>
         </div>
-
-        <!-- Right Sidebar - AI Panel (commented out) -->
-        {% comment %} <div id="sidebar" class="w-80 bg-white border-l border-gray-200 p-6 overflow-y-auto hidden md:block">
-            <div class="mb-8">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">AI Suggestions</h3>
-                <div class="space-y-3">
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <div class="flex items-center space-x-2 mb-1">
-                            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            <span class="text-sm font-medium text-blue-800">Objectives Enhancement</span>
-                        </div>
-                        <p class="text-sm text-blue-700">Consider using specific learning outcomes for cleaner objectives.</p>
-                    </div>
-                    
-                    <div class="bg-green-50 border border-green-200 rounded-lg p-3">
-                        <div class="flex items-center space-x-2 mb-1">
-                            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span class="text-sm font-medium text-green-800">MELC Alignment</span>
-                        </div>
-                        <p class="text-sm text-green-700">Your lesson aligns well with selected MELC standards.</p>
-                    </div>
-                    
-                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                        <div class="flex items-center space-x-2 mb-1">
-                            <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
-                            <span class="text-sm font-medium text-purple-800">Activity Suggestion</span>
-                        </div>
-                        <p class="text-sm text-purple-700">Try incorporating collaborative learning activities.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mb-8">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Standards Compliance</h3>
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-700">DepEd Format</span>
-                        <span class="text-sm font-medium text-green-600">Compliant</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-700">Learning Objectives</span>
-                        <span class="text-sm font-medium text-green-600">Clear</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-700">Assessment Methods</span>
-                        <span class="text-sm font-medium text-yellow-600">Not Set</span>
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Resources</h3>
-                <div class="space-y-3">
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <div class="flex items-center space-x-2 mb-1">
-                            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            <span class="text-sm font-medium text-blue-800">Interactive Whiteboard</span>
-                        </div>
-                        <p class="text-xs text-blue-600">Digital tools and templates for engaging lessons</p>
-                    </div>
-                    
-                    <div class="bg-green-50 border border-green-200 rounded-lg p-3">
-                        <div class="flex items-center space-x-2 mb-1">
-                            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span class="text-sm font-medium text-green-800">Topic Alignment</span>
-                        </div>
-                        <p class="text-xs text-green-600">Standards-aligned content for your subject</p>
-                    </div>
-                    
-                    <div class="bg-pink-50 border border-pink-200 rounded-lg p-3">
-                        <div class="flex items-center space-x-2 mb-1">
-                            <div class="w-2 h-2 bg-pink-500 rounded-full"></div>
-                            <span class="text-sm font-medium text-pink-800">Activity Suggestion</span>
-                        </div>
-                        <p class="text-xs text-pink-600">Creative activities and assessment ideas</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mobile Overlay -->
-        <div id="mobile-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden hidden"></div>
-
-        <!-- Mobile Sidebar -->
-        <div id="mobile-sidebar" class="fixed top-0 right-0 w-80 max-w-[85vw] h-full bg-white border-l border-gray-200 p-6 z-50 transform translate-x-full sidebar-transition overflow-y-auto md:hidden">
-            <button id="close-sidebar" class="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-
-            <div class="mt-8">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">AI Suggestions</h3>
-                <div class="space-y-3">
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <div class="flex items-center space-x-2 mb-1">
-                            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            <span class="text-sm font-medium text-blue-800">Objectives Enhancement</span>
-                        </div>
-                        <p class="text-sm text-blue-700">Consider using specific learning outcomes for cleaner objectives.</p>
-                    </div>
-                </div>
-            </div>
-        </div> {% endcomment %}
     </div>
 
     <!-- AI Suggestions Modal -->
@@ -724,28 +749,36 @@
 
         // Get current form data
         function getFormData() {
+            const objectives = [];
+            document.querySelectorAll('#objectives-container input[type="text"]').forEach(input => {
+                if (input.value.trim() !== '') {
+                    objectives.push(input.value);
+                }
+            });
+            
             return {
                 subject: document.getElementById('subject').value,
                 grade_level: document.getElementById('grade-level').value,
-                learning_objectives: [
-                    document.getElementById('learning-objective-1').value,
-                    document.getElementById('learning-objective-2').value,
-                    document.getElementById('learning-objective-3').value
-                ].filter(obj => obj.trim() !== '').join('\n'),
+                lesson_title: document.getElementById('lesson-title').value,
+                learning_objectives: objectives.join('\n'),
                 selected_exemplar: document.getElementById('exemplar-select').value
             };
         }
 
         // Get form data for submission
         function getSubmissionFormData() {
+            const objectives = [];
+            document.querySelectorAll('#objectives-container input[type="text"]').forEach(input => {
+                if (input.value.trim() !== '') {
+                    objectives.push(input.value);
+                }
+            });
+            
             return {
                 subject: document.getElementById('subject').value,
                 grade_level: document.getElementById('grade-level').value,
-                learning_objectives: [
-                    document.getElementById('learning-objective-1').value,
-                    document.getElementById('learning-objective-2').value,
-                    document.getElementById('learning-objective-3').value
-                ].filter(obj => obj.trim() !== '').join('\n'),
+                lesson_title: document.getElementById('lesson-title').value,
+                learning_objectives: objectives.join('\n'),
                 selected_exemplar: document.getElementById('exemplar-select').value,
                 intelligence_type: document.getElementById('intelligence-type').value,
                 quarter: '',
@@ -771,6 +804,7 @@
             return {
                 subject: formData.subject,
                 gradeLevel: formData.grade_level,
+                lessonTitle: formData.lesson_title,
                 learningObjectives: formData.learning_objectives,
                 selectedExemplar: formData.selected_exemplar ? selectedExemplarText : 'No',
                 exemplarId: formData.selected_exemplar,
@@ -785,7 +819,7 @@
             return `
                 <div class="space-y-6">
                     <div class="text-center border-b border-gray-200 pb-4">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">${data.subject || 'Lesson Plan'} - ${data.gradeLevel || ''}</h3>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">${data.lessonTitle || 'Lesson Plan'} - ${data.subject || ''} ${data.gradeLevel || ''}</h3>
                         <p class="text-gray-600">Preview</p>
                     </div>
                     
@@ -799,6 +833,10 @@
                             <div>
                                 <span class="text-sm font-medium text-gray-600 block">Grade Level</span>
                                 <span class="text-sm text-gray-900">${data.gradeLevel || 'Not specified'}</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600 block">Lesson Title</span>
+                                <span class="text-sm text-gray-900">${data.lessonTitle || 'Not specified'}</span>
                             </div>
                             <div>
                                 <span class="text-sm font-medium text-gray-600 block">Exemplar Selected</span>
@@ -858,11 +896,243 @@
         // Load department exemplars when page loads
         document.addEventListener('DOMContentLoaded', function() {
             loadDepartmentExemplars();
+            initializeObjectiveButtons();
             
             document.getElementById('subject').addEventListener('change', function() {
                 console.log('Subject changed to:', this.value);
             });
         });
+
+        // Initialize objective buttons functionality
+        function initializeObjectiveButtons() {
+            const addButton = document.getElementById('add-objective');
+            const aiSuggestButton = document.getElementById('ai-suggest-objectives');
+            const closeSuggestions = document.getElementById('close-suggestions');
+            const applySelected = document.getElementById('apply-selected-suggestions');
+            
+            let objectiveCount = 1;
+            
+            // Add new objective field
+            addButton.addEventListener('click', function() {
+                objectiveCount++;
+                const container = document.getElementById('objectives-container');
+                const newInputWrapper = document.createElement('div');
+                newInputWrapper.className = 'objective-input-wrapper relative';
+                
+                const newInput = document.createElement('input');
+                newInput.type = 'text';
+                newInput.id = `learning-objective-${objectiveCount}`;
+                newInput.name = `learning_objective_${objectiveCount}`;
+                newInput.className = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200';
+                newInput.placeholder = 'At the end of the lesson, students will be able to...';
+                
+                const removeBtn = document.createElement('div');
+                removeBtn.className = 'remove-objective-btn';
+                removeBtn.innerHTML = '×';
+                removeBtn.title = 'Remove objective';
+                removeBtn.addEventListener('click', function() {
+                    newInputWrapper.remove();
+                    objectiveCount--;
+                    
+                    // Renumber remaining inputs
+                    document.querySelectorAll('#objectives-container input[type="text"]').forEach((input, index) => {
+                        input.id = `learning-objective-${index + 1}`;
+                        input.name = `learning_objective_${index + 1}`;
+                    });
+                });
+                
+                newInputWrapper.appendChild(newInput);
+                newInputWrapper.appendChild(removeBtn);
+                container.appendChild(newInputWrapper);
+                
+                // Animate new input
+                newInputWrapper.style.opacity = '0';
+                newInputWrapper.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    newInputWrapper.style.transition = 'all 0.3s ease';
+                    newInputWrapper.style.opacity = '1';
+                    newInputWrapper.style.transform = 'translateY(0)';
+                }, 10);
+            });
+            
+            // AI Suggest objectives
+            aiSuggestButton.addEventListener('click', async function() {
+                const formData = getFormData();
+                
+                // Validate required fields
+                if (!formData.subject || !formData.grade_level || !formData.lesson_title) {
+                    showErrorMessage('Please fill in Subject, Grade Level, and Lesson Title first');
+                    return;
+                }
+                
+                // Show loading in suggestions panel
+                const panel = document.getElementById('ai-suggestions-panel');
+                const suggestionsList = document.getElementById('suggestions-list');
+                panel.classList.remove('hidden');
+                suggestionsList.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="loader-dots">
+                            <div class="loader-dot"></div>
+                            <div class="loader-dot"></div>
+                            <div class="loader-dot"></div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-2">AI is generating learning objectives...</p>
+                    </div>
+                `;
+                
+                try {
+                    // Simulate AI response (replace with actual API call)
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    const suggestions = generateAISuggestions(formData);
+                    displaySuggestions(suggestions);
+                    
+                } catch (error) {
+                    console.error('Error getting AI suggestions:', error);
+                    suggestionsList.innerHTML = `
+                        <div class="text-center py-4 text-red-600">
+                            <p>Failed to generate suggestions. Please try again.</p>
+                        </div>
+                    `;
+                }
+            });
+            
+            // Close suggestions panel
+            closeSuggestions.addEventListener('click', function() {
+                document.getElementById('ai-suggestions-panel').classList.add('hidden');
+            });
+            
+            // Apply selected suggestions
+            applySelected.addEventListener('click', function() {
+                const selectedSuggestions = document.querySelectorAll('#suggestions-list .ai-suggestion-item.selected');
+                
+                if (selectedSuggestions.length === 0) {
+                    showErrorMessage('Please select at least one objective to apply');
+                    return;
+                }
+                
+                // Clear existing objectives if user wants to replace
+                const container = document.getElementById('objectives-container');
+                container.innerHTML = '';
+                objectiveCount = 0;
+                
+                // Add selected suggestions as new objective fields
+                selectedSuggestions.forEach((suggestion, index) => {
+                    objectiveCount++;
+                    const newInputWrapper = document.createElement('div');
+                    newInputWrapper.className = 'objective-input-wrapper relative';
+                    
+                    const newInput = document.createElement('input');
+                    newInput.type = 'text';
+                    newInput.id = `learning-objective-${objectiveCount}`;
+                    newInput.name = `learning_objective_${objectiveCount}`;
+                    newInput.className = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200';
+                    newInput.value = suggestion.querySelector('p').textContent;
+                    
+                    if (index > 0) { // Add remove button for additional objectives
+                        const removeBtn = document.createElement('div');
+                        removeBtn.className = 'remove-objective-btn';
+                        removeBtn.innerHTML = '×';
+                        removeBtn.title = 'Remove objective';
+                        removeBtn.addEventListener('click', function() {
+                            newInputWrapper.remove();
+                            objectiveCount--;
+                        });
+                        newInputWrapper.appendChild(removeBtn);
+                    }
+                    
+                    newInputWrapper.appendChild(newInput);
+                    container.appendChild(newInputWrapper);
+                });
+                
+                // Hide suggestions panel
+                document.getElementById('ai-suggestions-panel').classList.add('hidden');
+                
+                showSuccessMessage('Learning objectives applied successfully!');
+            });
+        }
+        
+        // Generate AI suggestions based on form data
+        function generateAISuggestions(formData) {
+            // This is a mock function - replace with actual AI API call
+            const suggestions = [];
+            
+            const subject = formData.subject;
+            const grade = formData.grade_level;
+            const title = formData.lesson_title;
+            
+            // Generate contextual suggestions based on subject
+            if (subject === 'Mathematics') {
+                suggestions.push(
+                    'Solve real-world problems involving mathematical operations',
+                    'Demonstrate understanding of mathematical concepts through practical applications',
+                    'Analyze and interpret data using mathematical reasoning',
+                    'Create mathematical models to represent real-world situations',
+                    'Evaluate the reasonableness of mathematical solutions'
+                );
+            } else if (subject === 'Science') {
+                suggestions.push(
+                    'Design and conduct scientific investigations to test hypotheses',
+                    'Analyze and interpret data from scientific experiments',
+                    'Explain scientific phenomena using evidence-based reasoning',
+                    'Apply scientific concepts to real-world situations',
+                    'Evaluate the validity of scientific claims and evidence'
+                );
+            } else if (subject === 'English') {
+                suggestions.push(
+                    'Analyze literary texts for theme, character, and plot development',
+                    'Compose well-structured paragraphs with clear topic sentences',
+                    'Demonstrate understanding of vocabulary in context',
+                    'Evaluate the effectiveness of an author\'s writing style',
+                    'Create original written works using appropriate grammar and conventions'
+                );
+            } else {
+                suggestions.push(
+                    `Analyze key concepts related to ${title}`,
+                    `Apply ${subject} knowledge to real-world scenarios`,
+                    `Evaluate and synthesize information from multiple sources`,
+                    `Create original work demonstrating understanding of ${subject}`,
+                    `Demonstrate critical thinking skills when discussing ${title}`
+                );
+            }
+            
+            return suggestions;
+        }
+        
+        // Display suggestions in panel
+        function displaySuggestions(suggestions) {
+            const suggestionsList = document.getElementById('suggestions-list');
+            suggestionsList.innerHTML = '';
+            
+            suggestions.forEach((suggestion, index) => {
+                const item = document.createElement('div');
+                item.className = 'ai-suggestion-item';
+                item.innerHTML = `
+                    <div class="flex items-start">
+                        <input type="checkbox" class="mt-1 mr-3" id="suggest-${index}">
+                        <div>
+                            <p class="text-sm text-gray-700">${suggestion}</p>
+                            <p class="text-xs text-purple-600 mt-1">AI Generated - Highly relevant to ${document.getElementById('subject').value}</p>
+                        </div>
+                    </div>
+                `;
+                
+                item.addEventListener('click', function(e) {
+                    if (e.target.type !== 'checkbox') {
+                        const checkbox = this.querySelector('input[type="checkbox"]');
+                        checkbox.checked = !checkbox.checked;
+                    }
+                    this.classList.toggle('selected', this.querySelector('input[type="checkbox"]').checked);
+                });
+                
+                item.querySelector('input[type="checkbox"]').addEventListener('change', function(e) {
+                    e.stopPropagation();
+                    item.classList.toggle('selected', this.checked);
+                });
+                
+                suggestionsList.appendChild(item);
+            });
+        }
 
         async function loadDepartmentExemplars() {
             try {
@@ -1072,7 +1342,7 @@
             }
         });
 
-        // AI Suggestions functionality
+        // AI Suggestions modal functionality
         const aiSuggestionsModal = document.getElementById('ai-suggestions-modal');
         const aiSuggestionsContent = document.getElementById('ai-suggestions-content');
         const closeAiModal = document.getElementById('close-ai-modal');
