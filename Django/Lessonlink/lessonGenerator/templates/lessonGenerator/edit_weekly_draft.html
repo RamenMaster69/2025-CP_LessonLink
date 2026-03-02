@@ -88,11 +88,11 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">School</label>
-                        <input type="text" name="school" value="{{ draft.school }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">
+                        <input type="text" name="school" value="{{ user_school.school_name }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Teacher</label>
-                        <input type="text" name="teacher" value="{{ draft.teacher }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">
+                        <input type="text" name="teacher" value="{{ user.first_name }} {{ user.middle_name }} {{ user.last_name }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">
                     </div>
                 </div>
             </div>
@@ -367,18 +367,7 @@
                             <option value="inquiry" {% if draft.teaching_approach == 'inquiry' %}selected{% endif %}>Inquiry-Based</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">MELC Codes</label>
-                        <input type="text" name="melc_codes" value="{{ draft.melc_codes }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Values Integration</label>
-                        <input type="text" name="values_integration" value="{{ draft.values_integration }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Cross-curricular</label>
-                        <input type="text" name="cross_curricular" value="{{ draft.cross_curricular }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">
-                    </div>
+                    
                 </div>
             </div>
 
