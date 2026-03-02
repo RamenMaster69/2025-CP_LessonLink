@@ -2029,6 +2029,19 @@ def view_weekly_draft(request, draft_id):
     # Check if user can submit
     can_submit = draft.can_submit
     
+    # Get the department head for this user's school and department
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    
+    department_head = None
+    if request.user.school and request.user.department:
+        department_head = User.objects.filter(
+            role='Department Head',
+            department=request.user.department,
+            school=request.user.school,
+            is_active=True
+        ).first()
+    
     return render(request, 'lessonGenerator/view_weekly_draft.html', {
         'draft': draft,
         'procedures': procedures,
@@ -2037,6 +2050,8 @@ def view_weekly_draft(request, draft_id):
         'content': draft.get_content_dict(),
         'can_submit': can_submit,
         'submission_status': draft.get_submission_status_display_custom,
+        'department_head': department_head,  # Pass department head to template
+        'user_school': request.user.school,  # Pass user's school
     })
 
 

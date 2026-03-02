@@ -489,22 +489,22 @@
                 </table>
                 {% endif %}
 
-                <!-- Signatures Section (from backend) -->
+                <!-- Signatures Section -->
                 <div class="section-header">SIGNATURES</div>
                 <table class="signatures-table">
                     <tr>
                         <th style="width: 50%;">Teacher</th>
-                        <th style="width: 50%;">Administrative Approval</th>
+                        <th style="width: 50%;">Department Head</th>
                     </tr>
                     <tr>
                         <td>
-                            <strong>Name:</strong> {{ user.first_name }}{{ user.middle_name }} {{ user.last_name }} <br>
+                            <strong>Name:</strong> {{ user.first_name }} {{ user.middle_name }} {{ user.last_name }} <br>
                             <strong>Date Prepared:</strong> {{ draft.date_prepared|default:"" }}<br>
                             <strong>Signature:</strong> _________________________
                         </td>
                         <td>
-                            <strong>Name:</strong> {{ draft.administrator_name|default:"Principal Name" }}<br>
-                            <strong>Date:</strong> {{ draft.administrator_date|default:"" }}<br>
+                            <strong>Name:</strong> {{ department_head.full_name|default:"Not Assigned" }}<br>
+                            <strong>Date:</strong> {% if latest_submission.reviewed_at %}{{ latest_submission.reviewed_at|date:"F d, Y" }}{% else %}{{ "" }}{% endif %}<br>
                             <strong>Signature:</strong> _________________________
                         </td>
                     </tr>
