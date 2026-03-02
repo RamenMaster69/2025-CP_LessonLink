@@ -243,19 +243,6 @@
                 </div>
             </div>
 
-            <!-- Generated Content (Raw AI Output) -->
-            {% if lesson_plan.generated_content %}
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 section-card">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-robot text-gray-500 mr-2"></i>
-                    Generated Lesson Plan
-                </h2>
-                <div class="bg-gray-900 text-gray-100 rounded-lg p-4 font-mono text-sm overflow-x-auto">
-                    <pre>{{ lesson_plan.generated_content }}</pre>
-                </div>
-            </div>
-            {% endif %}
-
             <!-- Review Notes (if any) -->
             {% if submission.review_notes %}
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 section-card">

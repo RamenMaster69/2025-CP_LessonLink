@@ -55,7 +55,7 @@
         .status-final { background-color: #dbeafe; color: #1e40af; }
         
         /* Weekly badge styles */
-        .weekly-badge {
+        /* .weekly-badge {
             background: linear-gradient(135deg, #9E5EFF, #11468F);
             color: white;
             font-size: 10px;
@@ -64,7 +64,7 @@
             display: inline-block;
             font-weight: 600;
             letter-spacing: 0.5px;
-        }
+        } */
         
         /* Dropdown styles */
         .dropdown-menu { 
@@ -400,21 +400,22 @@
                         </div>
                         {% endif %}
 
-                        <!-- Weekly Badge -->
-                        <div class="absolute top-3 right-3 z-10">
+                        <!-- Weekly Badge - Now on the LEFT side -->
+                        <!-- <div class="absolute top-3 left-3 z-10">
                             <span class="weekly-badge">
                                 <i class="fas fa-calendar-week mr-1"></i>WEEKLY
                             </span>
+                        </div> -->
+
+                        <!-- Menu Button - Now on the RIGHT side -->
+                        <div class="absolute top-3 right-3 z-10">
+                            <button class="dropdown-toggle p-2 bg-white/80 rounded-full hover:bg-white transition-colors" data-draft-id="{{ draft.id }}">
+                                <i class="fas fa-ellipsis-h text-gray-600"></i>
+                            </button>
                         </div>
 
-                        <!-- Header Background -->
-                        <div class="h-32 bg-gradient-to-r from-purple-100 to-blue-100 relative">
-                            <div class="absolute top-3 left-3">
-                                <button class="dropdown-toggle p-2 bg-white/80 rounded-full hover:bg-white transition-colors" data-draft-id="{{ draft.id }}">
-                                    <i class="fas fa-ellipsis-h text-gray-600"></i>
-                                </button>
-                            </div>
-                        </div>
+                        <!-- Header Background (no absolute elements inside) -->
+                        <div class="h-32 bg-gradient-to-r from-purple-100 to-blue-100"></div>
                         
                         <div class="p-4">
                             <div class="flex items-center justify-between mb-2">
