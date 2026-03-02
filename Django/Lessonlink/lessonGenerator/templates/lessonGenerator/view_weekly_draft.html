@@ -7,38 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* Original header styles */
         .gradient-bg {
             background: linear-gradient(135deg, #11468F 0%, #9E5EFF 100%);
-        }
-        .lesson-table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        .lesson-table th, .lesson-table td {
-            border: 1px solid #e5e7eb;
-            padding: 12px;
-            vertical-align: top;
-        }
-        .lesson-table th {
-            background-color: #f9fafb;
-            font-weight: 600;
-            color: #374151;
-        }
-        .section-header {
-            background-color: #f3f4f6;
-            font-weight: 700;
-            color: #11468F;
-            padding: 12px;
-            border-left: 4px solid #9E5EFF;
-            margin-top: 24px;
-            margin-bottom: 16px;
-        }
-        .content-box {
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 16px;
-            background-color: #ffffff;
-            min-height: 80px;
         }
         .status-badge {
             padding: 4px 12px;
@@ -53,18 +24,237 @@
         .status-rejected { background-color: #fee2e2; color: #991b1b; }
         .status-final { background-color: #dbeafe; color: #1e40af; }
         
+        /* === CLEAN DAILY LESSON LOG DESIGN (original, restored) === */
+        .lesson-log {
+            width: 100%;
+            background: white;
+            border: 1px solid #2c3e4f;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+        }
+
+        .lesson-log table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .lesson-log td, .lesson-log th {
+            border: 1px solid #a0b3c6;
+            padding: 10px 12px;
+            vertical-align: top;
+        }
+
+        .lesson-log th {
+            background-color: #f0f4fa;
+            font-weight: 600;
+            color: #0a2a44;
+            text-align: left;
+        }
+
+        .dll-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0a2a44;
+            padding: 15px 20px;
+            border-bottom: 2px solid #2c3e4f;
+            background: white;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .title-image {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #11468F 0%, #9E5EFF 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .section-header {
+            background-color: #d9e2ef;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #0a2a44;
+            padding: 10px 15px;
+            border: 1px solid #a0b3c6;
+        }
+
+        .subheader {
+            background-color: #e9eff7;
+            font-weight: 600;
+            color: #103456;
+        }
+
+        .objectives-note {
+            background-color: #f9fcff;
+            padding: 16px 18px;
+            border: 1px solid #a0b3c6;
+            color: #1d3a5c;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Procedure day columns */
+        .procedure-day {
+            font-weight: 700;
+            color: #0a2a44;
+            background-color: #e9eff7;
+            text-align: center;
+        }
+
+        .procedure-step {
+            font-weight: 600;
+            color: #103456;
+            width: 5%;
+            text-align: center;
+            background-color: #f5f9ff;
+        }
+
+        /* Content day columns */
+        .content-day-header {
+            font-weight: 700;
+            color: #0a2a44;
+            background-color: #e9eff7;
+            text-align: center;
+        }
+
+        /* School logo placeholder */
+        .school-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #11468F 0%, #9E5EFF 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            margin-left: auto;
+        }
+
+        /* Day cell for teaching date and time */
+        .day-cell {
+            text-align: center;
+            font-weight: 600;
+            color: #0a2a44;
+            width: 16.66%; /* Equal width for 6 columns (including the label column) */
+        }
+
+        /* Signatures section */
+        .signatures-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .signatures-table td, .signatures-table th {
+            border: 1px solid #a0b3c6;
+            padding: 10px 12px;
+            vertical-align: top;
+        }
+        
+        .signatures-table th {
+            background-color: #f0f4fa;
+            font-weight: 600;
+            color: #0a2a44;
+            text-align: center;
+        }
+
+        .print-footer {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 20px;
+            border-top: 1px solid #a0b3c6;
+            font-size: 12px;
+            color: #345b79;
+        }
+
+        /* === PRINT STYLES: SMALLER FONT & PADDING TO REDUCE PAGES === */
         @media print {
+            /* Hide everything except .lesson-log */
+            body * {
+                visibility: hidden;
+            }
+            .lesson-log, .lesson-log * {
+                visibility: visible;
+            }
+            .lesson-log {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: 1px solid #000 !important;
+                background: white !important;
+                box-shadow: none !important;
+                /* Smaller font for print */
+                font-size: 11px !important;
+            }
+            /* Reduce table font and padding */
+            .lesson-log table {
+                font-size: 10px !important;
+                line-height: 1.3 !important;
+            }
+            .lesson-log td, 
+            .lesson-log th {
+                padding: 4px 6px !important;
+                border: 1px solid #000 !important;
+            }
+            .lesson-log .dll-title {
+                font-size: 1.4rem !important;
+                padding: 6px 10px !important;
+            }
+            .lesson-log .section-header {
+                font-size: 0.9rem !important;
+                padding: 4px 8px !important;
+            }
+            .lesson-log .objectives-note {
+                padding: 6px 8px !important;
+                line-height: 1.3 !important;
+                font-size: 9px !important;
+            }
+            .lesson-log .subheader {
+                padding: 4px 6px !important;
+            }
+            /* Remove background colors for cleaner print, keep light grays */
+            .lesson-log th,
+            .lesson-log .section-header,
+            .lesson-log .subheader,
+            .lesson-log .objectives-note,
+            .procedure-day,
+            .content-day-header,
+            .signatures-table th {
+                background-color: #f5f5f5 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            /* Hide non-print elements */
+            .gradient-bg, 
+            .flex-1 > div > div:first-child,
             .print\:hidden {
                 display: none !important;
             }
-            .lesson-table th, .lesson-table td {
-                border: 1px solid #000 !important;
+            /* Avoid page breaks inside rows */
+            tr {
+                page-break-inside: avoid;
+            }
+            /* Ensure signatures and footer print properly */
+            .signatures-table {
+                page-break-inside: avoid;
+            }
+            .print-footer {
+                page-break-before: avoid;
             }
         }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Header -->
+    <!-- YOUR ORIGINAL HEADER (FULLY RESTORED) -->
     <div class="gradient-bg text-white px-6 py-4">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <a href="{% url 'dashboard' %}" class="flex items-center space-x-3">
@@ -87,7 +277,7 @@
 
     <div class="flex-1">
         <div class="max-w-6xl mx-auto px-4 py-8">
-            <!-- Back and Action Buttons -->
+            <!-- YOUR ORIGINAL BACK AND ACTION BUTTONS -->
             <div class="flex items-center justify-between mb-6 print:hidden">
                 <a href="{% url 'draft_list' %}" class="flex items-center text-gray-600 hover:text-gray-800">
                     <i class="fas fa-arrow-left mr-2"></i>Back to Drafts
@@ -107,238 +297,251 @@
                 </div>
             </div>
 
-            <!-- Main Lesson Plan Card -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden p-8">
-                <!-- School Header Table -->
-                <table class="lesson-table mb-8">
+            <!-- MAIN LESSON PLAN CARD with CLEAN DAILY LESSON LOG DESIGN (ORIGINAL) -->
+            <div class="lesson-log">
+                <!-- Title with image placeholder on the left -->
+                <div class="dll-title">
+                    <div class="title-image">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    WEEKLY LESSON LOG
+                    <!-- School logo placeholder on the right side -->
+                    <div class="school-logo">
+                        <i class="fas fa-school"></i>
+                    </div>
+                </div>
+
+                <!-- School Header Table (4 columns) with School Logo placeholder on the right -->
+                <table>
                     <tr>
-                        <th class="w-24">School</th>
-                        <td>{{ user_school.school_name }}</td>
-                        <th class="w-28">Grade Level</th>
-                        <td>{{ draft.grade_level|upper }}</td>
+                        <th style="width: 15%;">School</th>
+                        <td style="width: 35%;">{{ user_school.school_name }}</td>
+                        <th style="width: 20%;">Grade Level & Quarter</th>
+                        <td style="width: 30%;">{{ draft.grade_level|upper }} / {{ draft.quarter|upper }}</td>
                     </tr>
                     <tr>
                         <th>Teacher</th>
-                        <td>{% if user.is_authenticated %}
-                                {{ user.first_name }}
-                                {% if user.middle_name and user.middle_name.strip %}
-                                {{ user.middle_name }}
-                                {% endif %}
-                                {{ user.last_name }}
-                            {% else %}
-                                {{ parsed_plan.teacher|default:"Teacher" }}
-                            {% endif %}
-                        </td>
+                        <td>{{ user.first_name }}{{ user.middle_name }} {{ user.last_name }}</td>
                         <th>Learning Area</th>
                         <td>{{ draft.subject|upper }}</td>
                     </tr>
                     <tr>
-                        <th>Teaching Date</th>
-                        <td>{{ draft.teaching_date|default:"Week "|add:draft.week_number }}</td>
-                        <th>Quarter</th>
-                        <td>{{ draft.quarter|upper }}</td>
+                        <th>Topic</th>
+                        <td colspan="3">{{ draft.topic|default:" " }}</td>
+                    </tr>
+                    <!-- Teaching Date and Time row with equal columns for Monday-Friday -->
+                    <tr>
+                        <th>Teaching Date and Time</th>
+                        <td class="day-cell">MONDAY</td>
+                        <td class="day-cell">TUESDAY</td>
+                        <td class="day-cell">WEDNESDAY</td>
+                        <td class="day-cell">THURSDAY</td>
+                        <td class="day-cell">FRIDAY</td>
                     </tr>
                 </table>
 
                 <!-- I. OBJECTIVES -->
-                <div>
-                    <div class="section-header">I. OBJECTIVES</div>
-                    
-                    <div class="space-y-4">
-                        <div>
-                            <h3 class="font-semibold text-gray-700">A. Content Standards</h3>
-                            <div class="content-box mt-1">
-                                {{ draft.content_standard|linebreaks }}
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h3 class="font-semibold text-gray-700">B. Performance Standards</h3>
-                            <div class="content-box mt-1">
-                                {{ draft.performance_standard|linebreaks }}
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h3 class="font-semibold text-gray-700">C. Learning Competencies/Objectives</h3>
-                            <div class="content-box mt-1">
-                                <div class="space-y-2">
-                                    {% if objectives.monday %}<div><span class="font-medium">Monday:</span> {{ objectives.monday }}</div>{% endif %}
-                                    {% if objectives.tuesday %}<div><span class="font-medium">Tuesday:</span> {{ objectives.tuesday }}</div>{% endif %}
-                                    {% if objectives.wednesday %}<div><span class="font-medium">Wednesday:</span> {{ objectives.wednesday }}</div>{% endif %}
-                                    {% if objectives.thursday %}<div><span class="font-medium">Thursday:</span> {{ objectives.thursday }}</div>{% endif %}
-                                    {% if objectives.friday %}<div><span class="font-medium">Friday:</span> {{ objectives.friday }}</div>{% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <div class="section-header">I. OBJECTIVES</div>
 
-                <!-- II. CONTENT -->
-                <div class="mt-8">
-                    <div class="section-header">II. CONTENT</div>
-                    <div class="grid grid-cols-5 gap-3 mt-2">
-                        <div class="border rounded-lg p-3">
-                            <div class="font-medium text-[#11468F] text-sm mb-1">MONDAY</div>
-                            <div class="text-sm">{{ content.monday|default:"Introduction" }}</div>
-                        </div>
-                        <div class="border rounded-lg p-3">
-                            <div class="font-medium text-[#11468F] text-sm mb-1">TUESDAY</div>
-                            <div class="text-sm">{{ content.tuesday|default:"Skill Building" }}</div>
-                        </div>
-                        <div class="border rounded-lg p-3">
-                            <div class="font-medium text-[#11468F] text-sm mb-1">WEDNESDAY</div>
-                            <div class="text-sm">{{ content.wednesday|default:"Deep Dive" }}</div>
-                        </div>
-                        <div class="border rounded-lg p-3">
-                            <div class="font-medium text-[#11468F] text-sm mb-1">THURSDAY</div>
-                            <div class="text-sm">{{ content.thursday|default:"Practice" }}</div>
-                        </div>
-                        <div class="border rounded-lg p-3">
-                            <div class="font-medium text-[#11468F] text-sm mb-1">FRIDAY</div>
-                            <div class="text-sm">{{ content.friday|default:"Assessment" }}</div>
-                        </div>
-                    </div>
-                </div>
+                <!-- A. Content Standards -->
+                <table>
+                    <tr>
+                        <td class="subheader" style="width: 25%;">A. Content Standards</td>
+                        <td>{{ draft.content_standard|default:" "|linebreaks }}</td>
+                    </tr>
+                    <tr>
+                        <td class="subheader">B. Performance Standards</td>
+                        <td>{{ draft.performance_standard|default:" "|linebreaks }}</td>
+                    </tr>
+                    <tr>
+                        <td class="subheader">C. Learning Competencies/Objectives</td>
+                        <td>
+                            {% if objectives.monday %}
+                                <strong>Monday:</strong> {{ objectives.monday }}<br>
+                            {% endif %}
+                            {% if objectives.tuesday %}
+                                <strong>Tuesday:</strong> {{ objectives.tuesday }}<br>
+                            {% endif %}
+                            {% if objectives.wednesday %}
+                                <strong>Wednesday:</strong> {{ objectives.wednesday }}<br>
+                            {% endif %}
+                            {% if objectives.thursday %}
+                                <strong>Thursday:</strong> {{ objectives.thursday }}<br>
+                            {% endif %}
+                            {% if objectives.friday %}
+                                <strong>Friday:</strong> {{ objectives.friday }}<br>
+                            {% endif %}
+                            {% if not objectives.monday and not objectives.tuesday and not objectives.wednesday and not objectives.thursday and not objectives.friday %}
+                                {{ draft.learning_competencies|default:" " }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- II. CONTENT - Now in column format like Procedures -->
+                <div class="section-header">II. CONTENT</div>
+                <table>
+                    <tr>
+                        <td style="background-color: #f9fcff;" colspan="6">
+                            Content is what the lesson is all about. It pertains to the subject matter that the teacher aims to teach. In the Curriculum Guide, the content can be tackled in a week or two.
+                        </td>
+                    </tr>
+                    <!-- Day headers for Content -->
+                    <tr>
+                        <th style="width: 5%;">Day</th>
+                        <th class="content-day-header">MONDAY</th>
+                        <th class="content-day-header">TUESDAY</th>
+                        <th class="content-day-header">WEDNESDAY</th>
+                        <th class="content-day-header">THURSDAY</th>
+                        <th class="content-day-header">FRIDAY</th>
+                    </tr>
+                    <!-- Content row -->
+                    <tr>
+                        <td class="procedure-step">Content</td>
+                        <td>{{ content.monday|default:" " }}</td>
+                        <td>{{ content.tuesday|default:" " }}</td>
+                        <td>{{ content.wednesday|default:" " }}</td>
+                        <td>{{ content.thursday|default:" " }}</td>
+                        <td>{{ content.friday|default:" " }}</td>
+                    </tr>
+                </table>
 
                 <!-- III. LEARNING RESOURCES -->
-                <div class="mt-8">
-                    <div class="section-header">III. LEARNING RESOURCES</div>
+                <div class="section-header">III. LEARNING RESOURCES</div>
+                <table>
+                    <tr>
+                        <th style="width: 30%;">A. References</th>
+                        <td style="width: 70%;"></td>
+                    </tr>
+                    <tr>
+                        <td class="subheader" style="padding-left: 30px;">1. Teacher's Guide</td>
+                        <td>{{ draft.teachers_guide|default:" " }}</td>
+                    </tr>
+                    <tr>
+                        <td class="subheader" style="padding-left: 30px;">2. Learning Materials</td>
+                        <td>{{ draft.learners_materials|default:" " }}</td>
+                    </tr>
+                    <tr>
+                        <td class="subheader" style="padding-left: 30px;">3. Textbook Pages</td>
+                        <td>{{ draft.textbook_pages|default:" " }}</td>
+                    </tr>
+                    <tr>
+                        <td class="subheader" style="padding-left: 30px;">4. Additional Materials from LR Portal</td>
+                        <td>{{ draft.lr_portal|default:" " }}</td>
+                    </tr>
+                    <tr>
+                        <th>B. Other Learning Resources</th>
+                        <td>{{ draft.other_resources|default:" "|linebreaks }}</td>
+                    </tr>
+                </table>
+
+                <!-- IV. PROCEDURES -->
+                <div class="section-header">IV. PROCEDURES</div>
+                
+                <!-- Procedures arranged by day (columns) as shown in the image -->
+                <table>
+                    <tr>
+                        <td style="background-color: #f9fcff;" colspan="6">
+                            These steps should be done across the week. Spread out the activities appropriately so the students will learn well. Always be guided by demonstration of learning by the students which you can infer from formative assessment activities. Sustain learning systematically by providing students with multiple ways to learn new things, practice their learning, question their learning processes, and draw conclusions about what they learned in relation to their life experiences and previous knowledge. Indicate the time allotment for each step.
+                        </td>
+                    </tr>
+                    <!-- Day headers -->
+                    <tr>
+                        <th style="width: 5%;">Step</th>
+                        <th class="procedure-day">MONDAY</th>
+                        <th class="procedure-day">TUESDAY</th>
+                        <th class="procedure-day">WEDNESDAY</th>
+                        <th class="procedure-day">THURSDAY</th>
+                        <th class="procedure-day">FRIDAY</th>
+                    </tr>
                     
-                    <div class="space-y-4">
-                        <div>
-                            <h3 class="font-semibold text-gray-700">A. References</h3>
-                            <div class="grid grid-cols-2 gap-4 mt-2">
-                                <div>
-                                    <div class="text-sm font-medium text-gray-600">1. Teacher's Guide</div>
-                                    <div class="content-box mt-1 text-sm">{{ draft.teachers_guide|default:"Pages 45-52" }}</div>
-                                </div>
-                                <div>
-                                    <div class="text-sm font-medium text-gray-600">2. Learning Materials</div>
-                                    <div class="content-box mt-1 text-sm">{{ draft.learning_materials|default:"Module 3" }}</div>
-                                </div>
-                                <div>
-                                    <div class="text-sm font-medium text-gray-600">3. Textbook Page</div>
-                                    <div class="content-box mt-1 text-sm">{{ draft.textbook_pages|default:"pp. 78-95" }}</div>
-                                </div>
-                                <div>
-                                    <div class="text-sm font-medium text-gray-600">4. Additional Materials from LR Portal</div>
-                                    <div class="content-box mt-1 text-sm">{{ draft.lr_portal|default:"LRMDS Portal" }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h3 class="font-semibold text-gray-700">B. Other Learning Resources</h3>
-                            <div class="content-box mt-1">
-                                {{ draft.other_resources|default:"Videos, real objects, online simulations"|linebreaks }}
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Procedure steps A through J -->
+                    <!-- Monday Procedures -->
+                    {% if procedures.monday.a %}<tr><td class="procedure-step">A.</td><td>{{ procedures.monday.a }}</td><td>{{ procedures.tuesday.a|default:"" }}</td><td>{{ procedures.wednesday.a|default:"" }}</td><td>{{ procedures.thursday.a|default:"" }}</td><td>{{ procedures.friday.a|default:"" }}</td></tr>{% endif %}
+                    {% if procedures.monday.b %}<tr><td class="procedure-step">B.</td><td>{{ procedures.monday.b }}</td><td>{{ procedures.tuesday.b|default:"" }}</td><td>{{ procedures.wednesday.b|default:"" }}</td><td>{{ procedures.thursday.b|default:"" }}</td><td>{{ procedures.friday.b|default:"" }}</td></tr>{% endif %}
+                    {% if procedures.monday.c %}<tr><td class="procedure-step">C.</td><td>{{ procedures.monday.c }}</td><td>{{ procedures.tuesday.c|default:"" }}</td><td>{{ procedures.wednesday.c|default:"" }}</td><td>{{ procedures.thursday.c|default:"" }}</td><td>{{ procedures.friday.c|default:"" }}</td></tr>{% endif %}
+                    {% if procedures.monday.d %}<tr><td class="procedure-step">D.</td><td>{{ procedures.monday.d }}</td><td>{{ procedures.tuesday.d|default:"" }}</td><td>{{ procedures.wednesday.d|default:"" }}</td><td>{{ procedures.thursday.d|default:"" }}</td><td>{{ procedures.friday.d|default:"" }}</td></tr>{% endif %}
+                    {% if procedures.monday.e %}<tr><td class="procedure-step">E.</td><td>{{ procedures.monday.e }}</td><td>{{ procedures.tuesday.e|default:"" }}</td><td>{{ procedures.wednesday.e|default:"" }}</td><td>{{ procedures.thursday.e|default:"" }}</td><td>{{ procedures.friday.e|default:"" }}</td></tr>{% endif %}
+                    {% if procedures.monday.f %}<tr><td class="procedure-step">F.</td><td>{{ procedures.monday.f }}</td><td>{{ procedures.tuesday.f|default:"" }}</td><td>{{ procedures.wednesday.f|default:"" }}</td><td>{{ procedures.thursday.f|default:"" }}</td><td>{{ procedures.friday.f|default:"" }}</td></tr>{% endif %}
+                    {% if procedures.monday.g %}<tr><td class="procedure-step">G.</td><td>{{ procedures.monday.g }}</td><td>{{ procedures.tuesday.g|default:"" }}</td><td>{{ procedures.wednesday.g|default:"" }}</td><td>{{ procedures.thursday.g|default:"" }}</td><td>{{ procedures.friday.g|default:"" }}</td></tr>{% endif %}
+                    {% if procedures.monday.h %}<tr><td class="procedure-step">H.</td><td>{{ procedures.monday.h }}</td><td>{{ procedures.tuesday.h|default:"" }}</td><td>{{ procedures.wednesday.h|default:"" }}</td><td>{{ procedures.thursday.h|default:"" }}</td><td>{{ procedures.friday.h|default:"" }}</td></tr>{% endif %}
+                    {% if procedures.monday.i %}<tr><td class="procedure-step">I.</td><td>{{ procedures.monday.i }}</td><td>{{ procedures.tuesday.i|default:"" }}</td><td>{{ procedures.wednesday.i|default:"" }}</td><td>{{ procedures.thursday.i|default:"" }}</td><td>{{ procedures.friday.i|default:"" }}</td></tr>{% endif %}
+                    {% if procedures.monday.j %}<tr><td class="procedure-step">J.</td><td>{{ procedures.monday.j }}</td><td>{{ procedures.tuesday.j|default:"" }}</td><td>{{ procedures.wednesday.j|default:"" }}</td><td>{{ procedures.thursday.j|default:"" }}</td><td>{{ procedures.friday.j|default:"" }}</td></tr>{% endif %}
+                </table>
+
+                <!-- Independent Practice/Evaluation Section (from backend) -->
+                {% if draft.independent_practice %}
+                <div class="section-header">INDEPENDENT PRACTICE/EVALUATION</div>
+                <table>
+                    <tr>
+                        <td style="padding: 15px;">{{ draft.independent_practice|linebreaks }}</td>
+                    </tr>
+                </table>
+                {% endif %}
+
+                <!-- Assessment Section (from backend) -->
+                {% if draft.assessment %}
+                <div class="section-header">ASSESSMENT</div>
+                <table>
+                    <tr>
+                        <td style="padding: 15px;">{{ draft.assessment|linebreaks }}</td>
+                    </tr>
+                </table>
+                {% endif %}
+
+                <!-- Signatures Section (from backend) -->
+                <div class="section-header">SIGNATURES</div>
+                <table class="signatures-table">
+                    <tr>
+                        <th style="width: 50%;">Teacher</th>
+                        <th style="width: 50%;">Administrative Approval</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Name:</strong> {{ draft.teacher_signature_name|default:draft.teacher|default:draft.created_by.get_full_name }}<br>
+                            <strong>Date Prepared:</strong> {{ draft.date_prepared|default:"" }}<br>
+                            <strong>Signature:</strong> _________________________
+                        </td>
+                        <td>
+                            <strong>Name:</strong> {{ draft.administrator_name|default:"Principal Name" }}<br>
+                            <strong>Date:</strong> {{ draft.administrator_date|default:"" }}<br>
+                            <strong>Signature:</strong> _________________________
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Print Footer with Page Number and Date -->
+                <div class="print-footer">
+                    <span><i class="fas fa-clock mr-1"></i> {{ current_time|default:"9:46 PM" }}</span>
+                    <span><i class="fas fa-calendar-alt mr-1"></i> {{ current_date|default:"March 27, 2026" }}</span>
                 </div>
 
-                <!-- IV. PROCEDURE - Daily breakdown -->
-                <div class="mt-8">
-                    <div class="section-header">IV. PROCEDURE</div>
-                    
-                    {% for day, day_procedures in procedures.items %}
-                    <div class="mb-8 {% if day == 'monday' %}border-l-4 border-[#11468F] pl-4{% else %}border-l-4 border-gray-300 pl-4{% endif %}">
-                        <h3 class="font-semibold text-{% if day == 'monday' %}[#11468F]{% else %}gray-600{% endif %} mb-3">{{ day|upper }}</h3>
-                        
-                        <div class="space-y-3">
-                            {% if day_procedures.a %}
-                            <div class="procedure-step">
-                                <span class="step-label">A.</span> {{ day_procedures.a }}
-                            </div>
-                            {% endif %}
-                            {% if day_procedures.b %}
-                            <div class="procedure-step">
-                                <span class="step-label">B.</span> {{ day_procedures.b }}
-                            </div>
-                            {% endif %}
-                            {% if day_procedures.c %}
-                            <div class="procedure-step">
-                                <span class="step-label">C.</span> {{ day_procedures.c }}
-                            </div>
-                            {% endif %}
-                            {% if day_procedures.d %}
-                            <div class="procedure-step">
-                                <span class="step-label">D.</span> {{ day_procedures.d }}
-                            </div>
-                            {% endif %}
-                            {% if day_procedures.e %}
-                            <div class="procedure-step">
-                                <span class="step-label">E.</span> {{ day_procedures.e }}
-                            </div>
-                            {% endif %}
-                            {% if day_procedures.f %}
-                            <div class="procedure-step">
-                                <span class="step-label">F.</span> {{ day_procedures.f }}
-                            </div>
-                            {% endif %}
-                            {% if day_procedures.g %}
-                            <div class="procedure-step">
-                                <span class="step-label">G.</span> {{ day_procedures.g }}
-                            </div>
-                            {% endif %}
-                            {% if day_procedures.h %}
-                            <div class="procedure-step">
-                                <span class="step-label">H.</span> {{ day_procedures.h }}
-                            </div>
-                            {% endif %}
-                            {% if day_procedures.i %}
-                            <div class="procedure-step">
-                                <span class="step-label">I.</span> {{ day_procedures.i }}
-                            </div>
-                            {% endif %}
-                            {% if day_procedures.j %}
-                            <div class="procedure-step">
-                                <span class="step-label">J.</span> {{ day_procedures.j }}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-
-                <!-- Submission Info -->
+                <!-- Submission Info (if exists) -->
                 {% if latest_submission %}
-                <div class="mt-8 p-4 bg-gray-50 rounded-lg">
-                    <h3 class="font-semibold text-gray-900 mb-2">Submission Status</h3>
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <span class="text-gray-600">Status:</span>
-                            <span class="status-badge status-{{ latest_submission.status }} ml-2">
-                                {{ latest_submission.get_status_display }}
-                            </span>
-                        </div>
-                        <div><span class="text-gray-600">Submitted to:</span> {{ latest_submission.submitted_to.full_name }}</div>
-                        <div><span class="text-gray-600">Date:</span> {{ latest_submission.submission_date|date:"F d, Y" }}</div>
-                        {% if latest_submission.reviewed_at %}
-                        <div><span class="text-gray-600">Reviewed:</span> {{ latest_submission.reviewed_at|date:"F d, Y" }}</div>
-                        {% endif %}
+                <div style="margin-top: 20px; padding: 15px; border: 1px solid #a0b3c6; background: #f4f9ff;">
+                    <h4 style="margin-bottom: 10px; font-weight: 700;">Submission Status</h4>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <span>Status: <span class="status-badge status-{{ latest_submission.status }}">{{ latest_submission.get_status_display }}</span></span>
+                        <span>Submitted to: {{ latest_submission.submitted_to.full_name }}</span>
+                        <span>Date: {{ latest_submission.submission_date|date:"F d, Y" }}</span>
+                        {% if latest_submission.reviewed_at %}<span>Reviewed: {{ latest_submission.reviewed_at|date:"F d, Y" }}</span>{% endif %}
                     </div>
                     {% if latest_submission.feedback %}
-                    <div class="mt-3">
-                        <span class="text-gray-600">Feedback:</span>
-                        <div class="mt-1 p-3 bg-white rounded border">
-                            {{ latest_submission.feedback|linebreaks }}
-                        </div>
-                    </div>
+                    <div style="margin-top: 12px; background: white; padding: 12px; border: 1px solid #ccc;">{{ latest_submission.feedback|linebreaks }}</div>
                     {% endif %}
                 </div>
                 {% endif %}
 
                 <!-- Intelligence Type Badge -->
-                <div class="mt-4 text-right text-sm text-gray-500">
+                <div style="text-align: right; padding: 8px 15px; font-size: 13px; color: #345b79; border-top: 1px solid #a0b3c6;">
                     <i class="fas fa-brain mr-1"></i> {{ intelligence_display }}
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Django messages script -->
     <script>
-        // Show success/error messages from Django
         {% if messages %}
             {% for message in messages %}
             setTimeout(() => {
