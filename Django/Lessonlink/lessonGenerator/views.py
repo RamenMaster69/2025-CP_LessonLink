@@ -2196,10 +2196,11 @@ def submit_weekly_plan(request, draft_id):
     
     if success:
         messages.success(request, message)
+        # Redirect to department head's pending page
+        return redirect('Dep_Pending')
     else:
         messages.error(request, message)
-    
-    return redirect('view_weekly_draft', draft_id=draft_id)
+        return redirect('view_weekly_draft', draft_id=draft_id)
 
 @login_required
 def weekly_reviews_page(request):

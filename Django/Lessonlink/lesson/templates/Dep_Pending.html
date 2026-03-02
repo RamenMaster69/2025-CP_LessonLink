@@ -25,7 +25,6 @@
                 opacity: 0;
                 transform: translateY(-10px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -36,7 +35,6 @@
             from {
                 transform: translateX(-100%);
             }
-
             to {
                 transform: translateX(0);
             }
@@ -47,7 +45,6 @@
                 opacity: 0;
                 transform: scale(0.9) translateY(-10px);
             }
-
             to {
                 opacity: 1;
                 transform: scale(1) translateY(0);
@@ -60,6 +57,25 @@
 
         .dropdown-enter {
             animation: scaleIn 0.2s ease-out;
+        }
+        
+        /* Status badge styles */
+        .status-submitted { background-color: #fef3c7; color: #92400e; }
+        .status-approved { background-color: #d1fae5; color: #065f46; }
+        .status-needs_revision { background-color: #ffedd5; color: #9a3412; }
+        .status-rejected { background-color: #fee2e2; color: #991b1b; }
+        
+        /* Weekly badge */
+        .weekly-badge {
+            background: linear-gradient(135deg, #9E5EFF, #11468F);
+            color: white;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-left: 8px;
         }
     </style>
 </head>
@@ -176,7 +192,7 @@
                                     {% endif %}
                                 </div>
                                 <div>
-                                    <p class="font-semibold text-gray-900">{{ user.full_name }}</p>
+                                    <p class="font-semibold text-gray-900">{{ user.get_full_name|default:user.username }}</p>
                                     <p class="text-sm text-gray-500">{{ user.role }}</p>
                                 </div>
                             </div>
@@ -225,13 +241,13 @@
                     <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Lesson Plans</span>
                 </a>
-                <a href="{% url 'department_head_drafts' %}"
+                <a href="{% url 'Dep_exemplar' %}"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Exemplar</span>
                 </a>
                 <a href="{% url 'dep_calendar' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group]">
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-calendar text-lg w-5"></i>
                     <span class="font-medium">Calendar</span>
                 </a>
@@ -239,6 +255,9 @@
                     class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
                     <i class="fas fa-clock text-lg w-5"></i>
                     <span class="font-medium">Pending Reviews</span>
+                    {% if total_pending %}
+                    <span class="ml-auto bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">{{ total_pending }}</span>
+                    {% endif %}
                 </a>
                 <a href="{% url 'Dep_Faculty' %}"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
@@ -253,41 +272,86 @@
             <div class="max-w-7xl mx-auto">
                 <!-- Page Header -->
                 <div class="flex items-center justify-between mb-6">
-                    <h1 class="text-2xl font-bold text-gray-900">Pending Lesson Plan Reviews</h1>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Pending Lesson Plan Reviews</h1>
+                        <p class="text-gray-600">Review and provide feedback on submitted lesson plans</p>
+                    </div>
                     <div class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
-                        3 Pending
+                        {{ total_pending }} Pending
                     </div>
                 </div>
 
-                <!-- Lesson Plan Cards -->
-                <!-- Replace the static lesson plan cards with this dynamic section -->
-                <div class="space-y-4">
-                    {% for submission in pending_submissions %}
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-white rounded-lg p-4 shadow-sm border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">Daily Lesson Plans</span>
+                                <div class="text-2xl font-bold">{{ daily_pending_count }}</div>
+                            </div>
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-calendar-day text-blue-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 shadow-sm border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">Weekly Lesson Plans</span>
+                                <div class="text-2xl font-bold">{{ weekly_pending_count }}</div>
+                            </div>
+                            <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-calendar-week text-purple-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex border-b border-gray-200 mb-6">
+                    <button onclick="showTab('daily')" id="tab-daily" class="px-4 py-2 text-[#11468F] border-b-2 border-[#11468F] font-medium">
+                        Daily Plans ({{ daily_pending_count }})
+                    </button>
+                    <button onclick="showTab('weekly')" id="tab-weekly" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                        Weekly Plans ({{ weekly_pending_count }})
+                    </button>
+                </div>
+
+                <!-- Daily Lesson Plan Cards -->
+                <div id="daily-plans" class="space-y-4">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Daily Lesson Plans Pending Review</h2>
+                    {% for submission in daily_pending_submissions %}
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
                         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                             <div class="flex-1">
                                 <div class="flex items-center gap-3 mb-3">
                                     <h3 class="text-lg font-semibold text-gray-900">{{ submission.lesson_plan.title }}</h3>
-                                    <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm font-medium">
-                                        {{ submission.get_status_display }}
+                                    <span class="status-submitted px-2 py-1 rounded text-sm font-medium">
+                                        <i class="fas fa-clock mr-1"></i>{{ submission.get_status_display }}
                                     </span>
                                 </div>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-3">
                                     <div>
-                                        <span class="font-medium">Teacher:</span> {{ submission.submitted_by.full_name }}
+                                        <span class="font-medium">Teacher:</span> {{ submission.submitted_by.get_full_name|default:submission.submitted_by.username }}
+                                    </div>
+                                    <div>
+                                        <span class="font-medium">Subject:</span> {{ submission.lesson_plan.subject }}
                                     </div>
                                     <div>
                                         <span class="font-medium">Grade:</span> {{ submission.lesson_plan.grade_level }}
                                     </div>
                                     <div>
-                                        <span class="font-medium">Submitted:</span> {{ submission.time_since_submission }}
+                                        <span class="font-medium">Submitted:</span> {{ submission.submission_date|timesince }} ago
                                     </div>
                                 </div>
-                                <p class="text-gray-600">{{ submission.lesson_plan.learning_objectives|truncatewords:20 }}</p>
+                                <p class="text-gray-600 text-sm">{{ submission.lesson_plan.learning_objectives|truncatewords:30 }}</p>
+                                <div class="mt-2 text-xs text-gray-500">
+                                    <i class="fas fa-brain mr-1"></i> {{ submission.lesson_plan.get_intelligence_type_display }}
+                                </div>
                             </div>
                             <div class="flex gap-2">
                                 <a href="{% url 'lesson_plan_detail' submission.id %}" 
-                                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
                                     <i class="fas fa-eye"></i>
                                     Review
                                 </a>
@@ -295,12 +359,121 @@
                         </div>
                     </div>
                     {% empty %}
-                    <div class="text-center py-8">
-                        <i class="fas fa-inbox text-4xl text-gray-300 mb-4"></i>
-                        <p class="text-gray-500">No pending lesson plan reviews</p>
+                    <div class="text-center py-8 bg-white rounded-lg border border-gray-200">
+                        <i class="fas fa-calendar-day text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500">No pending daily lesson plan reviews</p>
                     </div>
                     {% endfor %}
                 </div>
+
+                <!-- Weekly Lesson Plan Cards (initially hidden) -->
+                <div id="weekly-plans" class="space-y-4 hidden">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Weekly Lesson Plans Pending Review</h2>
+                    {% for draft in weekly_pending_submissions %}
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <h3 class="text-lg font-semibold text-gray-900">{{ draft.title }}</h3>
+                                    <span class="weekly-badge">
+                                        <i class="fas fa-calendar-week mr-1"></i>WEEKLY
+                                    </span>
+                                    <span class="status-submitted px-2 py-1 rounded text-sm font-medium">
+                                        <i class="fas fa-clock mr-1"></i>Pending
+                                    </span>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-3">
+                                    <div>
+                                        <span class="font-medium">Teacher:</span> {{ draft.created_by.get_full_name|default:draft.created_by.username }}
+                                    </div>
+                                    <div>
+                                        <span class="font-medium">Subject:</span> {{ draft.subject }}
+                                    </div>
+                                    <div>
+                                        <span class="font-medium">Grade:</span> {{ draft.grade_level }}
+                                    </div>
+                                    <div>
+                                        <span class="font-medium">Submitted:</span> {{ draft.submitted_at|timesince }} ago
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-4 text-xs text-gray-500 mb-2">
+                                    <span><i class="fas fa-calendar-alt mr-1"></i> Week {{ draft.week_number }} • {{ draft.quarter }}</span>
+                                    <span><i class="fas fa-brain mr-1"></i> {{ draft.get_intelligence_type_display }}</span>
+                                </div>
+                                <p class="text-gray-600 text-sm">
+                                    <span class="font-medium">Objectives:</span> 
+                                    {{ draft.objective_monday|truncatewords:10 }}...
+                                </p>
+                            </div>
+                            <div class="flex gap-2">
+                                <a href="{% url 'view_weekly_for_review' draft.id %}" 
+                                   class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                                    <i class="fas fa-eye"></i>
+                                    Review Weekly
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-8 bg-white rounded-lg border border-gray-200">
+                        <i class="fas fa-calendar-week text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500">No pending weekly lesson plan reviews</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Recently Reviewed Section -->
+                {% if daily_reviewed or weekly_reviewed %}
+                <div class="mt-12">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Recently Reviewed</h2>
+                    <div class="space-y-3">
+                        {% for submission in daily_reviewed %}
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-medium">{{ submission.lesson_plan.title }}</span>
+                                        <span class="text-xs px-2 py-1 rounded-full 
+                                            {% if submission.status == 'approved' %}bg-green-100 text-green-800
+                                            {% elif submission.status == 'needs_revision' %}bg-orange-100 text-orange-800
+                                            {% elif submission.status == 'rejected' %}bg-red-100 text-red-800{% endif %}">
+                                            {{ submission.get_status_display }}
+                                        </span>
+                                    </div>
+                                    <p class="text-sm text-gray-600">by {{ submission.submitted_by.get_full_name|default:submission.submitted_by.username }}</p>
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    Reviewed {{ submission.review_date|timesince }} ago
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        {% for draft in weekly_reviewed %}
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-medium">{{ draft.title }}</span>
+                                        <span class="weekly-badge text-xs">WEEKLY</span>
+                                        <span class="text-xs px-2 py-1 rounded-full 
+                                            {% if draft.submission_status == 'approved' %}bg-green-100 text-green-800
+                                            {% elif draft.submission_status == 'needs_revision' %}bg-orange-100 text-orange-800
+                                            {% elif draft.submission_status == 'rejected' %}bg-red-100 text-red-800{% endif %}">
+                                            {{ draft.get_submission_status_display_custom }}
+                                        </span>
+                                    </div>
+                                    <p class="text-sm text-gray-600">by {{ draft.created_by.get_full_name|default:draft.created_by.username }}</p>
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    Reviewed {{ draft.reviewed_at|timesince }} ago
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </main>
 
@@ -309,6 +482,30 @@
     </div>
 
     <script>
+        // Tab switching functionality
+        function showTab(tabName) {
+            const dailyTab = document.getElementById('tab-daily');
+            const weeklyTab = document.getElementById('tab-weekly');
+            const dailyPlans = document.getElementById('daily-plans');
+            const weeklyPlans = document.getElementById('weekly-plans');
+            
+            if (tabName === 'daily') {
+                dailyTab.classList.add('text-[#11468F]', 'border-b-2', 'border-[#11468F]', 'font-medium');
+                dailyTab.classList.remove('text-gray-600');
+                weeklyTab.classList.remove('text-[#11468F]', 'border-b-2', 'border-[#11468F]', 'font-medium');
+                weeklyTab.classList.add('text-gray-600');
+                dailyPlans.classList.remove('hidden');
+                weeklyPlans.classList.add('hidden');
+            } else {
+                weeklyTab.classList.add('text-[#11468F]', 'border-b-2', 'border-[#11468F]', 'font-medium');
+                weeklyTab.classList.remove('text-gray-600');
+                dailyTab.classList.remove('text-[#11468F]', 'border-b-2', 'border-[#11468F]', 'font-medium');
+                dailyTab.classList.add('text-gray-600');
+                weeklyPlans.classList.remove('hidden');
+                dailyPlans.classList.add('hidden');
+            }
+        }
+
         // Get DOM elements
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const sidebar = document.getElementById('sidebar');
