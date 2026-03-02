@@ -65,9 +65,8 @@
         }
 
         .title-image {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #11468F 0%, #9E5EFF 100%);
+            width: 100px;
+            height: 100px;
             border-radius: 10px;
             display: flex;
             align-items: center;
@@ -302,13 +301,10 @@
                 <!-- Title with image placeholder on the left -->
                 <div class="dll-title">
                     <div class="title-image">
-                        <i class="fas fa-image"></i>
+                        <img src="/static/img/deped_logo.png" alt="DepEd Seal" class="w-full h-full object-contain">
                     </div>
                     WEEKLY LESSON LOG
-                    <!-- School logo placeholder on the right side -->
-                    <div class="school-logo">
-                        <i class="fas fa-school"></i>
-                    </div>
+                    
                 </div>
 
                 <!-- School Header Table (4 columns) with School Logo placeholder on the right -->
@@ -318,6 +314,10 @@
                         <td style="width: 35%;">{{ user_school.school_name }}</td>
                         <th style="width: 20%;">Grade Level & Quarter</th>
                         <td style="width: 30%;">{{ draft.grade_level|upper }} / {{ draft.quarter|upper }}</td>
+                        <td class="one" colspan="2" rowspan="3">
+                            <img src="/media/school_logos/123456789123_1771002254.jpg" alt="Crimson West High" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentElement.classList.add('bg-gradient-to-r', 'from-[#11468F]', 'to-[#9E5EFF]'); this.style.display='none';">
+                        </td>
+
                     </tr>
                     <tr>
                         <th>Teacher</th>
@@ -498,7 +498,7 @@
                     </tr>
                     <tr>
                         <td>
-                            <strong>Name:</strong> {{ draft.teacher_signature_name|default:draft.teacher|default:draft.created_by.get_full_name }}<br>
+                            <strong>Name:</strong> {{ user.first_name }}{{ user.middle_name }} {{ user.last_name }} <br>
                             <strong>Date Prepared:</strong> {{ draft.date_prepared|default:"" }}<br>
                             <strong>Signature:</strong> _________________________
                         </td>
