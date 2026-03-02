@@ -89,7 +89,7 @@
             z-index: 10;
         }
         
-        /* Tab styles */
+        /* Tab styles - Updated with blue highlight for Weekly Plans */
         .tab-active {
             color: #11468F;
             border-bottom: 2px solid #11468F;
@@ -104,6 +104,13 @@
         .tab-inactive:hover {
             color: #374151;
             border-bottom-color: #d1d5db;
+        }
+
+        /* New style for weekly tab active state */
+        .tab-weekly-active {
+            color: #2563eb !important;
+            border-bottom: 2px solid #2563eb !important;
+            font-weight: 500;
         }
 
         /* Toast notification styles */
@@ -299,10 +306,10 @@
                     {% endif %}
                 </div>
 
-                <!-- Tabs -->
+                <!-- Tabs - Updated with blue highlight for Weekly Plans -->
                 <div class="flex border-b border-gray-200 mb-6">
-                    <a href="?type=daily" class="px-4 py-2 {% if active_tab == 'daily' %}tab-active{% else %}tab-inactive{% endif %}">Daily Plans</a>
-                    <a href="?type=weekly" class="px-4 py-2 {% if active_tab == 'weekly' %}tab-active{% else %}tab-inactive{% endif %}">Weekly Plans</a>
+                    <a href="{% url 'draft_list' %}" class="px-4 py-2 {% if active_tab == 'daily' %}tab-active{% else %}tab-inactive{% endif %}">Daily Plans</a>
+                    <a href="?type=weekly" class="px-4 py-2 {% if active_tab == 'weekly' %}tab-weekly-active text-blue-600{% else %}tab-inactive{% endif %}">Weekly Plans</a>
                 </div>
 
                 <!-- Weekly Plans Content -->
@@ -360,21 +367,22 @@
                         </div>
                         {% endif %}
 
-                        <!-- Weekly Badge -->
-                        <div class="absolute top-3 right-3 z-10">
+                        <!-- Weekly Badge - Moved to LEFT side -->
+                        <div class="absolute top-3 left-3 z-10">
                             <span class="weekly-badge">
                                 <i class="fas fa-calendar-week mr-1"></i>WEEKLY
                             </span>
                         </div>
-
-                        <!-- Header Background -->
-                        <div class="h-32 bg-gradient-to-r from-purple-100 to-blue-100 relative">
-                            <div class="absolute top-3 left-3">
-                                <button class="dropdown-toggle p-2 bg-white/80 rounded-full hover:bg-white transition-colors" data-draft-id="{{ draft.id }}">
-                                    <i class="fas fa-ellipsis-h text-gray-600"></i>
-                                </button>
-                            </div>
+                        
+                        <!-- Menu button - Moved to RIGHT side -->
+                        <div class="absolute top-3 right-3 z-10">
+                            <button class="dropdown-toggle p-2 bg-white/80 rounded-full hover:bg-white transition-colors" data-draft-id="{{ draft.id }}">
+                                <i class="fas fa-ellipsis-h text-gray-600"></i>
+                            </button>
                         </div>
+                        
+                        <!-- Header Background -->
+                        <div class="h-32 bg-gradient-to-r from-purple-100 to-blue-100 relative"></div>
                         
                         <div class="p-4">
                             <div class="flex items-center justify-between mb-2">
