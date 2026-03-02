@@ -2981,7 +2981,7 @@ def submit_lesson_plan(request, lesson_plan_id):
 
 @login_required
 def Dep_Pending(request):
-    """Department head's pending reviews page"""
+    """Department head's pending reviews page - shows both daily and weekly submissions"""
     user = request.user
     
     # Only department heads can access this page
@@ -2994,33 +2994,61 @@ def Dep_Pending(request):
         messages.error(request, "Your account is missing school or department information. Please contact administrator.")
         return redirect('dashboard')
     
-    # Get pending submissions for this department head (with validation)
-    pending_submissions = LessonPlanSubmission.objects.filter(
+    # Get daily pending submissions (from LessonPlanSubmission)
+    daily_pending_submissions = LessonPlanSubmission.objects.filter(
         submitted_to=user,
         status='submitted'
     ).select_related('lesson_plan', 'submitted_by').order_by('submission_date')
     
-    # Additional validation: filter only valid submissions (same school/department)
-    valid_submissions = []
-    for submission in pending_submissions:
-        # Double-check that the submission is valid
-        if (submission.submitted_by.school == user.school and 
-            submission.submitted_by.department == user.department):
-            valid_submissions.append(submission)
-        else:
-            # Log invalid submissions (shouldn't happen due to model validation)
-            print(f"INVALID SUBMISSION: {submission.id} - School/Department mismatch")
+    # Get weekly pending submissions (from WeeklyLessonPlan)
+    from lessonGenerator.models import WeeklyLessonPlan
+    weekly_pending_submissions = WeeklyLessonPlan.objects.filter(
+        submitted_to=user,
+        submission_status='submitted'
+    ).select_related('created_by').order_by('submitted_at')
     
     # Get reviewed submissions for history
-    reviewed_submissions = LessonPlanSubmission.objects.filter(
+    daily_reviewed = LessonPlanSubmission.objects.filter(
         submitted_to=user
     ).exclude(status='submitted').select_related('lesson_plan', 'submitted_by').order_by('-review_date')[:10]
     
+    weekly_reviewed = WeeklyLessonPlan.objects.filter(
+        submitted_to=user
+    ).exclude(submission_status='submitted').select_related('created_by').order_by('-reviewed_at')[:10]
+    
+    # Calculate counts
+    daily_pending_count = daily_pending_submissions.count()
+    weekly_pending_count = weekly_pending_submissions.count()
+    total_pending = daily_pending_count + weekly_pending_count
+    
+    # Calculate approved and revision counts for stats
+    approved_count = LessonPlanSubmission.objects.filter(
+        submitted_to=user, 
+        status='approved'
+    ).count() + WeeklyLessonPlan.objects.filter(
+        submitted_to=user, 
+        submission_status='approved'
+    ).count()
+    
+    revision_count = LessonPlanSubmission.objects.filter(
+        submitted_to=user, 
+        status='needs_revision'
+    ).count() + WeeklyLessonPlan.objects.filter(
+        submitted_to=user, 
+        submission_status='needs_revision'
+    ).count()
+    
     return render(request, 'Dep_Pending.html', {
         'user': user,
-        'pending_submissions': valid_submissions,
-        'reviewed_submissions': reviewed_submissions,
-        'pending_count': len(valid_submissions),
+        'daily_pending_submissions': daily_pending_submissions,  # Make sure this variable name matches
+        'daily_pending_count': daily_pending_count,
+        'weekly_pending_submissions': weekly_pending_submissions,
+        'weekly_pending_count': weekly_pending_count,
+        'total_pending': total_pending,
+        'approved_count': approved_count,
+        'revision_count': revision_count,
+        'daily_reviewed': daily_reviewed,
+        'weekly_reviewed': weekly_reviewed,
         'user_school': user.school,
         'user_department': user.department
     })
