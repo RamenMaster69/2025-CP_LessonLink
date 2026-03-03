@@ -267,9 +267,13 @@
             </a>
             <div class="flex items-center space-x-3">
                 <span class="status-badge status-{{ draft.status }}">{{ draft.get_status_display }}</span>
+                
+                <!-- FIXED: Print button only shows when approved -->
+                {% if draft.status == 'final' or latest_submission.status == 'approved' %}
                 <button onclick="window.print()" class="bg-white text-[#11468F] px-4 py-2 rounded-lg hover:bg-gray-100">
                     <i class="fas fa-print mr-2"></i>Print
                 </button>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -282,16 +286,36 @@
                     <i class="fas fa-arrow-left mr-2"></i>Back to Drafts
                 </a>
                 <div class="flex space-x-3">
+                    <!-- Only show Edit button if draft is not final and not submitted -->
+                    {% if draft.status != 'final' and draft.status != 'submitted' %}
                     <a href="{% url 'edit_weekly_draft' draft.id %}" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
                         <i class="fas fa-edit mr-2"></i>Edit
                     </a>
+                    {% endif %}
+                    
+                    <!-- Submit for review button - only show for drafts -->
                     {% if draft.status == 'draft' %}
                     <form method="post" action="{% url 'submit_weekly_plan' draft.id %}" class="inline">
                         {% csrf_token %}
-                        <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                        <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600" onclick="return confirm('Are you sure you want to submit this weekly lesson plan for review?');">
                             <i class="fas fa-paper-plane mr-2"></i>Submit for Review
                         </button>
                     </form>
+                    {% endif %}
+                    
+                    <!-- Show pending status if submitted -->
+                    {% if draft.status == 'submitted' %}
+                    <span class="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg flex items-center">
+                        <i class="fas fa-hourglass-half mr-2"></i>
+                        Pending Approval
+                    </span>
+                    {% endif %}
+                    
+                    <!-- Show approved status if final -->
+                    {% if draft.status == 'final' %}
+                    <span class="px-4 py-2 bg-green-100 text-green-800 rounded-lg">
+                        <i class="fas fa-check-circle mr-2"></i>Approved
+                    </span>
                     {% endif %}
                 </div>
             </div>

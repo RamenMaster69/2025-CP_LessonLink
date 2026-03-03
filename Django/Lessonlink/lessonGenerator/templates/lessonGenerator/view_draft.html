@@ -100,20 +100,6 @@
             margin: 0;
         }
 
-        /* School logo placeholder */
-        /* .school-logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #11468F 0%, #9E5EFF 100%);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 32px;
-            margin-left: auto;
-        } */
-
         /* Day cell for teaching date and time */
         .day-cell {
             text-align: center;
@@ -239,24 +225,43 @@
                 </div>
             </a>
             <div class="flex items-center space-x-3">
-                {% if draft.auto_approved %}
-                <span class="status-badge status-approved">
-                    <i class="fas fa-crown mr-2"></i>Auto-Approved
-                </span>
-                {% endif %}
+                <!-- FIXED: Status badges now reflect proper workflow - no auto-approval -->
                 {% if latest_submission %}
-                <span class="status-badge status-{{ latest_submission.status }}">
-                    <i class="fas fa-{% if latest_submission.status == 'approved' %}check{% elif latest_submission.status == 'rejected' %}times{% elif latest_submission.status == 'needs_revision' %}exclamation{% else %}clock{% endif %} mr-2"></i>
-                    {{ latest_submission.get_status_display }}
-                </span>
+                    {% if latest_submission.status == 'approved' %}
+                    <span class="status-badge status-approved">
+                        <i class="fas fa-check-circle mr-2"></i>Approved by Department Head
+                    </span>
+                    {% elif latest_submission.status == 'rejected' %}
+                    <span class="status-badge status-rejected">
+                        <i class="fas fa-times-circle mr-2"></i>Rejected
+                    </span>
+                    {% elif latest_submission.status == 'needs_revision' %}
+                    <span class="status-badge status-needs_revision">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Needs Revision
+                    </span>
+                    {% elif latest_submission.status == 'submitted' %}
+                    <span class="status-badge status-submitted">
+                        <i class="fas fa-clock mr-2"></i>Pending Department Head Approval
+                    </span>
+                    {% endif %}
                 {% else %}
-                <span class="status-badge status-draft">
-                    <i class="fas fa-edit mr-2"></i>Draft
-                </span>
+                    {% if draft.status == 'final' %}
+                    <span class="status-badge status-final">
+                        <i class="fas fa-check-double mr-2"></i>Final - Approved
+                    </span>
+                    {% else %}
+                    <span class="status-badge status-draft">
+                        <i class="fas fa-edit mr-2"></i>Draft - Not Submitted
+                    </span>
+                    {% endif %}
                 {% endif %}
+                
+                <!-- FIXED: Print button only shows when approved -->
+                {% if latest_submission and latest_submission.status == 'approved' or draft.status == 'final' %}
                 <button onclick="window.print()" class="bg-white text-[#11468F] px-4 py-2 rounded-lg hover:bg-gray-100">
                     <i class="fas fa-print mr-2"></i>Print
                 </button>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -277,10 +282,48 @@
                 </a>
                 {% endif %}
                 
+                <!-- FIXED: Action buttons based on workflow state - no auto-approval -->
                 <div class="flex space-x-3">
-                    <a href="{% url 'edit_draft' draft.id %}" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                        <i class="fas fa-edit mr-2"></i>Edit Draft
-                    </a>
+                    <!-- Edit button - only show if draft is editable (not submitted and not final) -->
+                    {% if not latest_submission or latest_submission.status == 'rejected' or latest_submission.status == 'needs_revision' %}
+                        {% if draft.status != 'final' %}
+                        <a href="{% url 'edit_draft' draft.id %}" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            <i class="fas fa-edit mr-2"></i>Edit Draft
+                        </a>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <!-- Submit for approval button - show for drafts or rejected/needs_revision -->
+                    {% if not latest_submission or latest_submission.status == 'rejected' or latest_submission.status == 'needs_revision' %}
+                        {% if draft.status != 'final' and draft.status != 'submitted' %}
+                        <form method="post" action="{% url 'submit_lesson_plan' draft.id %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600" onclick="return confirm('Are you sure you want to submit this lesson plan to the Department Head for approval?');">
+                                <i class="fas fa-paper-plane mr-2"></i>Submit to Department Head for Approval
+                            </button>
+                        </form>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <!-- View submission status - show if pending -->
+                    {% if latest_submission and latest_submission.status == 'submitted' %}
+                    <span class="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg flex items-center">
+                        <i class="fas fa-hourglass-half mr-2"></i>
+                        Awaiting Department Head Review
+                        {% if latest_submission.submitted_to %}
+                        <span class="ml-2 text-xs bg-yellow-200 px-2 py-1 rounded">
+                            {{ latest_submission.submitted_to.get_full_name }}
+                        </span>
+                        {% endif %}
+                    </span>
+                    {% endif %}
+                    
+                    <!-- Create final copy indicator -->
+                    {% if draft.status == 'final' %}
+                    <span class="px-4 py-2 bg-green-100 text-green-800 rounded-lg">
+                        <i class="fas fa-check-circle mr-2"></i>Final Version - Approved by Department Head
+                    </span>
+                    {% endif %}
                 </div>
             </div>
 
@@ -292,10 +335,6 @@
                         <img src="/static/img/deped_logo.png" alt="DepEd Seal" class="w-full h-full object-contain">
                     </div>
                     DETAILED DAILY LESSON PLAN
-                    <!-- School logo placeholder -->
-                    <!-- <div class="school-logo">
-                        <i class="fas fa-school"></i>
-                    </div> -->
                 </div>
 
                 <!-- Basic Information Table -->
@@ -320,6 +359,17 @@
                         <td>{{ draft.population|default:"0" }} students</td>
                     </tr>
                     {% endif %}
+                    <!-- Added intelligence type display -->
+                    {% if draft.intelligence_type %}
+                    <tr>
+                        <th>Intelligence Focus</th>
+                        <td colspan="3">
+                            <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm">
+                                {{ draft.get_intelligence_type_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endif %}
                 </table>
 
                 <!-- Learning Objectives -->
@@ -329,6 +379,37 @@
                     <tr>
                         <td class="objectives-note">{{ draft.learning_objectives|striptags|linebreaks }}</td>
                     </tr>
+                </table>
+                {% endif %}
+
+                <!-- MELC Information (if available) -->
+                {% if draft.melc_code or draft.content_standard or draft.performance_standard %}
+                <div class="section-header">MELC ALIGNMENT</div>
+                <table>
+                    {% if draft.melc_code %}
+                    <tr>
+                        <th style="width: 20%;">MELC Code</th>
+                        <td>{{ draft.melc_code }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if draft.content_standard %}
+                    <tr>
+                        <th>Content Standard</th>
+                        <td>{{ draft.content_standard }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if draft.performance_standard %}
+                    <tr>
+                        <th>Performance Standard</th>
+                        <td>{{ draft.performance_standard }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if draft.learning_competency %}
+                    <tr>
+                        <th>Learning Competency</th>
+                        <td>{{ draft.learning_competency }}</td>
+                    </tr>
+                    {% endif %}
                 </table>
                 {% endif %}
 
@@ -349,6 +430,25 @@
                     <tr>
                         <td class="objectives-note">{{ draft.materials_needed|striptags|linebreaks }}</td>
                     </tr>
+                </table>
+                {% endif %}
+
+                <!-- Integration (if available) -->
+                {% if draft.values_integration or draft.cross_curricular %}
+                <div class="section-header">INTEGRATION</div>
+                <table>
+                    {% if draft.values_integration %}
+                    <tr>
+                        <th style="width: 20%;">Values Education</th>
+                        <td>{{ draft.values_integration }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if draft.cross_curricular %}
+                    <tr>
+                        <th>Cross-Curricular</th>
+                        <td>{{ draft.cross_curricular }}</td>
+                    </tr>
+                    {% endif %}
                 </table>
                 {% endif %}
 
@@ -396,23 +496,51 @@
                     {% endif %}
                 </table>
 
-                <!-- Signatures Section -->
-                <div class="section-header">SIGNATURES</div>
+                <!-- Signatures Section - Updated to show approval flow -->
+                <div class="section-header">SIGNATURES & APPROVAL</div>
                 <table class="signatures-table">
                     <tr>
-                        <th style="width: 50%;">Teacher</th>
-                        <th style="width: 50%;">Administrative Approval</th>
+                        <th style="width: 33%;">Prepared by:</th>
+                        <th style="width: 33%;">Reviewed by:</th>
+                        <th style="width: 34%;">Approved by:</th>
                     </tr>
                     <tr>
                         <td>
-                            <strong>Name:</strong> {{ request.user.get_full_name|default:request.user.username }}<br>
-                            <strong>Date Prepared:</strong> {{ draft.created_at|date:"F d, Y" }}<br>
-                            <strong>Signature:</strong> _________________________
+                            <strong>{{ request.user.get_full_name|default:request.user.username }}</strong><br>
+                            <span class="text-sm">Teacher</span><br>
+                            <span class="text-xs">Date: {{ draft.created_at|date:"F d, Y" }}</span>
                         </td>
                         <td>
-                            <strong>Name:</strong> _________________________________<br>
-                            <strong>Date:</strong> _______________________________<br>
-                            <strong>Signature:</strong> _________________________
+                            {% if latest_submission and latest_submission.submitted_to %}
+                                <strong>{{ latest_submission.submitted_to.get_full_name }}</strong><br>
+                                <span class="text-sm">Department Head</span><br>
+                                {% if latest_submission.status == 'submitted' %}
+                                <span class="text-xs text-yellow-600">Pending Review</span>
+                                {% elif latest_submission.reviewed_at %}
+                                <span class="text-xs">Date Reviewed: {{ latest_submission.reviewed_at|date:"F d, Y" }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-gray-500 italic">Not yet submitted for review</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if latest_submission and latest_submission.status == 'approved' or draft.status == 'final' %}
+                                <strong>
+                                    {% if latest_submission and latest_submission.reviewed_by %}
+                                        {{ latest_submission.reviewed_by.get_full_name }}
+                                    {% else %}
+                                        Department Head
+                                    {% endif %}
+                                </strong><br>
+                                <span class="text-sm">Department Head</span><br>
+                                <span class="text-xs">
+                                    Date Approved: {% if latest_submission %}{{ latest_submission.reviewed_at|date:"F d, Y" }}{% endif %}
+                                </span>
+                            {% elif latest_submission and latest_submission.status == 'submitted' %}
+                                <span class="text-gray-500 italic">Awaiting approval</span>
+                            {% else %}
+                                <span class="text-gray-500 italic">Pending submission & approval</span>
+                            {% endif %}
                         </td>
                     </tr>
                 </table>
@@ -423,21 +551,128 @@
                     <span><i class="fas fa-calendar-alt mr-1"></i> {{ draft.created_at|date:"F d, Y" }}</span>
                 </div>
 
-                <!-- Submission Status (Hidden in Print) -->
+                <!-- Submission Status (Hidden in Print) - Enhanced with department head info -->
                 {% if latest_submission %}
                 <div style="margin-top: 20px; padding: 15px; border: 1px solid #a0b3c6; background: #f4f9ff;" class="no-print">
-                    <h4 style="margin-bottom: 10px; font-weight: 700; color: #0a2a44;">Submission Status</h4>
-                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                        <span>Status: <span class="status-badge status-{{ latest_submission.status }}">{{ latest_submission.get_status_display }}</span></span>
-                        <span>Date: {{ latest_submission.submission_date|date:"F d, Y" }}</span>
-                        {% if latest_submission.reviewed_at %}<span>Reviewed: {{ latest_submission.reviewed_at|date:"F d, Y" }}</span>{% endif %}
+                    <h4 style="margin-bottom: 10px; font-weight: 700; color: #0a2a44;">Approval Workflow Status</h4>
+                    
+                    <!-- Submission Timeline -->
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 15px;">
+                        <span>Status: 
+                            <span class="status-badge status-{{ latest_submission.status }}">
+                                {% if latest_submission.status == 'submitted' %}
+                                    <i class="fas fa-clock mr-1"></i>Pending Department Head Review
+                                {% elif latest_submission.status == 'approved' %}
+                                    <i class="fas fa-check-circle mr-1"></i>Approved by Department Head
+                                {% elif latest_submission.status == 'needs_revision' %}
+                                    <i class="fas fa-edit mr-1"></i>Needs Revision
+                                {% elif latest_submission.status == 'rejected' %}
+                                    <i class="fas fa-times-circle mr-1"></i>Rejected
+                                {% endif %}
+                                {{ latest_submission.get_status_display }}
+                            </span>
+                        </span>
+                        <span><i class="fas fa-calendar mr-1"></i> Submitted: {{ latest_submission.submission_date|date:"F d, Y g:i A" }}</span>
+                        {% if latest_submission.reviewed_at %}
+                        <span><i class="fas fa-check-circle mr-1"></i> Reviewed: {{ latest_submission.reviewed_at|date:"F d, Y g:i A" }}</span>
+                        {% endif %}
                     </div>
-                    {% if latest_submission.review_notes %}
-                    <div style="margin-top: 12px; background: white; padding: 12px; border: 1px solid #ccc;">
-                        <strong>Administrative Feedback:</strong><br>
-                        {{ latest_submission.review_notes|linebreaks }}
+                    
+                    <!-- Submitted To information -->
+                    {% if latest_submission.submitted_to %}
+                    <div style="margin-top: 8px; padding: 10px; background: white; border-left: 4px solid #11468F; border-radius: 4px;">
+                        <div style="display: flex; align-items: center;">
+                            <div style="width: 40px; height: 40px; background: #11468F; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                <i class="fas fa-user-tie text-white"></i>
+                            </div>
+                            <div>
+                                <strong><i class="fas fa-paper-plane mr-1"></i> Submitted to:</strong> 
+                                {{ latest_submission.submitted_to.get_full_name }} (Department Head)<br>
+                                <small class="text-gray-500">The department head will review and provide feedback</small>
+                            </div>
+                        </div>
                     </div>
                     {% endif %}
+                    
+                    <!-- Review Notes/Feedback from Department Head -->
+                    {% if latest_submission.review_notes %}
+                    <div style="margin-top: 12px; background: white; padding: 15px; border: 1px solid #ccc; border-radius: 4px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                            <div style="width: 32px; height: 32px; background: #9E5EFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                                <i class="fas fa-comment text-white text-sm"></i>
+                            </div>
+                            <strong>Department Head Feedback:</strong>
+                            {% if latest_submission.reviewed_by %}
+                            <span class="ml-2 text-sm text-gray-600">- {{ latest_submission.reviewed_by.get_full_name }}</span>
+                            {% endif %}
+                        </div>
+                        <div style="padding-left: 42px;">
+                            {{ latest_submission.review_notes|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Action buttons based on feedback -->
+                    {% if latest_submission.status == 'needs_revision' or latest_submission.status == 'rejected' %}
+                    <div style="margin-top: 15px; text-align: right; padding: 10px; background: #fff3e0; border-radius: 4px;">
+                        <p class="text-sm text-gray-700 mb-2">
+                            <i class="fas fa-info-circle text-orange-500 mr-1"></i>
+                            This lesson plan needs revisions based on department head feedback.
+                        </p>
+                        <a href="{% url 'edit_draft' draft.id %}" class="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            <i class="fas fa-edit mr-2"></i>Revise and Resubmit
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <!-- Workflow Information (for drafts not yet submitted) -->
+                {% if not latest_submission and draft.status != 'final' %}
+                <div style="margin-top: 20px; padding: 15px; border: 1px dashed #11468F; background: #f0f5ff;" class="no-print">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-800">This lesson plan is currently a draft.</p>
+                            <p class="text-sm text-gray-600">Follow these steps to get it approved:</p>
+                            <ol class="text-sm text-gray-600 list-decimal ml-5 mt-1">
+                                <li>Review and edit the lesson plan as needed</li>
+                                <li>Click "Submit to Department Head for Approval" below</li>
+                                <li>Wait for department head to review and provide feedback</li>
+                                <li>Once approved, it will become a final lesson plan</li>
+                            </ol>
+                        </div>
+                        <div class="ml-auto">
+                            <form method="post" action="{% url 'submit_lesson_plan' draft.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium shadow-lg" onclick="return confirm('Are you sure you want to submit this lesson plan to the Department Head for approval? You will not be able to edit it until reviewed.');">
+                                    <i class="fas fa-paper-plane mr-2"></i>Submit to Department Head for Approval
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Approved Message -->
+                {% if latest_submission and latest_submission.status == 'approved' or draft.status == 'final' %}
+                <div style="margin-top: 20px; padding: 15px; border: 1px solid #065f46; background: #d1fae5;" class="no-print">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-green-200 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-check-circle text-green-700 text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-green-800 text-lg">✓ Lesson Plan Approved</p>
+                            <p class="text-sm text-green-700">
+                                This lesson plan has been reviewed and approved by the Department Head.
+                                {% if latest_submission and latest_submission.reviewed_by %}
+                                <br>Approved by: {{ latest_submission.reviewed_by.get_full_name }} on {{ latest_submission.reviewed_at|date:"F d, Y" }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
                 </div>
                 {% endif %}
             </div>
@@ -450,10 +685,10 @@
             {% for message in messages %}
             setTimeout(() => {
                 const msg = document.createElement('div');
-                msg.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white ${message.tags === 'success' ? 'bg-green-500' : 'bg-red-500'} z-50`;
+                msg.className = `fixed top-20 right-4 px-6 py-3 rounded-lg shadow-lg text-white ${message.tags === 'success' ? 'bg-green-500' : 'bg-red-500'} z-50 animate-fade-in`;
                 msg.innerHTML = `<i class="fas fa-${message.tags === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>${message}`;
                 document.body.appendChild(msg);
-                setTimeout(() => msg.remove(), 3000);
+                setTimeout(() => msg.remove(), 5000);
             }, 100);
             {% endfor %}
         {% endif %}
@@ -480,6 +715,19 @@
         document.addEventListener('DOMContentLoaded', function() {
             cleanTextFormatting();
         });
+        
+        // Add animation style
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fade-in {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fade-in {
+                animation: fade-in 0.3s ease-out;
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>

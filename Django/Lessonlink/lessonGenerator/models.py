@@ -7,9 +7,11 @@ from django.utils import timezone
 
 class LessonPlan(models.Model):
     DRAFT = 'draft'
+    SUBMITTED = 'submitted'  
     FINAL = 'final'
     STATUS_CHOICES = [
         (DRAFT, 'Draft'),
+        (SUBMITTED, 'Submitted'),
         (FINAL, 'Final'),
     ]
 

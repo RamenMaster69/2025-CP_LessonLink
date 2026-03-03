@@ -2880,8 +2880,8 @@ def submit_lesson_plan(request, lesson_plan_id):
                     status='submitted'
                 )
                 
-                # Update lesson plan status to final when submitted
-                lesson_plan.status = LessonPlan.FINAL
+                # FIXED: Set status to 'submitted' not 'final' - waiting for approval
+                lesson_plan.status = LessonPlan.SUBMITTED  # Changed from FINAL to SUBMITTED
                 lesson_plan.save()
                 
                 # Create submission notification for supervising teacher
@@ -2941,8 +2941,8 @@ def submit_lesson_plan(request, lesson_plan_id):
                     status='submitted'
                 )
                 
-                # Update lesson plan status to final when submitted
-                lesson_plan.status = LessonPlan.FINAL
+                # FIXED: Set status to 'submitted' not 'final' - waiting for approval
+                lesson_plan.status = LessonPlan.SUBMITTED  # Changed from FINAL to SUBMITTED
                 lesson_plan.save()
                 
                 # Create submission notification for department head
@@ -3083,6 +3083,7 @@ def review_lesson_plan(request, submission_id):
             
             if action == 'approve':
                 submission.status = 'approved'
+                # FIXED: Set to FINAL only when approved
                 submission.lesson_plan.status = LessonPlan.FINAL
                 
                 # Create approval notification
@@ -3100,7 +3101,6 @@ def review_lesson_plan(request, submission_id):
                 
                 # Change lesson plan back to draft so it can be revised
                 submission.lesson_plan.status = LessonPlan.DRAFT
-                submission.lesson_plan.save()
                 
                 # Create rejection notification
                 try:
@@ -3117,7 +3117,6 @@ def review_lesson_plan(request, submission_id):
                 
                 # Change lesson plan back to draft so it can be revised
                 submission.lesson_plan.status = LessonPlan.DRAFT
-                submission.lesson_plan.save()
                 
                 # Create needs revision notification
                 try:
@@ -3137,8 +3136,8 @@ def review_lesson_plan(request, submission_id):
             submission.review_date = timezone.now()
             submission.save()
             
-            if submission.lesson_plan.status == LessonPlan.FINAL:
-                submission.lesson_plan.save()
+            # FIXED: Save the lesson plan object
+            submission.lesson_plan.save()
             
             # Log the review action
             logger.info(f"{request.user.role} {request.user.email} {action} lesson plan {submission.lesson_plan.id} from {submission.submitted_by.email}")
