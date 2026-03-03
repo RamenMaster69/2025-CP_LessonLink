@@ -199,11 +199,7 @@
             <!-- Right side actions -->
             <div class="flex items-center space-x-2 md:space-x-4">
                 <!-- Search -->
-                <div class="relative hidden md:block">
-                    <input type="text" placeholder="Search faculty..."
-                        class="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
-                    <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                </div>
+                
 
                 <!-- Mobile search button -->
                 <button class="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
@@ -443,7 +439,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pending Reviews</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider no-print">Actions</th>
+                                
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200" id="faculty-table-body">
@@ -505,19 +501,7 @@
                                 </td>
 
                                 <!-- Actions -->
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium no-print">
-                                    <div class="flex items-center space-x-2">
-                                        <button class="text-blue-600 hover:text-blue-800 transition-colors" title="View Profile">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="text-green-600 hover:text-green-800 transition-colors" title="Send Message">
-                                            <i class="fas fa-envelope"></i>
-                                        </button>
-                                        <button class="text-gray-400 hover:text-gray-600 transition-colors" title="More Options">
-                                            <i class="fas fa-ellipsis-v"></i>
-                                        </button>
-                                    </div>
-                                </td>
+                                
                             </tr>
                             {% endwith %}
                             {% empty %}

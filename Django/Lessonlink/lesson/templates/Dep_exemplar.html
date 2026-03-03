@@ -34,6 +34,21 @@
             background-color: #f0f5ff;
             border-color: #11468F;
         }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-approved {
+            background: linear-gradient(135deg, #d1fae5 0%, #34d399 100%);
+            color: #065f46;
+        }
+
+        .status-rejected {
+            background: linear-gradient(135deg, #fee2e2 0%, #f87171 100%);
+            color: #991b1b;
+        }
     </style>
 </head>
 
@@ -41,6 +56,7 @@
     <!-- Header -->
     <header class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-40">
         <div class="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
+            <!-- Mobile menu button -->
             <button id="mobile-menu-btn" class="md:hidden p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
                 <i class="fas fa-bars text-lg"></i>
             </button>
@@ -70,37 +86,117 @@
                 </div>
             </div>
 
+            <!-- Right side actions -->
             <div class="flex items-center space-x-2 md:space-x-4">
+                <!-- Search -->
+                
+
+                <!-- Mobile search button -->
                 <button class="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                     <i class="fas fa-search text-lg"></i>
                 </button>
 
+                <!-- Notifications -->
                 <div class="relative">
                     <button id="notification-btn" class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                         <i class="fas fa-bell text-lg"></i>
-                        <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                        <span id="notification-badge" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">{{ pending_reviews_count|default:0 }}</span>
                     </button>
+
+                    <!-- Notifications Dropdown -->
+                    <div id="notification-dropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
+                        <div class="p-4 border-b border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-semibold text-gray-900">Notifications</h3>
+                                <button class="text-purple-600 text-sm hover:text-purple-700" onclick="markAllNotificationsAsRead()">
+                                    Mark all read
+                                </button>
+                            </div>
+                        </div>
+                        <div class="max-h-96 overflow-y-auto">
+                            <!-- Notifications will be loaded here dynamically -->
+                        </div>
+                        <div class="p-4 border-t border-gray-100">
+                            <button class="w-full text-center text-purple-600 text-sm hover:text-purple-700 font-medium">
+                                View all notifications
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Profile Button and Dropdown -->
                 <div class="relative">
-                    <button id="profile-btn" class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
-                        <i class="fas fa-user text-gray-500"></i>
+                    <button id="profile-btn"
+                        class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                        {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" 
+                            alt="Profile Picture" 
+                            class="w-full h-full object-cover"
+                            id="header-profile-img">
+                        {% else %}
+                        <i class="fas fa-user text-gray-500" id="header-profile-icon"></i>
+                        {% endif %}
                     </button>
+
+                    <!-- Profile Dropdown -->
+                    <div id="profile-dropdown" class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
+                        <div class="p-4 border-b border-gray-100">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                                    {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" 
+                                        alt="Profile Picture" 
+                                        class="w-full h-full object-cover"
+                                        id="dropdown-profile-img">
+                                    {% else %}
+                                    <i class="fas fa-user-tie text-white"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900">{{ user.full_name|default:"Viktor Greg" }}</p>
+                                    <p class="text-sm text-gray-500">{{ user.role|default:"Department Head" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="py-2">
+                            <a href="{% url 'profile' %}"
+                                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-user w-4"></i>
+                                <span>My Profile</span>
+                            </a>
+                            <a href="#"
+                                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-cog w-4"></i>
+                                <span>Settings</span>
+                            </a>
+                            <hr class="my-2">
+                            <a href="{% url 'logout' %}"
+                            class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
+                            <i class="fas fa-sign-out-alt w-4"></i>
+                            <span>Sign Out</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </header>
 
+    <!-- Main Layout -->
     <div class="flex pt-16">
         <!-- Sidebar -->
-        <aside id="sidebar" class="w-64 bg-white shadow-lg h-screen fixed md:static -translate-x-full md:translate-x-0 sidebar-transition z-30">
+        <aside id="sidebar" class="w-64 bg-white shadow-lg h-screen fixed md:static -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
             <nav class="p-4 space-y-2">
-                <a href="#"><button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] shadow-md">
-                    <i class="fas fa-plus text-lg"></i>
-                    <span class="font-medium">Create Lesson</span>
-                </button></a>
+                <!-- Quick Actions Button -->
+                <a href="{% url 'lesson_ai' %}">
+                    <button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] shadow-md">
+                        <i class="fas fa-plus text-lg"></i>
+                        <span class="font-medium">Create Lesson</span>
+                    </button>
+                </a>
 
-                <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                <!-- Navigation Items -->
+                <a href="{% url 'Dep_Dash' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Dashboard</span>
                 </a>
@@ -127,12 +223,15 @@
             </nav>
         </aside>
 
+        <!-- Overlay for mobile -->
+        <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+
         <!-- Main Content -->
         <main class="flex-1 p-4 md:p-8">
             <!-- Welcome Banner -->
             <div class="bg-gradient-to-r from-[#11468F] via-[#5a4ab5] to-[#9E5EFF] rounded-xl p-8 shadow-lg mb-8">
                 <div class="text-white">
-                    <h2 class="text-3xl font-bold mb-2">Welcome back, Viktor Greg!</h2>
+                    <h2 class="text-3xl font-bold mb-2">Welcome back, {{ user.first_name|default:"Viktor Greg" }}!</h2>
                     <p class="text-white/90 text-lg mb-6">Upload your exemplar documents to get started.</p>
                     <label for="file-upload" class="inline-block bg-white text-[#11468F] px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors shadow-md cursor-pointer">
                         <i class="fas fa-upload mr-2"></i>Add Exemplar
@@ -236,6 +335,7 @@
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+        // DOM Elements
         const fileInput = document.getElementById('file-upload');
         const uploadZone = document.getElementById('upload-zone');
         const emptyState = document.getElementById('empty-state');
@@ -250,13 +350,95 @@
         const closePreview = document.getElementById('close-preview');
         const copyText = document.getElementById('copy-text');
         const downloadText = document.getElementById('download-text');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const profileBtn = document.getElementById('profile-btn');
+        const profileDropdown = document.getElementById('profile-dropdown');
+        const notificationBtn = document.getElementById('notification-btn');
+        const notificationDropdown = document.getElementById('notification-dropdown');
+        const notificationBadge = document.getElementById('notification-badge');
 
         let exemplars = [];
         let currentExemplar = null;
 
-        // Initialize - load exemplars from backend
+        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadExemplars();
+            loadNotifications();
+            
+            // Reload notifications every 30 seconds
+            setInterval(loadNotifications, 30000);
+        });
+
+        // Mobile menu functionality
+        function toggleMobileMenu() {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+            document.body.classList.toggle('overflow-hidden');
+        }
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            });
+        }
+
+        // Profile dropdown functionality
+        if (profileBtn && profileDropdown) {
+            profileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('hidden');
+                if (!profileDropdown.classList.contains('hidden')) {
+                    // Close notifications dropdown if open
+                    if (notificationDropdown) {
+                        notificationDropdown.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        // Notification dropdown functionality
+        if (notificationBtn && notificationDropdown) {
+            notificationBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notificationDropdown.classList.toggle('hidden');
+                if (!notificationDropdown.classList.contains('hidden')) {
+                    // Close profile dropdown if open
+                    if (profileDropdown) {
+                        profileDropdown.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (profileBtn && !profileBtn.contains(e.target) && profileDropdown && !profileDropdown.contains(e.target)) {
+                profileDropdown.classList.add('hidden');
+            }
+            if (notificationBtn && !notificationBtn.contains(e.target) && notificationDropdown && !notificationDropdown.contains(e.target)) {
+                notificationDropdown.classList.add('hidden');
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
         });
 
         // Load exemplars from backend
@@ -336,14 +518,14 @@
                 if (data.success) {
                     // Reload exemplars to get the updated list
                     await loadExemplars();
-                    alert('Exemplar uploaded successfully!');
+                    showToast('Exemplar uploaded successfully!', 'success');
                 } else {
-                    alert('Error uploading file: ' + data.message);
+                    showToast('Error uploading file: ' + data.message, 'error');
                 }
 
             } catch (error) {
                 console.error('Error uploading file:', error);
-                alert('Error uploading file. Please try again.');
+                showToast('Error uploading file. Please try again.', 'error');
             } finally {
                 loading.classList.add('hidden');
                 fileInput.value = '';
@@ -382,7 +564,7 @@
                                 </button>
                             </div>
                         </div>
-                        <h4 class="font-semibold text-gray-900 mb-1 truncate">${exemplar.name}</h4>
+                        <h4 class="font-semibold text-gray-900 mb-1 truncate">${escapeHtml(exemplar.name)}</h4>
                         <p class="text-sm text-gray-500">${exemplar.file_size_display}</p>
                         <p class="text-xs text-gray-400 mt-1">${exemplar.upload_date_display}</p>
                     </div>
@@ -406,11 +588,11 @@
                     displayText(data.text);
                     preview.classList.remove('hidden');
                 } else {
-                    alert('Error loading exemplar content: ' + data.message);
+                    showToast('Error loading exemplar content: ' + data.message, 'error');
                 }
             } catch (error) {
                 console.error('Error loading exemplar text:', error);
-                alert('Error loading exemplar content.');
+                showToast('Error loading exemplar content.', 'error');
             }
         };
 
@@ -431,13 +613,13 @@
                         // Remove from local array and update UI
                         exemplars = exemplars.filter(e => e.id !== id);
                         updateUI();
-                        alert(data.message);
+                        showToast(data.message, 'success');
                     } else {
-                        alert('Error deleting exemplar: ' + data.message);
+                        showToast('Error deleting exemplar: ' + data.message, 'error');
                     }
                 } catch (error) {
                     console.error('Error deleting exemplar:', error);
-                    alert('Error deleting exemplar.');
+                    showToast('Error deleting exemplar.', 'error');
                 }
             }
         };
@@ -495,6 +677,50 @@
             URL.revokeObjectURL(url);
         });
 
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `fixed top-20 right-6 z-50 max-w-sm bg-white border rounded-lg shadow-lg p-4 transform translate-x-full transition-transform duration-300 ${
+                type === 'success' ? 'border-green-200' : 
+                type === 'error' ? 'border-red-200' : 'border-blue-200'
+            }`;
+            
+            const icon = type === 'success' ? 'fa-check' : 
+                       type === 'error' ? 'fa-times' : 'fa-info';
+            const iconColor = type === 'success' ? 'text-green-600' : 
+                            type === 'error' ? 'text-red-600' : 'text-blue-600';
+            const bgColor = type === 'success' ? 'bg-green-100' : 
+                          type === 'error' ? 'bg-red-100' : 'bg-blue-100';
+            
+            toast.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 ${bgColor} rounded-full flex items-center justify-center">
+                        <i class="fas ${icon} ${iconColor}"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900">${message}</p>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Animate out and remove
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (document.body.contains(toast)) {
+                        document.body.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
         // CSRF token helper function
         function getCSRFToken() {
             const name = 'csrftoken';
@@ -512,12 +738,248 @@
             return cookieValue;
         }
 
-        // Mobile menu
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const sidebar = document.getElementById('sidebar');
+        // Notification functions
+        function loadNotifications() {
+            fetch('/notifications/notifications/')
+                .then(response => response.json())
+                .then(data => {
+                    updateNotificationBadge(data.unread_count);
+                    updateNotificationDropdown(data.notifications);
+                })
+                .catch(error => {
+                    console.error('Error loading notifications:', error);
+                });
+        }
 
-        mobileMenuBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('-translate-x-full');
+        function updateNotificationBadge(unreadCount) {
+            if (notificationBadge) {
+                if (unreadCount > 0) {
+                    notificationBadge.textContent = unreadCount;
+                    notificationBadge.classList.remove('hidden');
+                } else {
+                    notificationBadge.classList.add('hidden');
+                }
+            }
+        }
+
+        function updateNotificationDropdown(notifications) {
+            if (!notificationDropdown) return;
+
+            const notificationsContainer = notificationDropdown.querySelector('.max-h-96');
+            
+            if (notifications.length === 0) {
+                notificationsContainer.innerHTML = `
+                    <div class="p-4 text-center text-gray-500">
+                        <i class="fas fa-bell-slash text-2xl mb-2"></i>
+                        <p>No notifications</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let notificationsHTML = '';
+            notifications.forEach(notification => {
+                const timeAgo = getTimeAgo(notification.created_at);
+                const readClass = notification.is_read ? '' : 'bg-blue-50 border-l-4 border-l-blue-500';
+                
+                notificationsHTML += `
+                    <div class="p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer ${readClass} notification-item" 
+                        data-notification-id="${notification.id}" 
+                        data-type="${notification.type}"
+                        data-lesson-plan-id="${notification.lesson_plan_id || ''}"
+                        data-submission-id="${notification.submission_id || ''}">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 ${getNotificationColor(notification.type)} rounded-full mt-2 flex-shrink-0"></div>
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-900 font-medium">${notification.title}</p>
+                                <p class="text-xs text-gray-500 mt-1">${notification.message}</p>
+                                <p class="text-xs text-gray-400 mt-1">${timeAgo}</p>
+                            </div>
+                            ${!notification.is_read ? '<div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>' : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            notificationsContainer.innerHTML = notificationsHTML;
+
+            // Add click handlers
+            document.querySelectorAll('.notification-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const notificationId = this.getAttribute('data-notification-id');
+                    const type = this.getAttribute('data-type');
+                    const lessonPlanId = this.getAttribute('data-lesson-plan-id');
+                    const submissionId = this.getAttribute('data-submission-id');
+                    
+                    // Mark as read
+                    markNotificationAsRead(notificationId);
+                    
+                    // Handle navigation based on notification type
+                    handleNotificationClick(type, lessonPlanId, submissionId);
+                });
+            });
+        }
+
+        function getNotificationColor(type) {
+            const colors = {
+                'draft_approved': 'bg-green-500',
+                'draft_rejected': 'bg-red-500',
+                'task_due_soon': 'bg-yellow-500',
+                'upcoming_schedule': 'bg-blue-500',
+                'lesson_submitted': 'bg-purple-500',
+                'general': 'bg-gray-500'
+            };
+            return colors[type] || 'bg-gray-500';
+        }
+
+        function getTimeAgo(createdAt) {
+            // Simple time ago calculation - you can enhance this with a library
+            return createdAt;
+        }
+
+        function markNotificationAsRead(notificationId) {
+            fetch(`/notifications/notifications/${notificationId}/read/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update UI
+                    const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
+                    if (notificationItem) {
+                        notificationItem.classList.remove('bg-blue-50', 'border-l-4', 'border-l-blue-500');
+                        const unreadDot = notificationItem.querySelector('.bg-blue-500');
+                        if (unreadDot) {
+                            unreadDot.remove();
+                        }
+                    }
+                    // Reload notification count
+                    loadNotifications();
+                }
+            })
+            .catch(error => {
+                console.error('Error marking notification as read:', error);
+            });
+        }
+
+        function markAllNotificationsAsRead() {
+            fetch('/notifications/notifications/mark-all-read/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadNotifications();
+                }
+            })
+            .catch(error => {
+                console.error('Error marking all notifications as read:', error);
+            });
+        }
+
+        function handleNotificationClick(type, lessonPlanId, submissionId) {
+            // Close notification dropdown
+            if (notificationDropdown) {
+                notificationDropdown.classList.add('hidden');
+            }
+
+            // Navigate based on notification type
+            switch(type) {
+                case 'draft_approved':
+                case 'draft_rejected':
+                case 'lesson_submitted':
+                    if (submissionId) {
+                        window.location.href = `/lesson-plan-detail/${submissionId}/`;
+                    } else if (lessonPlanId) {
+                        window.location.href = `/drafts/${lessonPlanId}/view/`;
+                    }
+                    break;
+                case 'task_due_soon':
+                    window.location.href = '/task/';
+                    break;
+                case 'upcoming_schedule':
+                    window.location.href = '/schedule/';
+                    break;
+                default:
+                    // Do nothing for general notifications
+                    break;
+            }
+        }
+
+        // Function to update header profile images when profile picture changes
+        function updateHeaderProfileImages(imageUrl) {
+            // Update header button image
+            const headerProfileImg = document.getElementById('header-profile-img');
+            const headerProfileIcon = document.getElementById('header-profile-icon');
+            const headerProfileBtn = document.getElementById('profile-btn');
+            
+            if (headerProfileImg) {
+                headerProfileImg.src = imageUrl;
+            } else if (headerProfileIcon) {
+                // Replace icon with image
+                headerProfileIcon.remove();
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.alt = 'Profile Picture';
+                img.className = 'w-full h-full object-cover';
+                img.id = 'header-profile-img';
+                headerProfileBtn.appendChild(img);
+            } else {
+                // Create new image
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.alt = 'Profile Picture';
+                img.className = 'w-full h-full object-cover';
+                img.id = 'header-profile-img';
+                headerProfileBtn.innerHTML = '';
+                headerProfileBtn.appendChild(img);
+            }
+            
+            // Update dropdown image
+            const dropdownProfileImg = document.getElementById('dropdown-profile-img');
+            const dropdownContainer = document.querySelector('#profile-dropdown .w-12.h-12.rounded-full');
+            
+            if (dropdownProfileImg) {
+                dropdownProfileImg.src = imageUrl;
+            } else if (dropdownContainer) {
+                // Replace icon with image in dropdown
+                dropdownContainer.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.alt = 'Profile Picture';
+                img.className = 'w-full h-full object-cover';
+                img.id = 'dropdown-profile-img';
+                dropdownContainer.appendChild(img);
+            }
+        }
+
+        // Listen for profile picture updates from other pages
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if there's a stored profile picture update
+            const recentProfileUpdate = localStorage.getItem('profilePictureUpdated');
+            if (recentProfileUpdate) {
+                const updateData = JSON.parse(recentProfileUpdate);
+                if (updateData.timestamp && Date.now() - updateData.timestamp < 5000) { // 5 seconds
+                    updateHeaderProfileImages(updateData.imageUrl);
+                }
+                localStorage.removeItem('profilePictureUpdated');
+            }
+            
+            // Listen for storage events (if profile is updated in another tab)
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'profilePictureUpdated') {
+                    const updateData = JSON.parse(e.newValue);
+                    updateHeaderProfileImages(updateData.imageUrl);
+                }
+            });
         });
     </script>
 </body>
