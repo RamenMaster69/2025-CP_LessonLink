@@ -562,7 +562,7 @@
             window.showDay('monday');
         });
 
-        // Review submission function
+        // Review submission function - FIXED to redirect to dashboard
         window.submitReview = function(action) {
             const reviewNotes = document.getElementById('review_notes').value;
             
@@ -575,6 +575,12 @@
             document.querySelectorAll('.review-actions button').forEach(btn => {
                 btn.disabled = true;
             });
+            
+            // Show loading state
+            const approveBtn = document.querySelector('button[onclick="submitReview(\'approve\')"]');
+            if (approveBtn) {
+                approveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+            }
             
             fetch('/reviews/weekly/{{ draft.id }}/review/', {
                 method: 'POST',
@@ -590,18 +596,26 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(data.message || 'Review submitted successfully!');
-                    if (data.redirect_url) {
-                        window.location.href = data.redirect_url;
-                    } else {
-                        window.location.href = '/reviews/weekly/';
-                    }
+                    // Show success message
+                    const msg = document.createElement('div');
+                    msg.className = 'fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white bg-green-500 z-50 animate-fade-in';
+                    msg.innerHTML = `<i class="fas fa-check-circle mr-2"></i>${data.message || 'Review submitted successfully!'}`;
+                    document.body.appendChild(msg);
+                    
+                    // Redirect using Django URL template tag - this is the fix!
+                    setTimeout(() => {
+                        window.location.href = "{% url 'Dep_Dash' %}";  // This will resolve to /dep_dash/
+                    }, 1000);
                 } else {
                     alert('Error: ' + data.error);
                     // Re-enable buttons
                     document.querySelectorAll('.review-actions button').forEach(btn => {
                         btn.disabled = false;
                     });
+                    // Restore button text
+                    if (approveBtn) {
+                        approveBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Approve';
+                    }
                 }
             })
             .catch(error => {
@@ -609,6 +623,10 @@
                 document.querySelectorAll('.review-actions button').forEach(btn => {
                     btn.disabled = false;
                 });
+                // Restore button text
+                if (approveBtn) {
+                    approveBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Approve';
+                }
             });
         };
 
@@ -626,6 +644,19 @@
             }
             return cookieValue;
         }
+
+        // Add animation style
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fade-in {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fade-in {
+                animation: fade-in 0.3s ease-out;
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
