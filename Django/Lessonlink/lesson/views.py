@@ -1477,19 +1477,32 @@ def dashboard(request):
         request.session['welcome_shown'] = True
     
     # Get lesson plan statistics for dashboard
-    from lessonGenerator.models import LessonPlan
+    from lessonGenerator.models import LessonPlan, WeeklyLessonPlan
     
-    # Total Lesson Plans (all lesson plans for the user)
-    total_lesson_plans = LessonPlan.objects.filter(created_by=user).count()
+    # Daily Lesson Plans
+    total_daily_lessons = LessonPlan.objects.filter(created_by=user).count()
+    daily_drafts = LessonPlan.objects.filter(created_by=user, status='draft').count()
     
-    # Draft Lesson Plans (only those with draft status)
-    draft_lesson_plans = LessonPlan.objects.filter(created_by=user, status='draft').count()
+    # Weekly Lesson Plans
+    total_weekly_lessons = WeeklyLessonPlan.objects.filter(created_by=user).count()
+    weekly_drafts = WeeklyLessonPlan.objects.filter(created_by=user, status='draft').count()
+    
+    # Total Lessons (both daily and weekly)
+    total_lesson_plans = total_daily_lessons + total_weekly_lessons
     
     # Get task statistics for dashboard
     total_tasks = Task.objects.filter(user=user).count()
     
-    # Get recent lesson plans (5 most recent)
-    recent_lesson_plans = LessonPlan.objects.filter(created_by=user).order_by('-created_at')[:5]
+    # Get recent lesson plans (5 most recent) - combine daily and weekly
+    recent_daily = LessonPlan.objects.filter(created_by=user).order_by('-created_at')[:5]
+    recent_weekly = WeeklyLessonPlan.objects.filter(created_by=user).order_by('-created_at')[:5]
+    
+    # Combine and sort by created_at
+    recent_lesson_plans = sorted(
+        list(recent_daily) + list(recent_weekly),
+        key=lambda x: x.created_at,
+        reverse=True
+    )[:5]
     
     # Get supervised students for teachers - ADD THIS SECTION
     supervised_students = []
@@ -1510,18 +1523,18 @@ def dashboard(request):
     
     today = timezone.localtime(timezone.now()).strftime('%A').lower()
     todays_schedule = Schedule.objects.filter(user=user, day=today).order_by('start_time')
-
     
     return render(request, 'dashboard.html', {
         'user': user,
         'full_name': user.full_name,
         'total_tasks': total_tasks,
         'total_lesson_plans': total_lesson_plans,
-        'draft_lesson_plans': draft_lesson_plans,
+        'daily_drafts': daily_drafts,
+        'weekly_drafts': weekly_drafts,
         'recent_lesson_plans': recent_lesson_plans,
         'todays_schedule': todays_schedule,
         'today_display': timezone.localtime(timezone.now()).strftime('%A'),  # For display
-        'supervised_students': supervised_students,  # ADD THIS LINE
+        'supervised_students': supervised_students,
     })
 
 def lesson_plan(request):

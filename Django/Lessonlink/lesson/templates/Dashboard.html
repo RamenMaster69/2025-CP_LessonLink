@@ -397,11 +397,10 @@
                     <i class="fas fa-home text-lg w-5"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="{% url 'draft_list' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
-                    <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
-                    <span>Drafts</span>
-                    <!-- <span class="ml-auto bg-[#e0e9ff] text-[#11468F] text-xs px-2 py-1 rounded-full">5</span> -->
+                <a href="{% url 'draft' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                    <i class="fas fa-file-alt text-lg w-5"></i>
+                    <span class="font-medium">Drafts</span>
                 </a>
                 <a href="{% url 'task' %}"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
@@ -474,42 +473,54 @@
                 </div>
             </div>
 
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
-                <!-- Total Lessons Card - Counts all lesson plans -->
+            <!-- Stats Cards - NOW WITH 4 CARDS -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+                <!-- Total Lessons Card -->
                 <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-100">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
                             <i class="fas fa-book text-blue-600 text-lg"></i>
                         </div>
-                        <!-- <span class="text-green-500 text-sm font-medium">+12%</span> -->
                     </div>
                     <h3 class="text-gray-600 font-medium text-sm mb-1">Total Lessons</h3>
-                    <p class="text-3xl font-bold text-gray-900">{{ total_lesson_plans }}</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ total_lesson_plans|default:0 }}</p>
+                    <p class="text-xs text-gray-400 mt-1">All lesson plans</p>
                 </div>
 
-                <!-- Drafts Card - Counts only draft status lesson plans -->
+                <!-- Daily Drafts Card -->
                 <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-100">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-edit text-yellow-600 text-lg"></i>
+                            <i class="fas fa-calendar-day text-yellow-600 text-lg"></i>
                         </div>
-                        <!-- <span class="text-blue-500 text-sm font-medium">5 active</span> -->
                     </div>
-                    <h3 class="text-gray-600 font-medium text-sm mb-1">Drafts</h3>
-                    <p class="text-3xl font-bold text-gray-900">{{ draft_lesson_plans }}</p>
+                    <h3 class="text-gray-600 font-medium text-sm mb-1">Daily Drafts</h3>
+                    <p class="text-3xl font-bold text-gray-900">{{ daily_drafts|default:0 }}</p>
+                    <p class="text-xs text-gray-400 mt-1">Single day lesson plans</p>
                 </div>
 
-                <!-- Tasks Card - Counts user's tasks (replaces Prep Time) -->
+                <!-- Weekly Drafts Card -->
                 <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-100">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-tasks text-purple-600 text-lg"></i>
+                            <i class="fas fa-calendar-week text-purple-600 text-lg"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-gray-600 font-medium text-sm mb-1">Weekly Drafts</h3>
+                    <p class="text-3xl font-bold text-gray-900">{{ weekly_drafts|default:0 }}</p>
+                    <p class="text-xs text-gray-400 mt-1">Week-long lesson plans</p>
+                </div>
+
+                <!-- Tasks Card -->
+                <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-tasks text-green-600 text-lg"></i>
                         </div>
                         <span class="text-gray-400 text-sm">pending</span>
                     </div>
                     <h3 class="text-gray-600 font-medium text-sm mb-1">Tasks</h3>
-                    <p class="text-3xl font-bold text-gray-900">{{ total_tasks }}</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ total_tasks|default:0 }}</p>
                 </div>
             </div>
 
@@ -540,9 +551,21 @@
                                 <h4 class="font-semibold text-gray-900 truncate">{{ lesson_plan.title }}</h4>
                                 <p class="text-gray-500 text-sm">{{ lesson_plan.grade_level }} • Created {{ lesson_plan.created_at|timesince }} ago</p>
                                 <div class="flex items-center mt-2 space-x-4">
-                                    <span class="text-xs text-gray-400">{{ lesson_plan.duration }} min duration</span>
+                                    <span class="text-xs text-gray-400">
+                                        {% if lesson_plan.duration %}
+                                            {{ lesson_plan.duration }} min
+                                        {% else %}
+                                            Week {{ lesson_plan.week_number|default:"1" }}
+                                        {% endif %}
+                                    </span>
                                     <span class="text-xs text-gray-400">•</span>
-                                    <span class="text-xs text-gray-400">{{ lesson_plan.population }} students</span>
+                                    <span class="text-xs text-gray-400">
+                                        {% if lesson_plan.population %}
+                                            {{ lesson_plan.population }} students
+                                        {% else %}
+                                            Weekly plan
+                                        {% endif %}
+                                    </span>
                                 </div>
                             </div>
                             <span class="px-3 py-1 {% if lesson_plan.status == 'final' %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %} rounded-full text-sm font-medium">
@@ -688,12 +711,9 @@
         function continueToLesson() {
             if (!selectedLessonType) return;
 
-            // For now, only daily lesson plan is available
-            // Redirect to lesson_ai for daily lesson plan
             if (selectedLessonType === 'daily') {
                 window.location.href = "{% url 'lesson_ai' %}";
             } else if (selectedLessonType === 'weekly') {
-                // Weekly lesson plan coming soon - show a message or just do nothing
                 window.location.href = "{% url 'lesson_ai_weekly' %}";
                 closeLessonModal();
             }
