@@ -18,7 +18,8 @@
                         'scale-in': 'scaleIn 0.2s ease-out',
                         'bounce-in': 'bounceIn 0.5s ease-out',
                         'slide-up': 'slideUp 0.3s ease-out',
-                        'fade-out': 'fadeOut 0.2s ease-in'
+                        'fade-out': 'fadeOut 0.2s ease-in',
+                        'pulse-slow': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
                     }
                 }
             }
@@ -94,6 +95,15 @@
             }
             to {
                 opacity: 0;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
             }
         }
 
@@ -273,7 +283,7 @@
         /* Task item styling */
         .task-item {
             transition: all 0.2s ease;
-            border-left: 4px solid;
+            border-left: 4px solid #9E5EFF;
         }
 
         .task-item:hover {
@@ -285,16 +295,18 @@
             color: #9ca3af;
         }
 
-        .priority-high {
-            border-left-color: #ef4444;
+        /* Time-based styling */
+        .task-overdue {
+            border-left-color: #ef4444 !important;
+            background-color: #fef2f2;
         }
 
-        .priority-medium {
-            border-left-color: #f59e0b;
+        .task-today {
+            border-left-color: #f59e0b !important;
         }
 
-        .priority-low {
-            border-left-color: #10b981;
+        .task-upcoming {
+            border-left-color: #10b981 !important;
         }
 
         .task-block {
@@ -377,6 +389,77 @@
         .locked-button:hover .locked-tooltip {
             display: block;
         }
+
+        /* Countdown timer styles */
+        .countdown-timer {
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+        .countdown-danger { 
+            color: #ef4444; 
+        }
+        .countdown-warning { 
+            color: #f59e0b; 
+        }
+        .countdown-normal { 
+            color: #10b981; 
+        }
+
+        /* Status badge styles */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .status-completed { background-color: #dcfce7; color: #166534; }
+        .status-overdue { background-color: #fee2e2; color: #991b1b; }
+        .status-today { background-color: #fef3c7; color: #92400e; }
+        .status-upcoming { background-color: #dbeafe; color: #1e40af; }
+
+        /* Animation for removing notifications */
+        .notification-removing {
+            animation: fadeOut 0.3s ease forwards;
+        }
+
+        /* Line clamp for notification messages */
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Notification badge pulse animation */
+        .animate-pulse {
+            animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Notification item hover effect */
+        #notification-list > div:hover {
+            background: linear-gradient(to right, #f9fafb, #ffffff);
+        }
+
+        /* Custom scrollbar for notification list */
+        #notification-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #notification-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        #notification-list::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+        }
+
+        #notification-list::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
     </style>
 </head>
 
@@ -397,7 +480,7 @@
         </div>
     </div>
 
-    <!-- Confirmation Modal -->
+    <!-- Confirmation Modal for Task Delete -->
     <div id="confirm-delete-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl animate-scale-in">
             <div class="text-center">
@@ -504,29 +587,37 @@
                 <!-- Notifications -->
                 <div class="relative">
                     <button id="notification-btn"
-                        class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                        <i class="fas fa-bell text-sm md:text-lg"></i>
-                        <span id="notification-badge"
-                            class="absolute -top-1 -right-1 w-2 h-2 md:w-3 md:h-3 bg-red-500 rounded-full hidden"></span>
+                        class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span id="notification-badge" 
+                              class="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-gradient-to-r from-red-500 to-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm hidden">
+                            0
+                        </span>
                     </button>
 
                     <!-- Notifications Dropdown -->
-                    <div id="notification-dropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
-                        <div class="p-4 border-b border-gray-100">
+                    <div id="notification-dropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 hidden z-50 overflow-hidden animate-scale-in">
+                        <div class="p-4 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white">
                             <div class="flex items-center justify-between">
-                                <h3 class="font-semibold text-gray-900">Notifications</h3>
-                                <button class="text-purple-600 text-sm hover:text-purple-700" onclick="markAllNotificationsAsRead()">
+                                <h3 class="font-semibold text-white flex items-center">
+                                    <i class="fas fa-bell mr-2 text-sm"></i>
+                                    Notifications
+                                </h3>
+                                <button class="text-white/90 hover:text-white text-xs flex items-center bg-white/20 px-2 py-1 rounded-lg hover:bg-white/30 transition-colors" onclick="markAllNotificationsAsRead()">
+                                    <i class="fas fa-check-double mr-1 text-xs"></i>
                                     Mark all read
                                 </button>
                             </div>
                         </div>
-                        <div class="max-h-96 overflow-y-auto">
+                        <div class="max-h-96 overflow-y-auto" id="notification-list">
                             <!-- Notifications will be loaded here dynamically -->
-                        </div>
-                        <div class="p-4 border-t border-gray-100">
-                            <button class="w-full text-center text-purple-600 text-sm hover:text-purple-700 font-medium">
-                                View all notifications
-                            </button>
+                            <div class="p-8 text-center text-gray-500">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                                </div>
+                                <p class="text-sm font-medium text-gray-600">No notifications</p>
+                                <p class="text-xs text-gray-400 mt-1">You're all caught up!</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -669,16 +760,16 @@
                             <option value="all" {% if current_filter == 'all' %}selected{% endif %}>All Tasks</option>
                             <option value="completed" {% if current_filter == 'completed' %}selected{% endif %}>Completed</option>
                             <option value="pending" {% if current_filter == 'pending' %}selected{% endif %}>Pending</option>
-                            <option value="high" {% if current_filter == 'high' %}selected{% endif %}>High Priority</option>
-                            <option value="medium" {% if current_filter == 'medium' %}selected{% endif %}>Medium Priority</option>
-                            <option value="low" {% if current_filter == 'low' %}selected{% endif %}>Low Priority</option>
+                            <option value="overdue" {% if current_filter == 'overdue' %}selected{% endif %}>Overdue</option>
+                            <option value="today" {% if current_filter == 'today' %}selected{% endif %}>Due Today</option>
+                            <option value="upcoming" {% if current_filter == 'upcoming' %}selected{% endif %}>Upcoming</option>
                         </select>
                     </div>
                     <div class="flex items-center space-x-2">
                         <span class="text-sm text-gray-600">Sort by:</span>
                         <select id="sort-select" class="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <option value="due-date" {% if current_sort == 'due-date' %}selected{% endif %}>Due Date</option>
-                            <option value="priority" {% if current_sort == 'priority' %}selected{% endif %}>Priority</option>
+                            <option value="due-time" {% if current_sort == 'due-time' %}selected{% endif %}>Due Time</option>
                             <option value="created" {% if current_sort == 'created' %}selected{% endif %}>Date Created</option>
                             <option value="alphabetical" {% if current_sort == 'alphabetical' %}selected{% endif %}>Alphabetical</option>
                         </select>
@@ -697,7 +788,11 @@
                 <!-- Tasks List -->
                 <div class="divide-y divide-gray-200" id="tasks-container">
                     {% for task in tasks %}
-                    <div class="task-item priority-{{ task.priority }} p-4 md:p-6 flex items-start" data-task-id="{{ task.id }}">
+                    <div class="task-item p-4 md:p-6 flex items-start" 
+                        data-task-id="{{ task.id }}"
+                        data-due-date="{{ task.due_date|date:'Y-m-d' }}"
+                        data-due-time="{{ task.due_time|time:'H:i' }}"
+                        data-status="{{ task.status }}">
                         <input type="checkbox" class="task-checkbox mt-1 h-5 w-5 text-blue-600 rounded focus:ring-blue-500" 
                                data-task-id="{{ task.id }}" {% if task.status == 'completed' %}checked{% endif %}>
                         <div class="ml-3 flex-1">
@@ -705,13 +800,11 @@
                                 <span class="task-text text-sm md:text-base font-medium text-gray-900 {% if task.status == 'completed' %}line-through text-gray-400{% endif %}">
                                     {{ task.title }}
                                 </span>
-                                <span class="text-xs font-medium px-2 py-1 rounded-full 
-                                    {% if task.status == 'completed' %}text-green-600 bg-green-50
-                                    {% elif task.priority == 'high' %}text-red-600 bg-red-50
-                                    {% elif task.priority == 'medium' %}text-yellow-600 bg-yellow-50
-                                    {% else %}text-green-600 bg-green-50{% endif %}">
+                                <span class="status-badge" id="status-{{ task.id }}">
                                     {% if task.status == 'completed' %}Completed
-                                    {% else %}{{ task.priority|title }} Priority{% endif %}
+                                    {% elif task.is_overdue %}Overdue
+                                    {% elif task.is_today %}Due Today
+                                    {% else %}Upcoming{% endif %}
                                 </span>
                             </div>
                             {% if task.description %}
@@ -721,15 +814,22 @@
                                 <i class="far fa-calendar-alt mr-1"></i>
                                 <span>
                                     {% if task.due_date %}
-                                        Due: {{ task.display_due_datetime }}
+                                        Due: {{ task.display_due_date }}
+                                        {% if task.due_time %}
+                                            <span class="ml-1">
+                                                <i class="far fa-clock mr-1"></i>
+                                                {{ task.due_time|date:"g:i A" }}
+                                            </span>
+                                        {% endif %}
                                     {% else %}
                                         No due date
                                     {% endif %}
                                 </span>
+                                <span class="countdown-timer" id="countdown-{{ task.id }}"></span>
                             </div>
                         </div>
                         <div class="flex space-x-2 ml-4">
-                            <button class="text-gray-400 hover:text-gray-600">
+                            <button class="text-gray-400 hover:text-gray-600 edit-task-btn" data-task-id="{{ task.id }}">
                                 <i class="fas fa-pencil-alt text-sm"></i>
                             </button>
                             <button class="text-gray-400 hover:text-red-500 delete-task-btn" data-task-id="{{ task.id }}">
@@ -770,20 +870,15 @@
                     <textarea name="description" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base" rows="3" placeholder="Add details about this task..."></textarea>
                 </div>
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-                        <select name="priority" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base">
-                            <option value="low">Low Priority</option>
-                            <option value="medium" selected>Medium Priority</option>
-                            <option value="high">High Priority</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                        <input type="date" name="due_date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base">
-                    </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                    <input type="date" name="due_date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Due Time (Optional)</label>
+                    <input type="time" name="due_time" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base">
+                    <p class="text-xs text-gray-500 mt-1">Set a specific time for this task</p>
                 </div>
                 
                 <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
@@ -792,6 +887,52 @@
                     </button>
                     <button type="submit" class="flex-1 px-4 py-2 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-colors text-sm md:text-base">
                         Add Task
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Task Modal -->
+    <div id="edit-task-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-md w-full p-4 md:p-6 animate-scale-in max-h-screen overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base md:text-lg font-semibold text-gray-900">Edit Task</h3>
+                <button id="close-edit-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            
+            <form id="edit-task-form" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="task_id" id="edit-task-id">
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Task Title</label>
+                    <input type="text" name="title" id="edit-title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea name="description" id="edit-description" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base" rows="3"></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                    <input type="date" name="due_date" id="edit-due-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Due Time (Optional)</label>
+                    <input type="time" name="due_time" id="edit-due-time" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base">
+                </div>
+                
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
+                    <button type="button" id="cancel-edit" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm md:text-base">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-colors text-sm md:text-base">
+                        Update Task
                     </button>
                 </div>
             </form>
@@ -819,14 +960,303 @@
         const userRole = "{{ user.role }}".toLowerCase().trim();
         const userApprovalStatus = "{{ user.approval_status }}".toLowerCase().trim();
 
+        // Store countdown intervals
+        const countdownIntervals = {};
+
+        // ==================== COUNTDOWN TIMER FUNCTIONS ====================
+        function updateAllCountdowns() {
+            document.querySelectorAll('.task-item').forEach(taskItem => {
+                const taskId = taskItem.dataset.taskId;
+                const checkbox = taskItem.querySelector('.task-checkbox');
+                
+                // Skip if task is completed
+                if (checkbox && checkbox.checked) return;
+                
+                // Get due date and time from data attributes
+                const dueDateStr = taskItem.dataset.dueDate;
+                const dueTimeStr = taskItem.dataset.dueTime;
+                
+                if (!dueDateStr || dueDateStr === 'None') return;
+                
+                // Create due date object
+                let dueDate;
+                try {
+                    dueDate = new Date(dueDateStr + 'T12:00:00');
+                    
+                    if (dueTimeStr && dueTimeStr !== 'None') {
+                        const [hours, minutes] = dueTimeStr.split(':').map(Number);
+                        dueDate.setHours(hours, minutes, 0);
+                    } else {
+                        // Default to end of day if no time specified
+                        dueDate.setHours(23, 59, 59);
+                    }
+                } catch (e) {
+                    console.error('Error parsing date:', e);
+                    return;
+                }
+                
+                const now = new Date();
+                const diffMs = dueDate - now;
+                
+                // Update countdown display
+                const countdownEl = document.getElementById(`countdown-${taskId}`);
+                if (!countdownEl) return;
+                
+                if (diffMs <= 0) {
+                    // Task is overdue
+                    countdownEl.textContent = '⚠️ Overdue';
+                    countdownEl.className = 'countdown-timer countdown-danger';
+                    
+                    // Update status badge if needed
+                    const statusBadge = document.getElementById(`status-${taskId}`);
+                    if (statusBadge && statusBadge.textContent !== 'Completed') {
+                        statusBadge.textContent = 'Overdue';
+                        statusBadge.className = 'status-badge status-overdue';
+                        taskItem.classList.add('task-overdue');
+                        taskItem.classList.remove('task-today', 'task-upcoming');
+                    }
+                } else {
+                    const diffMin = Math.floor(diffMs / (1000 * 60));
+                    const diffHour = Math.floor(diffMin / 60);
+                    
+                    if (diffMin < 60) {
+                        // Less than 1 hour
+                        countdownEl.textContent = `⏰ ${diffMin} min left`;
+                        countdownEl.className = 'countdown-timer countdown-danger';
+                    } else if (diffHour < 24) {
+                        // Less than 24 hours
+                        countdownEl.textContent = `⏰ ${diffHour} hour${diffHour > 1 ? 's' : ''} left`;
+                        countdownEl.className = 'countdown-timer countdown-warning';
+                    } else {
+                        // More than 24 hours
+                        countdownEl.textContent = '';
+                    }
+                }
+            });
+        }
+
+        // ==================== NOTIFICATION FUNCTIONS ====================
+        function loadNotifications() {
+            fetch('/api/notifications/', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('notification-badge');
+                const notificationList = document.getElementById('notification-list');
+                
+                if (!notificationList) return;
+                
+                if (data.success && data.data && data.data.notifications && data.data.notifications.length > 0) {
+                    // Update notification badge
+                    if (badge) {
+                        if (data.data.unread_count > 0) {
+                            badge.textContent = data.data.unread_count > 9 ? '9+' : data.data.unread_count;
+                            badge.classList.remove('hidden');
+                            
+                            // Add pulse animation for new notifications
+                            badge.classList.add('animate-pulse');
+                            setTimeout(() => {
+                                badge.classList.remove('animate-pulse');
+                            }, 1000);
+                        } else {
+                            badge.classList.add('hidden');
+                        }
+                    }
+                    
+                    // Clear existing notifications
+                    notificationList.innerHTML = '';
+                    
+                    // Add new notifications
+                    data.data.notifications.forEach(notification => {
+                        const notificationItem = document.createElement('div');
+                        notificationItem.className = 'p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer transition-all duration-300 group';
+                        notificationItem.setAttribute('data-notification-id', notification.id);
+                        notificationItem.setAttribute('data-read', notification.is_read);
+                        
+                        if (!notification.is_read) {
+                            notificationItem.classList.add('bg-blue-50/50');
+                        }
+                        
+                        // Format time ago
+                        const timeAgo = notification.time_ago || 'Just now';
+                        
+                        // Get color based on type
+                        let dotColor = 'bg-blue-500';
+                        let icon = 'fa-info-circle';
+                        let bgColor = 'bg-blue-100';
+                        let textColor = 'text-blue-600';
+                        
+                        if (notification.type === 'task_overdue') {
+                            dotColor = 'bg-red-500';
+                            icon = 'fa-exclamation-circle';
+                            bgColor = 'bg-red-100';
+                            textColor = 'text-red-600';
+                        } else if (notification.type === 'task_due_1hour') {
+                            dotColor = 'bg-orange-500';
+                            icon = 'fa-clock';
+                            bgColor = 'bg-orange-100';
+                            textColor = 'text-orange-600';
+                        } else if (notification.type === 'task_due_soon') {
+                            dotColor = 'bg-yellow-500';
+                            icon = 'fa-hourglass-half';
+                            bgColor = 'bg-yellow-100';
+                            textColor = 'text-yellow-600';
+                        } else if (notification.type === 'lesson_submitted') {
+                            dotColor = 'bg-purple-500';
+                            icon = 'fa-file-upload';
+                            bgColor = 'bg-purple-100';
+                            textColor = 'text-purple-600';
+                        } else if (notification.type === 'lesson_approved') {
+                            dotColor = 'bg-green-500';
+                            icon = 'fa-check-circle';
+                            bgColor = 'bg-green-100';
+                            textColor = 'text-green-600';
+                        } else if (notification.type === 'lesson_rejected' || notification.type === 'lesson_needs_revision') {
+                            dotColor = 'bg-red-500';
+                            icon = 'fa-times-circle';
+                            bgColor = 'bg-red-100';
+                            textColor = 'text-red-600';
+                        }
+                        
+                        notificationItem.innerHTML = `
+                            <div class="flex items-start space-x-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full ${bgColor} flex items-center justify-center">
+                                    <i class="fas ${icon} text-sm ${textColor}"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-sm font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+                                            ${notification.title}
+                                        </p>
+                                        ${!notification.is_read ? '<span class="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></span>' : ''}
+                                    </div>
+                                    <p class="text-xs text-gray-600 mt-0.5 line-clamp-2">${notification.message}</p>
+                                    <div class="flex items-center mt-1.5 text-xs text-gray-400">
+                                        <i class="far fa-clock mr-1"></i>
+                                        <span>${timeAgo}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        notificationItem.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            markNotificationAsRead(notification.id, notificationItem);
+                        });
+                        
+                        notificationList.appendChild(notificationItem);
+                    });
+                } else {
+                    // Show empty state
+                    notificationList.innerHTML = `
+                        <div class="p-8 text-center text-gray-500">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                            </div>
+                            <p class="text-sm font-medium text-gray-600">No notifications</p>
+                            <p class="text-xs text-gray-400 mt-1">You're all caught up!</p>
+                        </div>
+                    `;
+                    if (badge) {
+                        badge.classList.add('hidden');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error loading notifications:', error);
+            });
+        }
+
+        function markNotificationAsRead(notificationId, notificationElement) {
+            fetch(`/api/notifications/${notificationId}/read/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Animate and remove the notification
+                    if (notificationElement) {
+                        notificationElement.classList.add('notification-removing');
+                        setTimeout(() => {
+                            notificationElement.remove();
+                            
+                            // Check if there are any notifications left
+                            const notificationList = document.getElementById('notification-list');
+                            if (notificationList.children.length === 0) {
+                                notificationList.innerHTML = `
+                                    <div class="p-8 text-center text-gray-500">
+                                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                            <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                                        </div>
+                                        <p class="text-sm font-medium text-gray-600">No notifications</p>
+                                        <p class="text-xs text-gray-400 mt-1">You're all caught up!</p>
+                                    </div>
+                                `;
+                            }
+                            
+                            // Reload notifications to update badge
+                            loadNotifications();
+                        }, 300);
+                    } else {
+                        loadNotifications();
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error marking notification as read:', error);
+            });
+        }
+
+        function markAllNotificationsAsRead() {
+            fetch('/api/notifications/mark-all-read/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear the notification list
+                    const notificationList = document.getElementById('notification-list');
+                    notificationList.innerHTML = `
+                        <div class="p-8 text-center text-gray-500">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                            </div>
+                            <p class="text-sm font-medium text-gray-600">No notifications</p>
+                            <p class="text-xs text-gray-400 mt-1">You're all caught up!</p>
+                        </div>
+                    `;
+                    
+                    // Hide the badge
+                    const badge = document.getElementById('notification-badge');
+                    if (badge) {
+                        badge.classList.add('hidden');
+                    }
+                    
+                    showSuccessMessage('All notifications marked as read!');
+                }
+            })
+            .catch(error => {
+                console.error('Error marking all notifications as read:', error);
+            });
+        }
+
         // ==================== LESSON MODAL FUNCTIONS ====================
         let selectedLessonType = null;
 
-        // Open modal function
         function openLessonModal() {
             const modal = document.getElementById('lessonModal');
             modal.classList.add('active');
-            // Reset selection
             selectedLessonType = null;
             document.querySelectorAll('.modal-option').forEach(opt => {
                 opt.classList.remove('selected');
@@ -834,17 +1264,13 @@
             document.getElementById('continueBtn').disabled = true;
         }
 
-        // Close modal function
         function closeLessonModal() {
             const modal = document.getElementById('lessonModal');
             modal.classList.remove('active');
         }
 
-        // Select lesson type
         function selectLessonType(type) {
             selectedLessonType = type;
-            
-            // Update UI
             document.querySelectorAll('.modal-option').forEach(opt => {
                 if (opt.getAttribute('data-type') === type) {
                     opt.classList.add('selected');
@@ -852,15 +1278,11 @@
                     opt.classList.remove('selected');
                 }
             });
-            
-            // Enable continue button
             document.getElementById('continueBtn').disabled = false;
         }
 
-        // Continue to selected lesson type
         function continueToLesson() {
             if (!selectedLessonType) return;
-
             if (selectedLessonType === 'daily') {
                 window.location.href = "{% url 'lesson_ai' %}";
             } else if (selectedLessonType === 'weekly') {
@@ -869,7 +1291,6 @@
             }
         }
 
-        // Close modal when clicking outside
         window.addEventListener('click', function(event) {
             const modal = document.getElementById('lessonModal');
             if (event.target === modal) {
@@ -877,18 +1298,14 @@
             }
         });
 
-        // Function to setup create lesson button based on role and approval
         function setupCreateLessonButton() {
             const container = document.getElementById('create-lesson-container');
-            
             if (!container) return;
             
-            // Determine if button should be locked
             const isStudentTeacherNotApproved = (userRole === 'student teacher' && userApprovalStatus !== 'approved');
             const isOtherNotApproved = (userRole !== 'student teacher' && userRole !== 'teacher' && userApprovalStatus !== 'approved');
             
             if (isStudentTeacherNotApproved || isOtherNotApproved) {
-                // LOCKED VERSION - Student Teacher not approved
                 let lockMessage = '';
                 if (userRole === 'student teacher' && userApprovalStatus === 'pending') {
                     lockMessage = 'Waiting for teacher approval';
@@ -911,7 +1328,6 @@
                     </div>
                 `;
             } else {
-                // UNLOCKED VERSION - Using modal
                 container.innerHTML = `
                     <button onclick="openLessonModal()"
                             class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md min-h-[48px]">
@@ -926,12 +1342,9 @@
         function showSuccessMessage(message) {
             const modal = document.getElementById('success-message-modal');
             const messageText = document.getElementById('success-message-text');
-            
             messageText.textContent = message;
             modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
-            
-            // Auto-hide after 3 seconds
             setTimeout(() => {
                 hideSuccessMessage();
             }, 3000);
@@ -974,21 +1387,21 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Remove task from DOM with animation
+                    if (countdownIntervals[taskId]) {
+                        clearInterval(countdownIntervals[taskId]);
+                        delete countdownIntervals[taskId];
+                    }
+                    
                     taskItem.style.transition = 'all 0.3s ease';
                     taskItem.style.transform = 'translateX(-100%)';
                     taskItem.style.opacity = '0';
                     
                     setTimeout(() => {
                         taskItem.remove();
-                        
-                        // Update the completed count
                         const countElement = document.querySelector('.flex.items-center.justify-between .text-sm.text-gray-500');
                         if (countElement) {
                             countElement.textContent = `${data.completed_count} of ${data.total_count} completed`;
                         }
-                        
-                        // If no tasks left, show empty state
                         if (data.total_count === 0) {
                             document.getElementById('tasks-container').innerHTML = `
                                 <div class="p-8 text-center animate-fade-in">
@@ -999,10 +1412,7 @@
                         }
                     }, 300);
                     
-                    // Show success message
                     showSuccessMessage('Task has been deleted successfully!');
-                    
-                    // Hide confirmation modal
                     hideConfirmModal();
                 } else {
                     showSuccessMessage('Error: Could not delete task. Please try again.');
@@ -1016,7 +1426,139 @@
             });
         }
 
-        // Initialize functionality when DOM is loaded
+        // Edit Task Functions
+        function openEditModal(taskId) {
+            const editModal = document.getElementById('edit-task-modal');
+            const submitBtn = editModal.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Loading...';
+            submitBtn.disabled = true;
+            
+            fetch(`/api/tasks/get/${taskId}/`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('edit-task-id').value = taskId;
+                    document.getElementById('edit-title').value = data.task.title;
+                    document.getElementById('edit-description').value = data.task.description || '';
+                    
+                    if (data.task.due_date) {
+                        document.getElementById('edit-due-date').value = data.task.due_date;
+                    } else {
+                        document.getElementById('edit-due-date').value = '';
+                    }
+                    
+                    if (data.task.due_time) {
+                        document.getElementById('edit-due-time').value = data.task.due_time;
+                    } else {
+                        document.getElementById('edit-due-time').value = '';
+                    }
+                    
+                    editModal.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    showSuccessMessage('Error loading task data: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showSuccessMessage('An error occurred while loading task data. Please check console for details.');
+            })
+            .finally(() => {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-task-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Helper function to add task to DOM
+        function addTaskToDOM(task) {
+            const tasksContainer = document.getElementById('tasks-container');
+            const emptyState = tasksContainer.querySelector('.p-8.text-center');
+            if (emptyState) {
+                emptyState.remove();
+            }
+            
+            const taskDiv = document.createElement('div');
+            taskDiv.className = 'task-item p-4 md:p-6 flex items-start';
+            taskDiv.setAttribute('data-task-id', task.id);
+            taskDiv.setAttribute('data-due-date', task.due_date || '');
+            taskDiv.setAttribute('data-due-time', task.due_time || '');
+            taskDiv.setAttribute('data-status', 'pending');
+            
+            // Format date display
+            let dueDateDisplay = 'No due date';
+            let timeDisplay = '';
+            
+            if (task.due_date) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const dueDate = new Date(task.due_date + 'T12:00:00');
+                
+                if (dueDate.toDateString() === today.toDateString()) {
+                    dueDateDisplay = 'Today';
+                } else if (dueDate.toDateString() === tomorrow.toDateString()) {
+                    dueDateDisplay = 'Tomorrow';
+                } else {
+                    dueDateDisplay = dueDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+                }
+            }
+            
+            if (task.due_time) {
+                const timeParts = task.due_time.split(':');
+                const hours = parseInt(timeParts[0]);
+                const minutes = timeParts[1];
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                const hours12 = hours % 12 || 12;
+                timeDisplay = `${hours12}:${minutes} ${ampm}`;
+            }
+            
+            taskDiv.innerHTML = `
+                <input type="checkbox" class="task-checkbox mt-1 h-5 w-5 text-blue-600 rounded focus:ring-blue-500" data-task-id="${task.id}">
+                <div class="ml-3 flex-1">
+                    <div class="flex items-center justify-between">
+                        <span class="task-text text-sm md:text-base font-medium text-gray-900">${task.title}</span>
+                        <span class="status-badge status-upcoming" id="status-${task.id}">Upcoming</span>
+                    </div>
+                    ${task.description ? `<p class="text-sm text-gray-500 mt-1">${task.description}</p>` : ''}
+                    <div class="flex items-center mt-2 text-xs text-gray-500">
+                        <i class="far fa-calendar-alt mr-1"></i>
+                        <span>
+                            Due: ${dueDateDisplay}
+                            ${timeDisplay ? `<span class="ml-1"><i class="far fa-clock mr-1"></i>${timeDisplay}</span>` : ''}
+                        </span>
+                        <span class="countdown-timer" id="countdown-${task.id}"></span>
+                    </div>
+                </div>
+                <div class="flex space-x-2 ml-4">
+                    <button class="text-gray-400 hover:text-gray-600 edit-task-btn" data-task-id="${task.id}">
+                        <i class="fas fa-pencil-alt text-sm"></i>
+                    </button>
+                    <button class="text-gray-400 hover:text-red-500 delete-task-btn" data-task-id="${task.id}">
+                        <i class="fas fa-trash text-sm"></i>
+                    </button>
+                </div>
+            `;
+            
+            tasksContainer.prepend(taskDiv);
+        }
+
+        // Initialize everything
         document.addEventListener('DOMContentLoaded', () => {
             // Setup create lesson button
             setupCreateLessonButton();
@@ -1033,7 +1575,6 @@
             }
 
             mobileMenuBtn.addEventListener('click', toggleMobileMenu);
-            
             overlay.addEventListener('click', () => {
                 sidebar.classList.add('-translate-x-full');
                 overlay.classList.add('hidden');
@@ -1048,8 +1589,6 @@
                 e.stopPropagation();
                 profileDropdown.classList.toggle('hidden');
                 if (!profileDropdown.classList.contains('hidden')) {
-                    profileDropdown.classList.add('dropdown-enter');
-                    // Close notifications dropdown if open
                     document.getElementById('notification-dropdown').classList.add('hidden');
                 }
             });
@@ -1057,16 +1596,12 @@
             // Notification dropdown functionality
             const notificationBtn = document.getElementById('notification-btn');
             const notificationDropdown = document.getElementById('notification-dropdown');
-            const notificationBadge = document.getElementById('notification-badge');
 
             notificationBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 notificationDropdown.classList.toggle('hidden');
                 if (!notificationDropdown.classList.contains('hidden')) {
-                    notificationDropdown.classList.add('dropdown-enter');
-                    // Hide notification badge when opened
-                    notificationBadge.classList.add('hidden');
-                    // Close profile dropdown if open
+                    loadNotifications();
                     profileDropdown.classList.add('hidden');
                 }
             });
@@ -1089,12 +1624,12 @@
 
             addTaskBtn.addEventListener('click', () => {
                 addTaskModal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden'; // Prevent background scroll
+                document.body.style.overflow = 'hidden';
             });
 
             const closeTaskModalFunction = () => {
                 addTaskModal.classList.add('hidden');
-                document.body.style.overflow = 'auto'; // Restore scroll
+                document.body.style.overflow = 'auto';
             };
 
             closeTaskModal.addEventListener('click', closeTaskModalFunction);
@@ -1110,11 +1645,12 @@
             document.getElementById('add-task-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 
+                const dueTime = document.querySelector('input[name="due_time"]').value;
                 const formData = {
                     title: document.querySelector('input[name="title"]').value,
                     description: document.querySelector('textarea[name="description"]').value,
-                    priority: document.querySelector('select[name="priority"]').value,
                     due_date: document.querySelector('input[name="due_date"]').value,
+                    due_time: dueTime ? dueTime : null,
                 };
                 
                 fetch("/api/tasks/add/", {
@@ -1129,12 +1665,26 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Close modal and refresh page
                         closeTaskModalFunction();
+                        addTaskToDOM(data.task);
                         showSuccessMessage('Task has been added successfully!');
+                        
+                        // Update the total count
+                        const countElement = document.querySelector('.flex.items-center.justify-between .text-sm.text-gray-500');
+                        if (countElement) {
+                            const currentText = countElement.textContent;
+                            const matches = currentText.match(/(\d+) of (\d+)/);
+                            if (matches) {
+                                const completed = parseInt(matches[1]);
+                                const total = parseInt(matches[2]) + 1;
+                                countElement.textContent = `${completed} of ${total} completed`;
+                            }
+                        }
+                        
+                        // Refresh after a short delay to get proper server-side status
                         setTimeout(() => {
                             location.reload();
-                        }, 1500);
+                        }, 2000);
                     } else {
                         showSuccessMessage('Error: ' + data.error);
                     }
@@ -1146,14 +1696,22 @@
             });
 
             // Handle task status updates
-            document.querySelectorAll('.task-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    const taskId = this.dataset.taskId;
-                    const newStatus = this.checked ? 'completed' : 'pending';
-                    const taskText = this.parentElement.querySelector('.task-text');
+            document.getElementById('tasks-container').addEventListener('change', function(e) {
+                if (e.target.classList.contains('task-checkbox')) {
+                    const checkbox = e.target;
+                    const taskId = checkbox.dataset.taskId;
+                    const newStatus = checkbox.checked ? 'completed' : 'pending';
+                    const taskItem = checkbox.closest('.task-item');
+                    const taskText = taskItem.querySelector('.task-text');
+                    const statusBadge = document.getElementById(`status-${taskId}`);
+                    const countdownEl = document.getElementById(`countdown-${taskId}`);
                     
-                    if (this.checked) {
+                    if (checkbox.checked) {
                         taskText.classList.add('line-through', 'text-gray-400');
+                        statusBadge.textContent = 'Completed';
+                        statusBadge.className = 'status-badge status-completed';
+                        taskItem.classList.remove('task-overdue', 'task-today', 'task-upcoming');
+                        if (countdownEl) countdownEl.textContent = '';
                     } else {
                         taskText.classList.remove('line-through', 'text-gray-400');
                     }
@@ -1170,40 +1728,100 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // Update the completed count
                             const countElement = document.querySelector('.flex.items-center.justify-between .text-sm.text-gray-500');
                             if (countElement) {
                                 countElement.textContent = `${data.completed_count} of ${data.total_count} completed`;
                             }
                             showSuccessMessage(newStatus === 'completed' ? 'Task marked as completed!' : 'Task marked as pending!');
+                            
+                            if (!checkbox.checked) {
+                                // Refresh to get proper server-side status
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 1500);
+                            }
                         } else {
-                            this.checked = !this.checked; // Revert checkbox if error
-                            if (this.checked) {
-                                taskText.classList.remove('line-through', 'text-gray-400');
-                            } else {
+                            checkbox.checked = !checkbox.checked;
+                            if (checkbox.checked) {
                                 taskText.classList.add('line-through', 'text-gray-400');
+                            } else {
+                                taskText.classList.remove('line-through', 'text-gray-400');
                             }
                             showSuccessMessage('Error updating task status');
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        this.checked = !this.checked; // Revert checkbox if error
-                        if (this.checked) {
-                            taskText.classList.remove('line-through', 'text-gray-400');
-                        } else {
+                        checkbox.checked = !checkbox.checked;
+                        if (checkbox.checked) {
                             taskText.classList.add('line-through', 'text-gray-400');
+                        } else {
+                            taskText.classList.remove('line-through', 'text-gray-400');
                         }
                         showSuccessMessage('An error occurred while updating task status');
                     });
-                });
+                }
             });
             
-            // Handle task deletion with confirmation modal
-            document.querySelectorAll('.delete-task-btn').forEach(deleteBtn => {
-                deleteBtn.addEventListener('click', function() {
-                    const taskId = this.dataset.taskId;
+            // Handle task deletion
+            document.getElementById('tasks-container').addEventListener('click', function(e) {
+                const deleteBtn = e.target.closest('.delete-task-btn');
+                if (deleteBtn) {
+                    const taskId = deleteBtn.dataset.taskId;
                     showConfirmModal(taskId);
+                }
+            });
+
+            // Handle task edit
+            document.getElementById('tasks-container').addEventListener('click', function(e) {
+                const editBtn = e.target.closest('.edit-task-btn');
+                if (editBtn) {
+                    const taskId = editBtn.dataset.taskId;
+                    openEditModal(taskId);
+                }
+            });
+
+            // Edit modal close buttons
+            document.getElementById('close-edit-modal').addEventListener('click', closeEditModal);
+            document.getElementById('cancel-edit').addEventListener('click', closeEditModal);
+
+            // Handle edit form submission
+            document.getElementById('edit-task-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const taskId = document.getElementById('edit-task-id').value;
+                const editDueTime = document.getElementById('edit-due-time').value;
+                const formData = {
+                    title: document.getElementById('edit-title').value,
+                    description: document.getElementById('edit-description').value,
+                    due_date: document.getElementById('edit-due-date').value,
+                    due_time: editDueTime ? editDueTime : null,
+                };
+                
+                fetch(`/api/tasks/update/${taskId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        closeEditModal();
+                        showSuccessMessage('Task has been updated successfully!');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        showSuccessMessage('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showSuccessMessage('An error occurred. Please try again.');
                 });
             });
 
@@ -1231,49 +1849,11 @@
                 window.location.href = `?filter=${filter}&sort=${sort}`;
             });
 
-            // Load notifications
-            function loadNotifications() {
-                fetch('/api/notifications/', {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.notifications && data.notifications.length > 0) {
-                        // Update notification badge
-                        document.getElementById('notification-badge').classList.remove('hidden');
-                        
-                        // Update notification dropdown content
-                        const notificationDropdown = document.getElementById('notification-dropdown');
-                        const notificationList = notificationDropdown.querySelector('.max-h-96');
-                        
-                        // Clear existing notifications
-                        notificationList.innerHTML = '';
-                        
-                        // Add new notifications
-                        data.notifications.forEach(notification => {
-                            const notificationItem = document.createElement('div');
-                            notificationItem.className = 'p-3 md:p-4 hover:bg-gray-50 border-b border-gray-100';
-                            notificationItem.innerHTML = `
-                                <div class="flex items-start space-x-3">
-                                    <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                                    <div class="flex-1">
-                                        <p class="text-sm text-gray-900 font-medium">${notification.message}</p>
-                                        <p class="text-xs text-gray-400 mt-1">${notification.created_at}</p>
-                                    </div>
-                                </div>
-                            `;
-                            notificationList.appendChild(notificationItem);
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading notifications:', error);
-                });
-            }
-            
-            // Load notifications on page load
+            // Initial countdown update
+            updateAllCountdowns();
+            setInterval(updateAllCountdowns, 60000); // Update every minute
+
+            // Load initial notifications
             loadNotifications();
             
             // Set up notification polling (every 30 seconds)
@@ -1285,13 +1865,15 @@
                     if (!addTaskModal.classList.contains('hidden')) {
                         closeTaskModalFunction();
                     }
+                    if (!document.getElementById('edit-task-modal').classList.contains('hidden')) {
+                        closeEditModal();
+                    }
                     if (!document.getElementById('success-message-modal').classList.contains('hidden')) {
                         hideSuccessMessage();
                     }
                     if (!document.getElementById('confirm-delete-modal').classList.contains('hidden')) {
                         hideConfirmModal();
                     }
-                    // Close lesson modal
                     const lessonModal = document.getElementById('lessonModal');
                     if (lessonModal && lessonModal.classList.contains('active')) {
                         lessonModal.classList.remove('active');
@@ -1323,224 +1905,6 @@
                 }
             });
         });
-
-        // Notification system
-        function loadNotifications() {
-            fetch('/notifications/notifications/')
-                .then(response => response.json())
-                .then(data => {
-                    updateNotificationBadge(data.unread_count);
-                    updateNotificationDropdown(data.notifications);
-                })
-                .catch(error => {
-                    console.error('Error loading notifications:', error);
-                });
-        }
-
-        function updateNotificationBadge(unreadCount) {
-            const badge = document.getElementById('notification-badge');
-            if (badge) {
-                if (unreadCount > 0) {
-                    badge.textContent = unreadCount;
-                    badge.classList.remove('hidden');
-                } else {
-                    badge.classList.add('hidden');
-                }
-            }
-        }
-
-        function updateNotificationDropdown(notifications) {
-            const dropdown = document.getElementById('notification-dropdown');
-            if (!dropdown) return;
-
-            const notificationsContainer = dropdown.querySelector('.max-h-96') || dropdown;
-            
-            if (notifications.length === 0) {
-                notificationsContainer.innerHTML = `
-                    <div class="p-4 text-center text-gray-500">
-                        <i class="fas fa-bell-slash text-2xl mb-2"></i>
-                        <p>No notifications</p>
-                    </div>
-                `;
-                return;
-            }
-
-            let notificationsHTML = '';
-            notifications.forEach(notification => {
-                const icon = getNotificationIcon(notification.type);
-                const timeAgo = getTimeAgo(notification.created_at);
-                const readClass = notification.is_read ? '' : 'bg-blue-50 border-l-4 border-l-blue-500';
-                
-                notificationsHTML += `
-                    <div class="p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer ${readClass} notification-item" 
-                        data-notification-id="${notification.id}" 
-                        data-type="${notification.type}"
-                        data-lesson-plan-id="${notification.lesson_plan_id || ''}"
-                        data-submission-id="${notification.submission_id || ''}">
-                        <div class="flex items-start space-x-3">
-                            <div class="w-2 h-2 ${getNotificationColor(notification.type)} rounded-full mt-2 flex-shrink-0"></div>
-                            <div class="flex-1">
-                                <p class="text-sm text-gray-900 font-medium">${notification.title}</p>
-                                <p class="text-xs text-gray-500 mt-1">${notification.message}</p>
-                                <p class="text-xs text-gray-400 mt-1">${timeAgo}</p>
-                            </div>
-                            ${!notification.is_read ? '<div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>' : ''}
-                        </div>
-                    </div>
-                `;
-            });
-
-            // Clear existing content and add new notifications
-            const existingContent = notificationsContainer.querySelector('.border-b') ? notificationsContainer : notificationsContainer.querySelector('.max-h-96') || notificationsContainer;
-            existingContent.innerHTML = notificationsHTML;
-
-            // Add click handlers
-            document.querySelectorAll('.notification-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const notificationId = this.getAttribute('data-notification-id');
-                    const type = this.getAttribute('data-type');
-                    const lessonPlanId = this.getAttribute('data-lesson-plan-id');
-                    const submissionId = this.getAttribute('data-submission-id');
-                    
-                    // Mark as read
-                    markNotificationAsRead(notificationId);
-                    
-                    // Handle navigation based on notification type
-                    handleNotificationClick(type, lessonPlanId, submissionId);
-                });
-            });
-        }
-
-        function getNotificationIcon(type) {
-            const icons = {
-                'draft_approved': 'fa-check-circle',
-                'draft_rejected': 'fa-times-circle',
-                'task_due_soon': 'fa-clock',
-                'upcoming_schedule': 'fa-calendar',
-                'lesson_submitted': 'fa-file-upload',
-                'general': 'fa-bell'
-            };
-            return icons[type] || 'fa-bell';
-        }
-
-        function getNotificationColor(type) {
-            const colors = {
-                'draft_approved': 'bg-green-500',
-                'draft_rejected': 'bg-red-500',
-                'task_due_soon': 'bg-yellow-500',
-                'upcoming_schedule': 'bg-blue-500',
-                'lesson_submitted': 'bg-purple-500',
-                'general': 'bg-gray-500'
-            };
-            return colors[type] || 'bg-gray-500';
-        }
-
-        function getTimeAgo(createdAt) {
-            // Simple time ago calculation - you can use a library like day.js for better formatting
-            return createdAt;
-        }
-
-        function markNotificationAsRead(notificationId) {
-            fetch(`/notifications/notifications/${notificationId}/read/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update UI
-                    const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
-                    if (notificationItem) {
-                        notificationItem.classList.remove('bg-blue-50', 'border-l-4', 'border-l-blue-500');
-                        const unreadDot = notificationItem.querySelector('.bg-blue-500');
-                        if (unreadDot) {
-                            unreadDot.remove();
-                        }
-                    }
-                    // Reload notification count
-                    loadNotifications();
-                }
-            })
-            .catch(error => {
-                console.error('Error marking notification as read:', error);
-            });
-        }
-
-        function handleNotificationClick(type, lessonPlanId, submissionId) {
-            // Close notification dropdown
-            const dropdown = document.getElementById('notification-dropdown');
-            if (dropdown) {
-                dropdown.classList.add('hidden');
-            }
-
-            // Navigate based on notification type
-            switch(type) {
-                case 'draft_approved':
-                case 'draft_rejected':
-                case 'lesson_submitted':
-                    if (submissionId) {
-                        window.location.href = `/lesson-plan-detail/${submissionId}/`;
-                    } else if (lessonPlanId) {
-                        window.location.href = `/drafts/${lessonPlanId}/view/`;
-                    }
-                    break;
-                case 'task_due_soon':
-                    window.location.href = '/task/';
-                    break;
-                case 'upcoming_schedule':
-                    window.location.href = '/schedule/';
-                    break;
-                default:
-                    // Do nothing for general notifications
-                    break;
-            }
-        }
-
-        // CSRF token helper
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-
-        // Load notifications when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            loadNotifications();
-            
-            // Reload notifications every 30 seconds
-            setInterval(loadNotifications, 30000);
-        });
-
-        function markAllNotificationsAsRead() {
-        fetch('/notifications/notifications/mark-all-read/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                loadNotifications(); // Reload to update UI
-            }
-        })
-        .catch(error => {
-            console.error('Error marking all notifications as read:', error);
-        });
-    }
     </script>
 </body>
 </html>

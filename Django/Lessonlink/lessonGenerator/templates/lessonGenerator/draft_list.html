@@ -339,6 +339,51 @@
         .weekly-gradient {
             background: linear-gradient(135deg, #9E5EFF 0%, #11468F 100%);
         }
+
+        /* Notification badge pulse animation */
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .animate-pulse {
+            animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Line clamp for notification messages */
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Notification item hover effect */
+        #notifications-container > div:hover {
+            background: linear-gradient(to right, #f9fafb, #ffffff);
+        }
+
+        /* Custom scrollbar for notifications container */
+        #notifications-container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #notifications-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        #notifications-container::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+        }
+
+        #notifications-container::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
     </style>
 </head>
 
@@ -375,17 +420,21 @@
             <div class="flex items-center space-x-4">
                 <!-- Notifications -->
                 <div class="relative">
-                    <button id="notification-btn" class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button id="notification-btn" class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
                         <i class="fas fa-bell text-lg"></i>
-                        <span id="notification-badge" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold hidden">0</span>
+                        <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-gradient-to-r from-red-500 to-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm hidden">0</span>
                     </button>
                     
                     <!-- Notifications Dropdown -->
-                    <div id="notification-dropdown" class="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
-                        <div class="p-4 border-b border-gray-100">
+                    <div id="notification-dropdown" class="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-xl border border-gray-200 hidden z-50 overflow-hidden animate-scale-in">
+                        <div class="p-4 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white">
                             <div class="flex items-center justify-between">
-                                <h3 class="font-semibold text-gray-900">Notifications</h3>
-                                <button id="mark-all-read-btn" class="text-purple-600 text-sm hover:text-purple-700 font-medium">
+                                <h3 class="font-semibold text-white flex items-center">
+                                    <i class="fas fa-bell mr-2 text-sm"></i>
+                                    Notifications
+                                </h3>
+                                <button id="mark-all-read-btn" class="text-white/90 hover:text-white text-xs flex items-center bg-white/20 px-2 py-1 rounded-lg hover:bg-white/30 transition-colors">
+                                    <i class="fas fa-check-double mr-1 text-xs"></i>
                                     Mark all read
                                 </button>
                             </div>
@@ -396,17 +445,12 @@
                                 <p class="text-sm">Loading notifications...</p>
                             </div>
                         </div>
-                        <div class="p-4 border-t border-gray-100">
-                            <button class="w-full text-center text-purple-600 text-sm hover:text-purple-700 font-medium">
-                                View all notifications
-                            </button>
-                        </div>
                     </div>
                 </div>
 
                 <!-- Profile -->
                 <div class="relative">
-                    <button id="profile-btn" class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                    <button id="profile-btn" class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
                         {% if user.profile_picture %}
                         <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="w-full h-full object-cover">
                         {% else %}
@@ -768,6 +812,305 @@
         const userRole = "{{ user.role }}".toLowerCase().trim();
         const userApprovalStatus = "{{ user.approval_status }}".toLowerCase().trim();
 
+        // CSRF token helper
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // ==================== NOTIFICATION SYSTEM ====================
+        function loadNotifications() {
+            fetch('/api/notifications/')
+                .then(response => response.json())
+                .then(data => {
+                    updateNotificationBadge(data.data.unread_count);
+                    updateNotificationDropdown(data.data.notifications);
+                })
+                .catch(error => {
+                    console.error('Error loading notifications:', error);
+                    showNotificationError();
+                });
+        }
+
+        function updateNotificationBadge(unreadCount) {
+            const badge = document.getElementById('notification-badge');
+            if (badge) {
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                    badge.classList.remove('hidden');
+                    
+                    // Add pulse animation for new notifications
+                    badge.classList.add('animate-pulse');
+                    setTimeout(() => {
+                        badge.classList.remove('animate-pulse');
+                    }, 1000);
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+        }
+
+        function updateNotificationDropdown(notifications) {
+            const container = document.getElementById('notifications-container');
+            if (!container) return;
+
+            if (!notifications || notifications.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center text-gray-500">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                        </div>
+                        <p class="text-sm font-medium text-gray-600">No notifications</p>
+                        <p class="text-xs text-gray-400 mt-1">You're all caught up!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let notificationsHTML = '';
+            notifications.forEach(notification => {
+                const timeAgo = notification.time_ago || 'Just now';
+                const readClass = notification.is_read ? '' : 'notification-unread';
+                
+                // Get color and icon based on type
+                let bgColor = 'bg-blue-100';
+                let textColor = 'text-blue-600';
+                let icon = 'fa-info-circle';
+                
+                if (notification.type === 'task_overdue') {
+                    bgColor = 'bg-red-100';
+                    textColor = 'text-red-600';
+                    icon = 'fa-exclamation-circle';
+                } else if (notification.type === 'task_due_1hour') {
+                    bgColor = 'bg-orange-100';
+                    textColor = 'text-orange-600';
+                    icon = 'fa-clock';
+                } else if (notification.type === 'task_due_soon') {
+                    bgColor = 'bg-yellow-100';
+                    textColor = 'text-yellow-600';
+                    icon = 'fa-hourglass-half';
+                } else if (notification.type === 'lesson_submitted') {
+                    bgColor = 'bg-purple-100';
+                    textColor = 'text-purple-600';
+                    icon = 'fa-file-upload';
+                } else if (notification.type === 'lesson_approved') {
+                    bgColor = 'bg-green-100';
+                    textColor = 'text-green-600';
+                    icon = 'fa-check-circle';
+                } else if (notification.type === 'lesson_rejected' || notification.type === 'lesson_needs_revision') {
+                    bgColor = 'bg-red-100';
+                    textColor = 'text-red-600';
+                    icon = 'fa-times-circle';
+                }
+                
+                notificationsHTML += `
+                    <div class="p-4 border-b border-gray-100 cursor-pointer transition-all duration-300 group ${readClass} notification-item" 
+                         data-notification-id="${notification.id}" 
+                         data-type="${notification.type}"
+                         data-lesson-plan-id="${notification.lesson_plan_id || ''}"
+                         data-submission-id="${notification.submission_id || ''}">
+                        <div class="flex items-start space-x-3">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full ${bgColor} flex items-center justify-center">
+                                <i class="fas ${icon} text-sm ${textColor}"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-sm font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">${notification.title}</p>
+                                    ${!notification.is_read ? '<span class="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></span>' : ''}
+                                </div>
+                                <p class="text-xs text-gray-600 mt-0.5 line-clamp-2">${notification.message}</p>
+                                <div class="flex items-center mt-1.5 text-xs text-gray-400">
+                                    <i class="far fa-clock mr-1"></i>
+                                    <span>${timeAgo}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = notificationsHTML;
+
+            // Add click handlers to notification items
+            document.querySelectorAll('.notification-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const notificationId = this.getAttribute('data-notification-id');
+                    const type = this.getAttribute('data-type');
+                    const lessonPlanId = this.getAttribute('data-lesson-plan-id');
+                    const submissionId = this.getAttribute('data-submission-id');
+                    
+                    // Mark as read
+                    markNotificationAsRead(notificationId, this);
+                });
+            });
+        }
+
+        function markNotificationAsRead(notificationId, notificationElement) {
+            fetch(`/api/notifications/${notificationId}/read/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Animate and remove the notification
+                    if (notificationElement) {
+                        notificationElement.classList.add('notification-removing');
+                        setTimeout(() => {
+                            notificationElement.remove();
+                            
+                            // Check if there are any notifications left
+                            const container = document.getElementById('notifications-container');
+                            if (container.children.length === 0) {
+                                container.innerHTML = `
+                                    <div class="p-8 text-center text-gray-500">
+                                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                            <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                                        </div>
+                                        <p class="text-sm font-medium text-gray-600">No notifications</p>
+                                        <p class="text-xs text-gray-400 mt-1">You're all caught up!</p>
+                                    </div>
+                                `;
+                            }
+                            
+                            // Reload notifications to update badge
+                            loadNotifications();
+                        }, 300);
+                    } else {
+                        loadNotifications();
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error marking notification as read:', error);
+            });
+        }
+
+        function markAllNotificationsAsRead() {
+            fetch('/api/notifications/mark-all-read/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear the notification list
+                    const container = document.getElementById('notifications-container');
+                    container.innerHTML = `
+                        <div class="p-8 text-center text-gray-500">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                            </div>
+                            <p class="text-sm font-medium text-gray-600">No notifications</p>
+                            <p class="text-xs text-gray-400 mt-1">You're all caught up!</p>
+                        </div>
+                    `;
+                    
+                    // Hide the badge
+                    const badge = document.getElementById('notification-badge');
+                    if (badge) {
+                        badge.classList.add('hidden');
+                    }
+                    
+                    showToast('All notifications marked as read!', 'success');
+                }
+            })
+            .catch(error => {
+                console.error('Error marking all notifications as read:', error);
+            });
+        }
+
+        function showNotificationError() {
+            const container = document.getElementById('notifications-container');
+            if (container) {
+                container.innerHTML = `
+                    <div class="p-4 text-center text-red-500">
+                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-exclamation-triangle text-2xl text-red-400"></i>
+                        </div>
+                        <p class="text-sm font-medium text-red-600">Failed to load notifications</p>
+                        <p class="text-xs text-red-400 mt-1">Please try again later</p>
+                    </div>
+                `;
+            }
+        }
+
+        // ==================== NOTIFICATION BELL ====================
+        function initializeNotificationBell() {
+            const notificationBtn = document.getElementById('notification-btn');
+            const notificationDropdown = document.getElementById('notification-dropdown');
+            const markAllReadBtn = document.getElementById('mark-all-read-btn');
+            
+            if (!notificationBtn || !notificationDropdown) {
+                console.error('Notification elements not found!');
+                return;
+            }
+            
+            // Toggle notification dropdown when bell is clicked
+            notificationBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                // Close other dropdowns if open
+                if (activeDropdown && activeDropdown !== notificationDropdown) {
+                    activeDropdown.classList.remove('show');
+                    if (activeDropdownToggle) {
+                        activeDropdownToggle.classList.remove('active');
+                    }
+                }
+                
+                // Close profile dropdown
+                const profileDropdown = document.getElementById('profile-dropdown');
+                if (profileDropdown) {
+                    profileDropdown.classList.remove('show');
+                }
+                
+                // Toggle notification dropdown
+                notificationDropdown.classList.toggle('hidden');
+                
+                if (!notificationDropdown.classList.contains('hidden')) {
+                    // Load notifications when dropdown opens
+                    loadNotifications();
+                }
+            });
+            
+            // Mark all as read button
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    markAllNotificationsAsRead();
+                });
+            }
+            
+            // Close notification dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+                    notificationDropdown.classList.add('hidden');
+                }
+            });
+            
+            // Prevent notification dropdown from closing when clicking inside it
+            notificationDropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+
         // ==================== LESSON MODAL FUNCTIONS ====================
         // Open modal function
         function openLessonModal() {
@@ -824,329 +1167,6 @@
             }
         });
 
-        // Function to setup create lesson button based on role and approval
-        function setupCreateLessonButton() {
-            const container = document.getElementById('create-lesson-container');
-            
-            if (!container) return;
-            
-            // Determine if button should be locked
-            const isStudentTeacherNotApproved = (userRole === 'student teacher' && userApprovalStatus !== 'approved');
-            const isOtherNotApproved = (userRole !== 'student teacher' && userRole !== 'teacher' && userApprovalStatus !== 'approved');
-            
-            if (isStudentTeacherNotApproved || isOtherNotApproved) {
-                // LOCKED VERSION
-                let lockMessage = '';
-                if (userRole === 'student teacher' && userApprovalStatus === 'pending') {
-                    lockMessage = 'Waiting for teacher approval';
-                } else if (userRole === 'student teacher' && userApprovalStatus === 'disapproved') {
-                    lockMessage = 'Account disapproved by teacher';
-                } else {
-                    lockMessage = 'Account not approved';
-                }
-                
-                container.innerHTML = `
-                    <div class="relative locked-button mb-2">
-                        <button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-lg shadow-md" disabled>
-                            <i class="fas fa-lock text-lg"></i>
-                            <span class="font-medium">Create Lesson</span>
-                        </button>
-                        <div class="lock-overlay">
-                            <i class="fas fa-lock"></i>
-                        </div>
-                        <div class="locked-tooltip">${lockMessage}</div>
-                    </div>
-                `;
-            } else {
-                // UNLOCKED VERSION - Using modal
-                container.innerHTML = `
-                    <button onclick="openLessonModal()"
-                            class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
-                        <i class="fas fa-plus text-lg"></i>
-                        <span class="font-medium">Create Lesson</span>
-                    </button>
-                `;
-            }
-        }
-
-        // CSRF token helper
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-
-        // ==================== NOTIFICATION SYSTEM ====================
-        function loadNotifications() {
-            fetch('/notifications/notifications/')
-                .then(response => response.json())
-                .then(data => {
-                    updateNotificationBadge(data.unread_count);
-                    updateNotificationDropdown(data.notifications);
-                })
-                .catch(error => {
-                    console.error('Error loading notifications:', error);
-                    showNotificationError();
-                });
-        }
-
-        function updateNotificationBadge(unreadCount) {
-            const badge = document.getElementById('notification-badge');
-            if (badge) {
-                if (unreadCount > 0) {
-                    badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-                    badge.classList.remove('hidden');
-                } else {
-                    badge.classList.add('hidden');
-                }
-            }
-        }
-
-        function updateNotificationDropdown(notifications) {
-            const container = document.getElementById('notifications-container');
-            if (!container) return;
-
-            if (notifications.length === 0) {
-                container.innerHTML = `
-                    <div class="p-8 text-center text-gray-500">
-                        <i class="fas fa-bell-slash text-2xl mb-3"></i>
-                        <p class="text-sm">No notifications</p>
-                    </div>
-                `;
-                return;
-            }
-
-            let notificationsHTML = '';
-            notifications.forEach(notification => {
-                const timeAgo = getTimeAgo(notification.created_at);
-                const readClass = notification.is_read ? '' : 'notification-unread';
-                
-                notificationsHTML += `
-                    <div class="p-4 border-b border-gray-100 cursor-pointer ${readClass} notification-item" 
-                         data-notification-id="${notification.id}" 
-                         data-type="${notification.type}"
-                         data-lesson-plan-id="${notification.lesson_plan_id || ''}"
-                         data-submission-id="${notification.submission_id || ''}">
-                        <div class="flex items-start space-x-3">
-                            <div class="w-2 h-2 ${getNotificationColor(notification.type)} rounded-full mt-2 flex-shrink-0"></div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-gray-900 truncate">${notification.title}</p>
-                                <p class="text-xs text-gray-500 mt-1 line-clamp-2">${notification.message}</p>
-                                <p class="text-xs text-gray-400 mt-1">${timeAgo}</p>
-                            </div>
-                            ${!notification.is_read ? '<div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>' : ''}
-                        </div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = notificationsHTML;
-
-            // Add click handlers to notification items
-            document.querySelectorAll('.notification-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const notificationId = this.getAttribute('data-notification-id');
-                    const type = this.getAttribute('data-type');
-                    const lessonPlanId = this.getAttribute('data-lesson-plan-id');
-                    const submissionId = this.getAttribute('data-submission-id');
-                    
-                    // Mark as read
-                    markNotificationAsRead(notificationId);
-                    
-                    // Handle navigation based on notification type
-                    handleNotificationClick(type, lessonPlanId, submissionId);
-                });
-            });
-        }
-
-        function getNotificationColor(type) {
-            const colors = {
-                'draft_approved': 'bg-green-500',
-                'draft_rejected': 'bg-red-500',
-                'task_due_soon': 'bg-yellow-500',
-                'upcoming_schedule': 'bg-blue-500',
-                'lesson_submitted': 'bg-purple-500',
-                'general': 'bg-gray-500'
-            };
-            return colors[type] || 'bg-gray-500';
-        }
-
-        function getTimeAgo(createdAt) {
-            const now = new Date();
-            const created = new Date(createdAt);
-            const diffMs = now - created;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMs / 3600000);
-            const diffDays = Math.floor(diffMs / 86400000);
-
-            if (diffMins < 1) return 'Just now';
-            if (diffMins < 60) return `${diffMins}m ago`;
-            if (diffHours < 24) return `${diffHours}h ago`;
-            if (diffDays < 7) return `${diffDays}d ago`;
-            
-            return created.toLocaleDateString();
-        }
-
-        function markNotificationAsRead(notificationId) {
-            fetch(`/notifications/notifications/${notificationId}/read/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update UI
-                    const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
-                    if (notificationItem) {
-                        notificationItem.classList.remove('notification-unread');
-                        const unreadDot = notificationItem.querySelector('.bg-blue-500');
-                        if (unreadDot) {
-                            unreadDot.remove();
-                        }
-                    }
-                    // Reload notification count
-                    loadNotifications();
-                }
-            })
-            .catch(error => {
-                console.error('Error marking notification as read:', error);
-            });
-        }
-
-        function markAllNotificationsAsRead() {
-            fetch('/notifications/notifications/mark-all-read/', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    loadNotifications();
-                    // Close dropdown after marking all as read
-                    const dropdown = document.getElementById('notification-dropdown');
-                    if (dropdown) {
-                        dropdown.classList.add('hidden');
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error marking all notifications as read:', error);
-            });
-        }
-
-        function handleNotificationClick(type, lessonPlanId, submissionId) {
-            // Close notification dropdown
-            const dropdown = document.getElementById('notification-dropdown');
-            if (dropdown) {
-                dropdown.classList.add('hidden');
-            }
-
-            // Navigate based on notification type
-            switch(type) {
-                case 'draft_approved':
-                case 'draft_rejected':
-                    if (lessonPlanId) {
-                        window.location.href = `/drafts/${lessonPlanId}/view/`;
-                    }
-                    break;
-                case 'lesson_submitted':
-                    if (submissionId) {
-                        window.location.href = `/lesson-plan-detail/${submissionId}/`;
-                    }
-                    break;
-                case 'task_due_soon':
-                    window.location.href = '/task/';
-                    break;
-                case 'upcoming_schedule':
-                    window.location.href = '/schedule/';
-                    break;
-                default:
-                    // Do nothing for general notifications
-                    break;
-            }
-        }
-
-        function showNotificationError() {
-            const container = document.getElementById('notifications-container');
-            if (container) {
-                container.innerHTML = `
-                    <div class="p-4 text-center text-red-500">
-                        <i class="fas fa-exclamation-triangle text-lg mb-2"></i>
-                        <p class="text-sm">Failed to load notifications</p>
-                    </div>
-                `;
-            }
-        }
-
-        // ==================== NOTIFICATION BELL ====================
-        function initializeNotificationBell() {
-            const notificationBtn = document.getElementById('notification-btn');
-            const notificationDropdown = document.getElementById('notification-dropdown');
-            const markAllReadBtn = document.getElementById('mark-all-read-btn');
-            
-            if (!notificationBtn || !notificationDropdown) {
-                console.error('Notification elements not found!');
-                return;
-            }
-            
-            // Toggle notification dropdown when bell is clicked
-            notificationBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                e.preventDefault();
-                
-                // Close other dropdowns if open
-                if (activeDropdown && activeDropdown !== notificationDropdown) {
-                    activeDropdown.classList.remove('show');
-                    if (activeDropdownToggle) {
-                        activeDropdownToggle.classList.remove('active');
-                    }
-                }
-                
-                // Toggle notification dropdown
-                notificationDropdown.classList.toggle('hidden');
-                
-                if (!notificationDropdown.classList.contains('hidden')) {
-                    // Load notifications when dropdown opens
-                    loadNotifications();
-                }
-            });
-            
-            // Mark all as read button
-            if (markAllReadBtn) {
-                markAllReadBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    markAllNotificationsAsRead();
-                });
-            }
-            
-            // Close notification dropdown when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
-                    notificationDropdown.classList.add('hidden');
-                }
-            });
-            
-            // Prevent notification dropdown from closing when clicking inside it
-            notificationDropdown.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
-        }
-
         // ==================== DROPDOWN FUNCTIONALITY ====================
         function initializeDropdowns() {
             // Dropdown toggle functionality
@@ -1165,6 +1185,12 @@
                             if (activeDropdownToggle) {
                                 activeDropdownToggle.classList.remove('active');
                             }
+                        }
+                        
+                        // Close notification dropdown
+                        const notificationDropdown = document.getElementById('notification-dropdown');
+                        if (notificationDropdown) {
+                            notificationDropdown.classList.add('hidden');
                         }
                         
                         // Toggle current dropdown
@@ -1464,6 +1490,51 @@
                     }
                 });
             });
+        }
+
+        // Function to setup create lesson button based on role and approval
+        function setupCreateLessonButton() {
+            const container = document.getElementById('create-lesson-container');
+            
+            if (!container) return;
+            
+            // Determine if button should be locked
+            const isStudentTeacherNotApproved = (userRole === 'student teacher' && userApprovalStatus !== 'approved');
+            const isOtherNotApproved = (userRole !== 'student teacher' && userRole !== 'teacher' && userApprovalStatus !== 'approved');
+            
+            if (isStudentTeacherNotApproved || isOtherNotApproved) {
+                // LOCKED VERSION
+                let lockMessage = '';
+                if (userRole === 'student teacher' && userApprovalStatus === 'pending') {
+                    lockMessage = 'Waiting for teacher approval';
+                } else if (userRole === 'student teacher' && userApprovalStatus === 'disapproved') {
+                    lockMessage = 'Account disapproved by teacher';
+                } else {
+                    lockMessage = 'Account not approved';
+                }
+                
+                container.innerHTML = `
+                    <div class="relative locked-button mb-2">
+                        <button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-lg shadow-md" disabled>
+                            <i class="fas fa-lock text-lg"></i>
+                            <span class="font-medium">Create Lesson</span>
+                        </button>
+                        <div class="lock-overlay">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <div class="locked-tooltip">${lockMessage}</div>
+                    </div>
+                `;
+            } else {
+                // UNLOCKED VERSION - Using modal
+                container.innerHTML = `
+                    <button onclick="openLessonModal()"
+                            class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md">
+                        <i class="fas fa-plus text-lg"></i>
+                        <span class="font-medium">Create Lesson</span>
+                    </button>
+                `;
+            }
         }
 
         document.addEventListener('DOMContentLoaded', function() {

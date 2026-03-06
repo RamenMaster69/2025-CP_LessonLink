@@ -12,10 +12,11 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 
-# Import the new task API views
+# Import all task and notification API views
 from .views import (
-    add_task_api, update_task_status_api, delete_task_api,
-    get_notifications_api, mark_notification_read_api
+    add_task_api, get_task_api, update_task_api, update_task_status_api, delete_task_api,
+    get_notifications_api, mark_notification_read_api, get_notification_counts_api, 
+    mark_all_notifications_read_api, delete_notification_api
 )
 
 urlpatterns = [
@@ -108,19 +109,28 @@ urlpatterns = [
     path('teacher/reviews/', views.supervising_teacher_reviews, name='supervising_teacher_reviews'),
     path('teacher/review-student-lesson/<int:submission_id>/', views.review_student_lesson_plan, name='review_student_lesson_plan'),
 
-    # ==================== TASK API ENDPOINTS ====================
+    # ==================== TASK API ENDPOINTS (COMPLETE) ====================
+    # Task CRUD operations
     path('api/tasks/add/', add_task_api, name='add_task_api'),
+    path('api/tasks/get/<int:task_id>/', get_task_api, name='get_task_api'),  # ← FIXED: Added missing endpoint
     path('api/tasks/update-status/<int:task_id>/', update_task_status_api, name='update_task_status_api'),
+    path('api/tasks/update/<int:task_id>/', update_task_api, name='update_task_api'),  # ← FIXED: Added missing endpoint
     path('api/tasks/delete/<int:task_id>/', delete_task_api, name='delete_task_api'),
+
+    # ==================== NOTIFICATION API ENDPOINTS (COMPLETE) ====================
     path('api/notifications/', get_notifications_api, name='get_notifications_api'),
-    path('api/notifications/mark-read/<int:notification_id>/', mark_notification_read_api, name='mark_notification_read_api'),
+    path('api/notifications/counts/', get_notification_counts_api, name='get_notification_counts_api'),
+    path('api/notifications/<int:notification_id>/read/', mark_notification_read_api, name='mark_notification_read_api'),
+    path('api/notifications/mark-all-read/', mark_all_notifications_read_api, name='mark_all_notifications_read_api'),
+    path('api/notifications/<int:notification_id>/delete/', delete_notification_api, name='delete_notification_api'),
+    
 
     # ==================== SCHEDULE API ENDPOINTS ====================
     path('api/schedules/', views.create_schedule_api, name='create_schedule_api'),
     path('api/schedules/all/', views.get_all_schedules, name='get_all_schedules'),
     path('api/schedules/<int:schedule_id>/', views.delete_schedule_api, name='delete_schedule_api'),
     
-    # Test endpoint
+    # Test endpoint (commented out)
     # path('api/test/schedule/', views.test_schedule_api, name='test_schedule_api'),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

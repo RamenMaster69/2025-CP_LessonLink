@@ -20,6 +20,7 @@ class CustomUserManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
         return user
+        
     
     def create_superuser(self, email, password=None, **extra_fields):
         """Create and return a superuser with an email and password"""
@@ -318,19 +319,21 @@ class Task(models.Model):
         return self.title
     
     def is_overdue(self):
+        """Check if task is overdue - handles both string and date objects"""
         if self.due_date and self.status == 'pending':
-            # make sure due_date is a date
             due_date = self._get_date(self.due_date)
             return timezone.now().date() > due_date
         return False
 
     def formatted_due_date(self):
+        """Return due date in YYYY-MM-DD format"""
         if self.due_date:
             due_date = self._get_date(self.due_date)
             return due_date.strftime('%Y-%m-%d')
         return None
 
     def display_due_date(self):
+        """Return human-readable due date (Today, Tomorrow, or full date)"""
         if not self.due_date:
             return "No due date"
         
@@ -346,6 +349,7 @@ class Task(models.Model):
             return due_date.strftime('%A, %B %d')
 
     def display_due_datetime(self):
+        """Return formatted due date and time - safe version handling both string and time objects"""
         if not self.due_date:
             return "No due date"
         
@@ -353,21 +357,57 @@ class Task(models.Model):
         date_str = self.display_due_date()
         
         if self.due_time:
-            due_time = self._get_time(self.due_time)
-            time_str = due_time.strftime('%I:%M %p')
-            return f"{date_str}, {time_str}"
+            try:
+                # Check if it's already a time object
+                if hasattr(self.due_time, 'strftime'):
+                    time_str = self.due_time.strftime('%I:%M %p')
+                else:
+                    # It's a string - convert to time object first
+                    time_obj = self._get_time(self.due_time)
+                    time_str = time_obj.strftime('%I:%M %p')
+                return f"{date_str}, {time_str}"
+            except (ValueError, AttributeError, TypeError) as e:
+                # If all else fails, return just the string representation
+                return f"{date_str}, {str(self.due_time)}"
         
         return date_str
 
+    def formatted_time(self):
+        """Return formatted time in 12-hour format - safe for templates"""
+        if not self.due_time:
+            return None
+        try:
+            if hasattr(self.due_time, 'strftime'):
+                return self.due_time.strftime('%I:%M %p')
+            else:
+                time_obj = self._get_time(self.due_time)
+                return time_obj.strftime('%I:%M %p')
+        except:
+            return str(self.due_time)
+
     # --- helpers to safely parse strings ---
     def _get_date(self, value):
+        """Convert string to date if needed"""
         if isinstance(value, str):
-            return datetime.strptime(value, "%Y-%m-%d").date()
+            try:
+                return datetime.strptime(value, "%Y-%m-%d").date()
+            except ValueError:
+                return datetime.strptime(value, "%Y-%m-%d").date()
         return value
 
     def _get_time(self, value):
+        """Convert string to time if needed"""
         if isinstance(value, str):
-            return datetime.strptime(value, "%H:%M").time()
+            try:
+                # Try HH:MM format first
+                return datetime.strptime(value, "%H:%M").time()
+            except ValueError:
+                try:
+                    # Try HH:MM:SS format
+                    return datetime.strptime(value, "%H:%M:%S").time()
+                except ValueError:
+                    # Return current time as fallback
+                    return timezone.now().time()
         return value
 
 
@@ -391,6 +431,83 @@ class TaskNotification(models.Model):
     
     def __str__(self):
         return f"{self.notification_type} notification for {self.task.title}"
+
+
+# ==================== UPDATED NOTIFICATION MODEL (with 1-hour notification type) ====================
+class Notification(models.Model):
+    """Unified notification model for all system notifications"""
+    NOTIFICATION_TYPES = [
+        ('task_due_soon', 'Task Due Soon'),           # 1 day before
+        ('task_due_1hour', 'Task Due in 1 Hour'),    # 1 hour before (only if time is set)
+        ('task_overdue', 'Task Overdue'),
+        ('task_completed', 'Task Completed'),
+        ('task_created', 'Task Created'),
+        ('lesson_submitted', 'Lesson Submitted'),
+        ('lesson_approved', 'Lesson Approved'),
+        ('lesson_rejected', 'Lesson Rejected'),
+        ('lesson_needs_revision', 'Lesson Needs Revision'),
+        ('student_concern', 'Student Concern'),
+        ('concern_resolved', 'Concern Resolved'),
+        ('schedule_reminder', 'Schedule Reminder'),
+        ('general', 'General'),
+    ]
+    
+    # CHANGED: related_name from 'notifications' to 'app_notifications' to avoid conflicts
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='app_notifications')
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    notification_type = models.CharField(max_length=50, choices=NOTIFICATION_TYPES, default='general')
+    is_read = models.BooleanField(default=False)
+    
+    # Related objects (optional) - store IDs to link to specific items
+    task_id = models.IntegerField(null=True, blank=True)
+    lesson_plan_id = models.IntegerField(null=True, blank=True)
+    submission_id = models.IntegerField(null=True, blank=True)
+    concern_id = models.IntegerField(null=True, blank=True)
+    schedule_id = models.IntegerField(null=True, blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['user', 'is_read']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.email} - {self.title} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+
+    
+    
+    
+    @property
+    def time_ago(self):
+        """Return human-readable time ago string"""
+        from django.utils import timezone
+        now = timezone.now()
+        diff = now - self.created_at
+        
+        if diff.days > 0:
+            if diff.days == 1:
+                return "Yesterday"
+            elif diff.days < 7:
+                return f"{diff.days} days ago"
+            elif diff.days < 30:
+                weeks = diff.days // 7
+                return f"{weeks} week{'s' if weeks > 1 else ''} ago"
+            else:
+                months = diff.days // 30
+                return f"{months} month{'s' if months > 1 else ''} ago"
+        elif diff.seconds >= 3600:
+            hours = diff.seconds // 3600
+            return f"{hours} hour{'s' if hours > 1 else ''} ago"
+        elif diff.seconds >= 60:
+            minutes = diff.seconds // 60
+            return f"{minutes} minute{'s' if minutes > 1 else ''} ago"
+        else:
+            return "Just now"
 
 
 class SchoolRegistration(models.Model):

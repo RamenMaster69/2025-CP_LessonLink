@@ -20,12 +20,12 @@ import json
 import os
 import time
 import logging
-import requests  # <-- ADD THIS IMPORT
+import requests
 from PIL import Image
 import uuid
 from io import BytesIO
 from django.utils import timezone
-from .models import LessonPlanSubmission, User, Schedule, Task, TaskNotification, SchoolRegistration, AdminLog, Exemplar, StudentConcern
+from .models import LessonPlanSubmission, User, Schedule, Task, TaskNotification, SchoolRegistration, AdminLog, Exemplar, StudentConcern, Notification
 from lessonGenerator.models import LessonPlan
 from .serializers import ScheduleSerializer, ExemplarSerializer
 from django.db.models import Q
@@ -40,7 +40,6 @@ from reportlab.lib import colors
 import io
 from .forms import SchoolAdminRegistrationForm
 logger = logging.getLogger(__name__)
-from lessonlinkNotif.models import Notification
 from django.http import HttpResponseForbidden
 from functools import wraps
 import PyPDF2
@@ -50,6 +49,289 @@ import tempfile
 from django.views.decorators.http import require_POST, require_http_methods
 from .forms import ScheduleForm
 from .models import Schedule
+from datetime import datetime, timedelta, time as datetime_time
+import pytz
+
+# ====================================================== HELPER FUNCTIONS ======================================================
+
+def is_superuser(user):
+    """Check if user is superuser"""
+    return user.is_authenticated and user.is_superuser
+
+def is_admin(user):
+    """Check if user is admin"""
+    return user.is_authenticated and (user.role == 'Admin' or user.is_superuser)
+
+def get_client_ip(request):
+    """Get client IP address"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+# ====================================================== NOTIFICATION HELPER FUNCTIONS ======================================================
+
+def create_task_notification(user, task, notification_type):
+    """Create a notification for a task"""
+    titles = {
+        'task_due_soon': 'Task Due Soon',
+        'task_due_1hour': 'Task Due in 1 Hour',
+        'task_overdue': 'Task Overdue',
+        'task_completed': 'Task Completed',
+        'task_created': 'New Task Created',
+    }
+    
+    messages = {
+        'task_due_soon': f'Your task "{task.title}" is due tomorrow.',
+        'task_due_1hour': f'Your task "{task.title}" is due in less than 1 hour!',
+        'task_overdue': f'Your task "{task.title}" is overdue. Please complete it as soon as possible.',
+        'task_completed': f'Task "{task.title}" has been completed.',
+        'task_created': f'New task created: "{task.title}"',
+    }
+    
+    return Notification.objects.create(
+        user=user,
+        title=titles.get(notification_type, 'Task Notification'),
+        message=messages.get(notification_type, f'Update for task: {task.title}'),
+        notification_type=notification_type,
+        task_id=task.id
+    )
+
+def create_lesson_submission_notification(submission):
+    """Create notification when a lesson is submitted"""
+    return Notification.objects.create(
+        user=submission.submitted_to,
+        title='Lesson Plan Submitted',
+        message=f'{submission.submitted_by.full_name} has submitted a lesson plan for review: "{submission.lesson_plan.title}"',
+        notification_type='lesson_submitted',
+        lesson_plan_id=submission.lesson_plan.id,
+        submission_id=submission.id
+    )
+
+def create_lesson_review_notification(submission, approved=True):
+    """Create notification when a lesson is reviewed"""
+    status = 'approved' if approved else 'needs revision'
+    notification_type = 'lesson_approved' if approved else 'lesson_needs_revision'
+    
+    return Notification.objects.create(
+        user=submission.submitted_by,
+        title=f'Lesson Plan {status.title()}',
+        message=f'Your lesson plan "{submission.lesson_plan.title}" has been {status}.',
+        notification_type=notification_type,
+        lesson_plan_id=submission.lesson_plan.id,
+        submission_id=submission.id
+    )
+
+def create_concern_notification(concern):
+    """Create notification for a student concern"""
+    return Notification.objects.create(
+        user=concern.student.supervising_teacher,
+        title='New Student Concern',
+        message=f'{concern.student.full_name} has submitted a concern: "{concern.subject}"',
+        notification_type='student_concern',
+        concern_id=concern.id
+    )
+
+def create_concern_resolved_notification(concern):
+    """Create notification when a concern is resolved"""
+    return Notification.objects.create(
+        user=concern.student,
+        title='Concern Resolved',
+        message=f'Your concern "{concern.subject}" has been resolved.',
+        notification_type='concern_resolved',
+        concern_id=concern.id
+    )
+
+def create_schedule_reminder(schedule):
+    """Create notification for upcoming schedule"""
+    return Notification.objects.create(
+        user=schedule.user,
+        title='Upcoming Schedule',
+        message=f'You have "{schedule.title}" scheduled for {schedule.get_day_display()} at {schedule.formatted_start_time}.',
+        notification_type='schedule_reminder',
+        schedule_id=schedule.id
+    )
+
+def get_time_ago(created_at):
+    """Return human-readable time ago string"""
+    now = timezone.now()
+    diff = now - created_at
+    
+    if diff.days > 0:
+        if diff.days == 1:
+            return "Yesterday"
+        elif diff.days < 7:
+            return f"{diff.days} days ago"
+        elif diff.days < 30:
+            weeks = diff.days // 7
+            return f"{weeks} week{'s' if weeks > 1 else ''} ago"
+        else:
+            months = diff.days // 30
+            return f"{months} month{'s' if months > 1 else ''} ago"
+    elif diff.seconds >= 3600:
+        hours = diff.seconds // 3600
+        return f"{hours} hour{'s' if hours > 1 else ''} ago"
+    elif diff.seconds >= 60:
+        minutes = diff.seconds // 60
+        return f"{minutes} minute{'s' if minutes > 1 else ''} ago"
+    else:
+        return "Just now"
+
+# ====================================================== ADMIN SCHOOL REGISTRATIONS VIEW ======================================================
+
+@login_required
+@user_passes_test(is_superuser)
+def admin_school_registrations(request):
+    """Admin view to manage school registrations"""
+    # Get all registrations ordered by creation date
+    registrations = SchoolRegistration.objects.all().order_by('-created_at')
+    
+    # Filter by status if requested
+    status_filter = request.GET.get('status')
+    if status_filter:
+        registrations = registrations.filter(status=status_filter)
+    
+    # Calculate statistics
+    total_registrations = registrations.count()
+    pending_count = registrations.filter(status='pending').count()
+    approved_count = registrations.filter(status='approved').count()
+    rejected_count = registrations.filter(status='rejected').count()
+    
+    context = {
+        'registrations': registrations,
+        'status_filter': status_filter,
+        'status_choices': SchoolRegistration.STATUS_CHOICES,
+        'total_registrations': total_registrations,
+        'pending_count': pending_count,
+        'approved_count': approved_count,
+        'rejected_count': rejected_count,
+    }
+    
+    return render(request, 'admin/school_registrations.html', context)
+
+# ====================================================== NOTIFICATION API VIEWS ======================================================
+
+@login_required
+def get_notifications_api(request):
+    """Get user notifications with optional filtering"""
+    try:
+        # Get query parameters
+        limit = int(request.GET.get('limit', 20))
+        unread_only = request.GET.get('unread_only', 'false').lower() == 'true'
+        notification_type = request.GET.get('type', None)
+        
+        # Base queryset
+        notifications = Notification.objects.filter(user=request.user)
+        
+        # Apply filters
+        if unread_only:
+            notifications = notifications.filter(is_read=False)
+        
+        if notification_type:
+            notifications = notifications.filter(notification_type=notification_type)
+        
+        # Get total unread count
+        unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+        
+        # Get recent notifications
+        recent_notifications = notifications[:limit]
+        
+        data = {
+            'unread_count': unread_count,
+            'notifications': [
+                {
+                    'id': n.id,
+                    'title': n.title,
+                    'message': n.message,
+                    'type': n.notification_type,
+                    'is_read': n.is_read,
+                    'task_id': n.task_id,
+                    'lesson_plan_id': n.lesson_plan_id,
+                    'submission_id': n.submission_id,
+                    'concern_id': n.concern_id,
+                    'schedule_id': n.schedule_id,
+                    'created_at': n.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    'time_ago': get_time_ago(n.created_at)
+                }
+                for n in recent_notifications
+            ]
+        }
+        
+        return JsonResponse({'success': True, 'data': data})
+        
+    except Exception as e:
+        logger.error(f"Error in get_notifications_api: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+@require_POST
+@csrf_exempt
+def mark_notification_read_api(request, notification_id):
+    """Mark a single notification as read"""
+    try:
+        notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+        notification.is_read = True
+        notification.save()
+        
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        logger.error(f"Error in mark_notification_read_api: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+@require_POST
+@csrf_exempt
+def mark_all_notifications_read_api(request):
+    """Mark all user notifications as read"""
+    try:
+        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        logger.error(f"Error in mark_all_notifications_read_api: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+@require_POST
+@csrf_exempt
+def delete_notification_api(request, notification_id):
+    """Delete a notification"""
+    try:
+        notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+        notification.delete()
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        logger.error(f"Error in delete_notification_api: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+def get_notification_counts_api(request):
+    """Get notification counts by type"""
+    try:
+        # Get unread counts by type
+        counts = {}
+        
+        for type_code, type_label in Notification.NOTIFICATION_TYPES:
+            counts[type_code] = Notification.objects.filter(
+                user=request.user,
+                notification_type=type_code,
+                is_read=False
+            ).count()
+        
+        counts['total'] = Notification.objects.filter(
+            user=request.user,
+            is_read=False
+        ).count()
+        
+        return JsonResponse({'success': True, 'counts': counts})
+        
+    except Exception as e:
+        logger.error(f"Error in get_notification_counts_api: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 # ====================================================== EMAIL NOTIFICATION FUNCTION ======================================================
 
@@ -1312,8 +1594,6 @@ def login_view(request):
     return render(request, 'login.html', context)
 
 
-    
-
 def redirect_based_on_role(user):
     """Redirect user based on their role - UPDATED TO CHECK SUPERUSER FIRST"""
     print(f"DEBUG redirect_based_on_role: User {user.email} - Role: {user.role} - Superuser: {user.is_superuser}")
@@ -1651,6 +1931,10 @@ def submit_student_concern(request):
             status='pending'
         )
         
+        # Create notification for supervising teacher
+        if request.user.supervising_teacher:
+            create_concern_notification(concern)
+        
         return JsonResponse({
             'success': True,
             'message': 'Concern submitted successfully',
@@ -1747,6 +2031,9 @@ def resolve_student_concern(request, concern_id):
         concern.status = 'resolved'
         concern.save()
         
+        # Create notification for student
+        create_concern_resolved_notification(concern)
+        
         return JsonResponse({'success': True, 'message': 'Concern marked as resolved'})
         
     except StudentConcern.DoesNotExist:
@@ -1756,10 +2043,6 @@ def resolve_student_concern(request, concern_id):
 
 
 # ====================================================== SUPER USER SCHOOL APPROVAL ======================================================
-
-def is_superuser(user):
-    """Check if user is superuser"""
-    return user.is_authenticated and user.is_superuser
 
 @login_required
 @user_passes_test(is_superuser)
@@ -1948,13 +2231,21 @@ def task(request):
         tasks = tasks.filter(status='pending')
     elif filter_type in ['high', 'medium', 'low']:
         tasks = tasks.filter(priority=filter_type)
+    elif filter_type == 'overdue':
+        # Overdue tasks are pending with due_date < today
+        from datetime import date
+        tasks = tasks.filter(status='pending', due_date__lt=date.today())
+    elif filter_type == 'today':
+        from datetime import date
+        tasks = tasks.filter(due_date=date.today())
+    elif filter_type == 'upcoming':
+        from datetime import date, timedelta
+        tasks = tasks.filter(status='pending', due_date__gt=date.today())
     
     # Handle sorting
     sort_by = request.GET.get('sort', 'due-date')
-    if sort_by == 'priority':
-        # Custom ordering for priority
-        priority_order = {'high': 0, 'medium': 1, 'low': 2}
-        tasks = sorted(tasks, key=lambda x: priority_order[x.priority])
+    if sort_by == 'due-time':
+        tasks = tasks.order_by('due_date', 'due_time')
     elif sort_by == 'created':
         tasks = tasks.order_by('-created_at')
     elif sort_by == 'alphabetical':
@@ -1966,6 +2257,101 @@ def task(request):
     # Count completed tasks
     completed_count = Task.objects.filter(user=user, status='completed').count()
     total_count = Task.objects.filter(user=user).count()
+    
+    # Check for tasks due soon and create notifications
+    from datetime import date, timedelta, datetime
+    today = date.today()
+    tomorrow = today + timedelta(days=1)
+    now = timezone.now()
+    
+    # Get all pending tasks
+    pending_tasks = Task.objects.filter(user=user, status='pending')
+    
+    for task in pending_tasks:
+        if task.due_date:
+            # Convert task due_date to date object if it's a string
+            if isinstance(task.due_date, str):
+                due_date = datetime.strptime(task.due_date, '%Y-%m-%d').date()
+            else:
+                due_date = task.due_date
+            
+            # === OVERDUE NOTIFICATION ===
+            # Check if task is overdue (due date < today)
+            if due_date < today:
+                # Check if overdue notification already exists for this task
+                overdue_notification_exists = Notification.objects.filter(
+                    user=user,
+                    task_id=task.id,
+                    notification_type='task_overdue'
+                ).exists()
+                
+                if not overdue_notification_exists:
+                    print(f"  ✓ CREATING OVERDUE NOTIFICATION for task: {task.title}")
+                    create_task_notification(user, task, 'task_overdue')
+                else:
+                    print(f"  ✗ Overdue notification already exists for task: {task.title}")
+            
+            # === 1-DAY BEFORE NOTIFICATION ===
+            # Only send if task is not overdue and is due tomorrow
+            elif due_date == tomorrow and due_date >= today:
+                # Check if 1-day notification already exists
+                notification_1day_exists = Notification.objects.filter(
+                    user=user,
+                    task_id=task.id,
+                    notification_type='task_due_soon',
+                    created_at__date=today
+                ).exists()
+                
+                if not notification_1day_exists:
+                    print(f"  ✓ CREATING 1-DAY NOTIFICATION for task: {task.title}")
+                    create_task_notification(user, task, 'task_due_soon')
+            
+            # === 1-HOUR BEFORE NOTIFICATION ===
+            # Only check if task is due today, has time set, and is not overdue
+            if task.due_time and due_date == today and due_date >= today:
+                # Combine due date and time
+                if isinstance(task.due_time, str):
+                    # Parse time string
+                    time_parts = task.due_time.split(':')
+                    due_time = time(int(time_parts[0]), int(time_parts[1]))
+                else:
+                    due_time = task.due_time
+                
+                # Create datetime for today at the due time
+                due_datetime = datetime.combine(due_date, due_time)
+                due_datetime = timezone.make_aware(due_datetime)  # Make timezone-aware
+                
+                # Calculate time difference in hours (as float for precise comparison)
+                time_diff = due_datetime - now
+                hours_until_due = time_diff.total_seconds() / 3600
+                
+                # DEBUG: Print for debugging
+                print(f"Task: {task.title}")
+                print(f"  Due: {due_datetime}")
+                print(f"  Now: {now}")
+                print(f"  Hours until due: {hours_until_due}")
+                print(f"  Should notify (0 < hours <= 1): {0 < hours_until_due <= 1}")
+                
+                # Check if task is due within the next hour (strictly between 0 and 1 hour)
+                # Using 0 < hours_until_due <= 1 ensures:
+                # - Not notifying for past due tasks (hours_until_due <= 0)
+                # - Not notifying for tasks due in more than 1 hour (hours_until_due > 1)
+                if 0 < hours_until_due <= 1:
+                    # Check if 1-hour notification already exists (within last hour)
+                    notification_1hour_exists = Notification.objects.filter(
+                        user=user,
+                        task_id=task.id,
+                        notification_type='task_due_1hour',
+                        created_at__gte=timezone.now() - timedelta(hours=1)
+                    ).exists()
+                    
+                    if not notification_1hour_exists:
+                        print(f"  ✓ CREATING 1-HOUR NOTIFICATION for task: {task.title}")
+                        create_task_notification(user, task, 'task_due_1hour')
+                    else:
+                        print(f"  ✗ 1-hour notification already exists for task: {task.title}")
+                else:
+                    print(f"  ✗ Not creating notification (outside 0-1 hour window)")
     
     return render(request, 'task.html', {
         'user': user,
@@ -2323,6 +2709,10 @@ def create_schedule(request):
                 }, status=400)
             
             schedule.save()
+            
+            # Create notification for new schedule
+            create_schedule_reminder(schedule)
+            
             return JsonResponse({
                 'success': True,
                 'id': schedule.id,
@@ -2426,12 +2816,13 @@ def get_schedules(request):
         schedule_list = []
         
         for schedule in schedules:
+            # Don't format these - they're already strings from the model properties
             schedule_list.append({
                 'id': schedule.id,
                 'title': schedule.title,
                 'day': schedule.day,
-                'start': schedule.formatted_start_time,
-                'end': schedule.formatted_end_time,
+                'start': schedule.formatted_start_time,  # This is already a string
+                'end': schedule.formatted_end_time,      # This is already a string
                 'instructor': schedule.instructor,
                 'color': schedule.color,
                 'description': schedule.description or ''
@@ -2439,6 +2830,9 @@ def get_schedules(request):
         
         return JsonResponse({'schedules': schedule_list})
     except Exception as e:
+        print(f"ERROR in get_schedules: {str(e)}")  # Add debug print
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
             'error': str(e)
         }, status=500)
@@ -2640,35 +3034,59 @@ def admin_dashboard(request):
     return render(request, 'admin_dashboard.html', context)
 
 
-# Task API Views
+# ====================================================== TASK API VIEWS ======================================================
+
 @csrf_exempt
 @require_POST
 @login_required
 def add_task_api(request):
+    """Add a new task"""
     user = request.user
     
     try:
         data = json.loads(request.body)
+        
+        # Handle due_time - convert empty string to None
+        due_time = data.get('due_time')
+        if due_time == '' or due_time is None:
+            due_time = None
+            
+        # Handle due_date - convert empty string to None
+        due_date = data.get('due_date')
+        if due_date == '':
+            due_date = None
         
         # Create new task
         task = Task(
             user=user,
             title=data.get('title'),
             description=data.get('description', ''),
-            priority=data.get('priority', 'medium'),
-            due_date=data.get('due_date'),
-            due_time=data.get('due_time')
+            due_date=due_date,
+            due_time=due_time,
         )
         task.save()
         
-        # Create notification
-        notification = TaskNotification(
-            user=user,
-            task=task,
-            notification_type='new',
-            message=f'New task created: {task.title}'
-        )
-        notification.save()
+        # Create notification for new task
+        create_task_notification(user, task, 'task_created')
+        
+        # Check if task is due soon (within 24 hours)
+        if task.due_date:
+            from datetime import datetime, timedelta, date
+            # Use the model's helper method to ensure we have a date object
+            due_date_obj = task._get_date(task.due_date)
+            today = date.today()
+            if due_date_obj == today or due_date_obj == today + timedelta(days=1):
+                create_task_notification(user, task, 'task_due_soon')
+        
+        # Format response - use the model's methods to avoid formatting errors
+        due_time_str = None
+        if task.due_time:
+            # Check if due_time is a time object or string
+            if hasattr(task.due_time, 'strftime'):
+                due_time_str = task.due_time.strftime('%H:%M')
+            else:
+                # If it's a string, use it directly
+                due_time_str = task.due_time
         
         return JsonResponse({
             'success': True,
@@ -2676,20 +3094,54 @@ def add_task_api(request):
                 'id': task.id,
                 'title': task.title,
                 'description': task.description,
-                'priority': task.priority,
                 'status': task.status,
-                'due_date': task.formatted_due_date(),
+                'due_date': task.formatted_due_date(),  # This handles string/date conversion
+                'due_time': due_time_str,
                 'display_due_date': task.display_due_date(),
-                'display_due_datetime': task.display_due_datetime(),
+                'display_due_datetime': task.display_due_datetime(),  # This now handles safely
             }
         })
     except Exception as e:
+        logger.error(f"Error in add_task_api: {str(e)}")
+        print(f"Error in add_task_api: {str(e)}")  # Add print for debugging
+        import traceback
+        traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)})
+
+
+
+@login_required
+def get_task_api(request, task_id):
+    """Get a single task for editing"""
+    try:
+        task = get_object_or_404(Task, id=task_id, user=request.user)
+        
+        # Format due_time properly
+        due_time = None
+        if task.due_time:
+            due_time = task.due_time.strftime('%H:%M')
+        
+        return JsonResponse({
+            'success': True,
+            'task': {
+                'id': task.id,
+                'title': task.title,
+                'description': task.description or '',
+                'due_date': task.formatted_due_date(),  # This returns YYYY-MM-DD
+                'due_time': due_time,  # This returns HH:MM format
+                'status': task.status
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error in get_task_api: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)})
+
 
 @csrf_exempt
 @require_POST
 @login_required
 def update_task_status_api(request, task_id):
+    """Update task status (pending/completed)"""
     user = request.user
     
     try:
@@ -2699,18 +3151,13 @@ def update_task_status_api(request, task_id):
         new_status = data.get('status', 'pending')
         
         if new_status in ['pending', 'completed']:
+            old_status = task.status
             task.status = new_status
             task.save()
             
             # Create notification if task is completed
-            if new_status == 'completed':
-                notification = TaskNotification(
-                    user=user,
-                    task=task,
-                    notification_type='completed',
-                    message=f'Task completed: {task.title}'
-                )
-                notification.save()
+            if new_status == 'completed' and old_status != 'completed':
+                create_task_notification(user, task, 'task_completed')
             
             # Get updated counts
             completed_count = Task.objects.filter(user=user, status='completed').count()
@@ -2725,12 +3172,15 @@ def update_task_status_api(request, task_id):
             return JsonResponse({'success': False, 'error': 'Invalid status'})
             
     except Exception as e:
+        logger.error(f"Error in update_task_status_api: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
+
 
 @csrf_exempt
 @require_POST
 @login_required
 def delete_task_api(request, task_id):
+    """Delete a task"""
     user = request.user
     
     try:
@@ -2747,82 +3197,159 @@ def delete_task_api(request, task_id):
             'total_count': total_count
         })
     except Exception as e:
+        logger.error(f"Error in delete_task_api: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
 
-@login_required
-def get_notifications_api(request):
-    user = request.user
-    
-    try:
-        notifications = TaskNotification.objects.filter(user=user, is_read=False).order_by('-created_at')[:10]
-        
-        notification_data = []
-        for notification in notifications:
-            notification_data.append({
-                'id': notification.id,
-                'type': notification.notification_type,
-                'message': notification.message,
-                'created_at': notification.created_at.strftime('%Y-%m-%d %H:%M'),
-                'is_read': notification.is_read
-            })
-        
-        return JsonResponse({'notifications': notification_data})
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
 
 @csrf_exempt
 @require_POST
 @login_required
-def mark_notification_read_api(request, notification_id):
-    user = request.user
-    
+def update_task_api(request, task_id):
+    """Update an existing task (full update)"""
     try:
-        notification = get_object_or_404(TaskNotification, id=notification_id, user=user)
+        task = get_object_or_404(Task, id=task_id, user=request.user)
+        data = json.loads(request.body)
+        
+        # Handle due_time - convert empty string to None
+        due_time = data.get('due_time')
+        if due_time == '' or due_time is None:
+            due_time = None
+            
+        # Handle due_date - convert empty string to None
+        due_date = data.get('due_date')
+        if due_date == '':
+            due_date = None
+        
+        task.title = data.get('title', task.title)
+        task.description = data.get('description', task.description)
+        task.due_date = due_date
+        task.due_time = due_time
+        task.save()
+        
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        logger.error(f"Error in update_task_api: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+# ====================================================== NOTIFICATION API VIEWS ======================================================
+
+@login_required
+def get_notifications_api(request):
+    """Get user notifications with optional filtering"""
+    try:
+        # Get query parameters
+        limit = int(request.GET.get('limit', 20))
+        unread_only = request.GET.get('unread_only', 'false').lower() == 'true'
+        
+        # Base queryset
+        notifications = Notification.objects.filter(user=request.user)
+        
+        # Apply filters
+        if unread_only:
+            notifications = notifications.filter(is_read=False)
+        
+        # Get total unread count
+        unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+        
+        # Get recent notifications
+        recent_notifications = notifications[:limit]
+        
+        data = {
+            'unread_count': unread_count,
+            'notifications': [
+                {
+                    'id': n.id,
+                    'title': n.title,
+                    'message': n.message,
+                    'type': n.notification_type,
+                    'is_read': n.is_read,
+                    'task_id': n.task_id,
+                    'lesson_plan_id': n.lesson_plan_id,
+                    'submission_id': n.submission_id,
+                    'concern_id': n.concern_id,
+                    'schedule_id': n.schedule_id,
+                    'created_at': n.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    'time_ago': get_time_ago(n.created_at)
+                }
+                for n in recent_notifications
+            ]
+        }
+        
+        return JsonResponse({'success': True, 'data': data})
+        
+    except Exception as e:
+        logger.error(f"Error in get_notifications_api: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+@require_POST
+@csrf_exempt
+def mark_notification_read_api(request, notification_id):
+    """Mark a single notification as read"""
+    try:
+        notification = get_object_or_404(Notification, id=notification_id, user=request.user)
         notification.is_read = True
         notification.save()
         
         return JsonResponse({'success': True})
+        
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
+        logger.error(f"Error in mark_notification_read_api: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
-# Optional: Add some utility views for admin management
-def admin_school_registrations(request):
-    """Admin view to manage school registrations"""
-    registrations = SchoolRegistration.objects.all().order_by('-created_at')
-    
-    # Filter by status if requested
-    status_filter = request.GET.get('status')
-    if status_filter:
-        registrations = registrations.filter(status=status_filter)
-    
-    context = {
-        'registrations': registrations,
-        'status_filter': status_filter,
-        'status_choices': SchoolRegistration.STATUS_CHOICES,
-    }
-    
-    return render(request, 'admin/school_registrations.html', context)
+@login_required
+@require_POST
+@csrf_exempt
+def mark_all_notifications_read_api(request):
+    """Mark all user notifications as read"""
+    try:
+        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        logger.error(f"Error in mark_all_notifications_read_api: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
-def admin_approve_registration(request, registration_id):
-    """Admin view to approve/reject registrations"""
-    if request.method == 'POST':
-        try:
-            registration = SchoolRegistration.objects.get(id=registration_id)
-            action = request.POST.get('action')
-            
-            if action == 'approve':
-                registration.approve_registration()
-                messages.success(request, f"Registration for {registration.school_name} approved!")
-            elif action == 'reject':
-                reason = request.POST.get('reason', '')
-                registration.reject_registration(reason=reason)
-                messages.success(request, f"Registration for {registration.school_name} rejected.")
-            
-        except SchoolRegistration.DoesNotExist:
-            messages.error(request, "Registration not found.")
-    
-    return redirect('admin_school_registrations')
+@login_required
+@require_POST
+@csrf_exempt
+def delete_notification_api(request, notification_id):
+    """Delete a notification"""
+    try:
+        notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+        notification.delete()
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        logger.error(f"Error in delete_notification_api: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
+@login_required
+def get_notification_counts_api(request):
+    """Get notification counts by type"""
+    try:
+        # Get unread counts by type
+        counts = {}
+        
+        for type_code, type_label in Notification.NOTIFICATION_TYPES:
+            counts[type_code] = Notification.objects.filter(
+                user=request.user,
+                notification_type=type_code,
+                is_read=False
+            ).count()
+        
+        counts['total'] = Notification.objects.filter(
+            user=request.user,
+            is_read=False
+        ).count()
+        
+        return JsonResponse({'success': True, 'counts': counts})
+        
+    except Exception as e:
+        logger.error(f"Error in get_notification_counts_api: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
 @login_required
@@ -2885,8 +3412,7 @@ def submit_lesson_plan(request, lesson_plan_id):
                 lesson_plan.save()
                 
                 # Create submission notification for supervising teacher
-                from lessonlinkNotif.models import Notification
-                Notification.create_lesson_submitted_notification(submission)
+                create_lesson_submission_notification(submission)
                 
                 messages.success(request, 
                     f"Lesson plan submitted successfully to your supervising teacher: "
@@ -2946,8 +3472,7 @@ def submit_lesson_plan(request, lesson_plan_id):
                 lesson_plan.save()
                 
                 # Create submission notification for department head
-                from lessonlinkNotif.models import Notification
-                Notification.create_lesson_submitted_notification(submission)
+                create_lesson_submission_notification(submission)
                 
                 messages.success(request, 
                     f"Lesson plan submitted successfully to department head: "
@@ -3087,12 +3612,7 @@ def review_lesson_plan(request, submission_id):
                 submission.lesson_plan.status = LessonPlan.FINAL
                 
                 # Create approval notification
-                try:
-                    from lessonlinkNotif.models import Notification
-                    Notification.create_draft_status_notification(submission, approved=True)
-                except Exception as e:
-                    print(f"Notification creation error: {e}")
-                    # Continue even if notification fails
+                create_lesson_review_notification(submission, approved=True)
                 
                 messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' approved successfully!")
                 
@@ -3103,12 +3623,7 @@ def review_lesson_plan(request, submission_id):
                 submission.lesson_plan.status = LessonPlan.DRAFT
                 
                 # Create rejection notification
-                try:
-                    from lessonlinkNotif.models import Notification
-                    Notification.create_draft_status_notification(submission, approved=False)
-                except Exception as e:
-                    print(f"Notification creation error: {e}")
-                    # Continue even if notification fails
+                create_lesson_review_notification(submission, approved=False)
                 
                 messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' rejected.")
                 
@@ -3119,12 +3634,7 @@ def review_lesson_plan(request, submission_id):
                 submission.lesson_plan.status = LessonPlan.DRAFT
                 
                 # Create needs revision notification
-                try:
-                    from lessonlinkNotif.models import Notification
-                    Notification.create_draft_status_notification(submission, approved=False)
-                except Exception as e:
-                    print(f"Notification creation error: {e}")
-                    # Continue even if notification fails
+                create_lesson_review_notification(submission, approved=False)
                 
                 messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' returned for revision.")
             
@@ -3824,24 +4334,24 @@ def review_student_lesson_plan(request, submission_id):
             
             if action == 'approve':
                 submission.status = 'approved'
+                create_lesson_review_notification(submission, approved=True)
                 messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' approved successfully!")
             elif action == 'reject':
                 submission.status = 'rejected'
+                submission.lesson_plan.status = LessonPlan.DRAFT
+                submission.lesson_plan.save()
+                create_lesson_review_notification(submission, approved=False)
                 messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' rejected.")
             elif action == 'needs_revision':
                 submission.status = 'needs_revision'
-                # Change lesson plan back to draft so student can revise
                 submission.lesson_plan.status = LessonPlan.DRAFT
                 submission.lesson_plan.save()
+                create_lesson_review_notification(submission, approved=False)
                 messages.success(request, f"Lesson plan '{submission.lesson_plan.title}' returned for revision.")
             
             submission.review_notes = review_notes
             submission.review_date = timezone.now()
             submission.save()
-            
-            # Create notification for student
-            from lessonlinkNotif.models import Notification
-            Notification.create_draft_status_notification(submission, approved=(action == 'approve'))
             
         except LessonPlanSubmission.DoesNotExist:
             messages.error(request, "Submission not found.")
@@ -3943,6 +4453,9 @@ def create_schedule_api(request):
             description=data.get('description', '')
         )
         
+        # Create schedule reminder notification
+        create_schedule_reminder(schedule)
+        
         # Format response - convert 24-hour to 12-hour format
         def format_time_24_to_12(time_str):
             try:
@@ -4018,33 +4531,6 @@ def test_schedule_api(request):
         'url': request.path,
         'method': request.method
     })
-
-#     def test_schedule_api(request):
-#     """Test if schedule API is working"""
-#     return JsonResponse({
-#         'message': 'Schedule API is working!',
-#         'url': request.path,
-#         'method': request.method
-#     })
-
-# def debug_all_urls(request):
-#     """Show all registered URLs"""
-#     from django.urls import get_resolver
-    
-#     output = io.StringIO()
-#     resolver = get_resolver()
-    
-#     def print_urls(url_patterns, prefix=''):
-#         for pattern in url_patterns:
-#             if hasattr(pattern, 'url_patterns'):
-#                 # This is an include
-#                 print_urls(pattern.url_patterns, prefix + str(pattern.pattern))
-#             else:
-#                 output.write(f'{prefix}{str(pattern.pattern)}\n')
-    
-#     print_urls(resolver.url_patterns)
-    
-#     return HttpResponse(f'<pre>{output.getvalue()}</pre>')
 
 @login_required
 @api_view(['GET'])
@@ -4128,6 +4614,9 @@ def create_schedule_api(request):
             color=data.get('color', '#3b82f6'),
             description=data.get('description', '')
         )
+        
+        # Create schedule reminder notification
+        create_schedule_reminder(schedule)
         
         # Format response
         def format_time_24_to_12(time_str):
