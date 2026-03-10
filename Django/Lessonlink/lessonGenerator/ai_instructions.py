@@ -1,4 +1,4 @@
-# ai_instructions.py - COMPLETE VERSION WITH INTELLIGENCE TYPE INTEGRATION
+# ai_instructions.py - COMPLETE VERSION WITH STRICT EXEMPLAR FORMAT ENFORCEMENT
 import re  
 """
 AI Instructions for LessonLink Lesson Generator
@@ -6,6 +6,467 @@ This file contains system instructions and JSON structure for AI-generated lesso
 with intelligence type adaptation for MATATAG Curriculum.
 """
 
+# CRITICAL: This instruction enforces STRICT adherence to exemplar format
+EXEMPLAR_FORMAT_ENFORCEMENT = """
+================================================================================
+CRITICAL: EXEMPLAR FORMAT ENFORCEMENT - YOU MUST FOLLOW THESE RULES EXACTLY
+================================================================================
+
+When a reference exemplar is provided, you MUST follow this protocol:
+
+## PHASE 1: EXEMPLAR ANALYSIS (BEFORE GENERATING ANYTHING)
+1. Extract the COMPLETE structure from the exemplar (every section, subsection, and indentation)
+2. Note the EXACT punctuation style (periods, commas, colons, dashes, parentheses)
+3. Analyze the paragraph structure (length, sentence complexity, transition words)
+4. Identify the pedagogical style (formal, conversational, directive, explanatory)
+5. Record the level of detail (bullet points, numbered lists, paragraph format)
+6. Note how examples are introduced and explained
+7. Observe how assessments are structured (question format, answer types)
+8. Study how differentiation is presented
+9. Analyze how the exemplar handles each MATATAG section (I-VI)
+10. Extract the learning resources format EXACTLY
+
+## PHASE 2: STRICT FORMAT COPYING (MANDATORY)
+You MUST copy the exemplar's format with 100% fidelity:
+
+### Format Copying Rules:
+1. **Punctuation**: Copy EXACT punctuation style from the exemplar
+   - If exemplar uses periods after bullet points → YOU use periods
+   - If exemplar uses no punctuation → YOU use no punctuation
+   - If exemplar uses colons to introduce lists → YOU use colons
+
+2. **Paragraph Structure**: Copy EXACT paragraph length and style
+   - If exemplar has 2-sentence paragraphs → YOU write 2-sentence paragraphs
+   - If exemplar has 4-sentence paragraphs → YOU write 4-sentence paragraphs
+   - If exemplar uses short, direct sentences → YOU use short, direct sentences
+
+3. **Section Headers**: Copy EXACT header formatting
+   - If exemplar uses "I. OBJECTIVES" → YOU use "I. OBJECTIVES" (not "I. Objectives")
+   - If exemplar uses "A. Reviewing previous lesson" → YOU use exactly that wording
+   - If exemplar includes bracketed notes like [Theme: Introduction] → YOU include them
+
+4. **List Formatting**: Copy EXACT list formatting
+   - If exemplar uses bullet points (•) → YOU use bullet points
+   - If exemplar uses numbers (1., 2., 3.) → YOU use numbers
+   - If exemplar uses dashes (-) → YOU use dashes
+   - If exemplar uses indentation → YOU use indentation
+
+5. **Example Formatting**: Copy HOW the exemplar presents examples
+   - If exemplar says "Example: The teacher will..." → YOU use "Example:"
+   - If exemplar says "For instance," → YOU use "For instance,"
+   - If exemplar embeds examples in paragraphs → YOU embed them
+
+6. **Assessment Format**: Copy EXACT assessment structure
+   - If exemplar uses "3-5 questions" → YOU use 3-5 questions
+   - If exemplar uses multiple choice → YOU use multiple choice
+   - If exemplar uses open-ended questions → YOU use open-ended questions
+   - Copy the exact wording patterns of questions
+
+7. **Differentiation Format**: Copy HOW differentiation is presented
+   - If exemplar has separate "Support" and "Extension" sections → YOU use them
+   - If exemplar uses "For struggling learners:" → YOU use that phrase
+   - If exemplar uses "For advanced learners:" → YOU use that phrase
+
+8. **Remarks and Reflection**: Copy EXACT format
+   - If exemplar uses a table for remarks → YOU create a table
+   - If exemplar uses "No. of learners who earned 80%" → YOU use that exact wording
+   - If exemplar leaves blanks (___) → YOU leave blanks (___)
+
+## PHASE 3: CONTENT ADAPTATION (WITH FORMAT PRESERVATION)
+While keeping the EXACT format from the exemplar, you MUST:
+
+1. **Replace content** with subject-appropriate material
+2. **Keep ALL formatting** (punctuation, structure, style) IDENTICAL
+3. **Maintain paragraph length** (same number of sentences)
+4. **Keep sentence starters** (e.g., if exemplar starts with "The teacher will" → YOU start with "The teacher will")
+5. **Preserve transition words** (e.g., if exemplar uses "Furthermore," → YOU use "Furthermore,")
+6. **Keep the level of detail** (if exemplar is very detailed → YOU must be equally detailed)
+
+## PHASE 4: FORMAT VERIFICATION CHECKLIST
+
+Before outputting, verify:
+
+✓ SECTION HEADERS: Match exemplar exactly (I., II., III., IV., V., VI.)
+✓ SUBSECTION LABELS: Match exemplar exactly (A., B., C., etc.)
+✓ PUNCTUATION: Every period, comma, colon matches exemplar style
+✓ PARAGRAPH LENGTH: Each paragraph has same number of sentences as exemplar
+✓ BULLET STYLE: Same bullet characters, same indentation
+✓ EXAMPLE FORMAT: Same way of introducing examples
+✓ QUESTION FORMAT: Same structure and phrasing style
+✓ TABLE FORMAT: Same table structure (if exemplar uses tables)
+✓ BLANK PLACEHOLDERS: Same use of ___ for teacher to fill
+✓ CAPITALIZATION: Same capitalization patterns
+✓ WORD CHOICE: Same formality level and vocabulary complexity
+
+## CRITICAL REMINDER:
+The exemplar is your TEMPLATE. Your generated lesson plan should look like it was written by the same person who wrote the exemplar. A department head should not be able to tell which parts came from the exemplar and which parts were generated for the new subject.
+
+DO NOT just follow the format description in your instructions. FOLLOW THE EXEMPLAR'S ACTUAL FORMAT EXACTLY.
+
+================================================================================
+"""
+
+def get_system_instruction(has_exemplar=False, intelligence_type="comprehensive"):
+    """
+    Generate complete system instruction for DAILY lesson planning with STRICT exemplar enforcement
+    
+    Args:
+        has_exemplar (bool): Whether an exemplar is provided
+        intelligence_type (str): Selected intelligence type
+    
+    Returns:
+        str: Complete system instruction for AI
+    """
+    # Start with base instruction
+    base_instruction = LESSON_PLANNER_SYSTEM_INSTRUCTION
+    
+    # Add STRICT exemplar format enforcement if exemplar is provided
+    if has_exemplar:
+        base_instruction += "\n\n" + EXEMPLAR_FORMAT_ENFORCEMENT
+        base_instruction += "\n\n" + EXEMPLAR_REFERENCE_INSTRUCTION
+    
+    # Add intelligence-specific context
+    intelligence_context = f"""
+    
+    **CURRENT INTELLIGENCE FOCUS: {intelligence_type.upper()}**
+    
+    **INTELLIGENCE DESCRIPTION:**
+    {get_intelligence_description(intelligence_type)}
+    
+    **REQUIRED ADAPTATIONS:**
+    1. All learning objectives must include {intelligence_type} intelligence development goals
+    2. All activities must be designed to develop {intelligence_type} intelligence skills
+    3. All assessments must measure {intelligence_type} intelligence development
+    4. All differentiation strategies must address {intelligence_type} intelligence needs
+    5. All materials should support {intelligence_type} intelligence development
+    
+    **MEASUREMENT INDICATORS FOR {intelligence_type.upper()}:**
+    """
+    
+    # Add specific measurement indicators
+    indicators = get_intelligence_measurement_indicators(intelligence_type)
+    if isinstance(indicators, dict):
+        for category, indicator_list in indicators.items():
+            intelligence_context += f"\n    {category.upper()}: " + ", ".join(indicator_list)
+    else:
+        intelligence_context += "\n    " + ", ".join(indicators)
+    
+    base_instruction += intelligence_context
+    
+    # Add intelligence adaptation instruction
+    base_instruction += "\n\n" + INTELLIGENCE_ADAPTATION_INSTRUCTION
+    
+    # Add final implementation reminder with STRICT format enforcement
+    final_reminder = f"""
+    
+    **FINAL IMPLEMENTATION CHECK FOR {intelligence_type.upper()}:**
+    ✓ Every section includes {intelligence_type} intelligence adaptation
+    ✓ All activities develop {intelligence_type} intelligence skills
+    ✓ Assessment measures {intelligence_type} intelligence growth
+    ✓ Differentiation addresses {intelligence_type} intelligence needs
+    ✓ MATATAG alignment maintained with intelligence integration
+    ✓ The 5 Shifts of MATATAG are reflected in lesson design
+    ✓ Learning competencies are clearly stated with official codes
+    
+    **IF EXEMPLAR PROVIDED - STRICT FORMAT ENFORCEMENT CHECK:**
+    ✓ Punctuation EXACTLY matches exemplar
+    ✓ Paragraph length EXACTLY matches exemplar
+    ✓ Section headers EXACTLY match exemplar
+    ✓ List formatting EXACTLY matches exemplar
+    ✓ Example formatting EXACTLY matches exemplar
+    ✓ Assessment formatting EXACTLY matches exemplar
+    ✓ Overall style EXACTLY matches exemplar
+    ✓ The lesson looks like it was written by the same person
+    
+    **OUTPUT REMINDER:**
+    Return ONLY the JSON structure as specified. No additional text.
+    Ensure all JSON fields related to intelligence adaptation are properly filled.
+    The markdown_output must clearly show {intelligence_type} intelligence integration and MATATAG alignment.
+    """
+    
+    base_instruction += final_reminder
+    
+    return base_instruction
+
+
+def get_weekly_system_instruction(has_exemplar=False, intelligence_type="comprehensive", 
+                                   subject="", grade_level="", exemplar_name="", 
+                                   exemplar_content=""):
+    """
+    Generate complete system instruction for weekly lesson planning with STRICT exemplar enforcement
+    
+    Args:
+        has_exemplar (bool): Whether an exemplar is provided
+        intelligence_type (str): Selected intelligence type
+        subject (str): Subject for the lesson
+        grade_level (str): Grade level
+        exemplar_name (str): Name of the exemplar if provided
+        exemplar_content (str): The actual exemplar text to extract references from
+    
+    Returns:
+        str: Complete system instruction for AI
+    """
+    
+    # Extract exemplar references if content is provided
+    exemplar_reference_examples = ""
+    if has_exemplar and exemplar_content:
+        # Extract Teacher's Guide from exemplar
+        tg_match = re.search(r'Teacher\'?s?\s*Guide[:\s]*([^\n]+)', exemplar_content, re.IGNORECASE)
+        tg_example = tg_match.group(1).strip() if tg_match else "Not found in exemplar"
+        
+        # Extract Learning Materials from exemplar
+        lm_match = re.search(r'(?:Learner\'?s?\s*)?Materials?[:\s]*([^\n]+)', exemplar_content, re.IGNORECASE)
+        lm_example = lm_match.group(1).strip() if lm_match else "Not found in exemplar"
+        
+        # Extract Textbook from exemplar
+        tb_match = re.search(r'Textbook[:\s]*([^\n]+)', exemplar_content, re.IGNORECASE)
+        tb_example = tb_match.group(1).strip() if tb_match else "Not found in exemplar"
+        
+        # Extract LR Portal from exemplar
+        lr_match = re.search(r'LR\s*Portal[:\s]*([^\n]+)', exemplar_content, re.IGNORECASE)
+        lr_example = lr_match.group(1).strip() if lr_match else "Not found in exemplar"
+        
+        # Extract Other Resources (bullet points)
+        other_pattern = r'Other\s*Learning\s*Resources[:\s]*(.*?)(?=IV\.|$)'
+        other_match = re.search(other_pattern, exemplar_content, re.DOTALL | re.IGNORECASE)
+        other_examples = []
+        if other_match:
+            bullets = re.findall(r'[•\-]\s*([^\n]+)', other_match.group(1))
+            other_examples = bullets[:3]  # Get first 3 examples
+        
+        # Extract formatting examples
+        format_samples = []
+        # Get first few sentences from procedure to analyze style
+        proc_pattern = r'IV\.?\s*PROCEDURE\s*(.*?)(?=V\.|$)'
+        proc_match = re.search(proc_pattern, exemplar_content, re.DOTALL | re.IGNORECASE)
+        if proc_match:
+            proc_sample = proc_match.group(1)[:500]  # First 500 chars of procedure
+            format_samples.append(f"Procedure opening style:\n{proc_sample[:200]}...")
+        
+        # Get assessment format
+        assess_pattern = r'I\.?\s*Evaluating learning[:\s]*(.*?)(?=J\.|$)'
+        assess_match = re.search(assess_pattern, exemplar_content, re.DOTALL | re.IGNORECASE)
+        if assess_match:
+            format_samples.append(f"Assessment format:\n{assess_match.group(1)[:200]}...")
+        
+        exemplar_reference_examples = f"""
+================================================================================
+EXEMPLAR FORMAT ANALYSIS - YOU MUST COPY THESE FORMATS EXACTLY
+================================================================================
+
+REFERENCE EXEMPLAR: "{exemplar_name}"
+
+The exemplar contains these SPECIFIC FORMATS that you MUST copy EXACTLY:
+
+1. TEACHER'S GUIDE FORMAT:
+   "{tg_example}"
+   → Copy this EXACT format (punctuation, capitalization, style)
+
+2. LEARNING MATERIALS FORMAT:
+   "{lm_example}"
+   → Copy this EXACT format
+
+3. TEXTBOOK FORMAT:
+   "{tb_example}"
+   → Copy this EXACT format
+
+4. LR PORTAL FORMAT:
+   "{lr_example}"
+   → Copy this EXACT format
+
+5. OTHER RESOURCES FORMAT:
+{chr(10).join(['   - ' + r for r in other_examples]) if other_examples else '   - No examples found'}
+
+6. WRITING STYLE ANALYSIS:
+{chr(10).join(format_samples) if format_samples else '   - Style analysis not available'}
+
+================================================================================
+STRICT FORMAT COPYING RULES - YOU MUST FOLLOW THESE EXACTLY
+================================================================================
+
+1. **PUNCTUATION**: Copy EXACT punctuation from the exemplar
+   - If exemplar uses periods after bullet points → YOU use periods
+   - If exemplar uses no punctuation → YOU use no punctuation
+   - If exemplar uses colons to introduce lists → YOU use colons
+   - If exemplar uses commas in certain patterns → YOU use those patterns
+
+2. **PARAGRAPH STRUCTURE**: Copy EXACT paragraph length
+   - If exemplar has 2-sentence paragraphs → YOUR paragraphs have 2 sentences
+   - If exemplar has 3-sentence paragraphs → YOUR paragraphs have 3 sentences
+   - If exemplar uses short, direct sentences → YOU use short, direct sentences
+   - If exemplar uses complex sentences → YOU use complex sentences
+
+3. **HEADER FORMATTING**: Copy EXACT header wording
+   - If exemplar says "I. OBJECTIVES" → YOU say "I. OBJECTIVES"
+   - If exemplar says "A. Reviewing previous lesson" → YOU use that EXACT wording
+   - If exemplar includes [Theme: Introduction] → YOU include [Theme: Introduction]
+
+4. **LIST FORMATTING**: Copy EXACT list style
+   - If exemplar uses bullet points (•) → YOU use bullet points
+   - If exemplar uses numbers (1., 2., 3.) → YOU use numbers
+   - If exemplar uses dashes (-) → YOU use dashes
+   - If exemplar uses indentation → YOU use indentation
+
+5. **EXAMPLE FORMATTING**: Copy HOW exemplar presents examples
+   - If exemplar says "Example:" → YOU say "Example:"
+   - If exemplar says "For instance," → YOU say "For instance,"
+   - If exemplar embeds examples → YOU embed examples
+
+6. **ASSESSMENT FORMAT**: Copy EXACT question structure
+   - If exemplar uses "What is..." questions → YOU use "What is..." questions
+   - If exemplar uses multiple choice → YOU use multiple choice
+   - If exemplar uses fill-in-the-blank → YOU use fill-in-the-blank
+   - Copy the EXACT wording patterns of questions
+
+7. **DIFFERENTIATION FORMAT**: Copy HOW differentiation is presented
+   - If exemplar says "For struggling learners:" → YOU use that phrase
+   - If exemplar says "For advanced learners:" → YOU use that phrase
+   - If exemplar uses bulleted lists for support → YOU use bulleted lists
+
+8. **REMARKS AND REFLECTION**: Copy EXACT format
+   - If exemplar uses a table → YOU create a table
+   - If exemplar uses "No. of learners who earned 80%" → YOU use that exact wording
+   - If exemplar leaves blanks (___) → YOU leave blanks (___)
+
+================================================================================
+CRITICAL: YOUR GENERATED LESSON MUST BE IDENTICAL IN FORMAT TO THE EXEMPLAR
+================================================================================
+
+A department head should NOT be able to distinguish your generated content from the exemplar based on format alone. The format, style, punctuation, and structure must be PERFECT copies. Only the content changes to match the new subject.
+
+When generating for {subject} Grade {grade_level}, keep the exemplar's format EXACTLY while replacing:
+- Subject-specific terminology
+- Examples relevant to the new topic
+- Activities appropriate for {subject}
+- Assessments measuring {subject} knowledge
+
+================================================================================
+"""
+    
+    # Build the learning resources section with proper variable interpolation
+    exemplar_reference_line = ""
+    tg_instruction = f"Generate realistic Teacher's Guide references based on the subject ({subject}) and grade level ({grade_level}), appropriate for the specific topic. IMPORTANT: DO NOT include page numbers - only the title, source, and quarter/week information."
+    
+    lm_instruction = f"Generate realistic Learner's Material references based on the subject ({subject}) and grade level ({grade_level}), appropriate for the specific topic. IMPORTANT: DO NOT include page numbers - only the title, source, and quarter/week information."
+    
+    textbook_instruction = f"Generate realistic textbook titles used in Philippine schools for {subject} Grade {grade_level}. Include publisher names. IMPORTANT: DO NOT include page numbers - only the book title and publisher."
+    
+    lr_instruction = f"Generate appropriate LRMDS links or references based on the subject ({subject}), grade level ({grade_level}), and specific learning competency. Include the resource title, quarter/week, and a brief description. DO NOT include page numbers."
+    
+    other_resources_instruction = f"Based on the specific subject ({subject}), grade level ({grade_level}), and topic, list 3-5 detailed resources that would actually be used in teaching this specific lesson. IMPORTANT: DO NOT include page numbers - focus on materials, tools, websites, and real-world resources."
+    
+    if has_exemplar and exemplar_name:
+        exemplar_reference_line = f"REFERENCE EXEMPLAR USED: {exemplar_name}. Use this exemplar as a guide for the QUALITY, FORMAT, and STYLE of resources to list. Copy its format EXACTLY."
+        tg_instruction += f" Look at the exemplar for examples of how to format teacher guide references WITHOUT page numbers. Copy its punctuation and style EXACTLY."
+        lm_instruction += f" Look at the exemplar for examples of how to format learning material references WITHOUT page numbers. Copy its punctuation and style EXACTLY."
+        textbook_instruction += f" Look at the exemplar for examples of how to format textbook references WITHOUT page numbers. Copy its punctuation and style EXACTLY."
+        lr_instruction += f" If the exemplar contains LRMDS references, use similar formatting WITHOUT page numbers. Copy its punctuation and style EXACTLY."
+        other_resources_instruction += f"\n\n參考 THE EXEMPLAR: The provided exemplar '{exemplar_name}' contains examples of quality resources. Use it as a guide for the level of specificity and format needed, but REMOVE any page numbers."
+    
+    # Format the learning resources section
+    learning_resources_section = LEARNING_RESOURCES_TEMPLATE.format(
+        exemplar_reference_line=exemplar_reference_line,
+        tg_instruction=tg_instruction,
+        lm_instruction=lm_instruction,
+        textbook_instruction=textbook_instruction,
+        lr_instruction=lr_instruction,
+        other_resources_instruction=other_resources_instruction
+    )
+    
+    # Start with the base instruction and replace the placeholder
+    instruction = WEEKLY_LESSON_PLANNER_INSTRUCTION.format(
+        learning_resources_section=learning_resources_section
+    )
+    
+    # Insert the exemplar reference examples BEFORE the learning resources section
+    if has_exemplar and exemplar_reference_examples:
+        parts = instruction.split("{learning_resources_section}")
+        if len(parts) == 2:
+            instruction = parts[0] + exemplar_reference_examples + "{learning_resources_section}" + parts[1]
+            instruction = instruction.format(learning_resources_section=learning_resources_section)
+    
+    # Add intelligence-specific adaptation
+    intelligence_context = f"""
+    
+    **INTELLIGENCE FOCUS: {intelligence_type.upper()} - CRITICAL REQUIREMENT**
+    
+    You MUST adapt ALL activities for {intelligence_type} intelligence development:
+    
+    {get_intelligence_description(intelligence_type)}
+    
+    **MANDATORY ADAPTATION RULES FOR {intelligence_type.upper()}:**
+    
+    1. EVERY activity in EVERY day must explicitly develop {intelligence_type} intelligence
+    2. Assessment methods must specifically measure {intelligence_type} intelligence growth
+    3. Differentiation strategies must address {intelligence_type} intelligence needs
+    4. Materials must support {intelligence_type} intelligence development
+    5. Learning objectives must include {intelligence_type} intelligence development goals
+    
+    **MEASUREMENT INDICATORS FOR {intelligence_type.upper()}:**
+    """
+    
+    # Add specific measurement indicators
+    indicators = get_intelligence_measurement_indicators(intelligence_type)
+    if isinstance(indicators, dict):
+        for category, indicator_list in indicators.items():
+            intelligence_context += f"\n    {category.upper()}: " + ", ".join(indicator_list)
+    else:
+        intelligence_context += "\n    " + ", ".join(indicators)
+    
+    instruction += intelligence_context
+    
+    # Add exemplar instruction if needed with STRICT enforcement
+    if has_exemplar:
+        exemplar_context = """
+        
+        **EXEMPLAR REFERENCE - STRICT FORMAT COPYING ENFORCED:**
+        - Use the provided exemplar as a STRUCTURAL TEMPLATE, not just a guide
+        - Copy its punctuation, paragraph length, and formatting EXACTLY
+        - Maintain its level of detail and rigor while creating ORIGINAL content
+        - Adapt its pedagogical approaches to the weekly format
+        - DO NOT copy any content - create completely original material
+        - Use exemplar to understand depth of detail required
+        - Your output should look IDENTICAL in format to the exemplar
+        """
+        instruction += exemplar_context
+    
+    # Add output verification with format checking
+    verification = """
+    
+    **OUTPUT VERIFICATION - CHECK BEFORE FINALIZING:**
+    
+    Verify your output has ALL these elements:
+    
+    ✓ Complete school header with School, Teacher, Grade Level, Teaching Date, Quarter
+    ✓ I. OBJECTIVES with A. Content Standards, B. Performance Standards, C. Learning Competencies/Objectives for all 5 days
+    ✓ II. CONTENT with daily topics for all 5 days
+    ✓ III. LEARNING RESOURCES with A. References (4 items) and B. Other Learning Resources (3-5 items) - NO PAGE NUMBERS ANYWHERE
+    ✓ IV. PROCEDURE with ALL 10 steps (A-J) for EACH of the 5 days (50 total steps)
+    ✓ V. REMARKS with reflection table
+    ✓ VI. REFLECTION with A-G items
+    
+    Each daily procedure step must have 2-4 detailed, implementable sentences.
+    All content must be grade-appropriate and MATATAG-aligned.
+    Intelligence adaptation must be visible in every activity.
+    
+    IF EXEMPLAR PROVIDED:
+    ✓ PUNCTUATION matches exemplar EXACTLY
+    ✓ PARAGRAPH LENGTH matches exemplar EXACTLY
+    ✓ SECTION HEADERS match exemplar EXACTLY
+    ✓ LIST FORMATTING matches exemplar EXACTLY
+    ✓ ASSESSMENT FORMAT matches exemplar EXACTLY
+    ✓ OVERALL STYLE matches exemplar EXACTLY
+    
+    NO PLACEHOLDERS. EVERY SECTION MUST HAVE COMPLETE CONTENT.
+    **REMEMBER: NO PAGE NUMBERS IN LEARNING RESOURCES SECTION!**
+    """
+    
+    instruction += verification
+    
+    return instruction
+
+
+# The rest of your ai_instructions.py remains exactly the same
 LESSON_PLANNER_SYSTEM_INSTRUCTION = """
 You are "LessonLink", an AI instructional design specialist specialized in DepEd (Department of Education) Philippines MATATAG Curriculum standards. Your role is to transform a teacher's draft details into a MATATAG-aligned, structured, and student-friendly lesson plan, using provided exemplars as reference when available and adapting for specific intelligence types.
 
@@ -36,14 +497,6 @@ The MATATAG Curriculum follows the **5 Shifts**:
 - Teaching-Learning Process (with 5 phases: Introduction, Instruction, Application, Evaluation, Assessment)
 - Reflection
 - Remarks
-
-**EXEMPLAR INTEGRATION RULES:**
-- Use the exemplar as a reference for structure, depth, and quality standards
-- Maintain the core instructional approach and pedagogical style from the exemplar
-- Adapt exemplar best practices to the current subject and grade level
-- Do not copy content directly - use as inspiration for quality and structure
-- Ensure MATATAG alignment takes priority over exemplar content
-- Integrate intelligence adaptation while maintaining exemplar quality standards
 
 **OUTPUT FORMAT (JSON):**
 {
@@ -428,118 +881,6 @@ def get_matatag_learning_area_code(subject):
     return codes.get(subject, 'LA')
 
 
-def get_system_instruction(has_exemplar=False, intelligence_type="comprehensive"):
-    """
-    Generate complete system instruction for DAILY lesson planning
-    
-    Args:
-        has_exemplar (bool): Whether an exemplar is provided
-        intelligence_type (str): Selected intelligence type
-    
-    Returns:
-        str: Complete system instruction for AI
-    """
-    # Start with base instruction
-    base_instruction = LESSON_PLANNER_SYSTEM_INSTRUCTION
-    
-    # Add intelligence-specific context
-    intelligence_context = f"""
-    
-    **CURRENT INTELLIGENCE FOCUS: {intelligence_type.upper()}**
-    
-    **INTELLIGENCE DESCRIPTION:**
-    {get_intelligence_description(intelligence_type)}
-    
-    **REQUIRED ADAPTATIONS:**
-    1. All learning objectives must include {intelligence_type} intelligence development goals
-    2. All activities must be designed to develop {intelligence_type} intelligence skills
-    3. All assessments must measure {intelligence_type} intelligence development
-    4. All differentiation strategies must address {intelligence_type} intelligence needs
-    5. All materials should support {intelligence_type} intelligence development
-    
-    **MEASUREMENT INDICATORS FOR {intelligence_type.upper()}:**
-    """
-    
-    # Add specific measurement indicators
-    indicators = get_intelligence_measurement_indicators(intelligence_type)
-    if isinstance(indicators, dict):
-        for category, indicator_list in indicators.items():
-            intelligence_context += f"\n    {category.upper()}: " + ", ".join(indicator_list)
-    else:
-        intelligence_context += "\n    " + ", ".join(indicators)
-    
-    base_instruction += intelligence_context
-    
-    # Add intelligence adaptation instruction
-    base_instruction += "\n\n" + INTELLIGENCE_ADAPTATION_INSTRUCTION
-    
-    # Add exemplar instruction if needed
-    if has_exemplar:
-        base_instruction += "\n\n" + EXEMPLAR_REFERENCE_INSTRUCTION
-        
-        # Add exemplar-intelligence integration note
-        exemplar_integration = """
-        
-        **EXEMPLAR AND INTELLIGENCE INTEGRATION:**
-        1. Use exemplar structure while adapting content for intelligence focus
-        2. Maintain exemplar quality standards while incorporating intelligence activities
-        3. Adapt exemplar assessment methods to include intelligence measurement
-        4. Ensure exemplar-inspired activities develop target intelligence skills
-        5. Balance exemplar fidelity with intelligence adaptation requirements
-        """
-        base_instruction += exemplar_integration
-    
-    # Add final implementation reminder
-    final_reminder = f"""
-    
-    **FINAL IMPLEMENTATION CHECK FOR {intelligence_type.upper()}:**
-    ✓ Every section includes {intelligence_type} intelligence adaptation
-    ✓ All activities develop {intelligence_type} intelligence skills
-    ✓ Assessment measures {intelligence_type} intelligence growth
-    ✓ Differentiation addresses {intelligence_type} intelligence needs
-    ✓ MATATAG alignment maintained with intelligence integration
-    ✓ The 5 Shifts of MATATAG are reflected in lesson design
-    ✓ Learning competencies are clearly stated with official codes
-    
-    **OUTPUT REMINDER:**
-    Return ONLY the JSON structure as specified. No additional text.
-    Ensure all JSON fields related to intelligence adaptation are properly filled.
-    The markdown_output must clearly show {intelligence_type} intelligence integration and MATATAG alignment.
-    """
-    
-    base_instruction += final_reminder
-    
-    return base_instruction
-
-
-# Convenience function for getting intelligence choices display
-def get_intelligence_choices():
-    """Get intelligence type choices with descriptions"""
-    return {
-        'comprehensive': 'Comprehensive (IQ+EQ+SQ+AQ) - Balanced all-around development',
-        'cognitive': 'Cognitive Focus (IQ) - Logical & Analytical intelligence',
-        'emotional': 'emotional Focus (EQ) - Self & Social Awareness intelligence',
-        'social': 'Social Focus (SQ) - Collaboration & Communication intelligence',
-        'resilience': 'Resilience Focus (AQ) - Perseverance & Adaptability intelligence',
-        'differentiated': 'Differentiated Mix - All types with varied activities'
-    }
-
-
-def validate_intelligence_type(intelligence_type):
-    """Validate that the intelligence type is supported"""
-    valid_types = ['comprehensive', 'cognitive', 'emotional', 'social', 'resilience', 'differentiated']
-    if intelligence_type not in valid_types:
-        return 'comprehensive'
-    return intelligence_type
-
-
-# Example usage for testing
-if __name__ == "__main__":
-    # Test the function
-    instruction = get_system_instruction(has_exemplar=True, intelligence_type="cognitive")
-    print(f"Instruction length: {len(instruction)} characters")
-    print(f"First 500 chars:\n{instruction[:500]}...")
-
 # At the top of ai_instructions.py, add this template
 LEARNING_RESOURCES_TEMPLATE = """
 III. LEARNING RESOURCES
@@ -809,197 +1150,3 @@ For DIFFERENTIATED:
 **REMEMBER:**
 You are creating a complete, ready-to-use weekly lesson plan. Teachers should be able to implement it immediately without adding missing content. Be detailed, specific, and practical in all descriptions.
 """
-
-def get_weekly_system_instruction(has_exemplar=False, intelligence_type="comprehensive", 
-                                   subject="", grade_level="", exemplar_name="", 
-                                   exemplar_content=""):
-    """
-    Generate complete system instruction for weekly lesson planning
-    
-    Args:
-        has_exemplar (bool): Whether an exemplar is provided
-        intelligence_type (str): Selected intelligence type
-        subject (str): Subject for the lesson
-        grade_level (str): Grade level
-        exemplar_name (str): Name of the exemplar if provided
-        exemplar_content (str): The actual exemplar text to extract references from
-    
-    Returns:
-        str: Complete system instruction for AI
-    """
-    
-    # Extract exemplar references if content is provided
-    exemplar_reference_examples = ""
-    if has_exemplar and exemplar_content:
-        # Extract Teacher's Guide from exemplar
-        tg_match = re.search(r'Teacher\'?s?\s*Guide[:\s]*([^\n]+)', exemplar_content, re.IGNORECASE)
-        tg_example = tg_match.group(1).strip() if tg_match else "Not found in exemplar"
-        
-        # Extract Learning Materials from exemplar
-        lm_match = re.search(r'(?:Learner\'?s?\s*)?Materials?[:\s]*([^\n]+)', exemplar_content, re.IGNORECASE)
-        lm_example = lm_match.group(1).strip() if lm_match else "Not found in exemplar"
-        
-        # Extract Textbook from exemplar
-        tb_match = re.search(r'Textbook[:\s]*([^\n]+)', exemplar_content, re.IGNORECASE)
-        tb_example = tb_match.group(1).strip() if tb_match else "Not found in exemplar"
-        
-        # Extract LR Portal from exemplar
-        lr_match = re.search(r'LR\s*Portal[:\s]*([^\n]+)', exemplar_content, re.IGNORECASE)
-        lr_example = lr_match.group(1).strip() if lr_match else "Not found in exemplar"
-        
-        # Extract Other Resources (bullet points)
-        other_pattern = r'Other\s*Learning\s*Resources[:\s]*(.*?)(?=IV\.|$)'
-        other_match = re.search(other_pattern, exemplar_content, re.DOTALL | re.IGNORECASE)
-        other_examples = []
-        if other_match:
-            bullets = re.findall(r'[•\-]\s*([^\n]+)', other_match.group(1))
-            other_examples = bullets[:3]  # Get first 3 examples
-        
-        exemplar_reference_examples = f"""
-**REFERENCE EXEMPLAR FORMATS FROM "{exemplar_name}":**
-
-The exemplar contains these reference formats that you MUST use as templates:
-
-Teacher's Guide format from exemplar:
-"{tg_example}"
-
-Learning Materials format from exemplar:
-"{lm_example}"
-
-Textbook format from exemplar:
-"{tb_example}"
-
-LR Portal format from exemplar:
-"{lr_example}"
-
-Other Resources format from exemplar:
-{chr(10).join(['- ' + r for r in other_examples]) if other_examples else "- No examples found"}
-
-**YOUR TASK:**
-Generate references for {subject} Grade {grade_level} that follow these EXACT formats.
-Copy the structure, punctuation, and style. Adapt only the content to match the subject.
-
-CRITICAL RULES:
-1. Copy the FORMAT exactly (punctuation, structure, elements included)
-2. Adapt the CONTENT to match {subject} Grade {grade_level}
-3. Use REAL Philippine textbook titles and publishers
-4. Use REAL DepEd materials naming conventions
-5. Generate 5 specific Other Learning Resources
-6. **IMPORTANT: DO NOT include page numbers in ANY reference**
-
-"""
-    else:
-        exemplar_reference_examples = ""
-    
-    # Build the learning resources section with proper variable interpolation
-    # UPDATED: Removed all references to page numbers
-    exemplar_reference_line = ""
-    tg_instruction = f"Generate realistic Teacher's Guide references based on the subject ({subject}) and grade level ({grade_level}), appropriate for the specific topic. IMPORTANT: DO NOT include page numbers - only the title, source, and quarter/week information."
-    
-    lm_instruction = f"Generate realistic Learner's Material references based on the subject ({subject}) and grade level ({grade_level}), appropriate for the specific topic. IMPORTANT: DO NOT include page numbers - only the title, source, and quarter/week information."
-    
-    textbook_instruction = f"Generate realistic textbook titles used in Philippine schools for {subject} Grade {grade_level}. Include publisher names. IMPORTANT: DO NOT include page numbers - only the book title and publisher."
-    
-    lr_instruction = f"Generate appropriate LRMDS links or references based on the subject ({subject}), grade level ({grade_level}), and specific learning competency. Include the resource title, quarter/week, and a brief description. DO NOT include page numbers."
-    
-    other_resources_instruction = f"Based on the specific subject ({subject}), grade level ({grade_level}), and topic, list 3-5 detailed resources that would actually be used in teaching this specific lesson. IMPORTANT: DO NOT include page numbers - focus on materials, tools, websites, and real-world resources."
-    
-    if has_exemplar and exemplar_name:
-        exemplar_reference_line = f"REFERENCE EXEMPLAR USED: {exemplar_name}. Use this exemplar as a guide for the QUALITY and TYPE of resources to list."
-        tg_instruction += f" Look at the exemplar for examples of how to format teacher guide references WITHOUT page numbers."
-        lm_instruction += f" Look at the exemplar for examples of how to format learning material references WITHOUT page numbers."
-        textbook_instruction += f" Look at the exemplar for examples of how to format textbook references WITHOUT page numbers."
-        lr_instruction += f" If the exemplar contains LRMDS references, use similar formatting WITHOUT page numbers."
-        other_resources_instruction += f"\n\n参考 THE EXEMPLAR: The provided exemplar '{exemplar_name}' contains examples of quality resources. Use it as a guide for the level of specificity and relevance needed, but REMOVE any page numbers."
-    
-    # Format the learning resources section
-    learning_resources_section = LEARNING_RESOURCES_TEMPLATE.format(
-        exemplar_reference_line=exemplar_reference_line,
-        tg_instruction=tg_instruction,
-        lm_instruction=lm_instruction,
-        textbook_instruction=textbook_instruction,
-        lr_instruction=lr_instruction,
-        other_resources_instruction=other_resources_instruction
-    )
-    
-    # Start with the base instruction and replace the placeholder
-    instruction = WEEKLY_LESSON_PLANNER_INSTRUCTION.format(
-        learning_resources_section=learning_resources_section
-    )
-    
-    # Insert the exemplar reference examples BEFORE the learning resources section
-    if exemplar_reference_examples:
-        parts = instruction.split("{learning_resources_section}")
-        if len(parts) == 2:
-            instruction = parts[0] + exemplar_reference_examples + "{learning_resources_section}" + parts[1]
-            instruction = instruction.format(learning_resources_section=learning_resources_section)
-    
-    # Add intelligence-specific adaptation
-    intelligence_context = f"""
-    
-    **INTELLIGENCE FOCUS: {intelligence_type.upper()} - CRITICAL REQUIREMENT**
-    
-    You MUST adapt ALL activities for {intelligence_type} intelligence development:
-    
-    {get_intelligence_description(intelligence_type)}
-    
-    **MANDATORY ADAPTATION RULES FOR {intelligence_type.upper()}:**
-    
-    1. EVERY activity in EVERY day must explicitly develop {intelligence_type} intelligence
-    2. Assessment methods must specifically measure {intelligence_type} intelligence growth
-    3. Differentiation strategies must address {intelligence_type} intelligence needs
-    4. Materials must support {intelligence_type} intelligence development
-    5. Learning objectives must include {intelligence_type} intelligence development goals
-    
-    **MEASUREMENT INDICATORS FOR {intelligence_type.upper()}:**
-    """
-    
-    # Add specific measurement indicators
-    indicators = get_intelligence_measurement_indicators(intelligence_type)
-    if isinstance(indicators, dict):
-        for category, indicator_list in indicators.items():
-            intelligence_context += f"\n    {category.upper()}: " + ", ".join(indicator_list)
-    else:
-        intelligence_context += "\n    " + ", ".join(indicators)
-    
-    instruction += intelligence_context
-    
-    # Add exemplar instruction if needed
-    if has_exemplar:
-        exemplar_context = """
-        
-        **EXEMPLAR REFERENCE - USE FOR QUALITY ONLY:**
-        - Use the provided exemplar as a structural guide and quality benchmark
-        - Maintain its level of detail and rigor while creating ORIGINAL content
-        - Adapt its pedagogical approaches to the weekly format
-        - DO NOT copy any content - create completely original material
-        - Use exemplar to understand depth of detail required
-        """
-        instruction += exemplar_context
-    
-    # Add output verification - UPDATED to remove page number references
-    verification = """
-    
-    **OUTPUT VERIFICATION - CHECK BEFORE FINALIZING:**
-    
-    Verify your output has ALL these elements:
-    
-    ✓ Complete school header with School, Teacher, Grade Level, Teaching Date, Quarter
-    ✓ I. OBJECTIVES with A. Content Standards, B. Performance Standards, C. Learning Competencies/Objectives for all 5 days
-    ✓ II. CONTENT with daily topics for all 5 days
-    ✓ III. LEARNING RESOURCES with A. References (4 items) and B. Other Learning Resources (3-5 items) - NO PAGE NUMBERS ANYWHERE
-    ✓ IV. PROCEDURE with ALL 10 steps (A-J) for EACH of the 5 days (50 total steps)
-    ✓ V. REMARKS with reflection table
-    ✓ VI. REFLECTION with A-G items
-    
-    Each daily procedure step must have 2-4 detailed, implementable sentences.
-    All content must be grade-appropriate and MATATAG-aligned.
-    Intelligence adaptation must be visible in every activity.
-    
-    NO PLACEHOLDERS. EVERY SECTION MUST HAVE COMPLETE CONTENT.
-    **REMEMBER: NO PAGE NUMBERS IN LEARNING RESOURCES SECTION!**
-    """
-    
-    instruction += verification
-    
-    return instruction
