@@ -116,9 +116,64 @@
                 flex-direction: column;
             }
         }
+
+        /* AI Suggestion Card Styles */
+        .ai-suggestion-card {
+            transition: all 0.2s ease;
+        }
+        
+        .ai-suggestion-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(17, 70, 143, 0.1), 0 8px 10px -6px rgba(17, 70, 143, 0.1);
+        }
+        
+        .ai-suggestion-card.selected {
+            border-color: #11468F;
+            background-color: #F0F7FF;
+            border-width: 2px;
+        }
+        
+        .intelligence-badge {
+            background: linear-gradient(135deg, #11468F15 0%, #9E5EFF15 100%);
+            color: #11468F;
+            border: 1px solid #11468F30;
+        }
+        
+        .example-badge {
+            background-color: #F3F4F6;
+            color: #4B5563;
+        }
+
+        /* Debug panel */
+        .debug-panel {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-width: 400px;
+            max-height: 300px;
+            overflow: auto;
+            font-size: 12px;
+            z-index: 9999;
+            display: none;
+        }
+        .debug-panel.show {
+            display: block;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- Debug Panel (hidden by default, press Ctrl+Shift+D to show) -->
+    <div id="debug-panel" class="debug-panel">
+        <div class="flex justify-between mb-2">
+            <h3 class="font-bold">Debug Console</h3>
+            <button onclick="document.getElementById('debug-panel').classList.remove('show')">✕</button>
+        </div>
+        <div id="debug-content" style="font-family: monospace;"></div>
+    </div>
+
     <!-- Header -->
     <div class="gradient-bg text-white px-6 py-4">
         <div class="max-w-7xl mx-auto">
@@ -585,17 +640,27 @@
     </div>
 
     <script>
-        // ==================== EXISTING JAVASCRIPT CODE (Keep all your existing JavaScript here) ====================
-        // I'll preserve all your existing JavaScript functions - getCookie, loadDepartmentExemplars, refreshExemplars, 
-        // day card selection, approach card selection, modal functions, showSuccessMessage, showErrorMessage, getFormData,
-        // and all the AI suggestion functions. The code below is just a placeholder - you should keep your original JavaScript.
-        
-        // For brevity, I'm not copying all the JavaScript here, but you should keep ALL your existing JavaScript functions
-        // from the previous version. The key improvements are in the HTML/CSS structure above.
-        
-        // Note: Please keep all your JavaScript functions exactly as they were in your previous version.
-        // The only changes needed are in the HTML structure for better responsiveness.
-        
+        // ==================== DEBUG FUNCTIONS ====================
+        function addDebug(message) {
+            const debugContent = document.getElementById('debug-content');
+            const timestamp = new Date().toLocaleTimeString();
+            debugContent.innerHTML += `[${timestamp}] ${message}<br>`;
+            console.log(message);
+        }
+
+        function showDebugPanel() {
+            document.getElementById('debug-panel').classList.add('show');
+        }
+
+        // Keyboard shortcut: Ctrl+Shift+D to show debug panel
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+                showDebugPanel();
+            }
+        });
+
+        // ==================== CORE FUNCTIONS ====================
+
         // Get CSRF token
         function getCookie(name) {
             let cookieValue = null;
@@ -618,6 +683,7 @@
             const exemplarCount = document.getElementById('exemplar-count');
             
             try {
+                addDebug('Loading exemplars...');
                 const response = await fetch('/api/exemplars/department/', {
                     method: 'GET',
                     headers: {
@@ -629,6 +695,7 @@
                 if (!response.ok) throw new Error('Failed to load exemplars');
                 
                 const data = await response.json();
+                addDebug(`Loaded ${data.exemplars?.length || 0} exemplars`);
                 
                 // Clear existing options (keep the first one)
                 while (exemplarSelect.options.length > 1) {
@@ -660,6 +727,7 @@
             } catch (error) {
                 console.error('Error loading exemplars:', error);
                 exemplarCount.textContent = 'Error loading exemplars';
+                addDebug(`Error loading exemplars: ${error.message}`);
             }
         }
 
@@ -761,10 +829,6 @@
         }
 
         // ==================== AI SUGGESTIONS FUNCTIONS ====================
-        // Keep all your AI suggestion functions from the previous version here
-        // Including: initDayCheckboxes, updateSelectedDaysCount, selectAllDays, clearAllDays,
-        // openAISuggestor, closeAISuggestor, updateContextInfo, generateAISuggestions,
-        // generateDaySuggestions, getDayTheme, displayMultiDaySuggestions, applyAllSuggestions
         
         // State management
         let selectedDays = new Set();
@@ -880,6 +944,8 @@
             
             // Update context info
             updateContextInfo();
+            
+            addDebug('AI suggestion modal opened');
         }
 
         // Close AI suggestion modal
@@ -889,6 +955,8 @@
             
             // Clear selections
             clearAllDays();
+            
+            addDebug('AI suggestion modal closed');
         }
 
         // Update context info display
@@ -907,6 +975,18 @@
             document.getElementById('ai-context-info').textContent = contextText;
         }
 
+        // Get day-specific theme
+        function getDayTheme(day) {
+            const themes = {
+                'monday': 'Introduction and foundation',
+                'tuesday': 'Skill development and practice',
+                'wednesday': 'Deep analysis and exploration',
+                'thursday': 'Application and creation',
+                'friday': 'Assessment and synthesis'
+            };
+            return themes[day] || 'Learning and development';
+        }
+
         // Generate AI suggestions for selected days
         async function generateAISuggestions() {
             // Validate day selection
@@ -923,18 +1003,21 @@
             // Get form context
             const subject = document.getElementById('subject').value;
             const gradeLevel = document.getElementById('grade-level').value;
-            const theme = document.getElementById('weekly-theme').value;
-            const contentStandards = document.getElementById('content-standards').value;
-            const performanceStandards = document.getElementById('performance-standards').value;
+            const lessonTitle = document.getElementById('weekly-lesson-title').value;
+            const intelligenceType = document.getElementById('intelligence-type').value;
+            const exemplarId = document.getElementById('exemplar-select').value;
             
-            // Get existing objectives
-            const existingObjectives = {
-                monday: document.getElementById('objective-mon').value,
-                tuesday: document.getElementById('objective-tue').value,
-                wednesday: document.getElementById('objective-wed').value,
-                thursday: document.getElementById('objective-thu').value,
-                friday: document.getElementById('objective-fri').value
-            };
+            // Get existing objectives as a combined string
+            const objectives = [
+                document.getElementById('objective-mon').value,
+                document.getElementById('objective-tue').value,
+                document.getElementById('objective-wed').value,
+                document.getElementById('objective-thu').value,
+                document.getElementById('objective-fri').value
+            ].filter(obj => obj.trim() !== '').join('\n');
+            
+            addDebug(`Generating suggestions for ${selectedDays.size} days: ${Array.from(selectedDays).join(', ')}`);
+            addDebug(`Subject: ${subject}, Grade: ${gradeLevel}`);
             
             try {
                 // Generate suggestions for each selected day
@@ -942,255 +1025,82 @@
                 const suggestions = {};
                 
                 for (const day of dayArray) {
-                    const dayTheme = getDayTheme(day);
-                    const daySuggestions = await generateDaySuggestions({
-                        subject,
-                        gradeLevel,
-                        theme,
-                        day,
-                        dayTheme,
-                        contentStandards,
-                        performanceStandards,
-                        existingObjectives
+                    addDebug(`\n--- Fetching suggestions for ${day} ---`);
+                    
+                    // Prepare the payload to match backend expectations
+                    const payload = {
+                        section: 'learning_objectives',
+                        form_data: {
+                            subject: subject,
+                            grade_level: gradeLevel,
+                            lesson_title: lessonTitle,
+                            learning_objectives: objectives,
+                            intelligence_type: intelligenceType
+                        },
+                        exemplar_id: exemplarId || null
+                    };
+                    
+                    addDebug(`Request payload: ${JSON.stringify(payload, null, 2)}`);
+                    
+                    // Call the actual AI API
+                    const response = await fetch('/get-ai-suggestions/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken'),
+                        },
+                        body: JSON.stringify(payload)
                     });
                     
-                    suggestions[day] = daySuggestions;
+                    addDebug(`Response status: ${response.status} ${response.statusText}`);
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        addDebug(`Error response: ${errorText}`);
+                        
+                        // Try to parse error as JSON
+                        try {
+                            const errorJson = JSON.parse(errorText);
+                            addDebug(`Error details: ${JSON.stringify(errorJson)}`);
+                        } catch (e) {
+                            // Not JSON, already logged as text
+                        }
+                        
+                        suggestions[day] = [];
+                        continue;
+                    }
+                    
+                    const data = await response.json();
+                    addDebug(`Response data: ${JSON.stringify(data, null, 2)}`);
+                    
+                    if (data.success && data.suggestions) {
+                        // Extract just the titles from the suggestions
+                        suggestions[day] = data.suggestions.map(s => s.title || s);
+                        addDebug(`Got ${suggestions[day].length} suggestions for ${day}`);
+                    } else {
+                        addDebug(`API error for ${day}: ${data.error}`);
+                        suggestions[day] = [];
+                    }
                 }
                 
-                daySuggestions = suggestions;
-                displayMultiDaySuggestions(suggestions, dayArray);
+                // Check if we have any suggestions
+                const hasSuggestions = Object.values(suggestions).some(arr => arr.length > 0);
+                
+                if (hasSuggestions) {
+                    daySuggestions = suggestions;
+                    displayMultiDaySuggestions(suggestions, dayArray);
+                    addDebug('Displaying suggestions');
+                } else {
+                    addDebug('No suggestions received from any day');
+                    document.getElementById('ai-loading').classList.add('hidden');
+                    document.getElementById('ai-no-suggestions').classList.remove('hidden');
+                }
             } catch (error) {
+                addDebug(`AI suggestion error: ${error.message}`);
                 console.error('AI suggestion error:', error);
                 document.getElementById('ai-loading').classList.add('hidden');
                 document.getElementById('ai-no-suggestions').classList.remove('hidden');
             }
-        }
-
-        // Generate suggestions for a specific day
-        async function generateDaySuggestions(context) {
-            // Simulate API call - replace with actual AI API
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    const { subject, gradeLevel, day, existingObjectives } = context;
-                    
-                    // Base suggestions by subject
-                    const subjectSuggestions = {
-                        'TLE-ICT': [
-                            'Identify computer hardware components and their functions',
-                            'Explain the OSI model layers and their purposes',
-                            'Demonstrate proper cable crimping techniques',
-                            'Configure IP addresses and subnet masks',
-                            'Troubleshoot common network connectivity issues',
-                            'Install and configure operating systems',
-                            'Implement basic security measures',
-                            'Create network documentation and diagrams',
-                            'Assemble computer hardware components',
-                            'Install device drivers and software applications',
-                            'Set up local area networks',
-                            'Configure router settings',
-                            'Test network connectivity',
-                            'Diagnose hardware problems',
-                            'Apply safety precautions when working with computers'
-                        ],
-                        'Mathematics': [
-                            'Solve linear equations with one variable',
-                            'Graph quadratic functions and identify key features',
-                            'Apply geometric formulas to real-world problems',
-                            'Calculate probabilities of compound events',
-                            'Analyze statistical data using measures of central tendency',
-                            'Prove basic geometric theorems',
-                            'Model real-world situations using functions',
-                            'Perform operations with rational expressions',
-                            'Solve systems of linear equations',
-                            'Interpret data from graphs and charts',
-                            'Calculate area and perimeter of complex shapes',
-                            'Convert between different units of measurement',
-                            'Identify patterns in sequences',
-                            'Apply the order of operations',
-                            'Estimate solutions to mathematical problems'
-                        ],
-                        'Science': [
-                            'Describe the steps of the scientific method',
-                            'Explain photosynthesis and cellular respiration',
-                            'Identify parts of the cell and their functions',
-                            'Apply Newton\'s laws of motion',
-                            'Analyze chemical reactions and balance equations',
-                            'Investigate the properties of waves',
-                            'Examine the structure of the atom',
-                            'Explore ecosystems and energy flow',
-                            'Conduct controlled experiments',
-                            'Record and analyze scientific observations',
-                            'Identify different types of rocks and minerals',
-                            'Explain the water cycle',
-                            'Describe the solar system',
-                            'Differentiate between physical and chemical changes',
-                            'Understand basic genetics and heredity'
-                        ],
-                        'English': [
-                            'Analyze themes in literary texts',
-                            'Write coherent paragraphs with topic sentences',
-                            'Identify parts of speech in sentences',
-                            'Deliver persuasive speeches',
-                            'Compose creative short stories',
-                            'Interpret figurative language',
-                            'Summarize informational texts',
-                            'Participate in group discussions',
-                            'Edit and revise written work',
-                            'Present book reports',
-                            'Identify main ideas and supporting details',
-                            'Use context clues to determine word meanings',
-                            'Differentiate between fact and opinion',
-                            'Write business letters',
-                            'Analyze character development in stories'
-                        ],
-                        'Filipino': [
-                            'Makilala ang mga bahagi ng pananalita',
-                            'Sumulat ng maikling kwento',
-                            'Bigyang kahulugan ang mga salita',
-                            'Magbigay ng opinyon sa mga isyu',
-                            'Umunawa sa mga binasang teksto',
-                            'Gumamit ng wastong bantas',
-                            'Maglahad ng sariling karanasan',
-                            'Tukuyin ang mga elemento ng tula',
-                            'Suriin ang mga pahayag',
-                            'Bumuo ng pangungusap',
-                            'Gumawa ng sanaysay',
-                            'Tukuyin ang sanhi at bunga',
-                            'Magbigay ng alternatibong solusyon',
-                            'Ihambing ang ibat ibang teksto',
-                            'Gumamit ng angkop na salita'
-                        ],
-                        'ArPan': [
-                            'Analyze historical events in the Philippines',
-                            'Identify key national heroes and their contributions',
-                            'Explain the branches of Philippine government',
-                            'Describe Filipino culture and traditions',
-                            'Evaluate the impact of colonization',
-                            'Understand basic economic principles',
-                            'Identify rights and responsibilities of citizens',
-                            'Analyze current social issues',
-                            'Trace the development of Philippine democracy',
-                            'Compare different periods in Philippine history',
-                            'Identify geographical features of the Philippines',
-                            'Explain the concept of sovereignty',
-                            'Discuss the importance of elections',
-                            'Understand the role of family in Filipino society',
-                            'Analyze global issues affecting the Philippines'
-                        ],
-                        'MAPEH': [
-                            'Demonstrate proper warm-up exercises',
-                            'Identify notes and rhythms in music',
-                            'Create simple choreography',
-                            'Explain the importance of proper nutrition',
-                            'Perform basic first aid procedures',
-                            'Identify different art movements',
-                            'Demonstrate sportsmanship in games',
-                            'Analyze the elements of art',
-                            'Perform rhythmic patterns',
-                            'Identify different musical instruments',
-                            'Practice proper hygiene',
-                            'Execute basic dance steps',
-                            'Create visual artworks',
-                            'Understand the benefits of physical activity',
-                            'Identify healthy food choices'
-                        ],
-                        'ESP': [
-                            'Demonstrate respect for others',
-                            'Identify personal values and beliefs',
-                            'Make responsible decisions',
-                            'Show empathy towards others',
-                            'Practice honesty in daily life',
-                            'Develop self-discipline',
-                            'Cooperate with family members',
-                            'Show concern for the environment',
-                            'Express gratitude to others',
-                            'Demonstrate fairness in dealing with others',
-                            'Show compassion for those in need',
-                            'Practice good manners',
-                            'Develop self-confidence',
-                            'Show patriotism and love of country',
-                            'Demonstrate integrity in actions'
-                        ]
-                    };
-                    
-                    // Default suggestions
-                    const defaultSuggestions = [
-                        'Analyze key concepts and principles',
-                        'Apply learned skills to new situations',
-                        'Evaluate evidence and draw conclusions',
-                        'Create original works demonstrating understanding',
-                        'Collaborate effectively in group activities',
-                        'Demonstrate mastery of core competencies',
-                        'Reflect on learning progress and challenges',
-                        'Connect concepts to real-world applications',
-                        'Identify main ideas and supporting details',
-                        'Practice newly acquired skills',
-                        'Explain relationships between concepts',
-                        'Compare and contrast different ideas',
-                        'Justify opinions with evidence',
-                        'Synthesize information from multiple sources',
-                        'Develop solutions to problems'
-                    ];
-                    
-                    // Get suggestions for subject or use defaults
-                    let baseSuggestions = subjectSuggestions[subject] || defaultSuggestions;
-                    
-                    // Day-specific verb modifiers (Bloom's Taxonomy)
-                    const dayModifiers = {
-                        'monday': ['Identify', 'Define', 'Describe', 'Recognize', 'List', 'Name', 'Recall', 'Locate'],
-                        'tuesday': ['Explain', 'Demonstrate', 'Apply', 'Show', 'Practice', 'Illustrate', 'Perform', 'Use'],
-                        'wednesday': ['Analyze', 'Compare', 'Evaluate', 'Examine', 'Investigate', 'Differentiate', 'Distinguish', 'Classify'],
-                        'thursday': ['Create', 'Design', 'Develop', 'Build', 'Construct', 'Produce', 'Compose', 'Generate'],
-                        'friday': ['Assess', 'Evaluate', 'Justify', 'Defend', 'Synthesize', 'Critique', 'Judge', 'Recommend']
-                    };
-                    
-                    const modifiers = dayModifiers[day] || ['Understand', 'Learn', 'Master'];
-                    
-                    // Generate varied suggestions
-                    let allSuggestions = [];
-                    for (let i = 0; i < 3; i++) {
-                        baseSuggestions.forEach(suggestion => {
-                            const words = suggestion.split(' ');
-                            if (words.length > 1) {
-                                const modifier = modifiers[Math.floor(Math.random() * modifiers.length)];
-                                words[0] = modifier;
-                                allSuggestions.push(words.join(' '));
-                            } else {
-                                allSuggestions.push(suggestion);
-                            }
-                        });
-                    }
-                    
-                    // Add grade-level appropriate variations
-                    if (gradeLevel == 'Kindergarten') {
-                        allSuggestions = allSuggestions.map(s => 'Identify and name ' + s.toLowerCase().replace(/^(identify|define|describe|recognize|list|name|explain|demonstrate|apply|show|practice|illustrate|analyze|compare|evaluate|examine|investigate|differentiate|create|design|develop|build|construct|produce|assess|evaluate|justify|defend|synthesize|critique) /i, ''));
-                    } else if (gradeLevel <= 3) {
-                        allSuggestions = allSuggestions.map(s => s.charAt(0).toLowerCase() + s.slice(1));
-                    } else if (gradeLevel >= 11) {
-                        allSuggestions = allSuggestions.map(s => s + ' at an advanced level');
-                    }
-                    
-                    // Filter out duplicates and existing objectives for this day
-                    const existingForDay = existingObjectives[day] || '';
-                    allSuggestions = [...new Set(allSuggestions)]
-                        .filter(s => !existingForDay.toLowerCase().includes(s.toLowerCase().split(' ').slice(0,3).join(' ')))
-                        .slice(0, 8); // Return up to 8 unique suggestions
-                    
-                    resolve(allSuggestions);
-                }, 800); // Simulate API delay
-            });
-        }
-
-        // Get day-specific theme
-        function getDayTheme(day) {
-            const themes = {
-                'monday': 'Introduction and foundation',
-                'tuesday': 'Skill development and practice',
-                'wednesday': 'Deep analysis and exploration',
-                'thursday': 'Application and creation',
-                'friday': 'Assessment and synthesis'
-            };
-            return themes[day] || 'Learning and development';
         }
 
         // Display suggestions for multiple days with tabs
@@ -1238,20 +1148,29 @@
                 dayDiv.className = `day-suggestions space-y-2 ${index === 0 ? '' : 'hidden'}`;
                 
                 let suggestionsHtml = '';
-                daySuggestionsList.forEach((suggestion, idx) => {
-                    suggestionsHtml += `
-                        <div class="p-3 border border-gray-200 rounded-lg hover:border-[#11468F] hover:shadow-sm transition-all suggestion-item">
-                            <div class="flex items-start">
-                                <input type="radio" name="suggestion-${day}" value="${suggestion.replace(/"/g, '&quot;')}" id="${day}-suggestion-${idx}" class="mt-1 mr-3 text-[#11468F] focus:ring-[#11468F] flex-shrink-0">
-                                <div class="flex-1">
-                                    <label for="${day}-suggestion-${idx}" class="text-xs sm:text-sm text-gray-800 cursor-pointer leading-relaxed">
-                                        ${suggestion}
-                                    </label>
+                if (daySuggestionsList && daySuggestionsList.length > 0) {
+                    daySuggestionsList.forEach((suggestion, idx) => {
+                        suggestionsHtml += `
+                            <div class="p-3 border border-gray-200 rounded-lg hover:border-[#11468F] hover:shadow-sm transition-all suggestion-item">
+                                <div class="flex items-start">
+                                    <input type="radio" name="suggestion-${day}" value="${suggestion.replace(/"/g, '&quot;')}" id="${day}-suggestion-${idx}" class="mt-1 mr-3 text-[#11468F] focus:ring-[#11468F] flex-shrink-0">
+                                    <div class="flex-1">
+                                        <label for="${day}-suggestion-${idx}" class="text-xs sm:text-sm text-gray-800 cursor-pointer leading-relaxed">
+                                            ${suggestion}
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
+                        `;
+                    });
+                } else {
+                    suggestionsHtml = `
+                        <div class="p-6 text-center text-gray-500">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            No suggestions available for this day
                         </div>
                     `;
-                });
+                }
                 
                 dayDiv.innerHTML = suggestionsHtml;
                 container.appendChild(dayDiv);
@@ -1290,6 +1209,7 @@
                     if (inputId) {
                         document.getElementById(inputId).value = suggestion;
                         appliedCount++;
+                        addDebug(`Applied suggestion to ${day}: ${suggestion.substring(0, 50)}...`);
                     }
                 }
             });

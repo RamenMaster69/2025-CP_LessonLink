@@ -19,6 +19,8 @@ from .ai_instructions import (
 import markdown
 from .models import WeeklyLessonPlan, LessonPlanSubmission
 from .ai_instructions import get_weekly_system_instruction, WEEKLY_LESSON_PLANNER_INSTRUCTION
+import PyPDF2
+
 
 # Configure the Gemini API
 try:
@@ -35,24 +37,28 @@ def lesson_ai(request):
 def analyze_input_relation(user_inputs, exemplar_content, exemplar_name):
     """
     Analyze if user inputs are related to the selected exemplar
-    Returns: (is_related: bool, explanation: str, confidence_score: float)
+    Enhanced version with better analysis for matching
+    Returns: (is_related: bool, explanation: str, confidence_score: float, match_details: dict)
     """
     try:
         if not exemplar_content or not user_inputs:
-            return True, "No exemplar selected", 1.0
+            return True, "No exemplar selected", 1.0, {}
         
-        # Prepare analysis prompt
+        # Extract learning objectives
+        learning_objectives = user_inputs.get('learning_objectives', '')
+        
+        # Prepare analysis prompt with more detailed requirements
         analysis_prompt = f"""
         Analyze the relationship between the user's lesson plan inputs and the selected exemplar.
         
         USER INPUTS:
         Subject: {user_inputs.get('subject', '')}
         Grade Level: {user_inputs.get('grade_level', '')}
-        Learning Objectives: {user_inputs.get('learning_objectives', '')}
-        Subject Matter: {user_inputs.get('subject_matter', '')}
+        Learning Objectives: {learning_objectives[:500]}
+        Subject Matter: {user_inputs.get('subject_matter', '')[:200]}
         
         SELECTED EXEMPLAR: {exemplar_name}
-        EXEMPLAR CONTENT (first 2000 chars): {exemplar_content[:2000]}
+        EXEMPLAR CONTENT (first 3000 chars): {exemplar_content[:3000]}
         
         ANALYSIS TASK:
         1. Determine if the user's inputs are related to the exemplar
@@ -60,23 +66,29 @@ def analyze_input_relation(user_inputs, exemplar_content, exemplar_name):
         3. Check for grade level appropriateness
         4. Check if learning objectives are compatible with exemplar content
         5. Check if subject matter aligns with exemplar focus
+        6. **EXTRACT MATCHING THEMES AND PATTERNS** for generating aligned suggestions
         
         RELATIONSHIP CRITERIA:
         - DIRECT RELATION: Same subject area, similar topics, compatible grade level
         - INDIRECT RELATION: Different but related subjects, transferable concepts
         - UNRELATED: Completely different subjects/topics, incompatible content
         
-        Return ONLY a JSON object with this exact structure:
+        Return a JSON object with this exact structure:
         {{
             "is_related": true/false,
             "confidence_score": 0.0-1.0,
             "explanation": "Detailed explanation of the relationship analysis",
             "specific_issues": ["List of specific issues if unrelated"],
-            "suggestions": ["Suggestions for better alignment if unrelated"]
+            "suggestions": ["Suggestions for better alignment if unrelated"],
+            "matching_themes": ["Key themes from exemplar that match user inputs"],
+            "exemplar_style": "Description of the exemplar's educational style",
+            "vocabulary_level": "Basic/Intermediate/Advanced",
+            "key_concepts": ["Important concepts from exemplar"],
+            "objective_patterns": ["Common patterns in exemplar objectives"],
+            "assessment_style": "Formative/Summative/Mixed"
         }}
         
-        Be strict but fair. Only mark as unrelated if there's a clear mismatch that would make
-        the exemplar useless as a reference.
+        Be strict but fair. Only mark as unrelated if there's a clear mismatch.
         """
         
         response = model.generate_content([
@@ -91,16 +103,23 @@ def analyze_input_relation(user_inputs, exemplar_content, exemplar_name):
             return (
                 analysis_result.get('is_related', True),
                 analysis_result.get('explanation', ''),
-                analysis_result.get('confidence_score', 0.0)
+                analysis_result.get('confidence_score', 0.0),
+                {
+                    'matching_themes': analysis_result.get('matching_themes', []),
+                    'exemplar_style': analysis_result.get('exemplar_style', ''),
+                    'vocabulary_level': analysis_result.get('vocabulary_level', ''),
+                    'key_concepts': analysis_result.get('key_concepts', []),
+                    'objective_patterns': analysis_result.get('objective_patterns', []),
+                    'assessment_style': analysis_result.get('assessment_style', '')
+                }
             )
         else:
-            # If analysis fails, default to allowing (but log warning)
-            print("Failed to parse relationship analysis, defaulting to allowed")
-            return True, "Analysis failed, proceeding with caution", 0.5
+            # If analysis fails, default to allowing
+            return True, "Analysis failed, proceeding with caution", 0.5, {}
             
     except Exception as e:
         print(f"Relationship analysis error: {str(e)}")
-        return True, f"Analysis error: {str(e)}", 0.5
+        return True, f"Analysis error: {str(e)}", 0.5, {}
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -796,10 +815,38 @@ def department_head_drafts(request):
         'is_department_head': True
     })
 
+
+def extract_text_from_pdf(pdf_path):
+    """Extract text from PDF with better formatting preservation"""
+    text = ""
+    try:
+        with open(pdf_path, 'rb') as file:
+            pdf_reader = PyPDF2.PdfReader(file)
+            
+            for page_num, page in enumerate(pdf_reader.pages):
+                page_text = page.extract_text()
+                
+                # Add page marker to help with structure
+                text += f"\n\n--- PAGE {page_num + 1} ---\n\n"
+                text += page_text
+                
+                # Add extra newlines to preserve paragraph breaks
+                text = text.replace('. ', '.\n')
+                
+        return text
+    except Exception as e:
+        print(f"Error extracting PDF text: {e}")
+        return ""
+
+        
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def get_ai_suggestions(request):
-    """Generate AI suggestions for specific lesson plan sections including intelligence type"""
+    """Generate AI suggestions similar to the exemplar objectives"""
+    import json
+    import re
+    
     try:
         if model is None:
             return JsonResponse({
@@ -810,6 +857,12 @@ def get_ai_suggestions(request):
         data = json.loads(request.body)
         section = data.get('section')
         form_data = data.get('form_data', {})
+        exemplar_id = data.get('exemplar_id') or form_data.get('selected_exemplar')
+        
+        print("\n" + "="*60)
+        print("🎯 AI SUGGESTIONS REQUEST RECEIVED")
+        print(f"Exemplar ID: {exemplar_id}")
+        print("="*60)
         
         if not section:
             return JsonResponse({
@@ -817,68 +870,199 @@ def get_ai_suggestions(request):
                 'error': 'Section parameter required'
             }, status=400)
         
-        # Get intelligence type from form data
+        # Get intelligence type
         intelligence_type = form_data.get('intelligence_type', 'comprehensive')
         
-        # Create context-aware prompt for suggestions with MELC and intelligence focus
+        # Initialize variables
+        exemplar_content = ""
+        exemplar_name = ""
+        exemplar_objectives = []
+        
+        # Load exemplar if selected
+        if exemplar_id and exemplar_id.strip():
+            try:
+                from lesson.models import Exemplar
+                exemplar = Exemplar.objects.get(id=exemplar_id)
+                exemplar_content = exemplar.extracted_text
+                exemplar_name = exemplar.name
+                
+                print(f"\n📁 EXEMPLAR LOADED: {exemplar_name}")
+                
+                if exemplar_content:
+                    # Look for Learning Competencies section
+                    competency_patterns = [
+                        r'C\.\s*Learning\s*Competencies?\s*and\s*Objectives?\s*(.*?)(?=D\.\s*Content|$)',
+                        r'Learning\s*Competencies?:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
+                        r'Learning\s*Objectives?:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
+                        r'Objectives?:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
+                    ]
+                    
+                    objectives_text = ""
+                    for pattern in competency_patterns:
+                        match = re.search(pattern, exemplar_content, re.IGNORECASE | re.DOTALL)
+                        if match:
+                            objectives_text = match.group(1)
+                            print(f"✅ Found objectives section")
+                            break
+                    
+                    if objectives_text:
+                        # Try numbered list first
+                        numbered = re.findall(r'\d+\.\s*(.*?)(?=\n\d+\.|\n\n|\Z)', objectives_text, re.DOTALL)
+                        for obj in numbered:
+                            clean = obj.strip()
+                            clean = re.sub(r'[;,]?\s*and\s*$', '', clean, flags=re.IGNORECASE)
+                            clean = re.sub(r'^\d+\.\s*', '', clean)
+                            clean = re.sub(r'^[•●\-]\s*', '', clean)
+                            if clean and len(clean) > 10:
+                                exemplar_objectives.append(clean)
+                        
+                        # If no numbered list, try bullet points
+                        if not exemplar_objectives:
+                            bullets = re.findall(r'[•●\-]\s*(.*?)(?=\n[•●\-]|\n\n|\Z)', objectives_text, re.DOTALL)
+                            for obj in bullets:
+                                clean = obj.strip()
+                                clean = re.sub(r'[;,]?\s*and\s*$', '', clean, flags=re.IGNORECASE)
+                                clean = re.sub(r'^[•●\-]\s*', '', clean)
+                                if clean and len(clean) > 10:
+                                    exemplar_objectives.append(clean)
+                    
+                    # Remove duplicates
+                    seen = set()
+                    unique_objectives = []
+                    for obj in exemplar_objectives:
+                        normalized = obj.lower().strip()
+                        if normalized not in seen and len(normalized) > 10:
+                            seen.add(normalized)
+                            unique_objectives.append(obj)
+                    
+                    exemplar_objectives = unique_objectives
+                    
+                    print(f"\n🎯 EXTRACTED {len(exemplar_objectives)} EXEMPLAR OBJECTIVES:")
+                    for i, obj in enumerate(exemplar_objectives):
+                        print(f"   {i+1}. {obj}")
+                        
+            except Exception as e:
+                print(f"❌ Error loading exemplar: {str(e)}")
+        
+        # If no objectives found, return error
+        if not exemplar_objectives:
+            return JsonResponse({
+                'success': False,
+                'error': 'No learning objectives found in the selected exemplar. Please check the exemplar content.'
+            }, status=400)
+        
+        # Create prompt for AI to generate SIMILAR objectives
         prompt = f"""
-        Analyze this lesson plan context and provide 3 targeted MELC-aligned suggestions for the {section} section.
+        You are a DepEd curriculum specialist. Based on the exemplar objectives below, generate 4 NEW learning objectives that are SIMILAR in style and content but NOT exactly the same.
         
-        INTELLIGENCE TYPE FOCUS: {intelligence_type.upper()}
+        EXEMPLAR OBJECTIVES (use these as reference for style and topic):
+        {chr(10).join([f'{i+1}. {obj}' for i, obj in enumerate(exemplar_objectives)])}
         
-        CONTEXT:
-        Subject: {form_data.get('subject', 'Not specified')}
-        Grade Level: {form_data.get('gradeLevel', 'Not specified')}
-        Learning Objectives: {form_data.get('learningObjectives', 'Not specified')}
-        Subject Matter: {form_data.get('subjectMatter', 'Not specified')}
+        CURRENT LESSON:
+        Subject: {form_data.get('subject', '')}
+        Grade Level: {form_data.get('grade_level', '')}
+        Lesson Title: {form_data.get('lesson_title', '')}
         
-        Provide 3 specific, actionable MELC-aligned suggestions for the {section} section that are appropriate for this context.
-        Focus on DepEd Philippines standards and {intelligence_type} intelligence development.
+        INSTRUCTIONS:
+        1. Study the exemplar objectives above carefully - notice their style, verb usage, and topic focus
+        2. Generate 4 NEW learning objectives that:
+           - Are SIMILAR to the exemplar objectives in style and difficulty
+           - Use similar action verbs
+           - Match the same cognitive level
+           - Focus on the same topic area
+           - Are appropriate for the specified grade level
+        3. Do NOT simply copy the exemplar objectives - create new ones that are related but different
         
-        For {intelligence_type} intelligence, focus on:
-        {get_intelligence_focus_description(intelligence_type)}
+        Each objective should follow this format:
+        - Start with "At the end of the lesson, the learners should be able to:"
+        - Use a bullet point (●) before each objective
+        - Be clear, specific, and measurable
         
         Return ONLY a JSON array with this exact format:
         [
             {{
-                "title": "MELC-aligned suggestion title",
-                "description": "Detailed suggestion description with {intelligence_type} intelligence focus",
-                "example": "Concrete example or implementation idea aligned with DepEd standards",
-                "intelligence_connection": "How this suggestion develops {intelligence_type} intelligence"
+                "title": "Complete learning objective starting with 'At the end of the lesson, the learners should be able to: ● [objective text]'",
+                "description": "Detailed explanation of what students will do and why this skill is important",
+                "example": "A concrete classroom example showing how this objective would be taught or assessed",
+                "intelligence_connection": "How this develops {intelligence_type} intelligence",
+                "exemplar_alignment": "Explain how this relates to the exemplar objectives"
             }}
         ]
         """
         
-        response = model.generate_content([
-            f"You are an expert educational consultant specialized in DepEd Philippines curriculum and multiple intelligence theory. Provide specific, practical MELC-aligned suggestions for lesson plan sections with {intelligence_type} intelligence focus.",
-            prompt
-        ])
+        print("\n📤 SENDING PROMPT TO AI...")
+        print("-" * 40)
+        print(prompt[:500] + "..." if len(prompt) > 500 else prompt)
+        print("-" * 40)
+        
+        # Generate AI suggestions
+        response = model.generate_content(prompt)
+        
+        print("\n🤖 RAW AI RESPONSE:")
+        print("=" * 40)
+        print(response.text)
+        print("=" * 40)
         
         # Extract JSON from response
-        import re
-        json_match = re.search(r'\[.*\]', response.text, re.DOTALL)
+        suggestions = None
+        json_match = re.search(r'\[\s*\{.*\}\s*\]', response.text, re.DOTALL)
         if json_match:
-            suggestions = json.loads(json_match.group())
+            try:
+                suggestions = json.loads(json_match.group())
+                print(f"✅ Successfully parsed {len(suggestions)} AI suggestions")
+            except json.JSONDecodeError as e:
+                print(f"❌ Failed to parse JSON: {e}")
+                return JsonResponse({
+                    'success': False,
+                    'error': 'AI returned invalid JSON format'
+                }, status=500)
         else:
-            # Fallback if no JSON found
-            suggestions = [{
-                "title": f"{intelligence_type.upper()} Intelligence Suggestion",
-                "description": response.text[:200] + "...",
-                "example": "Based on DepEd curriculum standards and intelligence development",
-                "intelligence_connection": f"Develops {intelligence_type} intelligence through targeted activities"
-            }]
+            print("❌ No JSON array found in response")
+            return JsonResponse({
+                'success': False,
+                'error': 'AI failed to generate valid suggestions'
+            }, status=500)
+        
+        # Validate suggestions
+        if not suggestions or len(suggestions) == 0:
+            return JsonResponse({
+                'success': False,
+                'error': 'AI generated empty suggestions'
+            }, status=500)
+        
+        # Add metadata to suggestions
+        for suggestion in suggestions:
+            suggestion['is_exact'] = False
+            
+            # Ensure required fields exist
+            if 'title' not in suggestion:
+                suggestion['title'] = "Objective title missing"
+            if 'description' not in suggestion:
+                suggestion['description'] = "Description not provided"
+            if 'example' not in suggestion:
+                suggestion['example'] = "Example not provided"
+            if 'intelligence_connection' not in suggestion:
+                suggestion['intelligence_connection'] = f"Develops {intelligence_type} intelligence through application of money concepts."
+            if 'exemplar_alignment' not in suggestion:
+                suggestion['exemplar_alignment'] = f"This objective is similar in style to the exemplar objectives about money."
         
         return JsonResponse({
             'success': True,
             'suggestions': suggestions,
-            'intelligence_type': intelligence_type
+            'intelligence_type': intelligence_type,
+            'exemplar_used': True,
+            'exemplar_name': exemplar_name,
+            'objectives_analyzed': len(exemplar_objectives),
+            'message': f'Generated {len(suggestions)} objectives based on the exemplar'
         })
         
     except Exception as e:
-        print(f"AI suggestions error: {str(e)}")
+        print(f"❌ Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
-            'error': f'Suggestion generation failed: {str(e)}'
+            'error': str(e)
         }, status=500)
 
 def get_intelligence_focus_description(intelligence_type):
@@ -1001,6 +1185,61 @@ def delete_draft(request, draft_id):
             'success': False,
             'error': f'Error deleting lesson plan: {str(e)}'
         }, status=500)
+
+
+@login_required
+def get_department_exemplars(request):
+    """Get exemplars for the user's department"""
+    try:
+        user = request.user
+        
+        # Get exemplars from the user's department
+        # Assuming you have an Exemplar model with department field
+        from lesson.models import Exemplar
+        
+        # Check if user has department
+        if not hasattr(user, 'department') or not user.department:
+            return JsonResponse({
+                'success': False,
+                'message': 'No department assigned',
+                'exemplars': []
+            })
+        
+        # Get exemplars from user's department
+        exemplars = Exemplar.objects.filter(
+            department=user.department
+        ).order_by('-created_at')
+        
+        exemplar_list = []
+        for exemplar in exemplars:
+            exemplar_list.append({
+                'id': exemplar.id,
+                'name': exemplar.name,
+                'file_type': exemplar.file_type if hasattr(exemplar, 'file_type') else '',
+                'file_size_display': exemplar.file_size_display() if hasattr(exemplar, 'file_size_display') else '',
+                'upload_date': exemplar.created_at.strftime('%Y-%m-%d') if hasattr(exemplar, 'created_at') else '',
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'exemplars': exemplar_list,
+            'count': len(exemplar_list)
+        })
+        
+    except ImportError:
+        # If lesson.models.Exemplar doesn't exist, return empty list
+        return JsonResponse({
+            'success': True,
+            'exemplars': [],
+            'message': 'Exemplar model not found'
+        })
+    except Exception as e:
+        print(f"Error loading exemplars: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'exemplars': []
+        }, status=500)
         
         
 @csrf_exempt
@@ -1029,13 +1268,13 @@ def check_exemplar_compatibility(request):
             
             # Check for subject-related keywords
             subject_keywords = {
-                'mathematics': ['math', 'mathematics', 'algebra', 'geometry', 'calculus', 'numbers'],
-                'science': ['science', 'biology', 'chemistry', 'physics', 'experiment', 'lab'],
-                'english': ['english', 'grammar', 'writing', 'literature', 'reading', 'comprehension'],
-                'araling panlipunan': ['history', 'social studies', 'culture', 'government', 'geography'],
-                'mapeh': ['music', 'arts', 'pe', 'physical education', 'health'],
-                'tle': ['technology', 'livelihood', 'education', 'technical', 'vocational'],
-                'filipino': ['filipino', 'tagalog', 'wika', 'panitikan']
+                'mathematics': ['math', 'mathematics', 'algebra', 'geometry', 'calculus', 'numbers', 'equation'],
+                'science': ['science', 'biology', 'chemistry', 'physics', 'experiment', 'lab', 'scientific'],
+                'english': ['english', 'grammar', 'writing', 'literature', 'reading', 'comprehension', 'vocabulary'],
+                'arpan': ['history', 'social studies', 'culture', 'government', 'geography', 'araling panlipunan'],
+                'mapeh': ['music', 'arts', 'pe', 'physical education', 'health', 'mapeh'],
+                'tle': ['technology', 'livelihood', 'education', 'technical', 'vocational', 'tle'],
+                'filipino': ['filipino', 'tagalog', 'wika', 'panitikan', 'filipino']
             }
             
             # Determine compatibility

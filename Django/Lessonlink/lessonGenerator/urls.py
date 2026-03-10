@@ -17,6 +17,9 @@ urlpatterns = [
     path('get-ai-suggestions/', views.get_ai_suggestions, name='get_ai_suggestions'),
     path('check-exemplar-compatibility/', views.check_exemplar_compatibility, name='check_exemplar_compatibility'),
     path('view_weekly_draft/', views.view_weekly_draft, name='view_weekly_draft'),
+    path('get-ai-suggestions/', views.get_ai_suggestions, name='get_ai_suggestions'),
+    path('check-exemplar-compatibility/', views.check_exemplar_compatibility, name='check_exemplar_compatibility'),
+    path('api/exemplars/department/', views.get_department_exemplars, name='get_department_exemplars'),
     
    # Weekly Lesson Plan URLs
     path('lesson_ai_weekly/', views.lesson_ai_weekly, name='lesson_ai_weekly'),

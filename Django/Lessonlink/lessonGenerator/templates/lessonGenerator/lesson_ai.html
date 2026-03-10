@@ -350,26 +350,240 @@
             box-shadow: 0 4px 6px rgba(139, 92, 246, 0.2);
         }
 
+        /* Professional AI Suggestion Item Styles */
         .ai-suggestion-item {
             background: white;
             border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 8px;
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
         .ai-suggestion-item:hover {
             border-color: #8b5cf6;
-            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.1);
-            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+            transform: translateY(-2px);
         }
 
         .ai-suggestion-item.selected {
             background: #f5f3ff;
             border-color: #8b5cf6;
             border-width: 2px;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+        }
+
+        .objective-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1f2937;
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+
+        .objective-description {
+            font-size: 0.9rem;
+            color: #4b5563;
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+
+        .objective-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .meta-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            background: #f3f4f6;
+            border-radius: 4px;
+            color: #4b5563;
+        }
+
+        .exemplar-badge {
+            display: inline-block;
+            background: #ede9fe;
+            color: #6d28d9;
+            font-size: 0.7rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        .exemplar-alignment {
+            background: #f5f3ff;
+            border-left: 3px solid #8b5cf6;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            margin-top: 0.75rem;
+            font-size: 0.8rem;
+            color: #5b21b6;
+        }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c7c7c7;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a0a0a0;
+        }
+
+        /* Selection checkbox style */
+        .suggestion-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #d1d5db;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            accent-color: #8b5cf6;
+        }
+
+        .suggestion-checkbox:checked {
+            background-color: #8b5cf6;
+            border-color: #8b5cf6;
+        }
+
+        /* Individual objective card for separated objectives */
+        .objective-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .objective-card:hover {
+            border-color: #8b5cf6;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .objective-card.selected {
+            background: #f5f3ff;
+            border-color: #8b5cf6;
+            border-width: 2px;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+        }
+
+        .objective-number {
+            position: absolute;
+            top: -8px;
+            left: 12px;
+            background: #8b5cf6;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Regenerate hint style */
+        .regenerate-hint {
+            font-size: 0.7rem;
+            color: #b45309;
+            background-color: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            margin-left: 1rem;
+            animation: pulse 2s infinite;
+        }
+
+        /* Empty state styles */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            color: #6b7280;
+        }
+        
+        .empty-state svg {
+            width: 4rem;
+            height: 4rem;
+            margin: 0 auto 1rem;
+            color: #9ca3af;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        
+        .empty-state p {
+            font-size: 0.9rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Badge styles for exact vs AI */
+        .badge-exact {
+            background-color: #10b981;
+            color: white;
+            font-size: 0.65rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            display: inline-block;
+            margin-left: 0.5rem;
+        }
+
+        .badge-ai {
+            background-color: #8b5cf6;
+            color: white;
+            font-size: 0.65rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            display: inline-block;
+            margin-left: 0.5rem;
+        }
+
+        .exact-objective {
+            border-left: 4px solid #10b981;
+        }
+
+        .ai-objective {
+            border-left: 4px solid #8b5cf6;
+        }
+
+        /* Individual objective styling */
+        .single-objective {
+            margin-bottom: 0.5rem;
+            padding-left: 1rem;
+            border-left: 2px solid #e5e7eb;
+        }
+        
+        .single-objective:last-child {
+            margin-bottom: 0;
         }
     </style>
 </head>
@@ -482,6 +696,9 @@
                                 <!-- Exemplars will be loaded dynamically -->
                             </select>
                             <p class="text-xs text-gray-500 mt-1">Choose an exemplar uploaded by your department head as reference</p>
+                            <div id="exemplar-match-indicator" class="exemplar-match-indicator hidden">
+                                <!-- Will be populated when exemplar selected -->
+                            </div>
                         </div>
                         
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -531,22 +748,43 @@
                         </div>
                     </div>
 
-                    <!-- AI Suggestions Panel (Hidden by default) -->
-                    <div id="ai-suggestions-panel" class="hidden mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg animate-field">
-                        <div class="flex items-center justify-between mb-3">
-                            <h4 class="text-sm font-semibold text-purple-800">AI Suggested Objectives</h4>
-                            <button type="button" id="close-suggestions" class="text-purple-600 hover:text-purple-800">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
+                    <!-- AI Suggestions Panel (Hidden by default) - PROFESSIONAL VERSION -->
+                    <div id="ai-suggestions-panel" class="hidden mt-6 bg-white rounded-xl shadow-lg border border-purple-100 overflow-hidden animate-field">
+                        <!-- Header -->
+                        <div class="bg-gradient-to-r from-purple-50 to-indigo-50 px-6 py-4 border-b border-purple-100">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
+                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-semibold text-gray-900">Learning Objectives</h4>
+                                        <p class="text-xs text-gray-500">Exact objectives from exemplar and AI-generated suggestions</p>
+                                    </div>
+                                </div>
+                                <button type="button" id="close-suggestions" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-white/50 rounded-lg transition-colors duration-200">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="regenerate-hint-container" class="mt-2"></div>
                         </div>
-                        <div id="suggestions-list" class="space-y-2 max-h-60 overflow-y-auto">
+                        
+                        <!-- Suggestions List -->
+                        <div id="suggestions-list" class="p-6 space-y-4 max-h-96 overflow-y-auto custom-scrollbar bg-white">
                             <!-- AI suggestions will be populated here -->
                         </div>
-                        <div class="mt-3 flex justify-end">
-                            <button type="button" id="apply-selected-suggestions" class="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-all duration-200">
-                                Apply Selected
+                        
+                        <!-- Footer with Actions -->
+                        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                            <button type="button" id="clear-selected" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-all duration-200">
+                                Clear Selection
+                            </button>
+                            <button type="button" id="apply-selected-suggestions" class="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                                Apply Selected Objectives
                             </button>
                         </div>
                     </div>
@@ -761,7 +999,8 @@
                 grade_level: document.getElementById('grade-level').value,
                 lesson_title: document.getElementById('lesson-title').value,
                 learning_objectives: objectives.join('\n'),
-                selected_exemplar: document.getElementById('exemplar-select').value
+                selected_exemplar: document.getElementById('exemplar-select').value,
+                intelligence_type: document.getElementById('intelligence-type').value
             };
         }
 
@@ -898,10 +1137,106 @@
             loadDepartmentExemplars();
             initializeObjectiveButtons();
             
+            // Subject change listener
             document.getElementById('subject').addEventListener('change', function() {
-                console.log('Subject changed to:', this.value);
+                checkExemplarCompatibility();
+                clearSuggestionsPanel('Subject changed');
+            });
+            
+            // Exemplar change listener
+            document.getElementById('exemplar-select').addEventListener('change', function() {
+                checkExemplarCompatibility();
+                clearSuggestionsPanel('Exemplar changed');
+            });
+            
+            // Lesson title input listener for regeneration hint
+            document.getElementById('lesson-title').addEventListener('input', function() {
+                const suggestionsList = document.getElementById('suggestions-list');
+                const hintContainer = document.getElementById('regenerate-hint-container');
+                
+                if (suggestionsList && suggestionsList.children.length > 0 && this.value.length > 3) {
+                    hintContainer.innerHTML = `
+                        <div class="regenerate-hint">
+                            ⚠️ Lesson title changed - click "AI Suggest" to regenerate objectives
+                        </div>
+                    `;
+                } else {
+                    hintContainer.innerHTML = '';
+                }
             });
         });
+
+        // Helper function to clear suggestions panel
+        function clearSuggestionsPanel(reason) {
+            const suggestionsList = document.getElementById('suggestions-list');
+            const panel = document.getElementById('ai-suggestions-panel');
+            const hintContainer = document.getElementById('regenerate-hint-container');
+            
+            if (suggestionsList) {
+                suggestionsList.innerHTML = '';
+            }
+            
+            if (hintContainer) {
+                hintContainer.innerHTML = '';
+            }
+            
+            if (panel) {
+                panel.classList.add('hidden');
+            }
+            
+            if (reason) {
+                showSuccessMessage(`${reason}. Click "AI Suggest" to generate new objectives.`);
+            }
+        }
+
+        // Check exemplar compatibility with subject
+        async function checkExemplarCompatibility() {
+            const subject = document.getElementById('subject').value;
+            const exemplarId = document.getElementById('exemplar-select').value;
+            const indicator = document.getElementById('exemplar-match-indicator');
+            
+            if (!subject || !exemplarId) {
+                indicator.classList.add('hidden');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/check-exemplar-compatibility/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify({
+                        subject: subject,
+                        exemplar_id: exemplarId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                indicator.classList.remove('hidden');
+                if (data.compatible) {
+                    indicator.innerHTML = `
+                        <svg class="w-4 h-4 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span class="text-green-600">Exemplar compatible with selected subject</span>
+                    `;
+                    indicator.classList.add('exemplar-match-good');
+                } else {
+                    indicator.innerHTML = `
+                        <svg class="w-4 h-4 text-yellow-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.998-.833-2.732 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                        <span class="text-yellow-600">Warning: Exemplar may not match subject well</span>
+                    `;
+                    indicator.classList.add('exemplar-match-warning');
+                }
+            } catch (error) {
+                console.error('Error checking compatibility:', error);
+            }
+        }
 
         // Initialize objective buttons functionality
         function initializeObjectiveButtons() {
@@ -909,6 +1244,7 @@
             const aiSuggestButton = document.getElementById('ai-suggest-objectives');
             const closeSuggestions = document.getElementById('close-suggestions');
             const applySelected = document.getElementById('apply-selected-suggestions');
+            const clearSelected = document.getElementById('clear-selected');
             
             let objectiveCount = 1;
             
@@ -934,7 +1270,6 @@
                     newInputWrapper.remove();
                     objectiveCount--;
                     
-                    // Renumber remaining inputs
                     document.querySelectorAll('#objectives-container input[type="text"]').forEach((input, index) => {
                         input.id = `learning-objective-${index + 1}`;
                         input.name = `learning_objective_${index + 1}`;
@@ -945,7 +1280,6 @@
                 newInputWrapper.appendChild(removeBtn);
                 container.appendChild(newInputWrapper);
                 
-                // Animate new input
                 newInputWrapper.style.opacity = '0';
                 newInputWrapper.style.transform = 'translateY(10px)';
                 setTimeout(() => {
@@ -959,65 +1293,108 @@
             aiSuggestButton.addEventListener('click', async function() {
                 const formData = getFormData();
                 
-                // Validate required fields
                 if (!formData.subject || !formData.grade_level || !formData.lesson_title) {
                     showErrorMessage('Please fill in Subject, Grade Level, and Lesson Title first');
                     return;
                 }
                 
-                // Show loading in suggestions panel
+                document.getElementById('regenerate-hint-container').innerHTML = '';
+                
                 const panel = document.getElementById('ai-suggestions-panel');
                 const suggestionsList = document.getElementById('suggestions-list');
                 panel.classList.remove('hidden');
+                
+                const exemplarId = document.getElementById('exemplar-select').value;
+                
                 suggestionsList.innerHTML = `
-                    <div class="text-center py-4">
+                    <div class="text-center py-8">
                         <div class="loader-dots">
                             <div class="loader-dot"></div>
                             <div class="loader-dot"></div>
                             <div class="loader-dot"></div>
                         </div>
-                        <p class="text-sm text-gray-600 mt-2">AI is generating learning objectives...</p>
+                        <p class="text-sm text-gray-600 mt-4">${exemplarId ? 'Extracting objectives from exemplar and generating related suggestions...' : 'AI is generating learning objectives...'}</p>
+                        ${exemplarId ? '<p class="text-xs text-purple-600 mt-2">Showing exact objectives from exemplar + AI suggestions</p>' : ''}
                     </div>
                 `;
                 
                 try {
-                    // Simulate AI response (replace with actual API call)
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    const response = await fetch('/get-ai-suggestions/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken'),
+                        },
+                        body: JSON.stringify({
+                            section: 'learning_objectives',
+                            form_data: {
+                                subject: formData.subject,
+                                grade_level: formData.grade_level,
+                                lesson_title: formData.lesson_title,
+                                intelligence_type: formData.intelligence_type
+                            },
+                            exemplar_id: exemplarId || null
+                        })
+                    });
                     
-                    const suggestions = generateAISuggestions(formData);
-                    displaySuggestions(suggestions);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        displaySuggestions(data.suggestions, data.exemplar_used, data.exemplar_name);
+                    } else {
+                        suggestionsList.innerHTML = `
+                            <div class="empty-state">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                </svg>
+                                <h3>Unable to Generate Suggestions</h3>
+                                <p>${data.error || 'The AI service encountered an error. Please try again.'}</p>
+                                ${exemplarId ? '<p class="text-sm mt-4 text-amber-600">The selected exemplar may not have extractable learning objectives.</p>' : ''}
+                            </div>
+                        `;
+                    }
                     
                 } catch (error) {
-                    console.error('Error getting AI suggestions:', error);
+                    console.error('Error:', error);
                     suggestionsList.innerHTML = `
-                        <div class="text-center py-4 text-red-600">
-                            <p>Failed to generate suggestions. Please try again.</p>
+                        <div class="empty-state">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <h3>Connection Error</h3>
+                            <p>Could not connect to the AI service. Please check your internet connection and try again.</p>
                         </div>
                     `;
                 }
             });
             
-            // Close suggestions panel
             closeSuggestions.addEventListener('click', function() {
                 document.getElementById('ai-suggestions-panel').classList.add('hidden');
             });
             
-            // Apply selected suggestions
+            if (clearSelected) {
+                clearSelected.addEventListener('click', function() {
+                    document.querySelectorAll('#suggestions-list .ai-suggestion-item, #suggestions-list .objective-card').forEach(item => {
+                        item.classList.remove('selected');
+                        const checkbox = item.querySelector('input[type="checkbox"]');
+                        if (checkbox) checkbox.checked = false;
+                    });
+                });
+            }
+            
             applySelected.addEventListener('click', function() {
-                const selectedSuggestions = document.querySelectorAll('#suggestions-list .ai-suggestion-item.selected');
+                const selectedItems = document.querySelectorAll('#suggestions-list .ai-suggestion-item.selected, #suggestions-list .objective-card.selected');
                 
-                if (selectedSuggestions.length === 0) {
+                if (selectedItems.length === 0) {
                     showErrorMessage('Please select at least one objective to apply');
                     return;
                 }
                 
-                // Clear existing objectives if user wants to replace
                 const container = document.getElementById('objectives-container');
                 container.innerHTML = '';
                 objectiveCount = 0;
                 
-                // Add selected suggestions as new objective fields
-                selectedSuggestions.forEach((suggestion, index) => {
+                selectedItems.forEach((item, index) => {
                     objectiveCount++;
                     const newInputWrapper = document.createElement('div');
                     newInputWrapper.className = 'objective-input-wrapper relative';
@@ -1027,9 +1404,11 @@
                     newInput.id = `learning-objective-${objectiveCount}`;
                     newInput.name = `learning_objective_${objectiveCount}`;
                     newInput.className = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200';
-                    newInput.value = suggestion.querySelector('p').textContent;
                     
-                    if (index > 0) { // Add remove button for additional objectives
+                    const titleElement = item.querySelector('.objective-title');
+                    newInput.value = titleElement ? titleElement.textContent : '';
+                    
+                    if (index > 0) {
                         const removeBtn = document.createElement('div');
                         removeBtn.className = 'remove-objective-btn';
                         removeBtn.innerHTML = '×';
@@ -1045,79 +1424,216 @@
                     container.appendChild(newInputWrapper);
                 });
                 
-                // Hide suggestions panel
                 document.getElementById('ai-suggestions-panel').classList.add('hidden');
-                
-                showSuccessMessage('Learning objectives applied successfully!');
+                showSuccessMessage(`${selectedItems.length} learning objective(s) applied successfully!`);
             });
         }
         
-        // Generate AI suggestions based on form data
-        function generateAISuggestions(formData) {
-            // This is a mock function - replace with actual AI API call
-            const suggestions = [];
-            
-            const subject = formData.subject;
-            const grade = formData.grade_level;
-            const title = formData.lesson_title;
-            
-            // Generate contextual suggestions based on subject
-            if (subject === 'Mathematics') {
-                suggestions.push(
-                    'Solve real-world problems involving mathematical operations',
-                    'Demonstrate understanding of mathematical concepts through practical applications',
-                    'Analyze and interpret data using mathematical reasoning',
-                    'Create mathematical models to represent real-world situations',
-                    'Evaluate the reasonableness of mathematical solutions'
-                );
-            } else if (subject === 'Science') {
-                suggestions.push(
-                    'Design and conduct scientific investigations to test hypotheses',
-                    'Analyze and interpret data from scientific experiments',
-                    'Explain scientific phenomena using evidence-based reasoning',
-                    'Apply scientific concepts to real-world situations',
-                    'Evaluate the validity of scientific claims and evidence'
-                );
-            } else if (subject === 'English') {
-                suggestions.push(
-                    'Analyze literary texts for theme, character, and plot development',
-                    'Compose well-structured paragraphs with clear topic sentences',
-                    'Demonstrate understanding of vocabulary in context',
-                    'Evaluate the effectiveness of an author\'s writing style',
-                    'Create original written works using appropriate grammar and conventions'
-                );
-            } else {
-                suggestions.push(
-                    `Analyze key concepts related to ${title}`,
-                    `Apply ${subject} knowledge to real-world scenarios`,
-                    `Evaluate and synthesize information from multiple sources`,
-                    `Create original work demonstrating understanding of ${subject}`,
-                    `Demonstrate critical thinking skills when discussing ${title}`
-                );
-            }
-            
-            return suggestions;
-        }
-        
-        // Display suggestions in panel
-        function displaySuggestions(suggestions) {
+        // Display suggestions in panel - with exact objectives and AI suggestions
+        function displaySuggestions(suggestions, exemplarUsed = false, exemplarName = null) {
             const suggestionsList = document.getElementById('suggestions-list');
             suggestionsList.innerHTML = '';
             
-            suggestions.forEach((suggestion, index) => {
-                const item = document.createElement('div');
-                item.className = 'ai-suggestion-item';
-                item.innerHTML = `
-                    <div class="flex items-start">
-                        <input type="checkbox" class="mt-1 mr-3" id="suggest-${index}">
-                        <div>
-                            <p class="text-sm text-gray-700">${suggestion}</p>
-                            <p class="text-xs text-purple-600 mt-1">AI Generated - Highly relevant to ${document.getElementById('subject').value}</p>
+            if (exemplarUsed && exemplarName) {
+                const header = document.createElement('div');
+                header.className = 'mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg';
+                header.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                            <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-purple-900">Exemplar: ${exemplarName}</p>
+                            <p class="text-xs text-purple-700 mt-1">Showing exact objectives from exemplar (green) and AI-generated related objectives (purple)</p>
                         </div>
                     </div>
                 `;
+                suggestionsList.appendChild(header);
+            }
+            
+            if (!suggestions || suggestions.length === 0) {
+                suggestionsList.innerHTML = '<p class="text-center text-gray-500 py-8">No suggestions available</p>';
+                return;
+            }
+            
+            // Track seen objectives to prevent duplicates
+            const seenObjectives = new Set();
+            let objectiveCounter = 1;
+            
+            // Process each suggestion
+            suggestions.forEach((suggestion, index) => {
+                const isExact = suggestion.is_exact || false;
                 
-                item.addEventListener('click', function(e) {
+                // For exact objectives, we need to split them if they contain multiple objectives
+                if (isExact) {
+                    const title = suggestion.title || '';
+                    
+                    // Extract the objective text by removing the prefix
+                    let objectiveText = title.replace('At the end of the lesson, the learners should be able to: ●', '').trim();
+                    
+                    // Split by bullet points or common separators
+                    const bulletPattern = /[●•]\s*/g;
+                    const parts = objectiveText.split(bulletPattern).filter(part => part.trim().length > 0);
+                    
+                    if (parts.length > 1) {
+                        // Multiple objectives found - create a card for each
+                        parts.forEach((part, partIndex) => {
+                            // Clean up each part
+                            let cleanPart = part.trim();
+                            // Remove trailing punctuation and "and"
+                            cleanPart = cleanPart.replace(/[;,]?\s*and\s*$/i, '').replace(/[;,.]+$/, '').trim();
+                            
+                            // Skip if it's not a real objective (too short or contains non-objective text)
+                            if (cleanPart.length < 10 || 
+                                cleanPart.includes('II.') || 
+                                cleanPart.includes('TEACHING') ||
+                                cleanPart.includes('PROCEDURES') ||
+                                cleanPart.includes('E. Learning')) {
+                                return;
+                            }
+                            
+                            // Check for duplicates
+                            const normalizedPart = cleanPart.toLowerCase().replace(/[.,;:!?]/g, '').trim();
+                            if (seenObjectives.has(normalizedPart)) {
+                                return;
+                            }
+                            seenObjectives.add(normalizedPart);
+                            
+                            const card = document.createElement('div');
+                            card.className = 'objective-card exact-objective';
+                            
+                            const fullTitle = `At the end of the lesson, the learners should be able to: ● ${cleanPart}`;
+                            
+                            card.innerHTML = `
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0 mt-1">
+                                        <input type="checkbox" class="suggestion-checkbox" id="suggest-${objectiveCounter}">
+                                    </div>
+                                    <div class="flex-1 ml-3">
+                                        <div class="flex items-center mb-2">
+                                            <span class="objective-number">Objective ${objectiveCounter}</span>
+                                            <span class="badge-exact">📋 EXACT FROM EXEMPLAR</span>
+                                        </div>
+                                        <div class="objective-title mt-2">${fullTitle}</div>
+                                        <div class="objective-description">Exact learning objective from the exemplar: ${exemplarName}</div>
+                                        <div class="objective-meta mt-2">
+                                            <span class="meta-tag">🧠 Develops comprehensive intelligence</span>
+                                        </div>
+                                        <div class="exemplar-alignment mt-2">📋 EXACT OBJECTIVE FROM EXEMPLAR: ${cleanPart}</div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            addCardEventListeners(card, objectiveCounter);
+                            suggestionsList.appendChild(card);
+                            objectiveCounter++;
+                        });
+                    } else {
+                        // Single objective
+                        // Extract the objective text for deduplication
+                        let cleanTitle = title.replace('At the end of the lesson, the learners should be able to: ●', '').trim();
+                        cleanTitle = cleanTitle.replace(/[;,]?\s*and\s*$/i, '').replace(/[;,.]+$/, '').trim();
+                        
+                        // Skip if it's not a real objective
+                        if (cleanTitle.length < 10 || 
+                            cleanTitle.includes('II.') || 
+                            cleanTitle.includes('TEACHING') ||
+                            cleanTitle.includes('PROCEDURES') ||
+                            cleanTitle.includes('E. Learning')) {
+                            return;
+                        }
+                        
+                        // Check for duplicates
+                        const normalizedTitle = cleanTitle.toLowerCase().replace(/[.,;:!?]/g, '').trim();
+                        if (seenObjectives.has(normalizedTitle)) {
+                            return;
+                        }
+                        seenObjectives.add(normalizedTitle);
+                        
+                        const card = document.createElement('div');
+                        card.className = 'objective-card exact-objective';
+                        
+                        card.innerHTML = `
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 mt-1">
+                                    <input type="checkbox" class="suggestion-checkbox" id="suggest-${objectiveCounter}">
+                                </div>
+                                <div class="flex-1 ml-3">
+                                    <div class="flex items-center mb-2">
+                                        <span class="objective-number">Objective ${objectiveCounter}</span>
+                                        <span class="badge-exact">📋 EXACT FROM EXEMPLAR</span>
+                                    </div>
+                                    <div class="objective-title mt-2">${suggestion.title}</div>
+                                    <div class="objective-description">${suggestion.description}</div>
+                                    <div class="objective-meta mt-2">
+                                        <span class="meta-tag">🧠 ${suggestion.intelligence_connection}</span>
+                                    </div>
+                                    <div class="exemplar-alignment mt-2">📋 ${suggestion.exemplar_alignment}</div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        addCardEventListeners(card, objectiveCounter);
+                        suggestionsList.appendChild(card);
+                        objectiveCounter++;
+                    }
+                } else {
+                    // AI-generated objective
+                    // Check for duplicates in AI suggestions
+                    const cleanTitle = suggestion.title.replace('At the end of the lesson, the learners should be able to: ●', '').trim();
+                    const normalizedTitle = cleanTitle.toLowerCase().replace(/[.,;:!?]/g, '').trim();
+                    
+                    if (seenObjectives.has(normalizedTitle)) {
+                        return;
+                    }
+                    seenObjectives.add(normalizedTitle);
+                    
+                    const card = document.createElement('div');
+                    card.className = 'ai-suggestion-item ai-objective';
+                    
+                    let html = `
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <input type="checkbox" class="suggestion-checkbox" id="suggest-${objectiveCounter}">
+                            </div>
+                            <div class="flex-1 ml-3">
+                                <div class="flex items-center mb-2">
+                                    <span class="objective-number">Objective ${objectiveCounter}</span>
+                                    <span class="badge-ai">✨ AI-GENERATED</span>
+                                </div>
+                                <div class="objective-title mt-2">${suggestion.title}</div>
+                                <div class="objective-description">${suggestion.description}</div>
+                    `;
+                    
+                    if (suggestion.example && suggestion.example !== 'Based on DepEd curriculum standards') {
+                        html += `<div class="text-xs text-blue-600 bg-blue-50 p-2 rounded mt-2">💡 Example: ${suggestion.example}</div>`;
+                    }
+                    
+                    html += `<div class="objective-meta mt-2">`;
+                    html += `<span class="meta-tag">🧠 ${suggestion.intelligence_connection || 'Develops comprehensive intelligence'}</span>`;
+                    html += `</div>`;
+                    
+                    if (suggestion.exemplar_alignment && suggestion.exemplar_alignment !== 'Generated based on best practices') {
+                        html += `<div class="exemplar-alignment mt-2">📋 ${suggestion.exemplar_alignment}</div>`;
+                    }
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                    
+                    card.innerHTML = html;
+                    addCardEventListeners(card, objectiveCounter);
+                    suggestionsList.appendChild(card);
+                    objectiveCounter++;
+                }
+            });
+            
+            // Helper function to add event listeners to cards
+            function addCardEventListeners(card, id) {
+                card.addEventListener('click', function(e) {
                     if (e.target.type !== 'checkbox') {
                         const checkbox = this.querySelector('input[type="checkbox"]');
                         checkbox.checked = !checkbox.checked;
@@ -1125,13 +1641,12 @@
                     this.classList.toggle('selected', this.querySelector('input[type="checkbox"]').checked);
                 });
                 
-                item.querySelector('input[type="checkbox"]').addEventListener('change', function(e) {
+                const checkbox = card.querySelector('input[type="checkbox"]');
+                checkbox.addEventListener('change', function(e) {
                     e.stopPropagation();
-                    item.classList.toggle('selected', this.checked);
+                    card.classList.toggle('selected', this.checked);
                 });
-                
-                suggestionsList.appendChild(item);
-            });
+            }
         }
 
         async function loadDepartmentExemplars() {
@@ -1454,7 +1969,6 @@
             
             document.body.appendChild(errorModal);
             
-            // Animate error modal entrance
             const errorContent = document.getElementById('error-modal-content');
             setTimeout(() => {
                 errorContent.classList.remove('scale-95', 'opacity-0');
