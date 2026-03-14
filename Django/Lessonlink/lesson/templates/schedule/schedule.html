@@ -35,6 +35,15 @@ tailwind.config = {
     }
 }
 
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
 @keyframes slideIn {
     from {
         transform: translateX(-100%);
@@ -75,6 +84,15 @@ tailwind.config = {
     }
 }
 
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
 @keyframes slideUp {
     from {
         opacity: 0;
@@ -84,6 +102,42 @@ tailwind.config = {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+.dropdown-enter {
+    animation: scaleIn 0.2s ease-out;
+}
+
+.animate-pulse {
+    animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.notification-removing {
+    animation: fadeOut 0.3s ease forwards;
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+#notification-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+#notification-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+#notification-list::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 4px;
+}
+
+#notification-list::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
 }
 
 /* Modal Styles */
@@ -312,10 +366,6 @@ Z-INDEX HIERARCHY:
 
 .sidebar-transition {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.dropdown-enter {
-    animation: scaleIn 0.2s ease-out;
 }
 
 .schedule-grid {
@@ -786,29 +836,29 @@ Z-INDEX HIERARCHY:
     </button>
 
     <!-- Logo -->
-            <a href="{% url 'dashboard' %}"><div class="flex items-center space-x-3 flex-1 md:flex-none">
-                {% if user_school and user_school.school_logo %}
-                <div class="w-10 h-10 rounded-full overflow-hidden shadow-md">
-                    <img src="{{ user_school.school_logo.url }}" 
-                        alt="{{ user_school.school_name }}" 
-                        class="w-full h-full object-cover"
-                        onerror="this.onerror=null; this.parentElement.classList.add('bg-gradient-to-r', 'from-[#11468F]', 'to-[#9E5EFF]'); this.style.display='none';">
-                </div>
+    <a href="{% url 'dashboard' %}"><div class="flex items-center space-x-3 flex-1 md:flex-none">
+        {% if user_school and user_school.school_logo %}
+        <div class="w-10 h-10 rounded-full overflow-hidden shadow-md">
+            <img src="{{ user_school.school_logo.url }}" 
+                alt="{{ user_school.school_name }}" 
+                class="w-full h-full object-cover"
+                onerror="this.onerror=null; this.parentElement.classList.add('bg-gradient-to-r', 'from-[#11468F]', 'to-[#9E5EFF]'); this.style.display='none';">
+        </div>
+        {% else %}
+        <div class="w-10 h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
+        {% endif %}
+        
+        <div class="hidden sm:block">
+            <h1 class="text-xl font-bold text-gray-900">LessonLink</h1>
+            <p class="text-sm text-gray-500 hidden lg:block">
+                {% if user_school %}
+                    {{ user_school.school_name }}
                 {% else %}
-                <div class="w-10 h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
+                    {{ user.email|default:"LessonLink" }}
                 {% endif %}
-                
-                <div class="hidden sm:block">
-                    <h1 class="text-xl font-bold text-gray-900">LessonLink</h1>
-                    <p class="text-sm text-gray-500 hidden lg:block">
-                        {% if user_school %}
-                            {{ user_school.school_name }}
-                        {% else %}
-                            {{ user.email|default:"LessonLink" }}
-                        {% endif %}
-                    </p>
-                </div>
-            </div></a>
+            </p>
+        </div>
+    </div></a>
 
     <!-- Right side actions -->
     <div class="flex items-center space-x-1 md:space-x-4">
@@ -824,52 +874,72 @@ Z-INDEX HIERARCHY:
             <button id="notification-btn"
                 class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center">
                 <i class="fas fa-bell text-base md:text-lg"></i>
-                <span id="notification-badge"
-                    class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                <span id="notification-badge" 
+                      class="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-gradient-to-r from-red-500 to-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm hidden">
+                    0
+                </span>
             </button>
 
-            <!-- Notifications Dropdown -->
-            <div id="notification-dropdown" class="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
-                <div class="p-4 border-b border-gray-100">
+            <!-- Notifications Dropdown - FIXED VERSION (NO VIEW ALL LINK) -->
+            <div id="notification-dropdown" class="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-xl border border-gray-200 hidden z-50 overflow-hidden animate-scale-in">
+                <div class="p-4 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white">
                     <div class="flex items-center justify-between">
-                        <h3 class="font-semibold text-gray-900">Notifications</h3>
-                        <button class="text-purple-600 text-sm hover:text-purple-700" onclick="markAllNotificationsAsRead()">
+                        <h3 class="font-semibold text-white flex items-center">
+                            <i class="fas fa-bell mr-2 text-sm"></i>
+                            Notifications
+                        </h3>
+                        <button class="text-white/90 hover:text-white text-xs flex items-center bg-white/20 px-2 py-1 rounded-lg hover:bg-white/30 transition-colors" onclick="markAllNotificationsAsRead()">
+                            <i class="fas fa-check-double mr-1 text-xs"></i>
                             Mark all read
                         </button>
                     </div>
                 </div>
-                <div class="max-h-96 overflow-y-auto">
+                <div class="max-h-96 overflow-y-auto" id="notification-list">
                     <!-- Notifications will be loaded here dynamically -->
+                    <div class="p-8 text-center text-gray-500">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                        </div>
+                        <p class="text-sm font-medium text-gray-600">No notifications</p>
+                        <p class="text-xs text-gray-400 mt-1">You're all caught up!</p>
+                    </div>
                 </div>
-                <div class="p-4 border-t border-gray-100">
-                    <button class="w-full text-center text-purple-600 text-sm hover:text-purple-700 font-medium">
-                        View all notifications
-                    </button>
-                </div>
+                <!-- REMOVED: The problematic "View all notifications" link -->
             </div>
         </div>
 
-        
         <!-- Profile -->
         <div class="relative">
-            <!-- Profile Dropdown -->
             <div class="relative">
                 <button id="profile-btn"
                     class="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors min-w-[44px] min-h-[44px]">
-                    <!-- Profile image placeholder -->
+                    {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" 
+                        alt="Profile Picture" 
+                        class="w-full h-full object-cover"
+                        id="header-profile-img">
+                    {% else %}
                     <i class="fas fa-user text-gray-500" id="header-profile-icon"></i>
+                    {% endif %}
                 </button>
 
-                <!-- Profile Dropdown - Moved INSIDE the same relative container -->
+                <!-- Profile Dropdown -->
                 <div id="profile-dropdown" class="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50 dropdown-enter">
                     <div class="p-4 border-b border-gray-100">
                         <div class="flex items-center space-x-3">
                             <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                                {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" 
+                                    alt="Profile Picture" 
+                                    class="w-full h-full object-cover"
+                                    id="dropdown-profile-img">
+                                {% else %}
                                 <i class="fas fa-user-tie text-white"></i>
+                                {% endif %}
                             </div>
                             <div>
-                                <p class="font-semibold text-gray-900">John Doe</p>
-                                <p class="text-sm text-gray-500">Teacher</p>
+                                <p class="font-semibold text-gray-900">{{ user.full_name }}</p>
+                                <p class="text-sm text-gray-500">{{ user.role }}</p>
                             </div>
                         </div>
                     </div>
@@ -881,7 +951,7 @@ Z-INDEX HIERARCHY:
                             </a>
                         
                         <hr class="my-2">
-                        <a href="#"
+                        <a href="{% url 'logout' %}"
                             class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors min-h-[44px]">
                             <i class="fas fa-sign-out-alt w-4"></i>
                             <span>Logout</span>
@@ -1190,25 +1260,208 @@ const csrfToken = getCookie('csrftoken');
 let scheduleData = {};
 let selectedColor = '#3b82f6'; // Default color
 
-// Constants for schedule generation - IMPROVED FOR BETTER ALIGNMENT
-const WORK_START_HOUR = 6; // 6:00 AM
-const WORK_END_HOUR = 19; // 7:00 PM (24-hour format)
-const TIME_SLOT_HEIGHT = 100; // Increased from 80 to 100px for better visibility
+// Constants for schedule generation
+const WORK_START_HOUR = 6;
+const WORK_END_HOUR = 19;
+const TIME_SLOT_HEIGHT = 100;
 const MINUTES_PER_HOUR = 60;
 const PIXELS_PER_MINUTE = TIME_SLOT_HEIGHT / MINUTES_PER_HOUR;
 
-// Get user role and approval status from Django template
+// Get user role and approval status
 const userRole = "{{ user.role }}";
 const userApprovalStatus = "{{ user.approval_status }}";
+
+// ==================== NOTIFICATION FUNCTIONS (WORKING VERSION) ====================
+
+function loadNotifications() {
+    fetch('/api/notifications/', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const badge = document.getElementById('notification-badge');
+        const notificationList = document.getElementById('notification-list');
+        
+        if (!notificationList) return;
+        
+        if (data.success && data.data && data.data.notifications && data.data.notifications.length > 0) {
+            // Update notification badge
+            if (badge) {
+                if (data.data.unread_count > 0) {
+                    badge.textContent = data.data.unread_count > 9 ? '9+' : data.data.unread_count;
+                    badge.classList.remove('hidden');
+                    
+                    // Add pulse animation for new notifications
+                    badge.classList.add('animate-pulse');
+                    setTimeout(() => {
+                        badge.classList.remove('animate-pulse');
+                    }, 1000);
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+            
+            // Clear existing notifications
+            notificationList.innerHTML = '';
+            
+            // Add new notifications
+            data.data.notifications.forEach(notification => {
+                const notificationItem = document.createElement('div');
+                notificationItem.className = 'p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer transition-all duration-300 group';
+                notificationItem.setAttribute('data-notification-id', notification.id);
+                notificationItem.setAttribute('data-read', notification.is_read);
+                
+                if (!notification.is_read) {
+                    notificationItem.classList.add('bg-red-50/50');
+                }
+                
+                // Format time ago
+                const timeAgo = notification.time_ago || 'Just now';
+                
+                // ALL NOTIFICATIONS USE RED
+                const bgColor = 'bg-red-100';
+                const textColor = 'text-red-600';
+                const icon = 'fa-exclamation-circle';
+                
+                notificationItem.innerHTML = `
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full ${bgColor} flex items-center justify-center">
+                            <i class="fas ${icon} text-sm ${textColor}"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+                                    ${notification.title}
+                                </p>
+                                ${!notification.is_read ? '<span class="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></span>' : ''}
+                            </div>
+                            <p class="text-xs text-gray-600 mt-0.5 line-clamp-2">${notification.message}</p>
+                            <div class="flex items-center mt-1.5 text-xs text-gray-400">
+                                <i class="far fa-clock mr-1"></i>
+                                <span>${timeAgo}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                notificationItem.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    markNotificationAsRead(notification.id, notificationItem);
+                });
+                
+                notificationList.appendChild(notificationItem);
+            });
+        } else {
+            // Show empty state
+            notificationList.innerHTML = `
+                <div class="p-8 text-center text-gray-500">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                    </div>
+                    <p class="text-sm font-medium text-gray-600">No notifications</p>
+                    <p class="text-xs text-gray-400 mt-1">You're all caught up!</p>
+                </div>
+            `;
+            if (badge) {
+                badge.classList.add('hidden');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error loading notifications:', error);
+    });
+}
+
+function markNotificationAsRead(notificationId, notificationElement) {
+    fetch(`/api/notifications/${notificationId}/read/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Animate and remove the notification
+            if (notificationElement) {
+                notificationElement.classList.add('notification-removing');
+                setTimeout(() => {
+                    notificationElement.remove();
+                    
+                    // Check if there are any notifications left
+                    const notificationList = document.getElementById('notification-list');
+                    if (notificationList.children.length === 0) {
+                        notificationList.innerHTML = `
+                            <div class="p-8 text-center text-gray-500">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                                </div>
+                                <p class="text-sm font-medium text-gray-600">No notifications</p>
+                                <p class="text-xs text-gray-400 mt-1">You're all caught up!</p>
+                            </div>
+                        `;
+                    }
+                    
+                    // Reload notifications to update badge
+                    loadNotifications();
+                }, 300);
+            } else {
+                loadNotifications();
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error marking notification as read:', error);
+    });
+}
+
+function markAllNotificationsAsRead() {
+    fetch('/api/notifications/mark-all-read/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Clear the notification list
+            const notificationList = document.getElementById('notification-list');
+            notificationList.innerHTML = `
+                <div class="p-8 text-center text-gray-500">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                    </div>
+                    <p class="text-sm font-medium text-gray-600">No notifications</p>
+                    <p class="text-xs text-gray-400 mt-1">You're all caught up!</p>
+                </div>
+            `;
+            
+            // Hide the badge
+            const badge = document.getElementById('notification-badge');
+            if (badge) {
+                badge.classList.add('hidden');
+            }
+            
+            // Show success message
+            showToast('All notifications marked as read!', 'success');
+        }
+    })
+    .catch(error => {
+        console.error('Error marking all notifications as read:', error);
+    });
+}
 
 // ==================== LESSON MODAL FUNCTIONS ====================
 let selectedLessonType = null;
 
-// Open modal function
 function openLessonModal() {
     const modal = document.getElementById('lessonModal');
     modal.classList.add('active');
-    // Reset selection
     selectedLessonType = null;
     document.querySelectorAll('.modal-option').forEach(opt => {
         opt.classList.remove('selected');
@@ -1216,17 +1469,13 @@ function openLessonModal() {
     document.getElementById('continueBtn').disabled = true;
 }
 
-// Close modal function
 function closeLessonModal() {
     const modal = document.getElementById('lessonModal');
     modal.classList.remove('active');
 }
 
-// Select lesson type
 function selectLessonType(type) {
     selectedLessonType = type;
-    
-    // Update UI
     document.querySelectorAll('.modal-option').forEach(opt => {
         if (opt.getAttribute('data-type') === type) {
             opt.classList.add('selected');
@@ -1234,15 +1483,11 @@ function selectLessonType(type) {
             opt.classList.remove('selected');
         }
     });
-    
-    // Enable continue button
     document.getElementById('continueBtn').disabled = false;
 }
 
-// Continue to selected lesson type
 function continueToLesson() {
     if (!selectedLessonType) return;
-
     if (selectedLessonType === 'daily') {
         window.location.href = "{% url 'lesson_ai' %}";
     } else if (selectedLessonType === 'weekly') {
@@ -1251,7 +1496,6 @@ function continueToLesson() {
     }
 }
 
-// Close modal when clicking outside
 window.addEventListener('click', function(event) {
     const modal = document.getElementById('lessonModal');
     if (event.target === modal) {
@@ -1261,11 +1505,9 @@ window.addEventListener('click', function(event) {
 
 // ==================== PRINT FUNCTION ====================
 function printSchedule() {
-    // Create printable version
     const printableContainer = document.getElementById('printable-schedule');
     printableContainer.style.display = 'block';
     
-    // Generate printable HTML
     let printableHTML = `
         <div style="font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto;">
             <div style="text-align: center; margin-bottom: 30px;">
@@ -1291,18 +1533,15 @@ function printSchedule() {
                 <tbody>
     `;
     
-    // Generate time slots
     for (let hour = WORK_START_HOUR; hour < WORK_END_HOUR; hour++) {
         const timeLabel = minutesToTime(hour * 60);
         printableHTML += `<tr>`;
         printableHTML += `<td style="border: 1px solid #ddd; padding: 10px; font-weight: bold; background-color: #f9f9f9;">${timeLabel}</td>`;
         
-        // Add cells for each day
         const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         days.forEach(day => {
             printableHTML += `<td style="border: 1px solid #ddd; padding: 8px; vertical-align: top; min-height: 80px;">`;
             
-            // Find events that fall within this hour
             const hourEvents = Object.values(scheduleData).filter(event => {
                 if (event.day !== day) return false;
                 const startHour = Math.floor(timeToMinutes(event.start_time) / 60);
@@ -1338,11 +1577,8 @@ function printSchedule() {
     `;
     
     printableContainer.innerHTML = printableHTML;
-    
-    // Trigger print
     window.print();
     
-    // Hide printable container after printing
     setTimeout(() => {
         printableContainer.style.display = 'none';
         printableContainer.innerHTML = '';
@@ -1352,15 +1588,12 @@ function printSchedule() {
 // Role and approval-based button control
 function setupCreateLessonButton() {
     const container = document.getElementById('create-lesson-container');
-    
     if (!container) return;
     
-    // Determine if button should be locked
     const isStudentTeacherNotApproved = (userRole === 'Student Teacher' && userApprovalStatus !== 'approved');
     const isOtherNotApproved = (userRole !== 'Student Teacher' && userRole !== 'Teacher' && userApprovalStatus !== 'approved');
     
     if (isStudentTeacherNotApproved || isOtherNotApproved) {
-        // LOCKED VERSION - Student Teacher not approved
         let lockMessage = '';
         if (userRole === 'Student Teacher' && userApprovalStatus === 'pending') {
             lockMessage = 'Waiting for teacher approval';
@@ -1383,7 +1616,6 @@ function setupCreateLessonButton() {
             </div>
         `;
     } else {
-        // UNLOCKED VERSION - Using modal
         container.innerHTML = `
             <button onclick="openLessonModal()"
                     class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all shadow-md min-h-[48px]">
@@ -1394,22 +1626,18 @@ function setupCreateLessonButton() {
     }
 }
 
-// Role-based visibility control
 function setRoleBasedVisibility() {
     const teacherOnlyNav = document.getElementById('teacher-only-nav');
-    
     if (teacherOnlyNav) {
         if (userRole === 'Teacher') {
-            // Show teacher-only items
             teacherOnlyNav.style.display = 'block';
         } else {
-            // Hide teacher-only items for Student Teachers and Department Heads
             teacherOnlyNav.style.display = 'none';
         }
     }
 }
 
-// Modal and notification functions
+// Modal functions
 function showConfirmation(message, onConfirm) {
     const modal = document.getElementById('confirmation-modal');
     const confirmBtn = document.getElementById('confirm-delete');
@@ -1579,6 +1807,9 @@ notificationBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     notificationDropdown.classList.toggle('hidden');
     profileDropdown.classList.add('hidden');
+    if (!notificationDropdown.classList.contains('hidden')) {
+        loadNotifications();
+    }
 });
 
 profileBtn.addEventListener('click', (e) => {
@@ -1592,6 +1823,14 @@ document.addEventListener('click', () => {
     notificationDropdown.classList.add('hidden');
     profileDropdown.classList.add('hidden');
 });
+
+// Prevent dropdowns from closing when clicking inside them
+if (notificationDropdown) {
+    notificationDropdown.addEventListener('click', (e) => e.stopPropagation());
+}
+if (profileDropdown) {
+    profileDropdown.addEventListener('click', (e) => e.stopPropagation());
+}
 
 // Modal controls
 addClassBtn.addEventListener('click', () => {
@@ -1728,19 +1967,14 @@ function generateScheduleGrid() {
     });
 }
 
-// IMPROVED: Calculate event position with precise alignment
 function calculateEventPosition(event) {
-    // Use the 24-hour format times for accurate calculation
     const startMinutes = timeToMinutes(event.start_time);
     const endMinutes = timeToMinutes(event.end_time);
     const duration = endMinutes - startMinutes;
     
-    // Calculate position from the start of the work day
     const minutesFromStart = startMinutes - (WORK_START_HOUR * 60);
     const top = minutesFromStart * PIXELS_PER_MINUTE;
     const height = duration * PIXELS_PER_MINUTE;
-    
-    console.log(`Position calc for "${event.title}": start=${event.start_time} (${startMinutes}min), end=${event.end_time} (${endMinutes}min), top=${top}px, height=${height}px`);
     
     return { top, height };
 }
@@ -1754,7 +1988,6 @@ function checkTimeOverlap(day, startTime, endTime, excludeId = null) {
     const newEnd = timeToMinutes(endTime);
     
     for (const event of events) {
-        // Use the 24-hour format times for accurate comparison
         const eventStart = timeToMinutes(event.start_time);
         const eventEnd = timeToMinutes(event.end_time);
         
@@ -1766,39 +1999,20 @@ function checkTimeOverlap(day, startTime, endTime, excludeId = null) {
     return null;
 }
 
-function addEventToSchedule(eventData) {
-    scheduleData[eventData.id] = eventData;
-    updateScheduleDisplay();
-}
-
 function updateScheduleDisplay() {
-    console.log('=== UPDATING SCHEDULE DISPLAY ===');
-    console.log('Total events:', Object.values(scheduleData).length);
-    
     document.querySelectorAll('.schedule-item').forEach(item => item.remove());
     
     const dayCells = {};
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     days.forEach(day => {
         dayCells[day] = document.querySelectorAll(`.time-slot[data-day="${day}"]`);
-        console.log(`${day}: ${dayCells[day].length} time slots`);
     });
     
     Object.values(scheduleData).forEach(event => {
-        console.log(`\nProcessing: ${event.title}`);
-        console.log(`  Day: ${event.day}`);
-        console.log(`  Time: ${event.start_time} - ${event.end_time}`);
-        
         const { top, height } = calculateEventPosition(event);
         
-        const dayIndex = days.indexOf(event.day);
-        if (dayIndex === -1) return;
-        
-        // Use start_time (24-hour format) for accurate positioning
         const startMinutes = timeToMinutes(event.start_time);
         const startHour = Math.floor(startMinutes / 60);
-        
-        console.log(`  Start hour: ${startHour}, Hour diff from ${WORK_START_HOUR}: ${startHour - WORK_START_HOUR}`);
         
         if (startHour >= WORK_START_HOUR && startHour < WORK_END_HOUR) {
             const hourDiff = startHour - WORK_START_HOUR;
@@ -1806,11 +2020,8 @@ function updateScheduleDisplay() {
             if (hourDiff >= 0 && hourDiff < dayCells[event.day].length) {
                 const targetCell = dayCells[event.day][hourDiff];
                 
-                // Calculate the position RELATIVE to the cell's hour
                 const cellStartMinutes = (WORK_START_HOUR + hourDiff) * 60;
                 const relativeTop = (startMinutes - cellStartMinutes) * PIXELS_PER_MINUTE;
-                
-                console.log(`  Cell starts at: ${cellStartMinutes} min, Relative top: ${relativeTop}px`);
                 
                 const displayStart = formatTime24to12(event.start_time);
                 const displayEnd = formatTime24to12(event.end_time);
@@ -1819,10 +2030,9 @@ function updateScheduleDisplay() {
                 scheduleItem.className = 'schedule-item';
                 scheduleItem.dataset.id = event.id;
                 scheduleItem.style.background = event.color;
-                scheduleItem.style.top = `${relativeTop}px`; // Use relative position
-                scheduleItem.style.height = `${Math.max(height, 60)}px`; // Minimum height for visibility
+                scheduleItem.style.top = `${relativeTop}px`;
+                scheduleItem.style.height = `${Math.max(height, 60)}px`;
                 
-                // Dynamic font sizing based on height
                 const titleSize = Math.max(11, Math.min(14, height / 8));
                 const textSize = Math.max(9, Math.min(11, height / 10));
                 
@@ -1843,17 +2053,9 @@ function updateScheduleDisplay() {
                 });
                 
                 targetCell.appendChild(scheduleItem);
-                
-                console.log(`  ✓ Added to cell ${hourDiff} with relative top=${relativeTop}px, height=${height}px`);
-            } else {
-                console.error(`  ✗ Hour diff ${hourDiff} out of range (0-${dayCells[event.day].length})`);
             }
-        } else {
-            console.error(`  ✗ Start hour ${startHour} outside work hours ${WORK_START_HOUR}-${WORK_END_HOUR}`);
         }
     });
-    
-    console.log('=== SCHEDULE DISPLAY UPDATED ===\n');
     
     const activeDay = document.querySelector('.mobile-day-tab.active')?.dataset.day;
     if (activeDay) {
@@ -1941,8 +2143,6 @@ function updateMobileDayView(day) {
 
 async function deleteScheduleEvent(eventId) {
     try {
-        console.log('Deleting schedule with ID:', eventId);
-        
         const response = await fetch(`/api/schedules/${eventId}/`, {
             method: 'DELETE',
             headers: {
@@ -1950,48 +2150,35 @@ async function deleteScheduleEvent(eventId) {
             }
         });
         
-        console.log('Delete response status:', response.status);
-        
         if (response.ok) {
-            const data = await response.json();
-            console.log('Delete successful:', data);
-            
             delete scheduleData[eventId];
             updateScheduleDisplay();
             showToast('Class removed successfully', 'success');
         } else {
             const errorData = await response.json();
-            console.error('Delete failed:', errorData);
             showError(errorData.error || 'Failed to remove class. Please try again.');
         }
     } catch (error) {
-        console.error('Error:', error);
         showError('Network error. Please check your connection and try again.');
     }
 }
 
 async function loadFromBackend() {
     try {
-        console.log('Loading schedules from backend...');
         const response = await fetch('/api/schedules/all/');
-        console.log('Load response status:', response.status);
         
         if (response.ok) {
             const data = await response.json();
-            console.log('Loaded data:', data);
             
             if (data.schedules) {
                 scheduleData = {};
                 data.schedules.forEach(event => {
-                    const displayStart = formatTime24to12(event.start_time);
-                    const displayEnd = formatTime24to12(event.end_time);
-                    
                     scheduleData[event.id] = {
                         id: event.id,
                         title: event.title,
                         day: event.day,
-                        start: displayStart,
-                        end: displayEnd,
+                        start: formatTime24to12(event.start_time),
+                        end: formatTime24to12(event.end_time),
                         start_time: event.start_time,
                         end_time: event.end_time,
                         instructor: event.instructor,
@@ -2000,22 +2187,10 @@ async function loadFromBackend() {
                     };
                 });
                 updateScheduleDisplay();
-                showToast('Schedule loaded successfully', 'success');
-            } else if (data.error) {
-                console.error('Error in response:', data.error);
-                showToast('Error loading schedule: ' + data.error, 'error');
-            } else {
-                console.error('No schedules field in response:', data);
-                showToast('No schedule data found', 'warning');
             }
-        } else {
-            const errorData = await response.json();
-            console.error('Failed to load:', errorData);
-            showToast('Failed to load schedule data: ' + (errorData.error || response.statusText), 'error');
         }
     } catch (error) {
-        console.error('Error loading from backend:', error);
-        showToast('Failed to load schedule data: ' + error.message, 'error');
+        console.error('Error loading schedules:', error);
     }
 }
 
@@ -2037,9 +2212,6 @@ eventForm.addEventListener('submit', async (e) => {
         return;
     }
     
-    const startTime12 = formatTime24to12(startTime24);
-    const endTime12 = formatTime24to12(endTime24);
-    
     const startMinutes = timeToMinutes(startTime24);
     const endMinutes = timeToMinutes(endTime24);
     
@@ -2053,7 +2225,6 @@ eventForm.addEventListener('submit', async (e) => {
         return;
     }
     
-    // Check overlap using 24-hour format
     const overlappingEvent = checkTimeOverlap(day, startTime24, endTime24);
     if (overlappingEvent) {
         showError(`Time overlaps with "${overlappingEvent.title}" (${formatTime24to12(overlappingEvent.start_time)} - ${formatTime24to12(overlappingEvent.end_time)})`);
@@ -2081,15 +2252,12 @@ eventForm.addEventListener('submit', async (e) => {
         const data = await response.json();
         
         if (response.ok) {
-            const displayStart = formatTime24to12(data.start_time);
-            const displayEnd = formatTime24to12(data.end_time);
-            
             scheduleData[data.id] = {
                 id: data.id,
                 title: data.title,
                 day: data.day,
-                start: displayStart,
-                end: displayEnd,
+                start: formatTime24to12(data.start_time),
+                end: formatTime24to12(data.end_time),
                 start_time: data.start_time,
                 end_time: data.end_time,
                 instructor: data.instructor,
@@ -2109,7 +2277,6 @@ eventForm.addEventListener('submit', async (e) => {
             document.getElementById('event-color').value = selectedColor;
             
             showSuccess(`${title} has been added to your ${day} schedule.`);
-            showToast('Class added successfully', 'success');
         } else {
             let errorMessage = 'Failed to add class. Please try again.';
             if (data.error) {
@@ -2120,7 +2287,6 @@ eventForm.addEventListener('submit', async (e) => {
             showError(errorMessage);
         }
     } catch (error) {
-        console.error('Error:', error);
         showError('Network error. Please check your connection and try again.');
     }
 });
@@ -2141,8 +2307,14 @@ document.addEventListener('DOMContentLoaded', function() {
     generateScheduleGrid();
     loadFromBackend();
     updateMobileDayView('monday');
-    setRoleBasedVisibility(); // Set role-based visibility on page load
-    setupCreateLessonButton(); // Setup create lesson button with role-based locking
+    setRoleBasedVisibility();
+    setupCreateLessonButton();
+    
+    // Load initial notifications
+    loadNotifications();
+    
+    // Set up notification polling (every 30 seconds)
+    setInterval(loadNotifications, 30000);
 });
 
 // Close modal with ESC key
@@ -2150,7 +2322,6 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         addClassModal.classList.add('hidden');
         eventForm.reset();
-        // Close lesson modal if open
         const lessonModal = document.getElementById('lessonModal');
         if (lessonModal && lessonModal.classList.contains('active')) {
             lessonModal.classList.remove('active');

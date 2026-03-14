@@ -2232,15 +2232,21 @@ def task(request):
     elif filter_type in ['high', 'medium', 'low']:
         tasks = tasks.filter(priority=filter_type)
     elif filter_type == 'overdue':
-        # Overdue tasks are pending with due_date < today
+        # Overdue tasks are pending with due_date < today (local date)
         from datetime import date
-        tasks = tasks.filter(status='pending', due_date__lt=date.today())
+        # Use timezone.localdate() to compare correctly
+        from django.utils import timezone
+        local_today = timezone.localdate()
+        tasks = tasks.filter(status='pending', due_date__lt=local_today)
     elif filter_type == 'today':
-        from datetime import date
-        tasks = tasks.filter(due_date=date.today())
+        from django.utils import timezone
+        local_today = timezone.localdate()
+        tasks = tasks.filter(due_date=local_today)
     elif filter_type == 'upcoming':
         from datetime import date, timedelta
-        tasks = tasks.filter(status='pending', due_date__gt=date.today())
+        from django.utils import timezone
+        local_today = timezone.localdate()
+        tasks = tasks.filter(status='pending', due_date__gt=local_today)
     
     # Handle sorting
     sort_by = request.GET.get('sort', 'due-date')
@@ -2258,101 +2264,80 @@ def task(request):
     completed_count = Task.objects.filter(user=user, status='completed').count()
     total_count = Task.objects.filter(user=user).count()
     
-    # Check for tasks due soon and create notifications
-    from datetime import date, timedelta, datetime
-    today = date.today()
-    tomorrow = today + timedelta(days=1)
+    # ==================== CORRECTED NOTIFICATION LOGIC ====================
+    from datetime import timedelta, datetime
+    from django.utils import timezone
+
+    local_today = timezone.localdate()
+    local_tomorrow = local_today + timedelta(days=1)
     now = timezone.now()
-    
+
     # Get all pending tasks
     pending_tasks = Task.objects.filter(user=user, status='pending')
-    
+
     for task in pending_tasks:
         if task.due_date:
-            # Convert task due_date to date object if it's a string
-            if isinstance(task.due_date, str):
-                due_date = datetime.strptime(task.due_date, '%Y-%m-%d').date()
-            else:
-                due_date = task.due_date
-            
-            # === OVERDUE NOTIFICATION ===
-            # Check if task is overdue (due date < today)
-            if due_date < today:
-                # Check if overdue notification already exists for this task
-                overdue_notification_exists = Notification.objects.filter(
+            # task.due_date is a date object (Django handles conversion)
+            due_date = task.due_date
+
+            # --- 1‑day ahead notification (due tomorrow) ---
+            if due_date == local_tomorrow and due_date >= local_today:
+                # Check if notification already exists for today
+                notif_exists = Notification.objects.filter(
+                    user=user,
+                    task_id=task.id,
+                    notification_type='task_due_soon',
+                    created_at__date=local_today
+                ).exists()
+                if not notif_exists:
+                    print(f"  ✓ CREATING 1-DAY NOTIFICATION for task: {task.title}")
+                    create_task_notification(user, task, 'task_due_soon')
+
+            # --- Overdue notification ---
+            elif due_date < local_today:
+                notif_exists = Notification.objects.filter(
                     user=user,
                     task_id=task.id,
                     notification_type='task_overdue'
                 ).exists()
-                
-                if not overdue_notification_exists:
+                if not notif_exists:
                     print(f"  ✓ CREATING OVERDUE NOTIFICATION for task: {task.title}")
                     create_task_notification(user, task, 'task_overdue')
-                else:
-                    print(f"  ✗ Overdue notification already exists for task: {task.title}")
-            
-            # === 1-DAY BEFORE NOTIFICATION ===
-            # Only send if task is not overdue and is due tomorrow
-            elif due_date == tomorrow and due_date >= today:
-                # Check if 1-day notification already exists
-                notification_1day_exists = Notification.objects.filter(
-                    user=user,
-                    task_id=task.id,
-                    notification_type='task_due_soon',
-                    created_at__date=today
-                ).exists()
-                
-                if not notification_1day_exists:
-                    print(f"  ✓ CREATING 1-DAY NOTIFICATION for task: {task.title}")
-                    create_task_notification(user, task, 'task_due_soon')
-            
-            # === 1-HOUR BEFORE NOTIFICATION ===
-            # Only check if task is due today, has time set, and is not overdue
-            if task.due_time and due_date == today and due_date >= today:
-                # Combine due date and time
-                if isinstance(task.due_time, str):
-                    # Parse time string
-                    time_parts = task.due_time.split(':')
-                    due_time = time(int(time_parts[0]), int(time_parts[1]))
-                else:
-                    due_time = task.due_time
-                
-                # Create datetime for today at the due time
-                due_datetime = datetime.combine(due_date, due_time)
-                due_datetime = timezone.make_aware(due_datetime)  # Make timezone-aware
-                
-                # Calculate time difference in hours (as float for precise comparison)
-                time_diff = due_datetime - now
+
+            # --- 1‑hour notification (only if due today and has a time) ---
+            if task.due_time and due_date == local_today:
+                # Combine due date and time, interpret them in the local timezone
+                naive_due = datetime.combine(due_date, task.due_time)
+                local_tz = timezone.get_current_timezone()
+                due_local = timezone.make_aware(naive_due, local_tz)
+
+                # Calculate hours until due
+                time_diff = due_local - now
                 hours_until_due = time_diff.total_seconds() / 3600
-                
+
                 # DEBUG: Print for debugging
                 print(f"Task: {task.title}")
-                print(f"  Due: {due_datetime}")
-                print(f"  Now: {now}")
+                print(f"  Due (local): {due_local}")
+                print(f"  Now (UTC): {now}")
                 print(f"  Hours until due: {hours_until_due}")
                 print(f"  Should notify (0 < hours <= 1): {0 < hours_until_due <= 1}")
-                
-                # Check if task is due within the next hour (strictly between 0 and 1 hour)
-                # Using 0 < hours_until_due <= 1 ensures:
-                # - Not notifying for past due tasks (hours_until_due <= 0)
-                # - Not notifying for tasks due in more than 1 hour (hours_until_due > 1)
+
                 if 0 < hours_until_due <= 1:
-                    # Check if 1-hour notification already exists (within last hour)
-                    notification_1hour_exists = Notification.objects.filter(
+                    notif_exists = Notification.objects.filter(
                         user=user,
                         task_id=task.id,
                         notification_type='task_due_1hour',
-                        created_at__gte=timezone.now() - timedelta(hours=1)
+                        created_at__gte=now - timedelta(hours=1)
                     ).exists()
-                    
-                    if not notification_1hour_exists:
+                    if not notif_exists:
                         print(f"  ✓ CREATING 1-HOUR NOTIFICATION for task: {task.title}")
                         create_task_notification(user, task, 'task_due_1hour')
                     else:
                         print(f"  ✗ 1-hour notification already exists for task: {task.title}")
                 else:
                     print(f"  ✗ Not creating notification (outside 0-1 hour window)")
-    
+    # ==================== END CORRECTED NOTIFICATION LOGIC ====================
+
     return render(request, 'task.html', {
         'user': user,
         'tasks': tasks,
@@ -3069,13 +3054,15 @@ def add_task_api(request):
         # Create notification for new task
         create_task_notification(user, task, 'task_created')
         
-        # Check if task is due soon (within 24 hours)
+        # --- FIX: Only create "due soon" for tasks due TOMORROW (not today) ---
         if task.due_date:
-            from datetime import datetime, timedelta, date
-            # Use the model's helper method to ensure we have a date object
+            from datetime import timedelta
             due_date_obj = task._get_date(task.due_date)
-            today = date.today()
-            if due_date_obj == today or due_date_obj == today + timedelta(days=1):
+            local_today = timezone.localdate()
+            local_tomorrow = local_today + timedelta(days=1)
+            
+            # ❌ Removed due_date_obj == local_today – now only tomorrow
+            if due_date_obj == local_tomorrow:
                 create_task_notification(user, task, 'task_due_soon')
         
         # Format response - use the model's methods to avoid formatting errors
@@ -3095,20 +3082,18 @@ def add_task_api(request):
                 'title': task.title,
                 'description': task.description,
                 'status': task.status,
-                'due_date': task.formatted_due_date(),  # This handles string/date conversion
+                'due_date': task.formatted_due_date(),
                 'due_time': due_time_str,
                 'display_due_date': task.display_due_date(),
-                'display_due_datetime': task.display_due_datetime(),  # This now handles safely
+                'display_due_datetime': task.display_due_datetime(),
             }
         })
     except Exception as e:
         logger.error(f"Error in add_task_api: {str(e)}")
-        print(f"Error in add_task_api: {str(e)}")  # Add print for debugging
+        print(f"Error in add_task_api: {str(e)}")
         import traceback
         traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)})
-
-
 
 @login_required
 def get_task_api(request, task_id):

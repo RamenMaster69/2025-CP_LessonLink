@@ -595,7 +595,7 @@
                         </span>
                     </button>
 
-                    <!-- Notifications Dropdown -->
+                    <!-- Notifications Dropdown - Copied from Dashboard -->
                     <div id="notification-dropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 hidden z-50 overflow-hidden animate-scale-in">
                         <div class="p-4 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white">
                             <div class="flex items-center justify-between">
@@ -1035,7 +1035,7 @@
             });
         }
 
-        // ==================== NOTIFICATION FUNCTIONS ====================
+        // ==================== NOTIFICATION FUNCTIONS (Copied from Dashboard) ====================
         function loadNotifications() {
             fetch('/api/notifications/', {
                 headers: {
@@ -1083,7 +1083,7 @@
                         // Format time ago
                         const timeAgo = notification.time_ago || 'Just now';
                         
-                        // Get color based on type
+                        // Get color based on type (from dashboard)
                         let dotColor = 'bg-blue-500';
                         let icon = 'fa-info-circle';
                         let bgColor = 'bg-blue-100';

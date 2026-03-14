@@ -266,9 +266,28 @@
                 </div>
             </a>
             <div class="flex items-center space-x-3">
-                <span class="status-badge status-{{ draft.status }}">{{ draft.get_status_display }}</span>
+                <!-- FIXED: Show correct status based on submission_status -->
+                <span class="status-badge 
+                    {% if draft.status == 'final' or latest_submission.status == 'approved' %}status-approved
+                    {% elif latest_submission.status == 'submitted' or draft.status == 'submitted' %}status-submitted
+                    {% elif latest_submission.status == 'needs_revision' %}status-needs_revision
+                    {% elif latest_submission.status == 'rejected' %}status-rejected
+                    {% else %}status-draft{% endif %}">
+                    
+                    {% if draft.status == 'final' or latest_submission.status == 'approved' %}
+                        Approved
+                    {% elif latest_submission.status == 'submitted' or draft.status == 'submitted' %}
+                        Pending Approval
+                    {% elif latest_submission.status == 'needs_revision' %}
+                        Needs Revision
+                    {% elif latest_submission.status == 'rejected' %}
+                        Rejected
+                    {% else %}
+                        Draft
+                    {% endif %}
+                </span>
                 
-                <!-- FIXED: Print button only shows when approved -->
+                <!-- FIXED: Print button only shows when approved/final -->
                 {% if draft.status == 'final' or latest_submission.status == 'approved' %}
                 <button onclick="window.print()" class="bg-white text-[#11468F] px-4 py-2 rounded-lg hover:bg-gray-100">
                     <i class="fas fa-print mr-2"></i>Print
@@ -286,15 +305,15 @@
                     <i class="fas fa-arrow-left mr-2"></i>Back to Drafts
                 </a>
                 <div class="flex space-x-3">
-                    <!-- Only show Edit button if draft is not final and not submitted -->
-                    {% if draft.status != 'final' and draft.status != 'submitted' %}
+                    <!-- Only show Edit button if draft is not final/approved and not submitted -->
+                    {% if draft.status != 'final' and latest_submission.status != 'approved' and draft.status != 'submitted' and latest_submission.status != 'submitted' %}
                     <a href="{% url 'edit_weekly_draft' draft.id %}" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
                         <i class="fas fa-edit mr-2"></i>Edit
                     </a>
                     {% endif %}
                     
-                    <!-- Submit for review button - only show for drafts -->
-                    {% if draft.status == 'draft' %}
+                    <!-- Submit for review button - only show for drafts that haven't been submitted -->
+                    {% if draft.status == 'draft' and latest_submission.status != 'submitted' and latest_submission.status != 'approved' %}
                     <form method="post" action="{% url 'submit_weekly_plan' draft.id %}" class="inline">
                         {% csrf_token %}
                         <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600" onclick="return confirm('Are you sure you want to submit this weekly lesson plan for review?');">
@@ -304,7 +323,7 @@
                     {% endif %}
                     
                     <!-- Show pending status if submitted -->
-                    {% if draft.status == 'submitted' %}
+                    {% if latest_submission.status == 'submitted' or draft.status == 'submitted' %}
                     <span class="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg flex items-center">
                         <i class="fas fa-hourglass-half mr-2"></i>
                         Pending Approval
@@ -312,9 +331,23 @@
                     {% endif %}
                     
                     <!-- Show approved status if final -->
-                    {% if draft.status == 'final' %}
+                    {% if draft.status == 'final' or latest_submission.status == 'approved' %}
                     <span class="px-4 py-2 bg-green-100 text-green-800 rounded-lg">
                         <i class="fas fa-check-circle mr-2"></i>Approved
+                    </span>
+                    {% endif %}
+                    
+                    <!-- Show needs revision status -->
+                    {% if latest_submission.status == 'needs_revision' %}
+                    <span class="px-4 py-2 bg-orange-100 text-orange-800 rounded-lg">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Needs Revision
+                    </span>
+                    {% endif %}
+                    
+                    <!-- Show rejected status -->
+                    {% if latest_submission.status == 'rejected' %}
+                    <span class="px-4 py-2 bg-red-100 text-red-800 rounded-lg">
+                        <i class="fas fa-times-circle mr-2"></i>Rejected
                     </span>
                     {% endif %}
                 </div>
@@ -545,7 +578,16 @@
                 <div style="margin-top: 20px; padding: 15px; border: 1px solid #a0b3c6; background: #f4f9ff;">
                     <h4 style="margin-bottom: 10px; font-weight: 700;">Submission Status</h4>
                     <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                        <span>Status: <span class="status-badge status-{{ latest_submission.status }}">{{ latest_submission.get_status_display }}</span></span>
+                        <span>Status: 
+                            <span class="status-badge 
+                                {% if latest_submission.status == 'approved' %}status-approved
+                                {% elif latest_submission.status == 'submitted' %}status-submitted
+                                {% elif latest_submission.status == 'needs_revision' %}status-needs_revision
+                                {% elif latest_submission.status == 'rejected' %}status-rejected
+                                {% else %}status-draft{% endif %}">
+                                {{ latest_submission.get_status_display }}
+                            </span>
+                        </span>
                         <span>Submitted to: {{ latest_submission.submitted_to.full_name }}</span>
                         <span>Date: {{ latest_submission.submission_date|date:"F d, Y" }}</span>
                         {% if latest_submission.reviewed_at %}<span>Reviewed: {{ latest_submission.reviewed_at|date:"F d, Y" }}</span>{% endif %}

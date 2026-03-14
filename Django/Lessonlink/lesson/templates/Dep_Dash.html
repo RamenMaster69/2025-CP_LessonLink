@@ -13,7 +13,8 @@
                 extend: {
                     animation: {
                         'fade-in': 'fadeIn 0.3s ease-in-out',
-                        'slide-in': 'slideIn 0.3s ease-out'
+                        'slide-in': 'slideIn 0.3s ease-out',
+                        'bounce-in': 'bounceIn 0.5s ease-out',
                     }
                 }
             }
@@ -21,23 +22,25 @@
     </script>
     <style>
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-10px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes slideIn {
-            from {
-                transform: translateX(-100%);
-            }
-            to {
-                transform: translateX(0);
-            }
+            from { transform: translateX(-100%); }
+            to   { transform: translateX(0); }
+        }
+
+        @keyframes bounceIn {
+            0%   { opacity: 0; transform: scale(0.3) translateY(-50px); }
+            50%  { opacity: 1; transform: scale(1.05) translateY(-10px); }
+            70%  { transform: scale(0.98) translateY(0); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to   { opacity: 0; }
         }
 
         .sidebar-transition {
@@ -53,25 +56,61 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
 
-        .status-pending {
-            background: #fef3c7;
-            color: #92400e;
+        .status-pending  { background: #fef3c7; color: #92400e; }
+        .status-approved { background: linear-gradient(135deg, #d1fae5 0%, #34d399 100%); color: #065f46; }
+        .status-rejected { background: linear-gradient(135deg, #fee2e2 0%, #f87171 100%); color: #991b1b; }
+
+        /* ── Notification styles (ported from dep_calendar) ── */
+        .notification-removing {
+            animation: fadeOut 0.3s ease forwards;
         }
 
-        .status-approved {
-            background: linear-gradient(135deg, #d1fae5 0%, #34d399 100%);
-            color: #065f46;
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
-        .status-rejected {
-            background: linear-gradient(135deg, #fee2e2 0%, #f87171 100%);
-            color: #991b1b;
+        #notification-list::-webkit-scrollbar       { width: 4px; }
+        #notification-list::-webkit-scrollbar-track { background: #f1f1f1; }
+        #notification-list::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
         }
+        #notification-list::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+        /* ── Success message modal ── */
+        .success-modal   { backdrop-filter: blur(4px); }
+        .message-bounce  { animation: bounceIn 0.5s ease-out; }
     </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen">
-    <!-- Header -->
+
+    <!-- ══════════════════════════════════════════════════════════════
+         SUCCESS MESSAGE MODAL  (ported from dep_calendar)
+    ══════════════════════════════════════════════════════════════ -->
+    <div id="success-message-modal"
+         class="fixed inset-0 bg-black bg-opacity-30 success-modal z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl message-bounce">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check text-green-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Success!</h3>
+                <p id="success-message-text" class="text-gray-600 mb-4">All notifications marked as read!</p>
+                <button id="success-message-btn"
+                    class="w-full bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white px-6 py-3 rounded-lg font-semibold hover:from-[#0d3a7a] hover:to-[#8c4de6] transition-all">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         HEADER
+    ══════════════════════════════════════════════════════════════ -->
     <header class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-40">
         <div class="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
             <!-- Mobile menu button -->
@@ -84,90 +123,93 @@
             <div class="flex items-center space-x-3 flex-1 md:flex-none">
                 {% if user_school and user_school.school_logo %}
                 <div class="w-10 h-10 rounded-full overflow-hidden shadow-md">
-                    <img src="{{ user_school.school_logo.url }}" 
-                        alt="{{ user_school.school_name }}" 
-                        class="w-full h-full object-cover"
-                        onerror="this.onerror=null; this.parentElement.classList.add('bg-gradient-to-r', 'from-[#11468F]', 'to-[#9E5EFF]'); this.style.display='none';">
+                    <img src="{{ user_school.school_logo.url }}"
+                         alt="{{ user_school.school_name }}"
+                         class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.parentElement.classList.add('bg-gradient-to-r','from-[#11468F]','to-[#9E5EFF]'); this.style.display='none';">
                 </div>
                 {% else %}
                 <div class="w-10 h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
                 {% endif %}
-                
+
                 <div class="hidden sm:block">
                     <h1 class="text-xl font-bold text-gray-900">LessonLink</h1>
                     <p class="text-sm text-gray-500 hidden lg:block">
-                        {% if user_school %}
-                            {{ user_school.school_name }}
-                        {% else %}
-                            {{ user.email|default:"LessonLink" }}
-                        {% endif %}
+                        {% if user_school %}{{ user_school.school_name }}{% else %}{{ user.email|default:"LessonLink" }}{% endif %}
                     </p>
                 </div>
             </div>
 
             <!-- Right side actions -->
             <div class="flex items-center space-x-2 md:space-x-4">
-                <!-- Search -->
-                
-                <!-- Mobile search button -->
+
+                <!-- Mobile search -->
                 <button class="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                     <i class="fas fa-search text-lg"></i>
                 </button>
 
-                <!-- Notifications -->
+                <!-- ── NOTIFICATIONS (ported from dep_calendar) ── -->
                 <div class="relative">
                     <button id="notification-btn"
-                        class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                        class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
                         <i class="fas fa-bell text-lg"></i>
                         <span id="notification-badge"
-                            class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">{{ pending_reviews_count }}</span>
+                              class="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-gradient-to-r from-red-500 to-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm hidden">
+                            0
+                        </span>
                     </button>
 
                     <!-- Notifications Dropdown -->
-                    <div id="notification-dropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
-                        <div class="p-4 border-b border-gray-100">
+                    <div id="notification-dropdown"
+                         class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 hidden z-50 overflow-hidden">
+                        <!-- Gradient header -->
+                        <div class="p-4 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white">
                             <div class="flex items-center justify-between">
-                                <h3 class="font-semibold text-gray-900">Notifications</h3>
-                                <button class="text-purple-600 text-sm hover:text-purple-700" onclick="markAllNotificationsAsRead()">
+                                <h3 class="font-semibold text-white flex items-center">
+                                    <i class="fas fa-bell mr-2 text-sm"></i>
+                                    Notifications
+                                </h3>
+                                <button class="text-white/90 hover:text-white text-xs flex items-center bg-white/20 px-2 py-1 rounded-lg hover:bg-white/30 transition-colors"
+                                        onclick="markAllNotificationsAsRead()">
+                                    <i class="fas fa-check-double mr-1 text-xs"></i>
                                     Mark all read
                                 </button>
                             </div>
                         </div>
-                        <div class="max-h-96 overflow-y-auto">
-                            <!-- Notifications will be loaded here dynamically -->
-                        </div>
-                        <div class="p-4 border-t border-gray-100">
-                            <button class="w-full text-center text-purple-600 text-sm hover:text-purple-700 font-medium">
-                                View all notifications
-                            </button>
+                        <!-- Notification list -->
+                        <div class="max-h-96 overflow-y-auto" id="notification-list">
+                            <div class="p-8 text-center text-gray-500">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                                </div>
+                                <p class="text-sm font-medium text-gray-600">No notifications</p>
+                                <p class="text-xs text-gray-400 mt-1">You're all caught up!</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Profile Button and Dropdown - Fixed structure -->
+                <!-- Profile -->
                 <div class="relative">
                     <button id="profile-btn"
                         class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
                         {% if user.profile_picture %}
-                        <img src="{{ user.profile_picture.url }}" 
-                            alt="Profile Picture" 
-                            class="w-full h-full object-cover"
-                            id="header-profile-img">
+                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
+                             class="w-full h-full object-cover" id="header-profile-img">
                         {% else %}
                         <i class="fas fa-user text-gray-500" id="header-profile-icon"></i>
                         {% endif %}
                     </button>
 
-                    <!-- Profile Dropdown - Now properly nested inside the same container -->
-                    <div id="profile-dropdown" class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
+                    <!-- Profile Dropdown -->
+                    <div id="profile-dropdown"
+                         class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50">
                         <div class="p-4 border-b border-gray-100">
                             <div class="flex items-center space-x-3">
                                 <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
                                     {% if user.profile_picture %}
-                                    <img src="{{ user.profile_picture.url }}" 
-                                        alt="Profile Picture" 
-                                        class="w-full h-full object-cover"
-                                        id="dropdown-profile-img">
+                                    <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
+                                         class="w-full h-full object-cover" id="dropdown-profile-img">
                                     {% else %}
                                     <i class="fas fa-user-tie text-white"></i>
                                     {% endif %}
@@ -180,65 +222,65 @@
                         </div>
                         <div class="py-2">
                             <a href="{% url 'profile' %}"
-                                class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+                               class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
                                 <i class="fas fa-user w-4"></i>
                                 <span>My Profile</span>
                             </a>
-                            
                             <hr class="my-2">
                             <a href="{% url 'logout' %}"
-                            class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
-                            <i class="fas fa-sign-out-alt w-4"></i>
-                            <span>Sign Out</span>
+                               class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
+                                <i class="fas fa-sign-out-alt w-4"></i>
+                                <span>Sign Out</span>
                             </a>
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </header>
 
     <div class="flex pt-20">
-        <!-- Sidebar -->
+
+        <!-- ══════════════════════════════════════════════════════════════
+             SIDEBAR - FIXED POSITION, FULL HEIGHT, SCROLLABLE
+        ══════════════════════════════════════════════════════════════ -->
         <aside id="sidebar"
-            class="w-64 bg-white shadow-lg h-screen fixed md:static -translate-x-full md:translate-x-0 sidebar-transition z-30">
+               class="w-64 bg-white shadow-lg h-[calc(100vh-5rem)] fixed top-20 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
             <nav class="p-4 space-y-2">
-                <!-- Quick Actions Button -->
                 <a href="{% url 'lesson_ai' %}">
                     <button class="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:from-[#0d3a7a] hover:to-[#8c4de6] shadow-md">
                         <i class="fas fa-plus text-lg"></i>
                         <span class="font-medium">Create Lesson</span>
                     </button>
                 </a>
-
-                <!-- Navigation Items -->
                 <a href="#"
-                    class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                   class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
                     <i class="fas fa-home text-lg w-5"></i>
                     <span class="font-medium">Dashboard</span>
                 </a>
                 <a href="{% url 'department_head_drafts' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Lesson Plans</span>
                 </a>
                 <a href="{% url 'Dep_exemplar' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-file-alt text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Exemplar</span>
                 </a>
                 <a href="{% url 'dep_calendar' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group]">
-                    <i class="fas fa-calendar text-lg w-5"></i>
-                    <span class="font-medium">Calendar</span>
+                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-calendar text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
+                    <span>Calendar</span>
                 </a>
                 <a href="{% url 'Dep_Pending' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-clock text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Pending Reviews</span>
                 </a>
                 <a href="{% url 'Dep_Faculty' %}"
-                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                   class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
                     <i class="fas fa-users text-lg w-5 group-hover:text-[#11468F] transition-colors"></i>
                     <span>Faculty</span>
                 </a>
@@ -248,22 +290,21 @@
         <!-- Overlay for mobile -->
         <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
 
-        <!-- Main Content -->
-        <main class="flex-1 p-6 md:p-8 ml-0 md:ml-0">
+        <!-- ══════════════════════════════════════════════════════════════
+             MAIN CONTENT - WITH LEFT MARGIN TO AVOID OVERLAP
+        ══════════════════════════════════════════════════════════════ -->
+        <main class="flex-1 p-6 md:p-8 md:ml-64">
 
-            <!-- Welcome Message -->
+            <!-- Welcome message (Django messages) -->
             {% if messages %}
                 {% for message in messages %}
                     {% if message.tags == 'success' and 'Welcome back' in message.message %}
                     <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg animate-fade-in">
                         <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-check-circle text-green-500 text-lg"></i>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-green-700 font-medium">{{ message }}</p>
-                            </div>
-                            <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-green-500 hover:text-green-700">
+                            <i class="fas fa-check-circle text-green-500 text-lg flex-shrink-0"></i>
+                            <p class="text-green-700 font-medium ml-3">{{ message }}</p>
+                            <button onclick="this.parentElement.parentElement.remove()"
+                                    class="ml-auto text-green-500 hover:text-green-700">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -271,21 +312,22 @@
                     {% endif %}
                 {% endfor %}
             {% endif %}
-            <!--Welcome Banner-->
-            <div class="">
-                <div class="bg-gradient-to-r from-[#11468F] via-[#5a4ab5] to-[#9E5EFF] rounded-xl p-8 shadow-lg mb-8">
-                    <div class="text-white">
-                        <h2 class="text-3xl font-bold mb-2">Welcome back, {{ user.first_name }}!</h2>
-                        <p class="text-white/90 text-lg mb-6">Here's what's happening with your department today.</p>
-                        <a href="{% url 'Dep_exemplar' %}"><button class="bg-white text-[#11468F] px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors shadow-md">
+
+            <!-- Welcome Banner -->
+            <div class="bg-gradient-to-r from-[#11468F] via-[#5a4ab5] to-[#9E5EFF] rounded-xl p-8 shadow-lg mb-8">
+                <div class="text-white">
+                    <h2 class="text-3xl font-bold mb-2">Welcome back, {{ user.first_name }}!</h2>
+                    <p class="text-white/90 text-lg mb-6">Here's what's happening with your department today.</p>
+                    <a href="{% url 'Dep_exemplar' %}">
+                        <button class="bg-white text-[#11468F] px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors shadow-md">
                             + Add Exemplar
-                        </button></a>
-                    </div>
+                        </button>
+                    </a>
                 </div>
             </div>
+
             <!-- Dashboard Stats -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <!-- Pending Reviews Card - Dynamic from pending submissions -->
                 <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 lesson-card">
                     <div class="flex items-center justify-between">
                         <div>
@@ -298,7 +340,6 @@
                     </div>
                 </div>
 
-                <!-- Total Faculty Card - Dynamic from faculty page -->
                 <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 lesson-card">
                     <div class="flex items-center justify-between">
                         <div>
@@ -311,7 +352,6 @@
                     </div>
                 </div>
 
-                <!-- My Lesson Plans Card - Replaces "This Month" card -->
                 <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 lesson-card">
                     <div class="flex items-center justify-between">
                         <div>
@@ -323,7 +363,9 @@
                         </div>
                     </div>
                 </div>
-                <a href="{% url 'weekly_reviews' %}" class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 lesson-card">
+
+                <a href="{% url 'weekly_reviews' %}"
+                   class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 lesson-card">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm text-gray-600">Weekly Plan Reviews</p>
@@ -341,12 +383,15 @@
                 <div class="p-6 border-b border-gray-200">
                     <div class="flex items-center justify-between">
                         <h2 class="text-xl font-bold text-gray-900">Pending Lesson Plan Reviews</h2>
-                        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">{{ pending_reviews_count }} Pending</span>
+                        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+                            {{ pending_reviews_count }} Pending
+                        </span>
                     </div>
                 </div>
                 <div class="p-6 space-y-4">
                     {% for submission in pending_submissions %}
-                    <div class="lesson-card border border-gray-200 rounded-lg p-4 cursor-pointer" onclick="openLessonModal('{{ submission.id }}')">
+                    <div class="lesson-card border border-gray-200 rounded-lg p-4 cursor-pointer"
+                         onclick="openLessonModal('{{ submission.id }}')">
                         <div class="flex items-start justify-between">
                             <div class="flex-1">
                                 <div class="flex items-center space-x-3 mb-2">
@@ -358,10 +403,13 @@
                                     <div><strong>Grade:</strong> {{ submission.lesson_plan.grade_level }}</div>
                                     <div><strong>Submitted:</strong> {{ submission.time_since_submission }}</div>
                                 </div>
-                                <p class="text-sm text-gray-500 mt-2">{{ submission.lesson_plan.learning_objectives|truncatewords:20 }}</p>
+                                <p class="text-sm text-gray-500 mt-2">
+                                    {{ submission.lesson_plan.learning_objectives|truncatewords:20 }}
+                                </p>
                             </div>
                             <div class="flex space-x-2 ml-4">
-                                <a href="{% url 'lesson_plan_detail' submission.id %}" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm transition-colors flex items-center">
+                                <a href="{% url 'lesson_plan_detail' submission.id %}"
+                                   class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm transition-colors flex items-center">
                                     <i class="fas fa-check mr-1"></i>Review
                                 </a>
                             </div>
@@ -374,21 +422,24 @@
                         <p class="text-sm text-gray-400 mt-2">All submitted lesson plans have been reviewed</p>
                     </div>
                     {% endfor %}
-                    
+
                     {% if pending_submissions %}
                     <div class="text-center pt-4">
-                        <a href="{% url 'Dep_Pending' %}" class="text-[#11468F] hover:text-[#0d3a7a] font-medium text-sm">
+                        <a href="{% url 'Dep_Pending' %}"
+                           class="text-[#11468F] hover:text-[#0d3a7a] font-medium text-sm">
                             View all pending reviews →
                         </a>
                     </div>
                     {% endif %}
                 </div>
             </div>
+
         </main>
     </div>
 
-    <!-- Lesson Plan Review Modal -->
-    <div id="lessonModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <!-- Lesson Plan Review Modal (redirect) -->
+    <div id="lessonModal"
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div class="p-6 border-b border-gray-200">
                 <div class="flex items-center justify-between">
@@ -398,298 +449,25 @@
                     </button>
                 </div>
             </div>
-            <div id="modalContent" class="p-6">
-                <!-- Content will be populated by JavaScript -->
-            </div>
+            <div id="modalContent" class="p-6"></div>
             <div class="p-6 border-t border-gray-200 flex justify-end space-x-4">
-                <button onclick="rejectCurrentLesson()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-colors">
+                <button onclick="rejectCurrentLesson()"
+                        class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-colors">
                     <i class="fas fa-times mr-2"></i>Reject
                 </button>
-                <button onclick="approveCurrentLesson()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors">
+                <button onclick="approveCurrentLesson()"
+                        class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors">
                     <i class="fas fa-check mr-2"></i>Approve
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- ══════════════════════════════════════════════════════════════
+         JAVASCRIPT (unchanged)
+    ══════════════════════════════════════════════════════════════ -->
     <script>
-        let currentLessonId = null;
-
-        // Mobile menu functionality
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-
-        function toggleMobileMenu() {
-            sidebar.classList.toggle('-translate-x-full');
-            overlay.classList.toggle('hidden');
-            document.body.classList.toggle('overflow-hidden');
-        }
-
-        mobileMenuBtn.addEventListener('click', toggleMobileMenu);
-
-        overlay.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-        });
-
-        // Profile dropdown functionality
-        const profileBtn = document.getElementById('profile-btn');
-        const profileDropdown = document.getElementById('profile-dropdown');
-
-        profileBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            profileDropdown.classList.toggle('hidden');
-            if (!profileDropdown.classList.contains('hidden')) {
-                // Close notifications dropdown if open
-                document.getElementById('notification-dropdown').classList.add('hidden');
-            }
-        });
-
-        // Notification dropdown functionality
-        const notificationBtn = document.getElementById('notification-btn');
-        const notificationDropdown = document.getElementById('notification-dropdown');
-        const notificationBadge = document.getElementById('notification-badge');
-
-        notificationBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            notificationDropdown.classList.toggle('hidden');
-            if (!notificationDropdown.classList.contains('hidden')) {
-                // Close profile dropdown if open
-                profileDropdown.classList.add('hidden');
-            }
-        });
-
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
-                profileDropdown.classList.add('hidden');
-            }
-            if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
-                notificationDropdown.classList.add('hidden');
-            }
-        });
-
-        // Modal functionality
-        function openLessonModal(lessonId) {
-            currentLessonId = lessonId;
-            // Redirect to the actual lesson plan detail page instead of using modal
-            window.location.href = `/lesson-plan-detail/${lessonId}/`;
-        }
-
-        function closeLessonModal() {
-            const modal = document.getElementById('lessonModal');
-            modal.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-            currentLessonId = null;
-        }
-
-        function approveCurrentLesson() {
-            if (currentLessonId) {
-                // This would be handled in the lesson_plan_detail view
-                console.log('Approving lesson:', currentLessonId);
-                closeLessonModal();
-            }
-        }
-
-        function rejectCurrentLesson() {
-            if (currentLessonId) {
-                // This would be handled in the lesson_plan_detail view
-                console.log('Rejecting lesson:', currentLessonId);
-                closeLessonModal();
-            }
-        }
-
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 768) {
-                sidebar.classList.remove('-translate-x-full');
-                overlay.classList.add('hidden');
-                document.body.classList.remove('overflow-hidden');
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
-                document.body.classList.remove('overflow-hidden');
-            }
-        });
-
-        // Notification system
-        function loadNotifications() {
-            fetch('/notifications/notifications/')
-                .then(response => response.json())
-                .then(data => {
-                    updateNotificationBadge(data.unread_count);
-                    updateNotificationDropdown(data.notifications);
-                })
-                .catch(error => {
-                    console.error('Error loading notifications:', error);
-                });
-        }
-
-        function updateNotificationBadge(unreadCount) {
-            const badge = document.getElementById('notification-badge');
-            if (badge) {
-                if (unreadCount > 0) {
-                    badge.textContent = unreadCount;
-                    badge.classList.remove('hidden');
-                } else {
-                    badge.classList.add('hidden');
-                }
-            }
-        }
-
-        function updateNotificationDropdown(notifications) {
-            const dropdown = document.getElementById('notification-dropdown');
-            if (!dropdown) return;
-
-            const notificationsContainer = dropdown.querySelector('.max-h-96') || dropdown;
-            
-            if (notifications.length === 0) {
-                notificationsContainer.innerHTML = `
-                    <div class="p-4 text-center text-gray-500">
-                        <i class="fas fa-bell-slash text-2xl mb-2"></i>
-                        <p>No notifications</p>
-                    </div>
-                `;
-                return;
-            }
-
-            let notificationsHTML = '';
-            notifications.forEach(notification => {
-                const icon = getNotificationIcon(notification.type);
-                const timeAgo = getTimeAgo(notification.created_at);
-                const readClass = notification.is_read ? '' : 'bg-blue-50 border-l-4 border-l-blue-500';
-                
-                notificationsHTML += `
-                    <div class="p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer ${readClass} notification-item" 
-                        data-notification-id="${notification.id}" 
-                        data-type="${notification.type}"
-                        data-lesson-plan-id="${notification.lesson_plan_id || ''}"
-                        data-submission-id="${notification.submission_id || ''}">
-                        <div class="flex items-start space-x-3">
-                            <div class="w-2 h-2 ${getNotificationColor(notification.type)} rounded-full mt-2 flex-shrink-0"></div>
-                            <div class="flex-1">
-                                <p class="text-sm text-gray-900 font-medium">${notification.title}</p>
-                                <p class="text-xs text-gray-500 mt-1">${notification.message}</p>
-                                <p class="text-xs text-gray-400 mt-1">${timeAgo}</p>
-                            </div>
-                            ${!notification.is_read ? '<div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>' : ''}
-                        </div>
-                    </div>
-                `;
-            });
-
-            // Clear existing content and add new notifications
-            const existingContent = notificationsContainer.querySelector('.border-b') ? notificationsContainer : notificationsContainer.querySelector('.max-h-96') || notificationsContainer;
-            existingContent.innerHTML = notificationsHTML;
-
-            // Add click handlers
-            document.querySelectorAll('.notification-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const notificationId = this.getAttribute('data-notification-id');
-                    const type = this.getAttribute('data-type');
-                    const lessonPlanId = this.getAttribute('data-lesson-plan-id');
-                    const submissionId = this.getAttribute('data-submission-id');
-                    
-                    // Mark as read
-                    markNotificationAsRead(notificationId);
-                    
-                    // Handle navigation based on notification type
-                    handleNotificationClick(type, lessonPlanId, submissionId);
-                });
-            });
-        }
-
-        function getNotificationIcon(type) {
-            const icons = {
-                'draft_approved': 'fa-check-circle',
-                'draft_rejected': 'fa-times-circle',
-                'task_due_soon': 'fa-clock',
-                'upcoming_schedule': 'fa-calendar',
-                'lesson_submitted': 'fa-file-upload',
-                'general': 'fa-bell'
-            };
-            return icons[type] || 'fa-bell';
-        }
-
-        function getNotificationColor(type) {
-            const colors = {
-                'draft_approved': 'bg-green-500',
-                'draft_rejected': 'bg-red-500',
-                'task_due_soon': 'bg-yellow-500',
-                'upcoming_schedule': 'bg-blue-500',
-                'lesson_submitted': 'bg-purple-500',
-                'general': 'bg-gray-500'
-            };
-            return colors[type] || 'bg-gray-500';
-        }
-
-        function getTimeAgo(createdAt) {
-            // Simple time ago calculation - you can use a library like day.js for better formatting
-            return createdAt;
-        }
-
-        function markNotificationAsRead(notificationId) {
-            fetch(`/notifications/notifications/${notificationId}/read/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update UI
-                    const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
-                    if (notificationItem) {
-                        notificationItem.classList.remove('bg-blue-50', 'border-l-4', 'border-l-blue-500');
-                        const unreadDot = notificationItem.querySelector('.bg-blue-500');
-                        if (unreadDot) {
-                            unreadDot.remove();
-                        }
-                    }
-                    // Reload notification count
-                    loadNotifications();
-                }
-            })
-            .catch(error => {
-                console.error('Error marking notification as read:', error);
-            });
-        }
-
-        function handleNotificationClick(type, lessonPlanId, submissionId) {
-            // Close notification dropdown
-            const dropdown = document.getElementById('notification-dropdown');
-            if (dropdown) {
-                dropdown.classList.add('hidden');
-            }
-
-            // Navigate based on notification type
-            switch(type) {
-                case 'draft_approved':
-                case 'draft_rejected':
-                case 'lesson_submitted':
-                    if (submissionId) {
-                        window.location.href = `/lesson-plan-detail/${submissionId}/`;
-                    } else if (lessonPlanId) {
-                        window.location.href = `/drafts/${lessonPlanId}/view/`;
-                    }
-                    break;
-                case 'task_due_soon':
-                    window.location.href = '/task/';
-                    break;
-                case 'upcoming_schedule':
-                    window.location.href = '/schedule/';
-                    break;
-                default:
-                    // Do nothing for general notifications
-                    break;
-            }
-        }
-
-        // CSRF token helper
+        // ── CSRF helper ──────────────────────────────────────────────
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -705,101 +483,352 @@
             return cookieValue;
         }
 
-        // Load notifications when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            loadNotifications();
-            
-            // Reload notifications every 30 seconds
-            setInterval(loadNotifications, 30000);
-        });
+        // ── Success message (ported from dep_calendar) ────────────────
+        function showSuccessMessage(message) {
+            const modal = document.getElementById('success-message-modal');
+            document.getElementById('success-message-text').textContent = message;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            setTimeout(hideSuccessMessage, 3000);
+        }
+
+        function hideSuccessMessage() {
+            document.getElementById('success-message-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // ── Notifications (ported from dep_calendar) ──────────────────
+        function loadNotifications() {
+            fetch('/api/notifications/', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const badge            = document.getElementById('notification-badge');
+                const notificationList = document.getElementById('notification-list');
+                if (!notificationList) return;
+
+                if (data.success && data.data && data.data.notifications && data.data.notifications.length > 0) {
+                    // Badge
+                    if (badge) {
+                        if (data.data.unread_count > 0) {
+                            badge.textContent = data.data.unread_count > 9 ? '9+' : data.data.unread_count;
+                            badge.classList.remove('hidden');
+                            badge.classList.add('animate-pulse');
+                            setTimeout(() => badge.classList.remove('animate-pulse'), 1000);
+                        } else {
+                            badge.classList.add('hidden');
+                        }
+                    }
+
+                    notificationList.innerHTML = '';
+
+                    data.data.notifications.forEach(notification => {
+                        const item = document.createElement('div');
+                        item.className = 'p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer transition-all duration-300 group';
+                        item.setAttribute('data-notification-id', notification.id);
+                        item.setAttribute('data-read', notification.is_read);
+
+                        if (!notification.is_read) item.classList.add('bg-blue-50/50');
+
+                        const timeAgo = notification.time_ago || 'Just now';
+
+                        // Type-based icon / colour (mirrors dep_calendar)
+                        let dotColor = 'bg-blue-500', icon = 'fa-info-circle',
+                            bgColor  = 'bg-blue-100',  textColor = 'text-blue-600';
+
+                        if (notification.type === 'task_overdue') {
+                            dotColor = 'bg-red-500';    icon = 'fa-exclamation-circle';
+                            bgColor  = 'bg-red-100';    textColor = 'text-red-600';
+                        } else if (notification.type === 'task_due_1hour') {
+                            dotColor = 'bg-orange-500'; icon = 'fa-clock';
+                            bgColor  = 'bg-orange-100'; textColor = 'text-orange-600';
+                        } else if (notification.type === 'task_due_soon') {
+                            dotColor = 'bg-yellow-500'; icon = 'fa-hourglass-half';
+                            bgColor  = 'bg-yellow-100'; textColor = 'text-yellow-600';
+                        } else if (notification.type === 'lesson_submitted') {
+                            dotColor = 'bg-purple-500'; icon = 'fa-file-upload';
+                            bgColor  = 'bg-purple-100'; textColor = 'text-purple-600';
+                        } else if (notification.type === 'lesson_approved') {
+                            dotColor = 'bg-green-500';  icon = 'fa-check-circle';
+                            bgColor  = 'bg-green-100';  textColor = 'text-green-600';
+                        } else if (notification.type === 'lesson_rejected' || notification.type === 'lesson_needs_revision') {
+                            dotColor = 'bg-red-500';    icon = 'fa-times-circle';
+                            bgColor  = 'bg-red-100';    textColor = 'text-red-600';
+                        }
+
+                        item.innerHTML = `
+                            <div class="flex items-start space-x-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full ${bgColor} flex items-center justify-center">
+                                    <i class="fas ${icon} text-sm ${textColor}"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-sm font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+                                            ${notification.title}
+                                        </p>
+                                        ${!notification.is_read ? '<span class="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></span>' : ''}
+                                    </div>
+                                    <p class="text-xs text-gray-600 mt-0.5 line-clamp-2">${notification.message}</p>
+                                    <div class="flex items-center mt-1.5 text-xs text-gray-400">
+                                        <i class="far fa-clock mr-1"></i>
+                                        <span>${timeAgo}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        item.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            markNotificationAsRead(notification.id, item);
+                        });
+
+                        notificationList.appendChild(item);
+                    });
+                } else {
+                    notificationList.innerHTML = `
+                        <div class="p-8 text-center text-gray-500">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                            </div>
+                            <p class="text-sm font-medium text-gray-600">No notifications</p>
+                            <p class="text-xs text-gray-400 mt-1">You're all caught up!</p>
+                        </div>
+                    `;
+                    if (badge) badge.classList.add('hidden');
+                }
+            })
+            .catch(error => console.error('Error loading notifications:', error));
+        }
+
+        function markNotificationAsRead(notificationId, notificationElement) {
+            fetch(`/api/notifications/${notificationId}/read/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (notificationElement) {
+                        notificationElement.classList.add('notification-removing');
+                        setTimeout(() => {
+                            notificationElement.remove();
+                            const list = document.getElementById('notification-list');
+                            if (list && list.children.length === 0) {
+                                list.innerHTML = `
+                                    <div class="p-8 text-center text-gray-500">
+                                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                            <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                                        </div>
+                                        <p class="text-sm font-medium text-gray-600">No notifications</p>
+                                        <p class="text-xs text-gray-400 mt-1">You're all caught up!</p>
+                                    </div>
+                                `;
+                            }
+                            loadNotifications();
+                        }, 300);
+                    } else {
+                        loadNotifications();
+                    }
+                }
+            })
+            .catch(error => console.error('Error marking notification as read:', error));
+        }
 
         function markAllNotificationsAsRead() {
-        fetch('/notifications/notifications/mark-all-read/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                loadNotifications(); // Reload to update UI
-            }
-        })
-        .catch(error => {
-            console.error('Error marking all notifications as read:', error);
-        });
-    }
+            fetch('/api/notifications/mark-all-read/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const list = document.getElementById('notification-list');
+                    if (list) {
+                        list.innerHTML = `
+                            <div class="p-8 text-center text-gray-500">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                                </div>
+                                <p class="text-sm font-medium text-gray-600">No notifications</p>
+                                <p class="text-xs text-gray-400 mt-1">You're all caught up!</p>
+                            </div>
+                        `;
+                    }
+                    const badge = document.getElementById('notification-badge');
+                    if (badge) badge.classList.add('hidden');
+                    showSuccessMessage('All notifications marked as read!');
+                }
+            })
+            .catch(error => console.error('Error marking all notifications as read:', error));
+        }
 
-    // Function to update header profile images when profile picture changes
-    function updateHeaderProfileImages(imageUrl) {
-        // Update header button image
-        const headerProfileImg = document.getElementById('header-profile-img');
-        const headerProfileIcon = document.getElementById('header-profile-icon');
-        const headerProfileBtn = document.getElementById('profile-btn');
-        
-        if (headerProfileImg) {
-            headerProfileImg.src = imageUrl;
-        } else if (headerProfileIcon) {
-            // Replace icon with image
-            headerProfileIcon.remove();
-            const img = document.createElement('img');
-            img.src = imageUrl;
-            img.alt = 'Profile Picture';
-            img.className = 'w-full h-full object-cover';
-            img.id = 'header-profile-img';
-            headerProfileBtn.appendChild(img);
-        } else {
-            // Create new image
-            const img = document.createElement('img');
-            img.src = imageUrl;
-            img.alt = 'Profile Picture';
-            img.className = 'w-full h-full object-cover';
-            img.id = 'header-profile-img';
-            headerProfileBtn.innerHTML = '';
-            headerProfileBtn.appendChild(img);
-        }
-        
-        // Update dropdown image
-        const dropdownProfileImg = document.getElementById('dropdown-profile-img');
-        const dropdownContainer = document.querySelector('#profile-dropdown .w-12.h-12.rounded-full');
-        
-        if (dropdownProfileImg) {
-            dropdownProfileImg.src = imageUrl;
-        } else if (dropdownContainer) {
-            // Replace icon with image in dropdown
-            dropdownContainer.innerHTML = '';
-            const img = document.createElement('img');
-            img.src = imageUrl;
-            img.alt = 'Profile Picture';
-            img.className = 'w-full h-full object-cover';
-            img.id = 'dropdown-profile-img';
-            dropdownContainer.appendChild(img);
-        }
-    }
+        // ── Lesson plan review modal ──────────────────────────────────
+        let currentLessonId = null;
 
-    // Listen for profile picture updates from other pages
-    document.addEventListener('DOMContentLoaded', function() {
-        // Check if there's a stored profile picture update
-        const recentProfileUpdate = localStorage.getItem('profilePictureUpdated');
-        if (recentProfileUpdate) {
-            const updateData = JSON.parse(recentProfileUpdate);
-            if (updateData.timestamp && Date.now() - updateData.timestamp < 5000) { // 5 seconds
-                updateHeaderProfileImages(updateData.imageUrl);
-            }
-            localStorage.removeItem('profilePictureUpdated');
+        function openLessonModal(lessonId) {
+            currentLessonId = lessonId;
+            window.location.href = `/lesson-plan-detail/${lessonId}/`;
         }
-        
-        // Listen for storage events (if profile is updated in another tab)
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'profilePictureUpdated') {
-                const updateData = JSON.parse(e.newValue);
-                updateHeaderProfileImages(updateData.imageUrl);
+
+        function closeLessonModal() {
+            document.getElementById('lessonModal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+            currentLessonId = null;
+        }
+
+        function approveCurrentLesson() {
+            if (currentLessonId) { console.log('Approving lesson:', currentLessonId); closeLessonModal(); }
+        }
+
+        function rejectCurrentLesson() {
+            if (currentLessonId) { console.log('Rejecting lesson:', currentLessonId); closeLessonModal(); }
+        }
+
+        // ── Profile picture update helpers ───────────────────────────
+        function updateHeaderProfileImages(imageUrl) {
+            const headerImg  = document.getElementById('header-profile-img');
+            const headerIcon = document.getElementById('header-profile-icon');
+            const headerBtn  = document.getElementById('profile-btn');
+
+            if (headerImg) {
+                headerImg.src = imageUrl;
+            } else if (headerIcon) {
+                headerIcon.remove();
+                const img = document.createElement('img');
+                img.src = imageUrl; img.alt = 'Profile Picture';
+                img.className = 'w-full h-full object-cover'; img.id = 'header-profile-img';
+                headerBtn.appendChild(img);
+            } else {
+                const img = document.createElement('img');
+                img.src = imageUrl; img.alt = 'Profile Picture';
+                img.className = 'w-full h-full object-cover'; img.id = 'header-profile-img';
+                headerBtn.innerHTML = ''; headerBtn.appendChild(img);
             }
+
+            const dropdownImg       = document.getElementById('dropdown-profile-img');
+            const dropdownContainer = document.querySelector('#profile-dropdown .w-12.h-12.rounded-full');
+
+            if (dropdownImg) {
+                dropdownImg.src = imageUrl;
+            } else if (dropdownContainer) {
+                dropdownContainer.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = imageUrl; img.alt = 'Profile Picture';
+                img.className = 'w-full h-full object-cover'; img.id = 'dropdown-profile-img';
+                dropdownContainer.appendChild(img);
+            }
+        }
+
+        // ── DOMContentLoaded ──────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Load notifications immediately, then poll every 30 s
+            loadNotifications();
+            setInterval(loadNotifications, 30000);
+
+            // Mobile menu
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const sidebar       = document.getElementById('sidebar');
+            const overlay       = document.getElementById('overlay');
+
+            mobileMenuBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('hidden');
+                document.body.classList.toggle('overflow-hidden');
+            });
+
+            overlay.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            });
+
+            // Profile dropdown
+            const profileBtn      = document.getElementById('profile-btn');
+            const profileDropdown = document.getElementById('profile-dropdown');
+
+            profileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('hidden');
+                if (!profileDropdown.classList.contains('hidden')) {
+                    document.getElementById('notification-dropdown').classList.add('hidden');
+                }
+            });
+
+            // Notification dropdown
+            const notificationBtn      = document.getElementById('notification-btn');
+            const notificationDropdown = document.getElementById('notification-dropdown');
+
+            notificationBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notificationDropdown.classList.toggle('hidden');
+                if (!notificationDropdown.classList.contains('hidden')) {
+                    loadNotifications();
+                    profileDropdown.classList.add('hidden');
+                }
+            });
+
+            // Close dropdowns on outside click
+            document.addEventListener('click', (e) => {
+                if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target))
+                    profileDropdown.classList.add('hidden');
+                if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target))
+                    notificationDropdown.classList.add('hidden');
+            });
+
+            // Prevent dropdown closing when clicking inside
+            notificationDropdown.addEventListener('click', (e) => e.stopPropagation());
+            profileDropdown.addEventListener('click',      (e) => e.stopPropagation());
+
+            // Escape key closes dropdowns / modals
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    notificationDropdown.classList.add('hidden');
+                    profileDropdown.classList.add('hidden');
+                    const addModal = document.getElementById('lessonModal');
+                    if (addModal && !addModal.classList.contains('hidden')) closeLessonModal();
+                    if (!document.getElementById('success-message-modal').classList.contains('hidden'))
+                        hideSuccessMessage();
+                }
+            });
+
+            // Success message OK button
+            document.getElementById('success-message-btn').addEventListener('click', hideSuccessMessage);
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768) {
+                    sidebar.classList.remove('-translate-x-full');
+                    overlay.classList.add('hidden');
+                    document.body.classList.remove('overflow-hidden');
+                } else {
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.add('hidden');
+                    document.body.classList.remove('overflow-hidden');
+                }
+            });
+
+            // Profile picture update from localStorage (cross-tab)
+            const recentUpdate = localStorage.getItem('profilePictureUpdated');
+            if (recentUpdate) {
+                const updateData = JSON.parse(recentUpdate);
+                if (updateData.timestamp && Date.now() - updateData.timestamp < 5000)
+                    updateHeaderProfileImages(updateData.imageUrl);
+                localStorage.removeItem('profilePictureUpdated');
+            }
+
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'profilePictureUpdated')
+                    updateHeaderProfileImages(JSON.parse(e.newValue).imageUrl);
+            });
         });
-    });
     </script>
 </body>
-
 </html>

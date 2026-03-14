@@ -322,7 +322,8 @@ class Task(models.Model):
         """Check if task is overdue - handles both string and date objects"""
         if self.due_date and self.status == 'pending':
             due_date = self._get_date(self.due_date)
-            return timezone.now().date() > due_date
+            # Use local date instead of UTC
+            return timezone.localdate() > due_date
         return False
 
     def formatted_due_date(self):
@@ -338,7 +339,8 @@ class Task(models.Model):
             return "No due date"
         
         due_date = self._get_date(self.due_date)
-        today = timezone.now().date()
+        # Use local date instead of UTC
+        today = timezone.localdate()
         tomorrow = today + timezone.timedelta(days=1)
         
         if due_date == today:
@@ -479,9 +481,6 @@ class Notification(models.Model):
     def __str__(self):
         return f"{self.user.email} - {self.title} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
 
-    
-    
-    
     @property
     def time_ago(self):
         """Return human-readable time ago string"""

@@ -47,24 +47,10 @@
         }
         
         /* Status badge styles */
-        .status-draft { background-color: #f3f4f6; color: #374151; }
         .status-submitted { background-color: #fef3c7; color: #92400e; }
         .status-approved { background-color: #d1fae5; color: #065f46; }
         .status-rejected { background-color: #fee2e2; color: #991b1b; }
         .status-needs_revision { background-color: #ffedd5; color: #9a3412; }
-        .status-final { background-color: #dbeafe; color: #1e40af; }
-        
-        /* Weekly badge styles */
-        /* .weekly-badge {
-            background: linear-gradient(135deg, #9E5EFF, #11468F);
-            color: white;
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 12px;
-            display: inline-block;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        } */
         
         /* Dropdown styles */
         .dropdown-menu { 
@@ -400,13 +386,6 @@
                         </div>
                         {% endif %}
 
-                        <!-- Weekly Badge - Now on the LEFT side -->
-                        <!-- <div class="absolute top-3 left-3 z-10">
-                            <span class="weekly-badge">
-                                <i class="fas fa-calendar-week mr-1"></i>WEEKLY
-                            </span>
-                        </div> -->
-
                         <!-- Menu Button - Now on the RIGHT side -->
                         <div class="absolute top-3 right-3 z-10">
                             <button class="dropdown-toggle p-2 bg-white/80 rounded-full hover:bg-white transition-colors" data-draft-id="{{ draft.id }}">
@@ -419,11 +398,8 @@
                         
                         <div class="p-4">
                             <div class="flex items-center justify-between mb-2">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                    {% if draft.status == 'draft' %}status-draft{% else %}status-final{% endif %}">
-                                    <i class="fas fa-{% if draft.status == 'draft' %}edit{% else %}file-check{% endif %} mr-1"></i>
-                                    {{ draft.get_status_display|default:draft.status|title }}
-                                </span>
+                                <!-- Removed status badge completely -->
+                                <div></div>
                                 <span class="text-xs text-gray-500">{{ draft.created_at|date:"M d, Y" }}</span>
                             </div>
                             
