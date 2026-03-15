@@ -435,12 +435,12 @@ class TaskNotification(models.Model):
         return f"{self.notification_type} notification for {self.task.title}"
 
 
-# ==================== UPDATED NOTIFICATION MODEL (with 1-hour notification type) ====================
+# ==================== CORRECTED NOTIFICATION MODEL ====================
 class Notification(models.Model):
     """Unified notification model for all system notifications"""
     NOTIFICATION_TYPES = [
-        ('task_due_soon', 'Task Due Soon'),           # 1 day before
-        ('task_due_1hour', 'Task Due in 1 Hour'),    # 1 hour before (only if time is set)
+        ('task_due_soon', 'Task Due Soon'),
+        ('task_due_1hour', 'Task Due in 1 Hour'),
         ('task_overdue', 'Task Overdue'),
         ('task_completed', 'Task Completed'),
         ('task_created', 'Task Created'),
@@ -454,7 +454,6 @@ class Notification(models.Model):
         ('general', 'General'),
     ]
     
-    # CHANGED: related_name from 'notifications' to 'app_notifications' to avoid conflicts
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='app_notifications')
     title = models.CharField(max_length=255)
     message = models.TextField()
@@ -467,6 +466,10 @@ class Notification(models.Model):
     submission_id = models.IntegerField(null=True, blank=True)
     concern_id = models.IntegerField(null=True, blank=True)
     schedule_id = models.IntegerField(null=True, blank=True)
+    
+    # Fields for weekly lesson plans and other generic objects
+    related_id = models.IntegerField(null=True, blank=True, help_text="ID of the related object (e.g., weekly plan ID)")
+    related_type = models.CharField(max_length=50, null=True, blank=True, help_text="Type of related object (e.g., 'weekly_lesson_plan')")
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -483,11 +486,9 @@ class Notification(models.Model):
 
     @property
     def time_ago(self):
-        """Return human-readable time ago string"""
         from django.utils import timezone
         now = timezone.now()
         diff = now - self.created_at
-        
         if diff.days > 0:
             if diff.days == 1:
                 return "Yesterday"

@@ -1,9 +1,11 @@
-# models.py
 import re
+import logging
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 class LessonPlan(models.Model):
     DRAFT = 'draft'
@@ -445,7 +447,10 @@ class LessonPlanSubmission(models.Model):
                 status__in=['submitted', 'approved', 'needs_revision']
             ).first()
 
-# Add to your existing models.py
+
+# ==============================================================================
+# WEEKLY LESSON PLAN MODEL
+# ==============================================================================
 
 class WeeklyLessonPlan(models.Model):
     """
@@ -513,7 +518,7 @@ class WeeklyLessonPlan(models.Model):
     lr_portal = models.CharField(max_length=200, blank=True, help_text="Learning Resource Portal references")
     other_resources = models.TextField(blank=True)
     
-    # Daily Procedures (MATATAG 5-step procedure per day)
+    # Daily Procedures (MATATAG 10-step procedure per day)
     # Monday
     monday_procedure_a = models.TextField(blank=True, help_text="A. Reviewing previous lesson")
     monday_procedure_b = models.TextField(blank=True, help_text="B. Establishing purpose")
@@ -618,93 +623,7 @@ class WeeklyLessonPlan(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    # Submission tracking (reuse LessonPlanSubmission with type field)
-    is_weekly = models.BooleanField(default=True, help_text="Indicator for weekly lesson plans")
-    
-    class Meta:
-        ordering = ['-created_at']
-        verbose_name = 'Weekly Lesson Plan'
-        verbose_name_plural = 'Weekly Lesson Plans'
-    
-    def __str__(self):
-        return f"Week {self.week_number}: {self.subject} - {self.grade_level} ({self.get_status_display()})"
-    
-    def get_objectives_dict(self):
-        """Return objectives as a dictionary by day"""
-        return {
-            'monday': self.objective_monday,
-            'tuesday': self.objective_tuesday,
-            'wednesday': self.objective_wednesday,
-            'thursday': self.objective_thursday,
-            'friday': self.objective_friday,
-        }
-    
-    def get_content_dict(self):
-        """Return content/topics as a dictionary by day"""
-        return {
-            'monday': self.content_monday,
-            'tuesday': self.content_tuesday,
-            'wednesday': self.content_wednesday,
-            'thursday': self.content_thursday,
-            'friday': self.content_friday,
-        }
-    
-    def get_procedure_for_day(self, day):
-        """Get all procedure steps for a specific day"""
-        steps = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
-        procedure = {}
-        
-        for step in steps:
-            field_name = f"{day}_procedure_{step}"
-            if hasattr(self, field_name):
-                procedure[step] = getattr(self, field_name)
-            else:
-                procedure[step] = ""
-        
-        return procedure
-    
-    def get_latest_submission(self):
-        """Get the latest submission for this weekly plan"""
-        try:
-            from .models import LessonPlanSubmission
-            return LessonPlanSubmission.objects.filter(
-                lesson_plan_id=self.id,
-                is_weekly=True
-            ).order_by('-submission_date').first()
-        except:
-            return None
-    
-    @property
-    def latest_submission(self):
-        return self.get_latest_submission()
-    
-    def submit_for_approval(self, department_head):
-        """Submit this weekly plan for approval"""
-        from .models import LessonPlanSubmission
-        
-        # Check if already submitted
-        existing_submission = LessonPlanSubmission.objects.filter(
-            lesson_plan_id=self.id,
-            is_weekly=True,
-            status__in=['submitted', 'approved', 'needs_revision']
-        ).first()
-        
-        if existing_submission:
-            return False, "This weekly plan has already been submitted for approval."
-        
-        try:
-            submission = LessonPlanSubmission.objects.create(
-                lesson_plan_id=self.id,
-                is_weekly=True,
-                submitted_by=self.created_by,
-                submitted_to=department_head,
-                status='submitted'
-            )
-            return True, f"Weekly plan submitted successfully to {department_head.full_name}!"
-        except Exception as e:
-            return False, f"Error submitting: {str(e)}"
-    
-      # Add submission status field (can be separate from DRAFT/FINAL)
+    # Submission tracking fields (directly on the model)
     submission_status = models.CharField(
         max_length=20,
         choices=[
@@ -716,8 +635,6 @@ class WeeklyLessonPlan(models.Model):
         ],
         default='not_submitted'
     )
-    
-    # Add fields for submission tracking
     submitted_to = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -736,21 +653,93 @@ class WeeklyLessonPlan(models.Model):
     )
     review_notes = models.TextField(blank=True)
     
-    # ... rest of existing fields ...
+    # Indicator (optional, but can stay)
+    is_weekly = models.BooleanField(default=True, help_text="Indicator for weekly lesson plans")
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Weekly Lesson Plan'
+        verbose_name_plural = 'Weekly Lesson Plans'
+    
+    def __str__(self):
+        return f"Week {self.week_number}: {self.subject} - {self.grade_level} ({self.get_status_display()})"
+    
+    def get_objectives_dict(self):
+        return {
+            'monday': self.objective_monday,
+            'tuesday': self.objective_tuesday,
+            'wednesday': self.objective_wednesday,
+            'thursday': self.objective_thursday,
+            'friday': self.objective_friday,
+        }
+    
+    def get_content_dict(self):
+        return {
+            'monday': self.content_monday,
+            'tuesday': self.content_tuesday,
+            'wednesday': self.content_wednesday,
+            'thursday': self.content_thursday,
+            'friday': self.content_friday,
+        }
+    
+    def get_procedure_for_day(self, day):
+        steps = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
+        procedure = {}
+        for step in steps:
+            field_name = f"{day}_procedure_{step}"
+            if hasattr(self, field_name):
+                procedure[step] = getattr(self, field_name)
+            else:
+                procedure[step] = ""
+        return procedure
+
+    # ==================== ADDED METHODS FOR TEMPLATE COMPATIBILITY ====================
+    def get_latest_submission(self):
+        """
+        Return a simple object mimicking a LessonPlanSubmission for template compatibility.
+        This allows the draft_list view to work without errors.
+        """
+        if self.submission_status == 'not_submitted':
+            return None
+
+        class SubmissionInfo:
+            def __init__(self, status, submitted_to, submitted_at, feedback, reviewed_at):
+                self.status = status
+                self.submitted_to = submitted_to
+                self.submitted_at = submitted_at
+                self.feedback = feedback
+                self.reviewed_at = reviewed_at
+
+        return SubmissionInfo(
+            status=self.submission_status,
+            submitted_to=self.submitted_to,
+            submitted_at=self.submitted_at,
+            feedback=self.review_notes,
+            reviewed_at=self.reviewed_at
+        )
+
+    @property
+    def latest_submission(self):
+        return self.get_latest_submission()
+    # ==================== END ADDED METHODS ====================
     
     def submit_for_approval(self, reviewer):
-        """Submit this weekly plan for approval"""
+        """Submit this weekly plan for approval (with notification)"""
         from django.utils import timezone
+
+        # Check if already submitted
+        if self.submission_status == 'submitted':
+            return False, "This weekly plan has already been submitted for approval."
 
         self.submission_status = 'submitted'
         self.submitted_to = reviewer
         self.submitted_at = timezone.now()
-        self.status = self.FINAL  # Change status to FINAL when submitted
+        self.status = self.FINAL  # Mark as FINAL when submitted
         self.save()
         
         # Create notification for reviewer
         try:
-            from lessonlinkNotif.models import Notification
+            from lesson.models import Notification   # CHANGED
             Notification.objects.create(
                 user=reviewer,
                 title=f"Weekly Plan Submitted: {self.title}",
@@ -759,14 +748,21 @@ class WeeklyLessonPlan(models.Model):
                 related_id=self.id,
                 related_type='weekly_lesson_plan'
             )
-        except:
-            pass
+        except ImportError as e:
+            logger.error(f"Failed to import Notification model for weekly submission: {e}")
+        except Exception as e:
+            logger.error(f"Failed to create weekly submission notification: {e}")
         
         return True, f"Weekly plan submitted successfully to {reviewer.get_full_name()}!"
     
     def approve(self, reviewer, notes=""):
-        """Approve this weekly plan"""
+        """Approve this weekly plan (with notification)"""
+        print(f"✅ APPROVE CALLED for {self.title}")
         from django.utils import timezone
+
+        if self.submission_status != 'submitted':
+            print("❌ Not in submitted state")
+            return False, "This weekly plan is not in submitted state."
 
         self.submission_status = 'approved'
         self.reviewed_by = reviewer
@@ -775,10 +771,10 @@ class WeeklyLessonPlan(models.Model):
         self.status = self.FINAL
         self.save()
         
-        # Create notification for creator
         try:
-            from lessonlinkNotif.models import Notification
-            Notification.objects.create(
+            from lesson.models import Notification   # CHANGED
+            print("✅ Imported Notification")
+            notif = Notification.objects.create(
                 user=self.created_by,
                 title=f"Weekly Plan Approved: {self.title}",
                 message=f"Your weekly lesson plan has been approved by {reviewer.get_full_name()}.",
@@ -786,14 +782,20 @@ class WeeklyLessonPlan(models.Model):
                 related_id=self.id,
                 related_type='weekly_lesson_plan'
             )
-        except:
-            pass
+            print(f"✅ Notification created with id {notif.id}")
+        except ImportError as e:
+            print(f"❌ ImportError: {e}")
+        except Exception as e:
+            print(f"❌ Other error: {e}")
         
         return True, "Weekly plan approved successfully!"
     
     def reject(self, reviewer, notes):
-        """Reject this weekly plan"""
+        """Reject this weekly plan (with notification)"""
         from django.utils import timezone
+
+        if self.submission_status != 'submitted':
+            return False, "This weekly plan is not in submitted state."
 
         self.submission_status = 'rejected'
         self.reviewed_by = reviewer
@@ -802,25 +804,29 @@ class WeeklyLessonPlan(models.Model):
         self.status = self.DRAFT  # Revert to draft
         self.save()
         
-        # Create notification for creator
         try:
-            from lessonlinkNotif.models import Notification
+            from lesson.models import Notification   # CHANGED
             Notification.objects.create(
                 user=self.created_by,
-                title=f"Weekly Plan Needs Revision: {self.title}",
-                message=f"Your weekly lesson plan needs revision. Feedback: {notes[:100]}...",
+                title=f"Weekly Plan Rejected: {self.title}",
+                message=f"Your weekly lesson plan was rejected. Feedback: {notes[:100]}...",
                 notification_type='draft_rejected',
                 related_id=self.id,
                 related_type='weekly_lesson_plan'
             )
-        except:
-            pass
+        except ImportError as e:
+            logger.error(f"Failed to import Notification model for weekly rejection: {e}")
+        except Exception as e:
+            logger.error(f"Failed to create weekly rejection notification: {e}")
         
         return True, "Weekly plan rejected with feedback."
     
     def needs_revision(self, reviewer, notes):
-        """Request revision for this weekly plan"""
+        """Request revision for this weekly plan (with notification)"""
         from django.utils import timezone
+
+        if self.submission_status != 'submitted':
+            return False, "This weekly plan is not in submitted state."
 
         self.submission_status = 'needs_revision'
         self.reviewed_by = reviewer
@@ -829,9 +835,8 @@ class WeeklyLessonPlan(models.Model):
         self.status = self.DRAFT
         self.save()
         
-        # Create notification for creator
         try:
-            from lessonlinkNotif.models import Notification
+            from lesson.models import Notification   # CHANGED
             Notification.objects.create(
                 user=self.created_by,
                 title=f"Weekly Plan Needs Revision: {self.title}",
@@ -840,14 +845,15 @@ class WeeklyLessonPlan(models.Model):
                 related_id=self.id,
                 related_type='weekly_lesson_plan'
             )
-        except:
-            pass
+        except ImportError as e:
+            logger.error(f"Failed to import Notification model for weekly needs_revision: {e}")
+        except Exception as e:
+            logger.error(f"Failed to create weekly needs_revision notification: {e}")
         
         return True, "Weekly plan marked for revision with feedback."
 
     @property
     def get_submission_status_display_custom(self):
-        """Get human-readable submission status"""
         status_map = {
             'not_submitted': 'Not Submitted',
             'submitted': 'Submitted',
@@ -859,39 +865,4 @@ class WeeklyLessonPlan(models.Model):
     
     @property
     def can_submit(self):
-        """Check if this weekly plan can be submitted"""
         return self.submission_status in ['not_submitted', 'rejected', 'needs_revision']
-
-
-# Add is_weekly field to LessonPlanSubmission
-# Add this field to your existing LessonPlanSubmission model
-"""
-is_weekly = models.BooleanField(default=False, help_text="Whether this submission is for a weekly lesson plan")
-"""
-
-
-class WeeklyLessonPlanSubmission(models.Model):
-    """
-    Submission tracking specifically for weekly lesson plans
-    (Alternative approach - use this if you prefer separate model)
-    """
-    STATUS_CHOICES = [
-        ('submitted', 'Submitted'),
-        ('approved', 'Approved'),
-        ('needs_revision', 'Needs Revision'),
-        ('rejected', 'Rejected'),
-    ]
-    
-    weekly_plan = models.ForeignKey(WeeklyLessonPlan, on_delete=models.CASCADE, related_name='submissions')
-    submitted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='weekly_submissions')
-    submitted_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_weekly_submissions')
-    submission_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='submitted')
-    feedback = models.TextField(blank=True)
-    reviewed_at = models.DateTimeField(null=True, blank=True)
-    
-    class Meta:
-        ordering = ['-submission_date']
-    
-    def __str__(self):
-        return f"Week {self.weekly_plan.week_number}: {self.status}"
