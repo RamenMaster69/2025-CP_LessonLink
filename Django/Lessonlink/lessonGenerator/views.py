@@ -843,10 +843,30 @@ def extract_text_from_pdf(pdf_path):
 @csrf_exempt
 @require_http_methods(["POST"])
 def get_ai_suggestions(request):
-    """Generate AI suggestions similar to the exemplar objectives (supports Filipino)"""
+    """Generate AI suggestions similar to the exemplar objectives – auto‑detects language"""
     import json
     import re
     
+    def detect_language(text):
+        """
+        Simple heuristic to detect if text is Filipino or English.
+        Returns 'filipino' or 'english'.
+        """
+        if not text:
+            return 'english'   # default
+        # Sample first 2000 characters
+        sample = text[:2000].lower()
+        # Filipino common words
+        filipino_words = ['ang', 'mga', 'ng', 'sa', 'ay', 'at', 'ito', 'iyon', 'kami', 'tayo',
+                          'namin', 'ninyo', 'sila', 'kanila', 'kanyang', 'aking', 'iyong',
+                          'aming', 'inyong', 'kanilang', 'pagkatapos', 'inaasahang']
+        # English common words
+        english_words = ['the', 'and', 'of', 'to', 'in', 'that', 'is', 'are', 'was', 'were',
+                         'will', 'be', 'have', 'has', 'had', 'this', 'these', 'those']
+        count_fil = sum(sample.count(w) for w in filipino_words)
+        count_eng = sum(sample.count(w) for w in english_words)
+        return 'filipino' if count_fil > count_eng else 'english'
+
     try:
         if model is None:
             return JsonResponse({
@@ -870,6 +890,13 @@ def get_ai_suggestions(request):
                 'error': 'Section parameter required'
             }, status=400)
         
+        # Check if exemplar ID is provided
+        if not exemplar_id or not exemplar_id.strip():
+            return JsonResponse({
+                'success': False,
+                'error': 'Please select an exemplar first to generate AI suggestions.'
+            }, status=400)
+        
         # Get intelligence type
         intelligence_type = form_data.get('intelligence_type', 'comprehensive')
         
@@ -878,81 +905,87 @@ def get_ai_suggestions(request):
         exemplar_name = ""
         exemplar_objectives = []
         
-        # Load exemplar if selected
-        if exemplar_id and exemplar_id.strip():
-            try:
-                from lesson.models import Exemplar
-                exemplar = Exemplar.objects.get(id=exemplar_id)
-                exemplar_content = exemplar.extracted_text
-                exemplar_name = exemplar.name
+        # Load exemplar
+        try:
+            from lesson.models import Exemplar
+            exemplar = Exemplar.objects.get(id=exemplar_id)
+            exemplar_content = exemplar.extracted_text
+            exemplar_name = exemplar.name
+            
+            print(f"\n📁 EXEMPLAR LOADED: {exemplar_name}")
+            
+            if exemplar_content:
+                # Patterns for both English and Filipino
+                competency_patterns = [
+                    # English
+                    r'C\.\s*Learning\s*Competencies?\s*and\s*Objectives?\s*(.*?)(?=D\.\s*Content|$)',
+                    r'Learning\s*Competencies?:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
+                    r'Learning\s*Objectives?:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
+                    r'Objectives?:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
+                    # Filipino
+                    r'C\.\s*Kasanayang\s*Pampagkatuto\s*(.*?)(?=D\.\s*Mga\s*Layunin|D\.\s*Nilalaman|$)',
+                    r'D\.\s*Mga\s*Layunin\s*(.*?)(?=II\.|I{2,}\.|$)',
+                    r'Kasanayang\s*Pampagkatuto:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
+                    r'Mga\s*Layunin:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
+                    r'Layunin:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
+                    r'Pagkatapos\s*ng\s*aralin,?\s*ang\s*mga\s*mag-?aaral\s*ay\s*inaasahang:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
+                ]
                 
-                print(f"\n📁 EXEMPLAR LOADED: {exemplar_name}")
+                objectives_text = ""
+                for pattern in competency_patterns:
+                    match = re.search(pattern, exemplar_content, re.IGNORECASE | re.DOTALL)
+                    if match:
+                        objectives_text = match.group(1)
+                        print(f"✅ Found objectives section")
+                        break
                 
-                if exemplar_content:
-                    # ========== ENHANCED PATTERNS FOR FILIPINO ==========
-                    competency_patterns = [
-                        # English patterns (keep for backward compatibility)
-                        r'C\.\s*Learning\s*Competencies?\s*and\s*Objectives?\s*(.*?)(?=D\.\s*Content|$)',
-                        r'Learning\s*Competencies?:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
-                        r'Learning\s*Objectives?:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
-                        r'Objectives?:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
-                        
-                        # Filipino patterns (based on DepEd MATATAG format)
-                        r'C\.\s*Kasanayang\s*Pampagkatuto\s*(.*?)(?=D\.\s*Mga\s*Layunin|D\.\s*Nilalaman|$)',
-                        r'D\.\s*Mga\s*Layunin\s*(.*?)(?=II\.|I{2,}\.|$)',  # Main objectives section
-                        r'Kasanayang\s*Pampagkatuto:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
-                        r'Mga\s*Layunin:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
-                        r'Layunin:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
-                        r'Pagkatapos\s*ng\s*aralin,?\s*ang\s*mga\s*mag-?aaral\s*ay\s*inaasahang:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
-                    ]
+                if objectives_text:
+                    # Try numbered list
+                    numbered = re.findall(r'\d+\.\s*(.*?)(?=\n\d+\.|\n\n|\Z)', objectives_text, re.DOTALL)
+                    for obj in numbered:
+                        clean = obj.strip()
+                        clean = re.sub(r'[;,]?\s*(?:and|at)\s*$', '', clean, flags=re.IGNORECASE)
+                        clean = re.sub(r'^\d+\.\s*', '', clean)
+                        clean = re.sub(r'^[•●\-]\s*', '', clean)
+                        if clean and len(clean) > 10:
+                            exemplar_objectives.append(clean)
                     
-                    objectives_text = ""
-                    for pattern in competency_patterns:
-                        match = re.search(pattern, exemplar_content, re.IGNORECASE | re.DOTALL)
-                        if match:
-                            objectives_text = match.group(1)
-                            print(f"✅ Found objectives section using pattern: {pattern[:50]}...")
-                            break
-                    
-                    if objectives_text:
-                        # Try numbered list (1., 2., etc.) – works for both English and Filipino
-                        numbered = re.findall(r'\d+\.\s*(.*?)(?=\n\d+\.|\n\n|\Z)', objectives_text, re.DOTALL)
-                        for obj in numbered:
+                    # If no numbered list, try bullet points
+                    if not exemplar_objectives:
+                        bullets = re.findall(r'[•●\-]\s*(.*?)(?=\n[•●\-]|\n\n|\Z)', objectives_text, re.DOTALL)
+                        for obj in bullets:
                             clean = obj.strip()
-                            # Remove trailing conjunctions if any (English "and" or Filipino "at")
                             clean = re.sub(r'[;,]?\s*(?:and|at)\s*$', '', clean, flags=re.IGNORECASE)
-                            clean = re.sub(r'^\d+\.\s*', '', clean)
                             clean = re.sub(r'^[•●\-]\s*', '', clean)
                             if clean and len(clean) > 10:
                                 exemplar_objectives.append(clean)
-                        
-                        # If no numbered list, try bullet points
-                        if not exemplar_objectives:
-                            bullets = re.findall(r'[•●\-]\s*(.*?)(?=\n[•●\-]|\n\n|\Z)', objectives_text, re.DOTALL)
-                            for obj in bullets:
-                                clean = obj.strip()
-                                clean = re.sub(r'[;,]?\s*(?:and|at)\s*$', '', clean, flags=re.IGNORECASE)
-                                clean = re.sub(r'^[•●\-]\s*', '', clean)
-                                if clean and len(clean) > 10:
-                                    exemplar_objectives.append(clean)
+                
+                # Remove duplicates
+                seen = set()
+                unique_objectives = []
+                for obj in exemplar_objectives:
+                    normalized = obj.lower().strip()
+                    if normalized not in seen and len(normalized) > 10:
+                        seen.add(normalized)
+                        unique_objectives.append(obj)
+                
+                exemplar_objectives = unique_objectives
+                
+                print(f"\n🎯 EXTRACTED {len(exemplar_objectives)} EXEMPLAR OBJECTIVES:")
+                for i, obj in enumerate(exemplar_objectives):
+                    print(f"   {i+1}. {obj}")
                     
-                    # Remove duplicates
-                    seen = set()
-                    unique_objectives = []
-                    for obj in exemplar_objectives:
-                        normalized = obj.lower().strip()
-                        if normalized not in seen and len(normalized) > 10:
-                            seen.add(normalized)
-                            unique_objectives.append(obj)
-                    
-                    exemplar_objectives = unique_objectives
-                    
-                    print(f"\n🎯 EXTRACTED {len(exemplar_objectives)} EXEMPLAR OBJECTIVES:")
-                    for i, obj in enumerate(exemplar_objectives):
-                        print(f"   {i+1}. {obj}")
-                        
-            except Exception as e:
-                print(f"❌ Error loading exemplar: {str(e)}")
+        except Exemplar.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Selected exemplar not found.'
+            }, status=404)
+        except Exception as e:
+            print(f"❌ Error loading exemplar: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': f'Error loading exemplar: {str(e)}'
+            }, status=500)
         
         # If no objectives found, return error
         if not exemplar_objectives:
@@ -961,11 +994,51 @@ def get_ai_suggestions(request):
                 'error': 'No learning objectives found in the selected exemplar. Please check the exemplar content.'
             }, status=400)
         
-        # ========== UPDATED PROMPT WITH FILIPINO LANGUAGE DIRECTIVE ==========
+        # ========== LANGUAGE DETECTION ==========
+        language = detect_language(exemplar_content) if exemplar_content else 'english'
+        print(f"\n🌐 Detected language: {language.upper()}")
+        
+        # Set language-specific strings
+        if language == 'filipino':
+            lang_directive = "Generate ALL output in FILIPINO language to match the exemplar's language."
+            intro_phrase = "Pagkatapos ng aralin, ang mga mag-aaral ay inaasahang:"
+            field_titles = {
+                'title': "Complete learning objective in Filipino starting with '{intro_phrase} ● [objective text]'",
+                'description': "Detailed explanation in Filipino of what students will do and why this skill is important",
+                'example': "A concrete classroom example in Filipino showing how this objective would be taught or assessed",
+                'intelligence_connection': f"How this develops {intelligence_type} intelligence (in Filipino)",
+                'exemplar_alignment': "Explain how this relates to the exemplar objectives (in Filipino)"
+            }
+            fallback_messages = {
+                'title': "Layunin ay hindi nakasulat",
+                'description': "Walang ibinigay na paliwanag",
+                'example': "Walang ibinigay na halimbawa",
+                'intelligence_connection': f"Nagpapaunlad ng {intelligence_type} intelligence sa pamamagitan ng mga gawain.",
+                'exemplar_alignment': "Ang layuning ito ay katulad ng estilo ng mga layunin sa exemplar."
+            }
+        else:
+            lang_directive = "Generate ALL output in ENGLISH language."
+            intro_phrase = "At the end of the lesson, the learners should be able to:"
+            field_titles = {
+                'title': f"Complete learning objective starting with '{intro_phrase} ● [objective text]'",
+                'description': "Detailed explanation of what students will do and why this skill is important",
+                'example': "A concrete classroom example showing how this objective would be taught or assessed",
+                'intelligence_connection': f"How this develops {intelligence_type} intelligence",
+                'exemplar_alignment': "Explain how this relates to the exemplar objectives"
+            }
+            fallback_messages = {
+                'title': "Objective title missing",
+                'description': "Description not provided",
+                'example': "Example not provided",
+                'intelligence_connection': f"Develops {intelligence_type} intelligence through lesson activities.",
+                'exemplar_alignment': "This objective is similar in style to the exemplar objectives."
+            }
+        
+        # ========== BUILD PROMPT ==========
         prompt = f"""
         You are a DepEd curriculum specialist. Based on the exemplar objectives below, generate 4 NEW learning objectives that are SIMILAR in style and content but NOT exactly the same.
         
-        **IMPORTANT: Generate ALL output in FILIPINO language** to match the exemplar's language.
+        **IMPORTANT: {lang_directive}**
         
         EXEMPLAR OBJECTIVES (use these as reference for style and topic):
         {chr(10).join([f'{i+1}. {obj}' for i, obj in enumerate(exemplar_objectives)])}
@@ -976,28 +1049,28 @@ def get_ai_suggestions(request):
         Lesson Title: {form_data.get('lesson_title', '')}
         
         INSTRUCTIONS:
-        1. Study the exemplar objectives above carefully – notice their style, verb usage (in Filipino), and topic focus.
+        1. Study the exemplar objectives above carefully – notice their style, verb usage, and topic focus.
         2. Generate 4 NEW learning objectives that:
            - Are SIMILAR to the exemplar objectives in style and difficulty
-           - Use similar Filipino action verbs (e.g., natutukoy, nababasa, nagagamit, naisasagawa)
+           - Use similar action verbs
            - Match the same cognitive level
            - Focus on the same topic area
            - Are appropriate for the specified grade level
         3. Do NOT simply copy the exemplar objectives – create new ones that are related but different.
         
         Each objective should follow this format:
-        - Start with "Pagkatapos ng aralin, ang mga mag-aaral ay inaasahang:"
+        - Start with "{intro_phrase}"
         - Use a bullet point (●) before each objective
         - Be clear, specific, and measurable
         
         Return ONLY a JSON array with this exact format:
         [
             {{
-                "title": "Complete learning objective in Filipino starting with 'Pagkatapos ng aralin, ang mga mag-aaral ay inaasahang: ● [objective text]'",
-                "description": "Detailed explanation in Filipino of what students will do and why this skill is important",
-                "example": "A concrete classroom example in Filipino showing how this objective would be taught or assessed",
-                "intelligence_connection": "How this develops {intelligence_type} intelligence (in Filipino)",
-                "exemplar_alignment": "Explain how this relates to the exemplar objectives (in Filipino)"
+                "title": "{field_titles['title']}",
+                "description": "{field_titles['description']}",
+                "example": "{field_titles['example']}",
+                "intelligence_connection": "{field_titles['intelligence_connection']}",
+                "exemplar_alignment": "{field_titles['exemplar_alignment']}"
             }}
         ]
         """
@@ -1042,21 +1115,13 @@ def get_ai_suggestions(request):
                 'error': 'AI generated empty suggestions'
             }, status=500)
         
-        # Add metadata to suggestions
+        # Add metadata and ensure required fields exist
         for suggestion in suggestions:
             suggestion['is_exact'] = False
-            
-            # Ensure required fields exist (with fallback messages in Filipino if missing)
-            if 'title' not in suggestion:
-                suggestion['title'] = "Layunin ay hindi nakasulat"
-            if 'description' not in suggestion:
-                suggestion['description'] = "Walang ibinigay na paliwanag"
-            if 'example' not in suggestion:
-                suggestion['example'] = "Walang ibinigay na halimbawa"
-            if 'intelligence_connection' not in suggestion:
-                suggestion['intelligence_connection'] = f"Nagpapaunlad ng {intelligence_type} intelligence sa pamamagitan ng mga gawain."
-            if 'exemplar_alignment' not in suggestion:
-                suggestion['exemplar_alignment'] = "Ang layuning ito ay katulad ng estilo ng mga layunin sa exemplar."
+            # Fill missing fields with appropriate fallback messages
+            for field, fallback in fallback_messages.items():
+                if field not in suggestion or not suggestion[field]:
+                    suggestion[field] = fallback
         
         return JsonResponse({
             'success': True,
@@ -1065,6 +1130,7 @@ def get_ai_suggestions(request):
             'exemplar_used': True,
             'exemplar_name': exemplar_name,
             'objectives_analyzed': len(exemplar_objectives),
+            'language': language,
             'message': f'Generated {len(suggestions)} objectives based on the exemplar'
         })
         
