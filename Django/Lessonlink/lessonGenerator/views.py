@@ -131,71 +131,109 @@ def generate_lesson_plan(request):
                 'success': False,
                 'error': 'AI service is not configured properly. Please check your API key.'
             }, status=500)
-            
+
         # Parse JSON data
         try:
             data = json.loads(request.body)
-            print("Received data:", data)  # Debugging
+            print("Received data:", data)
         except json.JSONDecodeError as e:
-            print("JSON decode error:", e)  # Debugging
+            print("JSON decode error:", e)
             return JsonResponse({
                 'success': False,
                 'error': 'Invalid JSON data received.'
             }, status=400)
-        
-        # Extract form data with validation - INCLUDING INTELLIGENCE TYPE
+
+        # ------------------------------------------------------------
+        # 1. Required top-level fields
+        # ------------------------------------------------------------
         required_fields = ['subject', 'grade_level', 'learning_objectives']
         for field in required_fields:
-            if field not in data or not data[field].strip():
+            if field not in data or not data.get(field, '').strip():
                 return JsonResponse({
                     'success': False,
                     'error': f'Missing required field: {field}'
                 }, status=400)
-        
-        form_data = {
-            'subject': data.get('subject', '').strip(),
-            'grade_level': data.get('grade_level', '').strip(),
-            'quarter': data.get('quarter', '').strip(),
-            'duration': data.get('duration', '60').strip(),  # Default to 60 minutes
-            'population': data.get('population', '30').strip(),  # Default to 30 students
-            'learning_objectives': data.get('learning_objectives', '').strip(),
-            'subject_matter': data.get('subject_matter', '').strip(),
-            'materials_needed': data.get('materials_needed', '').strip(),
-            'introduction': data.get('introduction', '').strip(),
-            'instruction': data.get('instruction', '').strip(),
-            'application': data.get('application', '').strip(),
-            'evaluation': data.get('evaluation', '').strip(),
-            'assessment': data.get('assessment', '').strip(),
-            'selected_exemplar': data.get('selected_exemplar', '').strip(),
-            'intelligence_type': data.get('intelligence_type', 'comprehensive').strip(),  # NEW FIELD
-        }
-        
-        print("Form data prepared:", form_data)  # Debugging
-        print("Intelligence type:", form_data['intelligence_type'])  # Debugging
-        
-        # Get exemplar content if selected
+
+        # ------------------------------------------------------------
+        # 2. Learning objectives must have substance
+        # ------------------------------------------------------------
+        learning_obj = data.get('learning_objectives', '').strip()
+        if len(learning_obj) < 10:
+            return JsonResponse({
+                'success': False,
+                'error': 'Learning objectives must be at least 10 characters long and describe what students will achieve.'
+            }, status=400)
+
+        # ------------------------------------------------------------
+        # 3. Validate intelligence type (must be one of allowed choices)
+        # ------------------------------------------------------------
+        valid_intelligence_types = [choice[0] for choice in LessonPlan.INTELLIGENCE_TYPE_CHOICES]
+        intelligence_type = data.get('intelligence_type', 'comprehensive').strip()
+        if intelligence_type not in valid_intelligence_types:
+            return JsonResponse({
+                'success': False,
+                'error': f'Invalid intelligence type. Choose from: {", ".join(valid_intelligence_types)}'
+            }, status=400)
+
+        # ------------------------------------------------------------
+        # 4. Duration validation (positive integer, default 60 if empty)
+        # ------------------------------------------------------------
+        duration_str = data.get('duration', '').strip()
+        if duration_str:
+            try:
+                duration = int(duration_str)
+                if duration <= 0:
+                    raise ValueError
+            except ValueError:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Duration must be a positive number (in minutes).'
+                }, status=400)
+        else:
+            duration_str = '60'  # default
+
+        # ------------------------------------------------------------
+        # 5. Population validation (positive integer, default 30 if empty)
+        # ------------------------------------------------------------
+        population_str = data.get('population', '').strip()
+        if population_str:
+            try:
+                population = int(population_str)
+                if population <= 0:
+                    raise ValueError
+            except ValueError:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Class size (population) must be a positive number.'
+                }, status=400)
+        else:
+            population_str = '30'  # default
+
+        # ------------------------------------------------------------
+        # 6. Exemplar handling and relationship check
+        # ------------------------------------------------------------
         exemplar_content = ""
         exemplar_name = ""
-        if form_data['selected_exemplar']:
+        selected_exemplar = data.get('selected_exemplar', '').strip()
+        if selected_exemplar:
             try:
                 from lesson.models import Exemplar
-                exemplar = Exemplar.objects.get(id=form_data['selected_exemplar'])
+                exemplar = Exemplar.objects.get(id=selected_exemplar)
                 exemplar_content = exemplar.extracted_text
                 exemplar_name = exemplar.name
-                print(f"Exemplar content loaded: {len(exemplar_content)} characters from {exemplar_name}")  # Debugging
-                
-                # REAL-TIME INPUT VALIDATION: Check if inputs are related to exemplar
-                print("Analyzing input-exemplar relationship...")  # Debugging
-                is_related, explanation, confidence = analyze_input_relation(
-                    form_data, 
+                print(f"Exemplar content loaded: {len(exemplar_content)} characters from {exemplar_name}")
+
+                # Real-time input validation: check if inputs are related to exemplar
+                print("Analyzing input-exemplar relationship...")
+                is_related, explanation, confidence, match_details = analyze_input_relation(
+                    data, 
                     exemplar_content, 
                     exemplar_name
                 )
-                
-                print(f"Relationship analysis: is_related={is_related}, confidence={confidence}")  # Debugging
-                
+
+                print(f"Relationship analysis: is_related={is_related}, confidence={confidence}")
+
                 if not is_related:
-                    # Inputs are not related to exemplar - return error
                     return JsonResponse({
                         'success': False,
                         'error': f'INPUT VALIDATION ERROR: Your lesson plan inputs are not sufficiently related to the selected exemplar "{exemplar_name}".\n\n'
@@ -209,29 +247,63 @@ def generate_lesson_plan(request):
                         'confidence_score': confidence,
                         'analysis_explanation': explanation
                     }, status=400)
-                
-                print(f"Inputs validated: {explanation}")  # Debugging
-                    
+
+                print(f"Inputs validated: {explanation}")
+
             except Exemplar.DoesNotExist:
                 print("Selected exemplar not found")
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Selected exemplar not found.'
+                }, status=400)
             except Exception as e:
                 print(f"Error loading exemplar: {str(e)}")
-        
-        # Format the prompt for the AI - INCLUDING INTELLIGENCE TYPE
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Error loading exemplar: {str(e)}'
+                }, status=500)
+
+        # ------------------------------------------------------------
+        # Build form_data dictionary with validated values
+        # ------------------------------------------------------------
+        form_data = {
+            'subject': data.get('subject', '').strip(),
+            'grade_level': data.get('grade_level', '').strip(),
+            'quarter': data.get('quarter', '').strip(),
+            'duration': duration_str,
+            'population': population_str,
+            'learning_objectives': learning_obj,
+            'subject_matter': data.get('subject_matter', '').strip(),
+            'materials_needed': data.get('materials_needed', '').strip(),
+            'introduction': data.get('introduction', '').strip(),
+            'instruction': data.get('instruction', '').strip(),
+            'application': data.get('application', '').strip(),
+            'evaluation': data.get('evaluation', '').strip(),
+            'assessment': data.get('assessment', '').strip(),
+            'selected_exemplar': selected_exemplar,
+            'intelligence_type': intelligence_type,
+        }
+
+        print("Form data prepared:", form_data)
+        print("Intelligence type:", form_data['intelligence_type'])
+
+        # ------------------------------------------------------------
+        # Build the AI prompt
+        # ------------------------------------------------------------
         prompt = f"""
         Generate this as a complete MATATAG-aligned lesson plan following DepEd Philippines MATATAG Curriculum standards.
-        
+
         **INTELLIGENCE TYPE FOCUS:** {form_data['intelligence_type'].upper()}
-        
+
         SUBJECT: {form_data['subject']}
         GRADE LEVEL: {form_data['grade_level']}
         QUARTER: {form_data['quarter'] or 'Not specified'}
         DURATION: {form_data['duration']} minutes
         CLASS SIZE: {form_data['population']} students
-        
+
         LEARNING OBJECTIVES:
         {form_data['learning_objectives']}
-        
+
         SUBJECT MATTER: {form_data['subject_matter'] or 'To be developed based on MELC standards'}
         MATERIALS NEEDED: {form_data['materials_needed'] or 'To be specified based on lesson requirements'}
         INTRODUCTION: {form_data['introduction'] or 'To be developed based on MELC alignment'}
@@ -245,112 +317,105 @@ def generate_lesson_plan(request):
 
         Generate this as a complete MELC-aligned lesson plan following DepEd Philippines standards.
         Use the learning objectives provided to create specific, measurable outcomes.
-        
+
         **INTELLIGENCE TYPE ADAPTATION REQUIREMENTS:**
         1. Design activities specifically aligned with the {form_data['intelligence_type']} intelligence focus
         2. Include assessment methods appropriate for measuring the targeted intelligence
         3. Provide clear differentiation strategies for the selected intelligence focus
         4. Maintain MATATAG alignment while incorporating intelligence adaptation
 
-        
         {'Use the reference exemplar as a guide for structure, depth, and quality standards while maintaining originality.' if exemplar_content else ''}
         """
-        
-        print("Sending prompt to AI")  # Debugging
-        print(f"Exemplar provided: {bool(exemplar_content)}")  # Debugging
-        print(f"Intelligence type: {form_data['intelligence_type']}")  # Debugging
-        
-        # Generate the lesson plan using Gemini
+
+        print("Sending prompt to AI")
+        print(f"Exemplar provided: {bool(exemplar_content)}")
+        print(f"Intelligence type: {form_data['intelligence_type']}")
+
+        # ------------------------------------------------------------
+        # Generate lesson plan using Gemini
+        # ------------------------------------------------------------
         try:
-            # Check if exemplar is provided
-            has_exemplar = bool(form_data['selected_exemplar'] and exemplar_content)
-            
-            # FIXED: Use get_system_instruction for DAILY lesson plans
-            # This was incorrectly calling get_weekly_system_instruction before
+            has_exemplar = bool(selected_exemplar and exemplar_content)
             system_instruction = get_system_instruction(
                 has_exemplar=has_exemplar,
                 intelligence_type=form_data['intelligence_type']
-                # Note: get_system_instruction only takes has_exemplar and intelligence_type
             )
-            
-            print(f"Using DAILY system instruction with intelligence type: {form_data['intelligence_type']}")  # Debugging
 
-            
+            print(f"Using DAILY system instruction with intelligence type: {form_data['intelligence_type']}")
+
             response = model.generate_content([
                 system_instruction,
                 prompt
             ])
-            
-            print("AI response received:", response.text[:200] + "...")  # Debugging first 200 chars
-            
-            # Try to parse the response as JSON
+
+            print("AI response received:", response.text[:200] + "...")
+
+            # Try to parse JSON from response
             try:
-                # Extract JSON from the response (Gemini might add some text around it)
                 json_match = re.search(r'\{.*\}', response.text, re.DOTALL)
                 if json_match:
                     lesson_data = json.loads(json_match.group())
-                    print("JSON parsed successfully")  # Debugging
-                    
-                    # Store both the structured data and markdown in session
+                    print("JSON parsed successfully")
+
+                    # Store in session
                     request.session['generated_lesson_plan'] = lesson_data.get('markdown_output', '')
                     request.session['parsed_lesson_plan'] = lesson_data
                     request.session['lesson_form_data'] = form_data
                     request.session.modified = True
-                    
+
                     return JsonResponse({
                         'success': True,
                         'lesson_plan': lesson_data.get('markdown_output', ''),
                         'exemplar_used': has_exemplar,
                         'intelligence_type': form_data['intelligence_type'],
-                        'exemplar_id': form_data['selected_exemplar'] if has_exemplar else None,
+                        'exemplar_id': selected_exemplar if has_exemplar else None,
                         'exemplar_name': exemplar_name if has_exemplar else None,
                         'validation_passed': True if has_exemplar else None
                     })
                 else:
-                    # Fallback: if no JSON found, treat as markdown
-                    print("No JSON found in response, using fallback")  # Debugging
+                    # Fallback: treat as markdown
+                    print("No JSON found in response, using fallback")
                     request.session['generated_lesson_plan'] = response.text
                     request.session['lesson_form_data'] = form_data
                     request.session.modified = True
-                    
+
                     return JsonResponse({
                         'success': True,
                         'lesson_plan': response.text,
                         'exemplar_used': has_exemplar,
                         'intelligence_type': form_data['intelligence_type'],
-                        'exemplar_id': form_data['selected_exemplar'] if has_exemplar else None,
+                        'exemplar_id': selected_exemplar if has_exemplar else None,
                         'exemplar_name': exemplar_name if has_exemplar else None,
                         'validation_passed': True if has_exemplar else None
                     })
-                    
+
             except json.JSONDecodeError as json_error:
-                # If JSON parsing fails, fall back to markdown
-                print(f"JSON parsing error: {json_error}")  # Debugging
+                print(f"JSON parsing error: {json_error}")
                 request.session['generated_lesson_plan'] = response.text
                 request.session['lesson_form_data'] = form_data
                 request.session.modified = True
-                
+
                 return JsonResponse({
                     'success': True,
                     'lesson_plan': response.text,
                     'exemplar_used': has_exemplar,
                     'intelligence_type': form_data['intelligence_type'],
-                    'exemplar_id': form_data['selected_exemplar'] if has_exemplar else None,
+                    'exemplar_id': selected_exemplar if has_exemplar else None,
                     'exemplar_name': exemplar_name if has_exemplar else None,
                     'validation_passed': True if has_exemplar else None
                 })
-            
+
         except Exception as ai_error:
-            print(f"AI service error: {str(ai_error)}")  # Debugging
+            print(f"AI service error: {str(ai_error)}")
             return JsonResponse({
                 'success': False,
                 'error': f'AI service error: {str(ai_error)}'
             }, status=500)
-        
+
     except Exception as e:
-        print(f"Server error: {str(e)}")  # Debugging
+        print(f"Server error: {str(e)}")
         import traceback
-        traceback.print_exc()  # This will print the full traceback to console
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
             'error': f'Server error: {str(e)}'
