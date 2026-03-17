@@ -1825,10 +1825,7 @@
                     body: JSON.stringify(formData)
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
+                // Always try to parse JSON, regardless of status
                 const data = await response.json();
                 
                 if (data.success) {
@@ -1843,11 +1840,13 @@
                         window.location.href = '/lesson-plan-result/';
                     }, 1000);
                 } else {
+                    hideModal('loading-overlay');
                     if (data.validation_error) {
-                        hideModal('loading-overlay');
+                        // Show the detailed validation error modal
                         showValidationError(data);
                     } else {
-                        throw new Error(data.error || 'Unknown error occurred');
+                        // Show a simple error message
+                        showErrorMessage(data.error || 'Unknown error occurred');
                     }
                 }
             } catch (error) {
