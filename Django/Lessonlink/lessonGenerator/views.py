@@ -843,7 +843,7 @@ def extract_text_from_pdf(pdf_path):
 @csrf_exempt
 @require_http_methods(["POST"])
 def get_ai_suggestions(request):
-    """Generate AI suggestions similar to the exemplar objectives"""
+    """Generate AI suggestions similar to the exemplar objectives (supports Filipino)"""
     import json
     import re
     
@@ -889,12 +889,21 @@ def get_ai_suggestions(request):
                 print(f"\n📁 EXEMPLAR LOADED: {exemplar_name}")
                 
                 if exemplar_content:
-                    # Look for Learning Competencies section
+                    # ========== ENHANCED PATTERNS FOR FILIPINO ==========
                     competency_patterns = [
+                        # English patterns (keep for backward compatibility)
                         r'C\.\s*Learning\s*Competencies?\s*and\s*Objectives?\s*(.*?)(?=D\.\s*Content|$)',
                         r'Learning\s*Competencies?:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
                         r'Learning\s*Objectives?:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
                         r'Objectives?:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
+                        
+                        # Filipino patterns (based on DepEd MATATAG format)
+                        r'C\.\s*Kasanayang\s*Pampagkatuto\s*(.*?)(?=D\.\s*Mga\s*Layunin|D\.\s*Nilalaman|$)',
+                        r'D\.\s*Mga\s*Layunin\s*(.*?)(?=II\.|I{2,}\.|$)',  # Main objectives section
+                        r'Kasanayang\s*Pampagkatuto:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
+                        r'Mga\s*Layunin:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
+                        r'Layunin:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
+                        r'Pagkatapos\s*ng\s*aralin,?\s*ang\s*mga\s*mag-?aaral\s*ay\s*inaasahang:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
                     ]
                     
                     objectives_text = ""
@@ -902,15 +911,16 @@ def get_ai_suggestions(request):
                         match = re.search(pattern, exemplar_content, re.IGNORECASE | re.DOTALL)
                         if match:
                             objectives_text = match.group(1)
-                            print(f"✅ Found objectives section")
+                            print(f"✅ Found objectives section using pattern: {pattern[:50]}...")
                             break
                     
                     if objectives_text:
-                        # Try numbered list first
+                        # Try numbered list (1., 2., etc.) – works for both English and Filipino
                         numbered = re.findall(r'\d+\.\s*(.*?)(?=\n\d+\.|\n\n|\Z)', objectives_text, re.DOTALL)
                         for obj in numbered:
                             clean = obj.strip()
-                            clean = re.sub(r'[;,]?\s*and\s*$', '', clean, flags=re.IGNORECASE)
+                            # Remove trailing conjunctions if any (English "and" or Filipino "at")
+                            clean = re.sub(r'[;,]?\s*(?:and|at)\s*$', '', clean, flags=re.IGNORECASE)
                             clean = re.sub(r'^\d+\.\s*', '', clean)
                             clean = re.sub(r'^[•●\-]\s*', '', clean)
                             if clean and len(clean) > 10:
@@ -921,7 +931,7 @@ def get_ai_suggestions(request):
                             bullets = re.findall(r'[•●\-]\s*(.*?)(?=\n[•●\-]|\n\n|\Z)', objectives_text, re.DOTALL)
                             for obj in bullets:
                                 clean = obj.strip()
-                                clean = re.sub(r'[;,]?\s*and\s*$', '', clean, flags=re.IGNORECASE)
+                                clean = re.sub(r'[;,]?\s*(?:and|at)\s*$', '', clean, flags=re.IGNORECASE)
                                 clean = re.sub(r'^[•●\-]\s*', '', clean)
                                 if clean and len(clean) > 10:
                                     exemplar_objectives.append(clean)
@@ -951,9 +961,11 @@ def get_ai_suggestions(request):
                 'error': 'No learning objectives found in the selected exemplar. Please check the exemplar content.'
             }, status=400)
         
-        # Create prompt for AI to generate SIMILAR objectives
+        # ========== UPDATED PROMPT WITH FILIPINO LANGUAGE DIRECTIVE ==========
         prompt = f"""
         You are a DepEd curriculum specialist. Based on the exemplar objectives below, generate 4 NEW learning objectives that are SIMILAR in style and content but NOT exactly the same.
+        
+        **IMPORTANT: Generate ALL output in FILIPINO language** to match the exemplar's language.
         
         EXEMPLAR OBJECTIVES (use these as reference for style and topic):
         {chr(10).join([f'{i+1}. {obj}' for i, obj in enumerate(exemplar_objectives)])}
@@ -964,28 +976,28 @@ def get_ai_suggestions(request):
         Lesson Title: {form_data.get('lesson_title', '')}
         
         INSTRUCTIONS:
-        1. Study the exemplar objectives above carefully - notice their style, verb usage, and topic focus
+        1. Study the exemplar objectives above carefully – notice their style, verb usage (in Filipino), and topic focus.
         2. Generate 4 NEW learning objectives that:
            - Are SIMILAR to the exemplar objectives in style and difficulty
-           - Use similar action verbs
+           - Use similar Filipino action verbs (e.g., natutukoy, nababasa, nagagamit, naisasagawa)
            - Match the same cognitive level
            - Focus on the same topic area
            - Are appropriate for the specified grade level
-        3. Do NOT simply copy the exemplar objectives - create new ones that are related but different
+        3. Do NOT simply copy the exemplar objectives – create new ones that are related but different.
         
         Each objective should follow this format:
-        - Start with "At the end of the lesson, the learners should be able to:"
+        - Start with "Pagkatapos ng aralin, ang mga mag-aaral ay inaasahang:"
         - Use a bullet point (●) before each objective
         - Be clear, specific, and measurable
         
         Return ONLY a JSON array with this exact format:
         [
             {{
-                "title": "Complete learning objective starting with 'At the end of the lesson, the learners should be able to: ● [objective text]'",
-                "description": "Detailed explanation of what students will do and why this skill is important",
-                "example": "A concrete classroom example showing how this objective would be taught or assessed",
-                "intelligence_connection": "How this develops {intelligence_type} intelligence",
-                "exemplar_alignment": "Explain how this relates to the exemplar objectives"
+                "title": "Complete learning objective in Filipino starting with 'Pagkatapos ng aralin, ang mga mag-aaral ay inaasahang: ● [objective text]'",
+                "description": "Detailed explanation in Filipino of what students will do and why this skill is important",
+                "example": "A concrete classroom example in Filipino showing how this objective would be taught or assessed",
+                "intelligence_connection": "How this develops {intelligence_type} intelligence (in Filipino)",
+                "exemplar_alignment": "Explain how this relates to the exemplar objectives (in Filipino)"
             }}
         ]
         """
@@ -1034,17 +1046,17 @@ def get_ai_suggestions(request):
         for suggestion in suggestions:
             suggestion['is_exact'] = False
             
-            # Ensure required fields exist
+            # Ensure required fields exist (with fallback messages in Filipino if missing)
             if 'title' not in suggestion:
-                suggestion['title'] = "Objective title missing"
+                suggestion['title'] = "Layunin ay hindi nakasulat"
             if 'description' not in suggestion:
-                suggestion['description'] = "Description not provided"
+                suggestion['description'] = "Walang ibinigay na paliwanag"
             if 'example' not in suggestion:
-                suggestion['example'] = "Example not provided"
+                suggestion['example'] = "Walang ibinigay na halimbawa"
             if 'intelligence_connection' not in suggestion:
-                suggestion['intelligence_connection'] = f"Develops {intelligence_type} intelligence through application of money concepts."
+                suggestion['intelligence_connection'] = f"Nagpapaunlad ng {intelligence_type} intelligence sa pamamagitan ng mga gawain."
             if 'exemplar_alignment' not in suggestion:
-                suggestion['exemplar_alignment'] = f"This objective is similar in style to the exemplar objectives about money."
+                suggestion['exemplar_alignment'] = "Ang layuning ito ay katulad ng estilo ng mga layunin sa exemplar."
         
         return JsonResponse({
             'success': True,
