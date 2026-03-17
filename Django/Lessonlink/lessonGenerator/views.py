@@ -131,109 +131,71 @@ def generate_lesson_plan(request):
                 'success': False,
                 'error': 'AI service is not configured properly. Please check your API key.'
             }, status=500)
-
+            
         # Parse JSON data
         try:
             data = json.loads(request.body)
-            print("Received data:", data)
+            print("Received data:", data)  # Debugging
         except json.JSONDecodeError as e:
-            print("JSON decode error:", e)
+            print("JSON decode error:", e)  # Debugging
             return JsonResponse({
                 'success': False,
                 'error': 'Invalid JSON data received.'
             }, status=400)
-
-        # ------------------------------------------------------------
-        # 1. Required top-level fields
-        # ------------------------------------------------------------
+        
+        # Extract form data with validation - INCLUDING INTELLIGENCE TYPE
         required_fields = ['subject', 'grade_level', 'learning_objectives']
         for field in required_fields:
-            if field not in data or not data.get(field, '').strip():
+            if field not in data or not data[field].strip():
                 return JsonResponse({
                     'success': False,
                     'error': f'Missing required field: {field}'
                 }, status=400)
-
-        # ------------------------------------------------------------
-        # 2. Learning objectives must have substance
-        # ------------------------------------------------------------
-        learning_obj = data.get('learning_objectives', '').strip()
-        if len(learning_obj) < 10:
-            return JsonResponse({
-                'success': False,
-                'error': 'Learning objectives must be at least 10 characters long and describe what students will achieve.'
-            }, status=400)
-
-        # ------------------------------------------------------------
-        # 3. Validate intelligence type (must be one of allowed choices)
-        # ------------------------------------------------------------
-        valid_intelligence_types = [choice[0] for choice in LessonPlan.INTELLIGENCE_TYPE_CHOICES]
-        intelligence_type = data.get('intelligence_type', 'comprehensive').strip()
-        if intelligence_type not in valid_intelligence_types:
-            return JsonResponse({
-                'success': False,
-                'error': f'Invalid intelligence type. Choose from: {", ".join(valid_intelligence_types)}'
-            }, status=400)
-
-        # ------------------------------------------------------------
-        # 4. Duration validation (positive integer, default 60 if empty)
-        # ------------------------------------------------------------
-        duration_str = data.get('duration', '').strip()
-        if duration_str:
-            try:
-                duration = int(duration_str)
-                if duration <= 0:
-                    raise ValueError
-            except ValueError:
-                return JsonResponse({
-                    'success': False,
-                    'error': 'Duration must be a positive number (in minutes).'
-                }, status=400)
-        else:
-            duration_str = '60'  # default
-
-        # ------------------------------------------------------------
-        # 5. Population validation (positive integer, default 30 if empty)
-        # ------------------------------------------------------------
-        population_str = data.get('population', '').strip()
-        if population_str:
-            try:
-                population = int(population_str)
-                if population <= 0:
-                    raise ValueError
-            except ValueError:
-                return JsonResponse({
-                    'success': False,
-                    'error': 'Class size (population) must be a positive number.'
-                }, status=400)
-        else:
-            population_str = '30'  # default
-
-        # ------------------------------------------------------------
-        # 6. Exemplar handling and relationship check
-        # ------------------------------------------------------------
+        
+        form_data = {
+            'subject': data.get('subject', '').strip(),
+            'grade_level': data.get('grade_level', '').strip(),
+            'quarter': data.get('quarter', '').strip(),
+            'duration': data.get('duration', '60').strip(),  # Default to 60 minutes
+            'population': data.get('population', '30').strip(),  # Default to 30 students
+            'learning_objectives': data.get('learning_objectives', '').strip(),
+            'subject_matter': data.get('subject_matter', '').strip(),
+            'materials_needed': data.get('materials_needed', '').strip(),
+            'introduction': data.get('introduction', '').strip(),
+            'instruction': data.get('instruction', '').strip(),
+            'application': data.get('application', '').strip(),
+            'evaluation': data.get('evaluation', '').strip(),
+            'assessment': data.get('assessment', '').strip(),
+            'selected_exemplar': data.get('selected_exemplar', '').strip(),
+            'intelligence_type': data.get('intelligence_type', 'comprehensive').strip(),  # NEW FIELD
+        }
+        
+        print("Form data prepared:", form_data)  # Debugging
+        print("Intelligence type:", form_data['intelligence_type'])  # Debugging
+        
+        # Get exemplar content if selected
         exemplar_content = ""
         exemplar_name = ""
-        selected_exemplar = data.get('selected_exemplar', '').strip()
-        if selected_exemplar:
+        if form_data['selected_exemplar']:
             try:
                 from lesson.models import Exemplar
-                exemplar = Exemplar.objects.get(id=selected_exemplar)
+                exemplar = Exemplar.objects.get(id=form_data['selected_exemplar'])
                 exemplar_content = exemplar.extracted_text
                 exemplar_name = exemplar.name
-                print(f"Exemplar content loaded: {len(exemplar_content)} characters from {exemplar_name}")
-
-                # Real-time input validation: check if inputs are related to exemplar
-                print("Analyzing input-exemplar relationship...")
-                is_related, explanation, confidence, match_details = analyze_input_relation(
-                    data, 
+                print(f"Exemplar content loaded: {len(exemplar_content)} characters from {exemplar_name}")  # Debugging
+                
+                # REAL-TIME INPUT VALIDATION: Check if inputs are related to exemplar
+                print("Analyzing input-exemplar relationship...")  # Debugging
+                is_related, explanation, confidence = analyze_input_relation(
+                    form_data, 
                     exemplar_content, 
                     exemplar_name
                 )
-
-                print(f"Relationship analysis: is_related={is_related}, confidence={confidence}")
-
+                
+                print(f"Relationship analysis: is_related={is_related}, confidence={confidence}")  # Debugging
+                
                 if not is_related:
+                    # Inputs are not related to exemplar - return error
                     return JsonResponse({
                         'success': False,
                         'error': f'INPUT VALIDATION ERROR: Your lesson plan inputs are not sufficiently related to the selected exemplar "{exemplar_name}".\n\n'
@@ -247,63 +209,29 @@ def generate_lesson_plan(request):
                         'confidence_score': confidence,
                         'analysis_explanation': explanation
                     }, status=400)
-
-                print(f"Inputs validated: {explanation}")
-
+                
+                print(f"Inputs validated: {explanation}")  # Debugging
+                    
             except Exemplar.DoesNotExist:
                 print("Selected exemplar not found")
-                return JsonResponse({
-                    'success': False,
-                    'error': 'Selected exemplar not found.'
-                }, status=400)
             except Exception as e:
                 print(f"Error loading exemplar: {str(e)}")
-                return JsonResponse({
-                    'success': False,
-                    'error': f'Error loading exemplar: {str(e)}'
-                }, status=500)
-
-        # ------------------------------------------------------------
-        # Build form_data dictionary with validated values
-        # ------------------------------------------------------------
-        form_data = {
-            'subject': data.get('subject', '').strip(),
-            'grade_level': data.get('grade_level', '').strip(),
-            'quarter': data.get('quarter', '').strip(),
-            'duration': duration_str,
-            'population': population_str,
-            'learning_objectives': learning_obj,
-            'subject_matter': data.get('subject_matter', '').strip(),
-            'materials_needed': data.get('materials_needed', '').strip(),
-            'introduction': data.get('introduction', '').strip(),
-            'instruction': data.get('instruction', '').strip(),
-            'application': data.get('application', '').strip(),
-            'evaluation': data.get('evaluation', '').strip(),
-            'assessment': data.get('assessment', '').strip(),
-            'selected_exemplar': selected_exemplar,
-            'intelligence_type': intelligence_type,
-        }
-
-        print("Form data prepared:", form_data)
-        print("Intelligence type:", form_data['intelligence_type'])
-
-        # ------------------------------------------------------------
-        # Build the AI prompt
-        # ------------------------------------------------------------
+        
+        # Format the prompt for the AI - INCLUDING INTELLIGENCE TYPE
         prompt = f"""
         Generate this as a complete MATATAG-aligned lesson plan following DepEd Philippines MATATAG Curriculum standards.
-
+        
         **INTELLIGENCE TYPE FOCUS:** {form_data['intelligence_type'].upper()}
-
+        
         SUBJECT: {form_data['subject']}
         GRADE LEVEL: {form_data['grade_level']}
         QUARTER: {form_data['quarter'] or 'Not specified'}
         DURATION: {form_data['duration']} minutes
         CLASS SIZE: {form_data['population']} students
-
+        
         LEARNING OBJECTIVES:
         {form_data['learning_objectives']}
-
+        
         SUBJECT MATTER: {form_data['subject_matter'] or 'To be developed based on MELC standards'}
         MATERIALS NEEDED: {form_data['materials_needed'] or 'To be specified based on lesson requirements'}
         INTRODUCTION: {form_data['introduction'] or 'To be developed based on MELC alignment'}
@@ -317,105 +245,112 @@ def generate_lesson_plan(request):
 
         Generate this as a complete MELC-aligned lesson plan following DepEd Philippines standards.
         Use the learning objectives provided to create specific, measurable outcomes.
-
+        
         **INTELLIGENCE TYPE ADAPTATION REQUIREMENTS:**
         1. Design activities specifically aligned with the {form_data['intelligence_type']} intelligence focus
         2. Include assessment methods appropriate for measuring the targeted intelligence
         3. Provide clear differentiation strategies for the selected intelligence focus
         4. Maintain MATATAG alignment while incorporating intelligence adaptation
 
+        
         {'Use the reference exemplar as a guide for structure, depth, and quality standards while maintaining originality.' if exemplar_content else ''}
         """
-
-        print("Sending prompt to AI")
-        print(f"Exemplar provided: {bool(exemplar_content)}")
-        print(f"Intelligence type: {form_data['intelligence_type']}")
-
-        # ------------------------------------------------------------
-        # Generate lesson plan using Gemini
-        # ------------------------------------------------------------
+        
+        print("Sending prompt to AI")  # Debugging
+        print(f"Exemplar provided: {bool(exemplar_content)}")  # Debugging
+        print(f"Intelligence type: {form_data['intelligence_type']}")  # Debugging
+        
+        # Generate the lesson plan using Gemini
         try:
-            has_exemplar = bool(selected_exemplar and exemplar_content)
+            # Check if exemplar is provided
+            has_exemplar = bool(form_data['selected_exemplar'] and exemplar_content)
+            
+            # FIXED: Use get_system_instruction for DAILY lesson plans
+            # This was incorrectly calling get_weekly_system_instruction before
             system_instruction = get_system_instruction(
                 has_exemplar=has_exemplar,
                 intelligence_type=form_data['intelligence_type']
+                # Note: get_system_instruction only takes has_exemplar and intelligence_type
             )
+            
+            print(f"Using DAILY system instruction with intelligence type: {form_data['intelligence_type']}")  # Debugging
 
-            print(f"Using DAILY system instruction with intelligence type: {form_data['intelligence_type']}")
-
+            
             response = model.generate_content([
                 system_instruction,
                 prompt
             ])
-
-            print("AI response received:", response.text[:200] + "...")
-
-            # Try to parse JSON from response
+            
+            print("AI response received:", response.text[:200] + "...")  # Debugging first 200 chars
+            
+            # Try to parse the response as JSON
             try:
+                # Extract JSON from the response (Gemini might add some text around it)
                 json_match = re.search(r'\{.*\}', response.text, re.DOTALL)
                 if json_match:
                     lesson_data = json.loads(json_match.group())
-                    print("JSON parsed successfully")
-
-                    # Store in session
+                    print("JSON parsed successfully")  # Debugging
+                    
+                    # Store both the structured data and markdown in session
                     request.session['generated_lesson_plan'] = lesson_data.get('markdown_output', '')
                     request.session['parsed_lesson_plan'] = lesson_data
                     request.session['lesson_form_data'] = form_data
                     request.session.modified = True
-
+                    
                     return JsonResponse({
                         'success': True,
                         'lesson_plan': lesson_data.get('markdown_output', ''),
                         'exemplar_used': has_exemplar,
                         'intelligence_type': form_data['intelligence_type'],
-                        'exemplar_id': selected_exemplar if has_exemplar else None,
+                        'exemplar_id': form_data['selected_exemplar'] if has_exemplar else None,
                         'exemplar_name': exemplar_name if has_exemplar else None,
                         'validation_passed': True if has_exemplar else None
                     })
                 else:
-                    # Fallback: treat as markdown
-                    print("No JSON found in response, using fallback")
+                    # Fallback: if no JSON found, treat as markdown
+                    print("No JSON found in response, using fallback")  # Debugging
                     request.session['generated_lesson_plan'] = response.text
                     request.session['lesson_form_data'] = form_data
                     request.session.modified = True
-
+                    
                     return JsonResponse({
                         'success': True,
                         'lesson_plan': response.text,
                         'exemplar_used': has_exemplar,
                         'intelligence_type': form_data['intelligence_type'],
-                        'exemplar_id': selected_exemplar if has_exemplar else None,
+                        'exemplar_id': form_data['selected_exemplar'] if has_exemplar else None,
                         'exemplar_name': exemplar_name if has_exemplar else None,
                         'validation_passed': True if has_exemplar else None
                     })
-
+                    
             except json.JSONDecodeError as json_error:
-                print(f"JSON parsing error: {json_error}")
+                # If JSON parsing fails, fall back to markdown
+                print(f"JSON parsing error: {json_error}")  # Debugging
                 request.session['generated_lesson_plan'] = response.text
                 request.session['lesson_form_data'] = form_data
                 request.session.modified = True
-
+                
                 return JsonResponse({
                     'success': True,
                     'lesson_plan': response.text,
                     'exemplar_used': has_exemplar,
                     'intelligence_type': form_data['intelligence_type'],
-                    'exemplar_id': selected_exemplar if has_exemplar else None,
+                    'exemplar_id': form_data['selected_exemplar'] if has_exemplar else None,
                     'exemplar_name': exemplar_name if has_exemplar else None,
                     'validation_passed': True if has_exemplar else None
                 })
-
+            
         except Exception as ai_error:
-            print(f"AI service error: {str(ai_error)}")
+            print(f"AI service error: {str(ai_error)}")  # Debugging
             return JsonResponse({
                 'success': False,
                 'error': f'AI service error: {str(ai_error)}'
             }, status=500)
-
+        
     except Exception as e:
-        print(f"Server error: {str(e)}")
+        print(f"Server error: {str(e)}")  # Debugging
         import traceback
-        traceback.print_exc()
+        traceback.print_exc()  # This will print the full traceback to console
         return JsonResponse({
             'success': False,
             'error': f'Server error: {str(e)}'
@@ -1458,7 +1393,11 @@ def lesson_ai_weekly(request):
 def generate_weekly_lesson_plan(request):
     """
     Generate a weekly lesson plan using AI
-    Now requires content_standards and performance_standards and validates they are related to the exemplar.
+    - Requires subject, grade_level, week, quarter, content_standards, performance_standards
+    - Standards must be at least 20 characters
+    - Standards must be relevant to the subject (AI‑checked)
+    - At least one daily objective must be provided
+    - If an exemplar is selected, inputs must be related to it
     """
     try:
         # Check if Gemini is configured properly
@@ -1467,7 +1406,7 @@ def generate_weekly_lesson_plan(request):
                 'success': False,
                 'error': 'AI service is not configured properly. Please check your API key.'
             }, status=500)
-        
+
         # Parse JSON data
         try:
             data = json.loads(request.body)
@@ -1477,11 +1416,11 @@ def generate_weekly_lesson_plan(request):
                 'success': False,
                 'error': 'Invalid JSON data received.'
             }, status=400)
-        
+
         # ------------------------------------------------------------
         # 1. Required top-level fields (including standards)
         # ------------------------------------------------------------
-        required_fields = ['subject', 'grade_level', 'week', 'quarter', 
+        required_fields = ['subject', 'grade_level', 'week', 'quarter',
                            'content_standards', 'performance_standards']
         for field in required_fields:
             if field not in data or not data.get(field, '').strip():
@@ -1489,9 +1428,9 @@ def generate_weekly_lesson_plan(request):
                     'success': False,
                     'error': f'Missing required field: {field}'
                 }, status=400)
-        
+
         # ------------------------------------------------------------
-        # 2. Ensure standards have meaningful length (optional but recommended)
+        # 2. Ensure standards have meaningful length
         # ------------------------------------------------------------
         content_std = data.get('content_standards', '').strip()
         if len(content_std) < 20:
@@ -1499,21 +1438,64 @@ def generate_weekly_lesson_plan(request):
                 'success': False,
                 'error': 'Content standards must be at least 20 characters and describe the content to be covered.'
             }, status=400)
-        
+
         perf_std = data.get('performance_standards', '').strip()
         if len(perf_std) < 20:
             return JsonResponse({
                 'success': False,
                 'error': 'Performance standards must be at least 20 characters and describe what students should be able to do.'
             }, status=400)
-        
+
         # ------------------------------------------------------------
-        # 3. Extract other form data
+        # 3. Subject‑Relevance Check (always run)
+        # ------------------------------------------------------------
+        subject = data.get('subject', '').strip()
+        grade_level = data.get('grade_level', '').strip()
+        relevance_prompt = f"""
+        You are a curriculum expert. Determine if the provided content standards and performance standards are relevant to the given subject and grade level.
+
+        Subject: {subject}
+        Grade Level: {grade_level}
+
+        Content Standards: {content_std}
+        Performance Standards: {perf_std}
+
+        Are these standards appropriate for this subject and grade level? 
+        Return a JSON object with:
+        - "is_relevant": true/false
+        - "explanation": "Brief explanation of why they are or are not relevant"
+        - "specific_issues": ["list of issues if not relevant"]
+        """
+        try:
+            relevance_response = model.generate_content([
+                "You are an educational standards validator. Return only JSON.",
+                relevance_prompt
+            ])
+            relevance_json = re.search(r'\{.*\}', relevance_response.text, re.DOTALL)
+            if relevance_json:
+                relevance_result = json.loads(relevance_json.group())
+                if not relevance_result.get('is_relevant', True):
+                    issues = relevance_result.get('specific_issues', [])
+                    explanation = relevance_result.get('explanation', 'The standards are not relevant.')
+                    error_msg = f"Subject‑Relevance Error: {explanation}\n"
+                    if issues:
+                        error_msg += "Issues: " + "; ".join(issues)
+                    return JsonResponse({
+                        'success': False,
+                        'error': error_msg
+                    }, status=400)
+        except Exception as e:
+            print(f"Relevance check AI error: {e}")
+            # If AI fails, we still proceed but log the error
+            # You could choose to reject if you want to be safe
+
+        # ------------------------------------------------------------
+        # 4. Extract other form data
         # ------------------------------------------------------------
         form_data = {
             'title': data.get('title', '').strip(),
-            'subject': data.get('subject', '').strip(),
-            'grade_level': data.get('grade_level', '').strip(),
+            'subject': subject,
+            'grade_level': grade_level,
             'week': data.get('week', '').strip(),
             'quarter': data.get('quarter', '').strip(),
             'exemplar_id': data.get('exemplar_id', '').strip(),
@@ -1524,24 +1506,23 @@ def generate_weekly_lesson_plan(request):
             'intelligence_type': data.get('intelligence_type', 'comprehensive'),
             'approach': data.get('approach', '').strip(),
         }
-        
+
         # ------------------------------------------------------------
-        # 4. Validate daily objectives (at least one non-empty)
+        # 5. Validate daily objectives (at least one non-empty)
         # ------------------------------------------------------------
         objectives = form_data['objectives']
         if not isinstance(objectives, dict):
             objectives = {}
-        
-        has_objectives = any(objectives.get(day, '').strip() 
+        has_objectives = any(objectives.get(day, '').strip()
                              for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])
         if not has_objectives:
             return JsonResponse({
                 'success': False,
                 'error': 'Please provide at least one daily learning objective.'
             }, status=400)
-        
+
         # ------------------------------------------------------------
-        # 5. Exemplar handling and relationship check (includes standards)
+        # 6. Exemplar handling and relationship check (includes standards)
         # ------------------------------------------------------------
         exemplar_content = ""
         exemplar_name = ""
@@ -1552,15 +1533,10 @@ def generate_weekly_lesson_plan(request):
                 exemplar_content = exemplar.extracted_text
                 exemplar_name = exemplar.name
                 print(f"Weekly exemplar loaded: {exemplar_name}")
-                
-                # REAL-TIME INPUT VALIDATION: check if inputs (including standards) are related
-                print("Analyzing weekly plan inputs against exemplar...")
+
                 is_related, explanation, confidence = analyze_weekly_input_relation(
-                    form_data, 
-                    exemplar_content, 
-                    exemplar_name
+                    form_data, exemplar_content, exemplar_name
                 )
-                
                 if not is_related:
                     return JsonResponse({
                         'success': False,
@@ -1575,9 +1551,7 @@ def generate_weekly_lesson_plan(request):
                         'confidence_score': confidence,
                         'analysis_explanation': explanation
                     }, status=400)
-                    
             except Exemplar.DoesNotExist:
-                print("Selected exemplar not found")
                 return JsonResponse({
                     'success': False,
                     'error': 'Selected exemplar not found.'
@@ -1588,9 +1562,9 @@ def generate_weekly_lesson_plan(request):
                     'success': False,
                     'error': f'Error loading exemplar: {str(e)}'
                 }, status=500)
-        
+
         # ------------------------------------------------------------
-        # 6. Build daily objectives text for prompt
+        # 7. Build daily objectives text for prompt
         # ------------------------------------------------------------
         daily_objectives_text = ""
         for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']:
@@ -1599,9 +1573,9 @@ def generate_weekly_lesson_plan(request):
                 daily_objectives_text += f"{day.upper()}: {day_obj}\n"
             else:
                 daily_objectives_text += f"{day.upper()}: [To be developed based on weekly theme]\n"
-        
+
         # ------------------------------------------------------------
-        # 7. Get intelligence description, theme progression, approach description
+        # 8. Get intelligence description, theme progression, approach description
         # ------------------------------------------------------------
         intelligence_descriptions = {
             'comprehensive': 'Balanced approach incorporating all intelligence types: cognitive (logical/analytical), emotional (self-awareness/empathy), social (collaboration/communication), and resilience (perseverance/growth mindset). EVERY activity must include elements from multiple intelligence types.',
@@ -1612,10 +1586,10 @@ def generate_weekly_lesson_plan(request):
             'differentiated': 'Provide varied activities for different intelligence types. Include multiple activity options labeled by intelligence type, choice boards, learning stations, and flexible grouping strategies.'
         }
         intelligence_desc = intelligence_descriptions.get(
-            form_data['intelligence_type'], 
+            form_data['intelligence_type'],
             'Balanced approach to intelligence development.'
         )
-        
+
         theme_progression = {
             'introduction': 'Monday: Introduction, Tuesday: Skill Building, Wednesday: Deep Dive, Thursday: Application, Friday: Assessment',
             'skill_building': 'Monday: Foundation, Tuesday: Guided Practice, Wednesday: Independent Practice, Thursday: Application, Friday: Assessment',
@@ -1623,9 +1597,9 @@ def generate_weekly_lesson_plan(request):
             'practice': 'Monday: Review, Tuesday: Modeling, Wednesday: Guided Practice, Thursday: Independent Practice, Friday: Assessment',
             'assessment': 'Monday: Pre-assessment, Tuesday: Instruction, Wednesday: Practice, Thursday: Review, Friday: Summative Assessment'
         }
-        theme_text = theme_progression.get(form_data['theme'], 
+        theme_text = theme_progression.get(form_data['theme'],
             'Monday: Introduction, Tuesday: Skill Building, Wednesday: Deep Dive, Thursday: Application, Friday: Assessment')
-        
+
         approach_descriptions = {
             'direct': 'Direct Instruction with clear modeling, guided practice, and independent work. Teacher-centered with explicit teaching.',
             'collaborative': 'Collaborative Learning with group work, peer teaching, discussions, and cooperative activities. Student-centered with teacher as facilitator.',
@@ -1633,37 +1607,37 @@ def generate_weekly_lesson_plan(request):
             'inquiry': 'Inquiry-Based Learning with questions, investigations, research, and discovery. Students explore and construct knowledge.'
         }
         approach_desc = approach_descriptions.get(form_data['approach'], 'Varied instructional strategies throughout the week.')
-        
+
         # ------------------------------------------------------------
-        # 8. Build the AI prompt
+        # 9. Build the AI prompt (with verbatim standards instruction)
         # ------------------------------------------------------------
         prompt = f"""
         Generate a COMPLETE, DETAILED, MATATAG-aligned WEEKLY LESSON PLAN following DepEd Philippines standards.
-        
+
         **IMPORTANT: You MUST fill EVERY section with COMPLETE content. No placeholders. No empty brackets. Generate specific, detailed activities for each day and step.**
-        
+
         WEEKLY TITLE: {form_data['title'] or f"Week {form_data['week']}: {form_data['subject']} - Grade {form_data['grade_level']}"}
-        
+
         SUBJECT: {form_data['subject']}
         GRADE LEVEL: {form_data['grade_level']}
         WEEK NUMBER: {form_data['week']}
         QUARTER: {form_data['quarter']}
-        
+
         WEEKLY THEME FOCUS: {form_data['theme'] or 'Comprehensive weekly progression'}
         THEME PROGRESSION: {theme_text}
-        
+
         TEACHING APPROACH: {form_data['approach'] or 'Varied instructional strategies'}
         APPROACH DESCRIPTION: {approach_desc}
-        
+
         INTELLIGENCE TYPE FOCUS: {form_data['intelligence_type']}
         INTELLIGENCE DESCRIPTION: {intelligence_desc}
-        
-        CONTENT STANDARDS (Weekly):
-        {form_data['content_standards']}
-        
-        PERFORMANCE STANDARDS (Weekly):
-        {form_data['performance_standards']}
-        
+
+        **CONTENT STANDARDS AND PERFORMANCE STANDARDS – IMPORTANT**
+        You MUST use the following content standards and performance standards EXACTLY as provided, without any rephrasing, paraphrasing, or modification:
+        - Content Standards: {form_data['content_standards']}
+        - Performance Standards: {form_data['performance_standards']}
+        Include them verbatim in the appropriate sections of the lesson plan (I. OBJECTIVES).
+
         DAILY LEARNING OBJECTIVES:
         {daily_objectives_text}
 
@@ -1671,21 +1645,21 @@ def generate_weekly_lesson_plan(request):
         {'EXEMPLAR CONTENT FOR REFERENCE (use for quality and structure, not content): ' + exemplar_content[:2000] + '...' if exemplar_content else ''}
 
         **INTELLIGENCE TYPE ADAPTATION REQUIREMENTS - YOU MUST FOLLOW:**
-        
+
         For {form_data['intelligence_type'].upper()} intelligence focus:
         {intelligence_desc}
-        
+
         Apply this adaptation to EVERY activity in EVERY day's procedure:
         - Monday activities must develop {form_data['intelligence_type']} intelligence through introduction activities
         - Tuesday activities must develop {form_data['intelligence_type']} intelligence through skill-building
         - Wednesday activities must develop {form_data['intelligence_type']} intelligence through deep exploration
         - Thursday activities must develop {form_data['intelligence_type']} intelligence through application
         - Friday assessment must measure {form_data['intelligence_type']} intelligence development
-        
+
         **DAILY PROCEDURE REQUIREMENTS - YOU MUST FOLLOW:**
-        
+
         For EACH day (Monday through Friday), you MUST provide ALL 10 steps (A-J) with 2-4 DETAILED sentences each:
-        
+
         A. Reviewing previous lesson or presenting the new lesson: [Specific activity that connects to prior knowledge]
         B. Establishing a purpose for the lesson: [Clear statement of why today's lesson matters]
         C. Presenting examples/instances of the new lesson: [2-3 specific examples with descriptions]
@@ -1696,15 +1670,15 @@ def generate_weekly_lesson_plan(request):
         H. Making generalizations and abstractions about the lesson: [Student summary and abstraction activity]
         I. Evaluating learning: [Specific 3-5 question formative assessment]
         J. Additional activities for application or remediation: [Both extension and remediation activities]
-        
+
         **CONTENT REQUIREMENTS BY GRADE LEVEL:**
-        
+
         For Grade {form_data['grade_level']}:
         - Use age-appropriate language and concepts
         - Activities should match developmental level
         - Assessment should be appropriate for the grade level
         - Include grade-appropriate materials and resources
-        
+
         Generate a comprehensive weekly lesson plan following DepEd MATATAG format with:
         1. Complete school header (School: TUBAY NATIONAL HIGH SCHOOL, Teacher: [generate name], Grade Level: {form_data['grade_level']}, Teaching Date: [generate realistic date range], Quarter: {form_data['quarter']})
         2. I. OBJECTIVES (Content Standards, Performance Standards, Learning Competencies/Objectives by day)
@@ -1713,7 +1687,7 @@ def generate_weekly_lesson_plan(request):
         5. IV. PROCEDURE (Complete MATATAG 10-step procedure for EACH DAY: A-J with 2-4 sentences each)
         6. V. REMARKS (Reflection table format)
         7. VI. REFLECTION (A-G with thoughtful prompts)
-        
+
         **FORMAT CHECKLIST - VERIFY BEFORE OUTPUTTING:**
         ✓ All sections present (I-VI)
         ✓ All daily objectives present (Monday-Friday)
@@ -1728,16 +1702,16 @@ def generate_weekly_lesson_plan(request):
         ✓ Reflection section with A-G prompts
         ✓ Intelligence adaptation visible in ALL activities
         ✓ Grade-appropriate content throughout
-        
+
         Ensure all content is MATATAG-aligned and appropriate for Grade {form_data['grade_level']} students.
         """
-        
+
         # ------------------------------------------------------------
-        # 9. Generate the lesson plan using Gemini
+        # 10. Generate the lesson plan using Gemini
         # ------------------------------------------------------------
         try:
             has_exemplar = bool(form_data['exemplar_id'] and exemplar_content)
-            
+
             system_instruction = get_weekly_system_instruction(
                 has_exemplar=has_exemplar,
                 intelligence_type=form_data['intelligence_type'],
@@ -1746,10 +1720,10 @@ def generate_weekly_lesson_plan(request):
                 exemplar_name=exemplar_name,
                 exemplar_content=exemplar_content
             )
-            
+
             # Add additional strict formatting instructions
             system_instruction += """
-            
+
             **STRICT FORMATTING REMINDER:**
             You MUST output the complete weekly lesson plan in the EXACT format shown in WEEKLY_LESSON_PLANNER_INSTRUCTION.
             - EVERY section must be filled with COMPLETE content
@@ -1759,25 +1733,25 @@ def generate_weekly_lesson_plan(request):
             - Include REALISTIC page numbers, resource titles, and materials
             - Ensure Friday includes a comprehensive assessment covering all week's objectives
             """
-            
+
             response = model.generate_content([
                 system_instruction,
                 prompt
             ])
-            
+
             print("Weekly AI response received")
             print(f"Response length: {len(response.text)} characters")
-            
+
             # Verify the response has all required sections
             response_text = response.text
             if len(response_text) < 2000:
                 print("WARNING: Response seems too short, might be incomplete")
-            
+
             # Store in session
             request.session['generated_weekly_plan'] = response_text
             request.session['weekly_form_data'] = form_data
             request.session.modified = True
-            
+
             return JsonResponse({
                 'success': True,
                 'weekly_plan': response_text,
@@ -1787,14 +1761,14 @@ def generate_weekly_lesson_plan(request):
                 'exemplar_name': exemplar_name if has_exemplar else None,
                 'validation_passed': True if has_exemplar else None
             })
-            
+
         except Exception as ai_error:
             print(f"Weekly AI error: {str(ai_error)}")
             return JsonResponse({
                 'success': False,
                 'error': f'AI service error: {str(ai_error)}'
             }, status=500)
-        
+
     except Exception as e:
         print(f"Server error in weekly generation: {str(e)}")
         import traceback
