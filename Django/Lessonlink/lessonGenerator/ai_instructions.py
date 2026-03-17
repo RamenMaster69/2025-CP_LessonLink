@@ -9,7 +9,7 @@ with intelligence type adaptation for MATATAG Curriculum.
 # CRITICAL: This instruction enforces STRICT adherence to exemplar format
 EXEMPLAR_FORMAT_ENFORCEMENT = """
 ================================================================================
-CRITICAL: EXEMPLAR FORMAT ENFORCEMENT - YOU MUST FOLLOW THESE RULES EXACTLY
+CRITICAL: EXEMPLAR FORMAT AND CONTENT ENFORCEMENT – YOU MUST FOLLOW THESE RULES EXACTLY
 ================================================================================
 
 When a reference exemplar is provided, you MUST follow this protocol:
@@ -26,7 +26,47 @@ When a reference exemplar is provided, you MUST follow this protocol:
 9. Analyze how the exemplar handles each MATATAG section (I-VI)
 10. Extract the learning resources format EXACTLY
 
-## PHASE 2: STRICT FORMAT COPYING (MANDATORY)
+## PHASE 2: CONTENT ANALYSIS AND ADAPTATION – CRITICAL FOR FILIPINO EXEMPLARS
+You MUST analyze the exemplar's content focus and replicate it for the new subject/topic.
+
+### A. Identify Core Subject-Matter Topics
+- What are the main linguistic/grammatical topics being taught?  
+  Examples from Filipino exemplars: *magkakatugmang salita, diptonggo, klaster, pantig (KP, KPK, KKP)*.
+- List all such topics found in the exemplar (e.g., from the "Kasanayang Pampagkatuto" or "Mga Layunin" sections).
+- Note the vocabulary level and terminology used (e.g., *inaasahang*, *natutukoy*, *nababasa*, *nagagamit*).
+
+### B. Extract the Learning Competencies per Day
+- Look at the daily progression of competencies (usually in a table or bullet list).  
+  Example from Filipino 2, Quarter 3, Week 1:
+  - **Day 1:** Natutukoy ang mga salitang magkakatugma (1–3 pantig); natutukoy ang tunog ng diptonggo; nababasa ang salitang may diptonggo.
+  - **Day 2:** Natutukoy ang mga salitang magkakatugma; natutukoy ang mga pantig sa salita; nabibigkas ang mga pantig na KP, KPK, KKP.
+  - **Day 3:** Natutukoy ang mga salitang magkakatugma; natutukoy ang mga tunog (diptonggo at klaster); nababasa ang salitang may diptonggo at klaster.
+  - **Day 4:** Natutukoy ang mga salitang magkakatugma; natutukoy ang mga tunog (diptonggo at klaster); nabibigkas ang mga pantig na KPK, KKP.
+  - **Day 5:** (often continues similar competencies, possibly review/assessment)
+- Record the exact verbs and phrasing of each competency.
+
+### C. Note the Skill Progression Across Days
+- How does the complexity build?  
+  Example: Day 1 introduces magkakatugma and diptonggo; Day 2 adds pantig types; Day 3 adds klaster; Day 4 reinforces klaster and pantig types; Day 5 integrates all.
+- This progression MUST be preserved in the generated lesson plan, adapted to the new topic.
+
+### D. Identify Activity Types and Examples
+- What kinds of activities are used? (e.g., poems, picture cards, word strips, games like "Bring Me", choral reading, fill-in-the-blank worksheets)
+- How are examples presented? (e.g., using community‑themed poems, relatable scenarios)
+- What specific materials are mentioned? (e.g., "Ang Aking Komunidad" poem, "Halina't Magpiknik" poem, picture cards of community helpers)
+
+### E. Apply to the New Lesson
+Once you have extracted all of the above, you MUST generate the new lesson plan with:
+
+- **Exactly the same core topics** (e.g., if the exemplar teaches *magkakatugma*, *diptonggo*, *klaster*, your lesson must teach these same topics – not just generic "syllabication").
+- **The same daily progression** (Day 1 introduces X, Day 2 adds Y, Day 3 adds Z, etc.).
+- **The same activity types** (e.g., use a community‑themed poem, picture cards, word games).
+- **The same language** (Filipino if the exemplar is in Filipino – use the same Filipino terms for competencies: *natutukoy*, *nababasa*, *nagagamit*, *inaasahang*).
+- **The same level of difficulty and grade‑appropriateness** (e.g., for Grade 2, use simple sentences and familiar vocabulary).
+
+**DO NOT** generate a generic topic like "Pagpapantig" if the exemplar focuses on specific phonetic elements (magkakatugma, diptonggo, klaster). Your lesson must teach those exact elements, just with new examples (e.g., new words, new poems) that are appropriate for the specified subject (which is still Filipino).
+
+## PHASE 3: STRICT FORMAT COPYING (MANDATORY)
 You MUST copy the exemplar's format with 100% fidelity:
 
 ### Format Copying Rules:
@@ -36,16 +76,16 @@ You MUST copy the exemplar's format with 100% fidelity:
    - If exemplar uses colons to introduce lists → YOU use colons
 
 2. **Paragraph Structure**: Copy EXACT paragraph length and style
-   - If exemplar has 2-sentence paragraphs → YOU write 2-sentence paragraphs
-   - If exemplar has 4-sentence paragraphs → YOU write 4-sentence paragraphs
+   - If exemplar has 2‑sentence paragraphs → YOU write 2‑sentence paragraphs
+   - If exemplar has 4‑sentence paragraphs → YOU write 4‑sentence paragraphs
    - If exemplar uses short, direct sentences → YOU use short, direct sentences
 
-3. **Section Headers**: Copy EXACT header formatting
+3. **Section Headers**: Copy EXACT header wording
    - If exemplar uses "I. OBJECTIVES" → YOU use "I. OBJECTIVES" (not "I. Objectives")
    - If exemplar uses "A. Reviewing previous lesson" → YOU use exactly that wording
    - If exemplar includes bracketed notes like [Theme: Introduction] → YOU include them
 
-4. **List Formatting**: Copy EXACT list formatting
+4. **List Formatting**: Copy EXACT list style
    - If exemplar uses bullet points (•) → YOU use bullet points
    - If exemplar uses numbers (1., 2., 3.) → YOU use numbers
    - If exemplar uses dashes (-) → YOU use dashes
@@ -57,9 +97,9 @@ You MUST copy the exemplar's format with 100% fidelity:
    - If exemplar embeds examples in paragraphs → YOU embed them
 
 6. **Assessment Format**: Copy EXACT assessment structure
-   - If exemplar uses "3-5 questions" → YOU use 3-5 questions
+   - If exemplar uses "3‑5 questions" → YOU use 3‑5 questions
    - If exemplar uses multiple choice → YOU use multiple choice
-   - If exemplar uses open-ended questions → YOU use open-ended questions
+   - If exemplar uses open‑ended questions → YOU use open‑ended questions
    - Copy the exact wording patterns of questions
 
 7. **Differentiation Format**: Copy HOW differentiation is presented
@@ -72,17 +112,17 @@ You MUST copy the exemplar's format with 100% fidelity:
    - If exemplar uses "No. of learners who earned 80%" → YOU use that exact wording
    - If exemplar leaves blanks (___) → YOU leave blanks (___)
 
-## PHASE 3: CONTENT ADAPTATION (WITH FORMAT PRESERVATION)
-While keeping the EXACT format from the exemplar, you MUST:
+## PHASE 4: CONTENT ADAPTATION (WITH FORMAT PRESERVATION)
+While keeping the EXACT format and content focus from the exemplar, you MUST:
 
-1. **Replace content** with subject-appropriate material
-2. **Keep ALL formatting** (punctuation, structure, style) IDENTICAL
-3. **Maintain paragraph length** (same number of sentences)
-4. **Keep sentence starters** (e.g., if exemplar starts with "The teacher will" → YOU start with "The teacher will")
-5. **Preserve transition words** (e.g., if exemplar uses "Furthermore," → YOU use "Furthermore,")
-6. **Keep the level of detail** (if exemplar is very detailed → YOU must be equally detailed)
+1. **Replace examples and exercises** with new, original material appropriate for the lesson's specific topic (but the topic itself remains the same as in the exemplar).
+2. **Keep ALL formatting** (punctuation, structure, style) IDENTICAL.
+3. **Maintain paragraph length** (same number of sentences).
+4. **Keep sentence starters** (e.g., if exemplar starts with "Ang guro ay magpapakita ng..." → YOU start with "Ang guro ay magpapakita ng...").
+5. **Preserve transition words** (e.g., if exemplar uses "Samantala," → YOU use "Samantala,").
+6. **Keep the level of detail** (if exemplar is very detailed → YOU must be equally detailed).
 
-## PHASE 4: FORMAT VERIFICATION CHECKLIST
+## PHASE 5: FORMAT AND CONTENT VERIFICATION CHECKLIST
 
 Before outputting, verify:
 
@@ -97,11 +137,15 @@ Before outputting, verify:
 ✓ BLANK PLACEHOLDERS: Same use of ___ for teacher to fill
 ✓ CAPITALIZATION: Same capitalization patterns
 ✓ WORD CHOICE: Same formality level and vocabulary complexity
+✓ LANGUAGE: Output is in the SAME LANGUAGE as the exemplar (Filipino or English)
+✓ **CORE TOPICS: The generated lesson teaches the exact same core topics as the exemplar (e.g., magkakatugma, diptonggo, klaster) – not generic alternatives**
+✓ **DAILY PROGRESSION: The sequence of competencies across days matches the exemplar's progression**
+✓ **ACTIVITY TYPES: The types of activities (poems, games, etc.) mirror those in the exemplar**
 
 ## CRITICAL REMINDER:
-The exemplar is your TEMPLATE. Your generated lesson plan should look like it was written by the same person who wrote the exemplar. A department head should not be able to tell which parts came from the exemplar and which parts were generated for the new subject.
+The exemplar is your TEMPLATE – not just for format, but for **content focus and progression**. Your generated lesson plan should look like it was written by the same person who wrote the exemplar, teaching the same kind of content, just with fresh examples. A department head should not be able to tell which parts came from the exemplar and which parts were generated for the new lesson. If the exemplar is in Filipino, your output must be in fluent, natural Filipino that matches the exemplar's style and content focus exactly.
 
-DO NOT just follow the format description in your instructions. FOLLOW THE EXEMPLAR'S ACTUAL FORMAT EXACTLY.
+DO NOT just follow the format description in your instructions. FOLLOW THE EXEMPLAR'S ACTUAL FORMAT AND CONTENT EXACTLY.
 
 ================================================================================
 """

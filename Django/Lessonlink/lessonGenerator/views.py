@@ -9,18 +9,18 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 import re
-from .models import LessonPlan, LessonPlanSubmission
-from .ai_instructions import (
-    LESSON_PLANNER_SYSTEM_INSTRUCTION, 
-    EXEMPLAR_REFERENCE_INSTRUCTION,
-    INTELLIGENCE_ADAPTATION_INSTRUCTION,
-    get_system_instruction
-)
 import markdown
-from .models import WeeklyLessonPlan, LessonPlanSubmission
-from .ai_instructions import get_weekly_system_instruction, WEEKLY_LESSON_PLANNER_INSTRUCTION
 import PyPDF2
 
+from .models import LessonPlan, LessonPlanSubmission, WeeklyLessonPlan
+from .ai_instructions import (
+    LESSON_PLANNER_SYSTEM_INSTRUCTION,
+    EXEMPLAR_REFERENCE_INSTRUCTION,
+    INTELLIGENCE_ADAPTATION_INSTRUCTION,
+    get_system_instruction,
+    get_weekly_system_instruction,
+    WEEKLY_LESSON_PLANNER_INSTRUCTION
+)
 
 # Configure the Gemini API
 try:
@@ -30,9 +30,60 @@ except Exception as e:
     print(f"Gemini configuration error: {e}")
     model = None
 
+
+# ----------------------------------------------------------------------
+# Helper function to extract weekly competencies from exemplar
+# ----------------------------------------------------------------------
+def extract_weekly_competencies_from_exemplar(exemplar_content):
+    """
+    Extract the daily learning competencies (Kasanayang Pampagkatuto) from the exemplar.
+    Returns a dict with days as keys and list of competencies as values.
+    """
+    competencies = {
+        'monday': [],
+        'tuesday': [],
+        'wednesday': [],
+        'thursday': [],
+        'friday': []
+    }
+
+    # Find the section containing daily competencies
+    days_section = re.search(r'I\. NILALAMAN, MGA PAMANTAYAN, AT MGA KASANAYANG PAMPAGKATUTO.*?(?=II\.)', exemplar_content, re.DOTALL | re.IGNORECASE)
+    if not days_section:
+        return competencies
+
+    days_text = days_section.group(0)
+
+    # Split by day headers
+    day_patterns = [
+        (r'UNANG ARAW\s*(.*?)(?=IKALAWANG ARAW|$)', 'monday'),
+        (r'IKALAWANG ARAW\s*(.*?)(?=IKATLONG ARAW|$)', 'tuesday'),
+        (r'IKATLONG ARAW\s*(.*?)(?=IKAAPAT NA ARAW|$)', 'wednesday'),
+        (r'IKAAPAT NA ARAW\s*(.*?)(?=$)', 'thursday'),
+        # Friday may be included in the last day's section or separately; adjust if needed
+    ]
+
+    for pattern, day in day_patterns:
+        match = re.search(pattern, days_text, re.DOTALL | re.IGNORECASE)
+        if match:
+            day_content = match.group(1)
+            # Extract bullet points or numbered items
+            items = re.findall(r'[•●\-]\s*([^\n]+)', day_content)
+            if not items:
+                items = re.findall(r'\d+\.\s*([^\n]+)', day_content)
+            competencies[day] = [item.strip() for item in items if item.strip()]
+
+    return competencies
+
+
+# ----------------------------------------------------------------------
+# Existing views (keep everything as is, only modify generate_weekly_lesson_plan)
+# ----------------------------------------------------------------------
+
 def lesson_ai(request):
     """Render the main page with the lesson plan form"""
     return render(request, 'lessonGenerator/lesson_ai.html')
+
 
 def analyze_input_relation(user_inputs, exemplar_content, exemplar_name):
     """
@@ -43,23 +94,21 @@ def analyze_input_relation(user_inputs, exemplar_content, exemplar_name):
     try:
         if not exemplar_content or not user_inputs:
             return True, "No exemplar selected", 1.0, {}
-        
-        # Extract learning objectives
+
         learning_objectives = user_inputs.get('learning_objectives', '')
-        
-        # Prepare analysis prompt with more detailed requirements
+
         analysis_prompt = f"""
         Analyze the relationship between the user's lesson plan inputs and the selected exemplar.
-        
+
         USER INPUTS:
         Subject: {user_inputs.get('subject', '')}
         Grade Level: {user_inputs.get('grade_level', '')}
         Learning Objectives: {learning_objectives[:500]}
         Subject Matter: {user_inputs.get('subject_matter', '')[:200]}
-        
+
         SELECTED EXEMPLAR: {exemplar_name}
         EXEMPLAR CONTENT (first 3000 chars): {exemplar_content[:3000]}
-        
+
         ANALYSIS TASK:
         1. Determine if the user's inputs are related to the exemplar
         2. Check for subject alignment
@@ -67,12 +116,12 @@ def analyze_input_relation(user_inputs, exemplar_content, exemplar_name):
         4. Check if learning objectives are compatible with exemplar content
         5. Check if subject matter aligns with exemplar focus
         6. **EXTRACT MATCHING THEMES AND PATTERNS** for generating aligned suggestions
-        
+
         RELATIONSHIP CRITERIA:
         - DIRECT RELATION: Same subject area, similar topics, compatible grade level
         - INDIRECT RELATION: Different but related subjects, transferable concepts
         - UNRELATED: Completely different subjects/topics, incompatible content
-        
+
         Return a JSON object with this exact structure:
         {{
             "is_related": true/false,
@@ -87,16 +136,15 @@ def analyze_input_relation(user_inputs, exemplar_content, exemplar_name):
             "objective_patterns": ["Common patterns in exemplar objectives"],
             "assessment_style": "Formative/Summative/Mixed"
         }}
-        
+
         Be strict but fair. Only mark as unrelated if there's a clear mismatch.
         """
-        
+
         response = model.generate_content([
             "You are an educational content analyst. Analyze the relationship between lesson plan inputs and exemplars. Return only JSON.",
             analysis_prompt
         ])
-        
-        # Extract JSON from response
+
         json_match = re.search(r'\{.*\}', response.text, re.DOTALL)
         if json_match:
             analysis_result = json.loads(json_match.group())
@@ -114,25 +162,23 @@ def analyze_input_relation(user_inputs, exemplar_content, exemplar_name):
                 }
             )
         else:
-            # If analysis fails, default to allowing
             return True, "Analysis failed, proceeding with caution", 0.5, {}
-            
+
     except Exception as e:
         print(f"Relationship analysis error: {str(e)}")
         return True, f"Analysis error: {str(e)}", 0.5, {}
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def generate_lesson_plan(request):
     try:
-        # Check if Gemini is configured properly
         if model is None:
             return JsonResponse({
                 'success': False,
                 'error': 'AI service is not configured properly. Please check your API key.'
             }, status=500)
 
-        # Parse JSON data
         try:
             data = json.loads(request.body)
             print("Received data:", data)
@@ -143,9 +189,6 @@ def generate_lesson_plan(request):
                 'error': 'Invalid JSON data received.'
             }, status=400)
 
-        # ------------------------------------------------------------
-        # 1. Required top-level fields
-        # ------------------------------------------------------------
         required_fields = ['subject', 'grade_level', 'learning_objectives']
         for field in required_fields:
             if field not in data or not data.get(field, '').strip():
@@ -154,9 +197,6 @@ def generate_lesson_plan(request):
                     'error': f'Missing required field: {field}'
                 }, status=400)
 
-        # ------------------------------------------------------------
-        # 2. Learning objectives must have substance
-        # ------------------------------------------------------------
         learning_obj = data.get('learning_objectives', '').strip()
         if len(learning_obj) < 10:
             return JsonResponse({
@@ -164,9 +204,6 @@ def generate_lesson_plan(request):
                 'error': 'Learning objectives must be at least 10 characters long and describe what students will achieve.'
             }, status=400)
 
-        # ------------------------------------------------------------
-        # 3. Validate intelligence type (must be one of allowed choices)
-        # ------------------------------------------------------------
         valid_intelligence_types = [choice[0] for choice in LessonPlan.INTELLIGENCE_TYPE_CHOICES]
         intelligence_type = data.get('intelligence_type', 'comprehensive').strip()
         if intelligence_type not in valid_intelligence_types:
@@ -175,9 +212,6 @@ def generate_lesson_plan(request):
                 'error': f'Invalid intelligence type. Choose from: {", ".join(valid_intelligence_types)}'
             }, status=400)
 
-        # ------------------------------------------------------------
-        # 4. Duration validation (positive integer, default 60 if empty)
-        # ------------------------------------------------------------
         duration_str = data.get('duration', '').strip()
         if duration_str:
             try:
@@ -190,11 +224,8 @@ def generate_lesson_plan(request):
                     'error': 'Duration must be a positive number (in minutes).'
                 }, status=400)
         else:
-            duration_str = '60'  # default
+            duration_str = '60'
 
-        # ------------------------------------------------------------
-        # 5. Population validation (positive integer, default 30 if empty)
-        # ------------------------------------------------------------
         population_str = data.get('population', '').strip()
         if population_str:
             try:
@@ -207,11 +238,8 @@ def generate_lesson_plan(request):
                     'error': 'Class size (population) must be a positive number.'
                 }, status=400)
         else:
-            population_str = '30'  # default
+            population_str = '30'
 
-        # ------------------------------------------------------------
-        # 6. Exemplar handling and relationship check
-        # ------------------------------------------------------------
         exemplar_content = ""
         exemplar_name = ""
         selected_exemplar = data.get('selected_exemplar', '').strip()
@@ -223,12 +251,8 @@ def generate_lesson_plan(request):
                 exemplar_name = exemplar.name
                 print(f"Exemplar content loaded: {len(exemplar_content)} characters from {exemplar_name}")
 
-                # Real-time input validation: check if inputs are related to exemplar
-                print("Analyzing input-exemplar relationship...")
                 is_related, explanation, confidence, match_details = analyze_input_relation(
-                    data, 
-                    exemplar_content, 
-                    exemplar_name
+                    data, exemplar_content, exemplar_name
                 )
 
                 print(f"Relationship analysis: is_related={is_related}, confidence={confidence}")
@@ -263,9 +287,6 @@ def generate_lesson_plan(request):
                     'error': f'Error loading exemplar: {str(e)}'
                 }, status=500)
 
-        # ------------------------------------------------------------
-        # Build form_data dictionary with validated values
-        # ------------------------------------------------------------
         form_data = {
             'subject': data.get('subject', '').strip(),
             'grade_level': data.get('grade_level', '').strip(),
@@ -287,9 +308,6 @@ def generate_lesson_plan(request):
         print("Form data prepared:", form_data)
         print("Intelligence type:", form_data['intelligence_type'])
 
-        # ------------------------------------------------------------
-        # Build the AI prompt
-        # ------------------------------------------------------------
         prompt = f"""
         Generate this as a complete MATATAG-aligned lesson plan following DepEd Philippines MATATAG Curriculum standards.
 
@@ -312,8 +330,8 @@ def generate_lesson_plan(request):
         EVALUATION: {form_data['evaluation'] or 'To be developed for independent practice'}
         ASSESSMENT: {form_data['assessment'] or 'To be developed for formal assessment'}
 
-        {'REFERENCE EXEMPLAR: ' + exemplar_name if exemplar_name else ''}
-        {'EXEMPLAR CONTENT FOR REFERENCE: ' + exemplar_content[:2000] + '...' if exemplar_content else ''}
+        {f'REFERENCE EXEMPLAR: {exemplar_name}' if exemplar_name else ''}
+        {f'EXEMPLAR CONTENT FOR REFERENCE: {exemplar_content[:2000]}...' if exemplar_content else ''}
 
         Generate this as a complete MELC-aligned lesson plan following DepEd Philippines standards.
         Use the learning objectives provided to create specific, measurable outcomes.
@@ -324,16 +342,13 @@ def generate_lesson_plan(request):
         3. Provide clear differentiation strategies for the selected intelligence focus
         4. Maintain MATATAG alignment while incorporating intelligence adaptation
 
-        {'Use the reference exemplar as a guide for structure, depth, and quality standards while maintaining originality.' if exemplar_content else ''}
+        {f'Use the reference exemplar as a guide for structure, depth, and quality standards while maintaining originality.' if exemplar_content else ''}
         """
 
         print("Sending prompt to AI")
         print(f"Exemplar provided: {bool(exemplar_content)}")
         print(f"Intelligence type: {form_data['intelligence_type']}")
 
-        # ------------------------------------------------------------
-        # Generate lesson plan using Gemini
-        # ------------------------------------------------------------
         try:
             has_exemplar = bool(selected_exemplar and exemplar_content)
             system_instruction = get_system_instruction(
@@ -350,14 +365,12 @@ def generate_lesson_plan(request):
 
             print("AI response received:", response.text[:200] + "...")
 
-            # Try to parse JSON from response
             try:
                 json_match = re.search(r'\{.*\}', response.text, re.DOTALL)
                 if json_match:
                     lesson_data = json.loads(json_match.group())
                     print("JSON parsed successfully")
 
-                    # Store in session
                     request.session['generated_lesson_plan'] = lesson_data.get('markdown_output', '')
                     request.session['parsed_lesson_plan'] = lesson_data
                     request.session['lesson_form_data'] = form_data
@@ -373,7 +386,6 @@ def generate_lesson_plan(request):
                         'validation_passed': True if has_exemplar else None
                     })
                 else:
-                    # Fallback: treat as markdown
                     print("No JSON found in response, using fallback")
                     request.session['generated_lesson_plan'] = response.text
                     request.session['lesson_form_data'] = form_data
@@ -421,23 +433,24 @@ def generate_lesson_plan(request):
             'error': f'Server error: {str(e)}'
         }, status=500)
 
+
 def lesson_plan_result(request):
     """Render the lesson plan result page"""
     lesson_plan = request.session.get('generated_lesson_plan', '')
     form_data = request.session.get('lesson_form_data', {})
-    
+
     if not lesson_plan:
         messages.error(request, 'No lesson plan found. Please generate a lesson plan first.')
         return redirect('lesson_ai')
-    
-    # Process markdown in the view
+
     import markdown
     lesson_plan_html = markdown.markdown(lesson_plan, extensions=['extra', 'nl2br'])
-    
+
     return render(request, 'lessonGenerator/lesson_plan.html', {
         'lesson_plan': lesson_plan_html,
         'intelligence_type': form_data.get('intelligence_type', 'comprehensive')
     })
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -445,30 +458,26 @@ def lesson_plan_result(request):
 def save_lesson_plan(request):
     """Save the generated lesson plan as a draft with parsed sections including MELC data"""
     try:
-        # Get data from session
         generated_content = request.session.get('generated_lesson_plan', '')
         parsed_content = request.session.get('parsed_lesson_plan', {})
         form_data = request.session.get('lesson_form_data', {})
-        
+
         if not generated_content:
             return JsonResponse({
                 'success': False,
                 'error': 'No lesson plan content found. Please generate a lesson plan first.'
             }, status=400)
-        
-        # Check if user is a department head for auto-approval
+
         is_department_head = hasattr(request.user, 'role') and request.user.role == 'Department Head'
-        
-        # If we have parsed JSON content, use it
+
         if parsed_content and isinstance(parsed_content, dict):
-            # Use the parsed JSON data
             metadata = parsed_content.get('metadata', {})
             procedure = parsed_content.get('procedure', {})
             subject_matter = parsed_content.get('subject_matter', {})
             melc_alignment = parsed_content.get('melc_alignment', {})
             integration = parsed_content.get('integration', {})
             intelligence_adaptation = parsed_content.get('intelligence_adaptation', {})
-            
+
             lesson_plan = LessonPlan(
                 title=parsed_content.get('title', f"{metadata.get('subject', 'Untitled')} - {metadata.get('grade_level', '')}"),
                 subject=metadata.get('subject', form_data.get('subject', '')),
@@ -486,22 +495,17 @@ def save_lesson_plan(request):
                 assessment=procedure.get('assessment', {}).get('content', ''),
                 generated_content=generated_content,
                 created_by=request.user,
-                # Intelligence type field - NEW
                 intelligence_type=form_data.get('intelligence_type', 'comprehensive'),
-                # MELC Alignment fields
                 melc_code=melc_alignment.get('melc_code', ''),
                 content_standard=melc_alignment.get('content_standard', ''),
                 performance_standard=melc_alignment.get('performance_standard', ''),
                 learning_competency=melc_alignment.get('learning_competency', ''),
-                # Integration fields
                 values_integration=integration.get('values_education', ''),
                 cross_curricular=integration.get('cross_curricular', ''),
-                # Auto-approve for department heads
                 status=LessonPlan.FINAL if is_department_head else LessonPlan.DRAFT,
                 auto_approved=is_department_head
             )
         else:
-            # Fallback: if no parsed JSON, use form data with empty procedure sections
             lesson_plan = LessonPlan(
                 title=f"{form_data.get('subject', 'Untitled')} - {form_data.get('grade_level', '')}",
                 subject=form_data.get('subject', ''),
@@ -519,27 +523,24 @@ def save_lesson_plan(request):
                 assessment=form_data.get('assessment', ''),
                 generated_content=generated_content,
                 created_by=request.user,
-                # Intelligence type field - NEW
                 intelligence_type=form_data.get('intelligence_type', 'comprehensive'),
-                # Auto-approve for department heads
                 status=LessonPlan.FINAL if is_department_head else LessonPlan.DRAFT,
                 auto_approved=is_department_head
             )
-        
+
         lesson_plan.save()
-        
-        # Clear the session data after saving
+
         if 'generated_lesson_plan' in request.session:
             del request.session['generated_lesson_plan']
         if 'parsed_lesson_plan' in request.session:
             del request.session['parsed_lesson_plan']
         if 'lesson_form_data' in request.session:
             del request.session['lesson_form_data']
-        
+
         message = 'Lesson plan saved as draft successfully!'
         if is_department_head:
             message = 'Lesson plan created and automatically approved!'
-        
+
         return JsonResponse({
             'success': True,
             'draft_id': lesson_plan.id,
@@ -549,7 +550,7 @@ def save_lesson_plan(request):
             'user_role': request.user.role if hasattr(request.user, 'role') else 'Teacher',
             'redirect_url': '/drafts/department-head/' if is_department_head else '/drafts/'
         })
-        
+
     except Exception as e:
         import traceback
         print(f"Error saving lesson plan: {str(e)}")
@@ -559,10 +560,10 @@ def save_lesson_plan(request):
             'error': f'Error saving lesson plan: {str(e)}'
         }, status=500)
 
+
 def parse_duration(duration_str):
     """Parse duration string to minutes"""
     try:
-        # Extract numbers from duration string
         numbers = re.findall(r'\d+', duration_str)
         if numbers:
             return int(numbers[0])
@@ -570,10 +571,10 @@ def parse_duration(duration_str):
     except (ValueError, TypeError):
         return 0
 
+
 def parse_population(population_str):
     """Parse population string to integer"""
     try:
-        # Extract numbers from population string
         numbers = re.findall(r'\d+', population_str)
         if numbers:
             return int(numbers[0])
@@ -581,11 +582,12 @@ def parse_population(population_str):
     except (ValueError, TypeError):
         return 0
 
+
 def format_subject_matter(subject_matter_dict):
     """Format subject matter dictionary into a string"""
     if isinstance(subject_matter_dict, str):
         return subject_matter_dict
-    
+
     parts = []
     if subject_matter_dict.get('topic'):
         parts.append(f"Topic: {subject_matter_dict['topic']}")
@@ -597,44 +599,37 @@ def format_subject_matter(subject_matter_dict):
         parts.append(f"References: {subject_matter_dict['references']}")
     return '\n'.join(parts)
 
+
 @login_required
 def draft_list(request):
     """Display list of saved drafts with submission status"""
-    # Get the active tab from query parameters (default to 'daily')
     active_tab = request.GET.get('type', 'daily')
-    
-    # Get all daily drafts for the user
+
     drafts = LessonPlan.objects.filter(created_by=request.user).order_by('-created_at')
-    
-    # Prefetch related submissions to avoid N+1 queries
+
     draft_ids = [draft.id for draft in drafts]
-    
-    # Get all submissions for these drafts in one query
+
     submissions = LessonPlanSubmission.objects.filter(
         lesson_plan_id__in=draft_ids
     ).order_by('lesson_plan_id', '-submission_date')
-    
-    # Create a dictionary mapping draft ID to latest submission
+
     latest_submissions = {}
     for submission in submissions:
         if submission.lesson_plan_id not in latest_submissions:
             latest_submissions[submission.lesson_plan_id] = submission
-    
-    # Create a list of tuples with draft and its latest submission
+
     draft_data = []
     for draft in drafts:
         draft_data.append({
             'draft': draft,
             'latest_submission': latest_submissions.get(draft.id)
         })
-    
-    # Count by status for the summary cards
+
     draft_count = LessonPlan.objects.filter(
-        created_by=request.user, 
+        created_by=request.user,
         status=LessonPlan.DRAFT
     ).count()
-    
-    # Count by intelligence type for insights
+
     intelligence_counts = {}
     for intelligence_type, display_name in LessonPlan.INTELLIGENCE_TYPE_CHOICES:
         count = LessonPlan.objects.filter(
@@ -646,32 +641,30 @@ def draft_list(request):
                 'display': display_name,
                 'count': count
             }
-    
-    # Count submissions by status for the current user
+
     user_submissions = LessonPlanSubmission.objects.filter(
         submitted_by=request.user
     )
-    
+
     submitted_count = user_submissions.filter(status='submitted').count()
     approved_count = user_submissions.filter(status='approved').count()
     revision_count = user_submissions.filter(status='needs_revision').count()
     rejected_count = user_submissions.filter(status='rejected').count()
-    
-    # Get weekly drafts data
+
     weekly_drafts = WeeklyLessonPlan.objects.filter(
         created_by=request.user
     ).order_by('-created_at')
-    
+
     weekly_draft_data = []
     for draft in weekly_drafts:
         weekly_draft_data.append({
             'draft': draft,
             'latest_submission': draft.get_latest_submission()
         })
-    
+
     weekly_draft_count = weekly_drafts.filter(status=WeeklyLessonPlan.DRAFT).count()
     weekly_final_count = weekly_drafts.filter(status=WeeklyLessonPlan.FINAL).count()
-    
+
     return render(request, 'lessonGenerator/draft_list.html', {
         'draft_data': draft_data,
         'draft_count': draft_count,
@@ -686,13 +679,13 @@ def draft_list(request):
         'active_tab': active_tab,
     })
 
+
 @login_required
 def edit_draft(request, draft_id):
     """Edit a saved draft"""
     draft = get_object_or_404(LessonPlan, id=draft_id, created_by=request.user)
-    
+
     if request.method == 'POST':
-        # Update the draft with new data including intelligence type
         draft.title = request.POST.get('title', draft.title)
         draft.subject = request.POST.get('subject', draft.subject)
         draft.grade_level = request.POST.get('grade_level', draft.grade_level)
@@ -708,32 +701,30 @@ def edit_draft(request, draft_id):
         draft.evaluation = request.POST.get('evaluation', draft.evaluation)
         draft.assessment = request.POST.get('assessment', draft.assessment)
         draft.generated_content = request.POST.get('generated_content', draft.generated_content)
-        
-        # Update intelligence type - NEW
+
         draft.intelligence_type = request.POST.get('intelligence_type', draft.intelligence_type)
-        
-        # Update MELC fields if provided
+
         draft.melc_code = request.POST.get('melc_code', draft.melc_code)
         draft.content_standard = request.POST.get('content_standard', draft.content_standard)
         draft.performance_standard = request.POST.get('performance_standard', draft.performance_standard)
         draft.learning_competency = request.POST.get('learning_competency', draft.learning_competency)
         draft.values_integration = request.POST.get('values_integration', draft.values_integration)
         draft.cross_curricular = request.POST.get('cross_curricular', draft.cross_curricular)
-        
+
         draft.save()
-        
+
         messages.success(request, 'Draft updated successfully!')
-        
-        # Redirect based on user role
+
         if hasattr(request.user, 'role') and request.user.role == 'Department Head':
             return redirect('department_head_drafts')
         else:
             return redirect('draft_list')
-    
+
     return render(request, 'lessonGenerator/edit_draft.html', {
         'draft': draft,
-        'intelligence_choices': LessonPlan.INTELLIGENCE_TYPE_CHOICES  # Pass choices to template
+        'intelligence_choices': LessonPlan.INTELLIGENCE_TYPE_CHOICES
     })
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -741,14 +732,12 @@ def edit_draft(request, draft_id):
 def regenerate_lesson_content(request):
     """Regenerate AI content based on edited form data including intelligence type"""
     try:
-        # Check if Gemini is configured properly
         if model is None:
             return JsonResponse({
                 'success': False,
                 'error': 'AI service is not configured properly.'
             }, status=500)
-            
-        # Parse JSON data
+
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
@@ -756,16 +745,14 @@ def regenerate_lesson_content(request):
                 'success': False,
                 'error': 'Invalid JSON data received.'
             }, status=400)
-        
-        # Get intelligence type from data
+
         intelligence_type = data.get('intelligence_type', 'comprehensive')
-        
-        # Format the prompt for the AI with MELC focus and intelligence type
+
         prompt = f"""
         Create a comprehensive MELC-aligned lesson plan with {intelligence_type} intelligence focus.
 
         INTELLIGENCE TYPE: {intelligence_type.upper()}
-        
+
         SUBJECT: {data.get('subject', '').strip()}
         GRADE LEVEL: {data.get('grade_level', '').strip()}
         QUARTER: {data.get('quarter', '').strip()}
@@ -785,58 +772,57 @@ def regenerate_lesson_content(request):
         Include appropriate MELC codes, content standards, performance standards, and learning competencies.
         Design activities specifically for {intelligence_type} intelligence development.
         """
-        
-        # Generate the lesson plan using Gemini with intelligence type
+
         try:
             system_instruction = get_system_instruction(
                 has_exemplar=False,
                 intelligence_type=intelligence_type
             )
-            
+
             response = model.generate_content([
                 system_instruction,
                 prompt
             ])
-            
+
             return JsonResponse({
                 'success': True,
                 'generated_content': response.text,
                 'intelligence_type': intelligence_type
             })
-            
+
         except Exception as ai_error:
             return JsonResponse({
                 'success': False,
                 'error': f'AI service error: {str(ai_error)}'
             }, status=500)
-        
+
     except Exception as e:
         return JsonResponse({
             'success': False,
             'error': f'Server error: {str(e)}'
         }, status=500)
 
+
 @login_required
 def view_draft(request, draft_id):
     """View a lesson draft in read-only format"""
     draft = get_object_or_404(LessonPlan, id=draft_id, created_by=request.user)
-    
-    # Get submission status if exists
+
     latest_submission = LessonPlanSubmission.objects.filter(
         lesson_plan=draft
     ).order_by('-submission_date').first()
-    
-    # Get intelligence type display name
+
     intelligence_display = dict(LessonPlan.INTELLIGENCE_TYPE_CHOICES).get(
-        draft.intelligence_type, 
+        draft.intelligence_type,
         draft.intelligence_type
     )
-    
+
     return render(request, 'lessonGenerator/view_draft.html', {
         'draft': draft,
         'latest_submission': latest_submission,
         'intelligence_display': intelligence_display
     })
+
 
 @login_required
 def department_head_drafts(request):
@@ -844,21 +830,18 @@ def department_head_drafts(request):
     if hasattr(request.user, 'role') and request.user.role != 'Department Head':
         messages.error(request, "Access denied. Department heads only.")
         return redirect('draft_list')
-    
-    # Get all approved lesson plans for the department head
+
     approved_plans = LessonPlan.objects.filter(
-        created_by=request.user, 
+        created_by=request.user,
         status=LessonPlan.FINAL,
         auto_approved=True
     ).order_by('-created_at')
-    
-    # Get drafts if any
+
     draft_plans = LessonPlan.objects.filter(
         created_by=request.user,
         status=LessonPlan.DRAFT
     ).order_by('-created_at')
-    
-    # Count by intelligence type for insights
+
     intelligence_counts = {}
     for intelligence_type, display_name in LessonPlan.INTELLIGENCE_TYPE_CHOICES:
         count = LessonPlan.objects.filter(
@@ -870,7 +853,7 @@ def department_head_drafts(request):
                 'display': display_name,
                 'count': count
             }
-    
+
     return render(request, 'lessonGenerator/department_head_drafts.html', {
         'approved_plans': approved_plans,
         'draft_plans': draft_plans,
@@ -887,23 +870,20 @@ def extract_text_from_pdf(pdf_path):
     try:
         with open(pdf_path, 'rb') as file:
             pdf_reader = PyPDF2.PdfReader(file)
-            
+
             for page_num, page in enumerate(pdf_reader.pages):
                 page_text = page.extract_text()
-                
-                # Add page marker to help with structure
+
                 text += f"\n\n--- PAGE {page_num + 1} ---\n\n"
                 text += page_text
-                
-                # Add extra newlines to preserve paragraph breaks
+
                 text = text.replace('. ', '.\n')
-                
+
         return text
     except Exception as e:
         print(f"Error extracting PDF text: {e}")
         return ""
 
-        
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -911,21 +891,14 @@ def get_ai_suggestions(request):
     """Generate AI suggestions similar to the exemplar objectives – auto‑detects language"""
     import json
     import re
-    
+
     def detect_language(text):
-        """
-        Simple heuristic to detect if text is Filipino or English.
-        Returns 'filipino' or 'english'.
-        """
         if not text:
-            return 'english'   # default
-        # Sample first 2000 characters
+            return 'english'
         sample = text[:2000].lower()
-        # Filipino common words
         filipino_words = ['ang', 'mga', 'ng', 'sa', 'ay', 'at', 'ito', 'iyon', 'kami', 'tayo',
                           'namin', 'ninyo', 'sila', 'kanila', 'kanyang', 'aking', 'iyong',
                           'aming', 'inyong', 'kanilang', 'pagkatapos', 'inaasahang']
-        # English common words
         english_words = ['the', 'and', 'of', 'to', 'in', 'that', 'is', 'are', 'was', 'were',
                          'will', 'be', 'have', 'has', 'had', 'this', 'these', 'those']
         count_fil = sum(sample.count(w) for w in filipino_words)
@@ -938,56 +911,49 @@ def get_ai_suggestions(request):
                 'success': False,
                 'error': 'AI service not configured'
             }, status=500)
-            
+
         data = json.loads(request.body)
         section = data.get('section')
         form_data = data.get('form_data', {})
         exemplar_id = data.get('exemplar_id') or form_data.get('selected_exemplar')
-        
+
         print("\n" + "="*60)
         print("🎯 AI SUGGESTIONS REQUEST RECEIVED")
         print(f"Exemplar ID: {exemplar_id}")
         print("="*60)
-        
+
         if not section:
             return JsonResponse({
                 'success': False,
                 'error': 'Section parameter required'
             }, status=400)
-        
-        # Check if exemplar ID is provided
+
         if not exemplar_id or not exemplar_id.strip():
             return JsonResponse({
                 'success': False,
                 'error': 'Please select an exemplar first to generate AI suggestions.'
             }, status=400)
-        
-        # Get intelligence type
+
         intelligence_type = form_data.get('intelligence_type', 'comprehensive')
-        
-        # Initialize variables
+
         exemplar_content = ""
         exemplar_name = ""
         exemplar_objectives = []
-        
-        # Load exemplar
+
         try:
             from lesson.models import Exemplar
             exemplar = Exemplar.objects.get(id=exemplar_id)
             exemplar_content = exemplar.extracted_text
             exemplar_name = exemplar.name
-            
+
             print(f"\n📁 EXEMPLAR LOADED: {exemplar_name}")
-            
+
             if exemplar_content:
-                # Patterns for both English and Filipino
                 competency_patterns = [
-                    # English
                     r'C\.\s*Learning\s*Competencies?\s*and\s*Objectives?\s*(.*?)(?=D\.\s*Content|$)',
                     r'Learning\s*Competencies?:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
                     r'Learning\s*Objectives?:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
                     r'Objectives?:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
-                    # Filipino
                     r'C\.\s*Kasanayang\s*Pampagkatuto\s*(.*?)(?=D\.\s*Mga\s*Layunin|D\.\s*Nilalaman|$)',
                     r'D\.\s*Mga\s*Layunin\s*(.*?)(?=II\.|I{2,}\.|$)',
                     r'Kasanayang\s*Pampagkatuto:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
@@ -995,7 +961,7 @@ def get_ai_suggestions(request):
                     r'Layunin:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
                     r'Pagkatapos\s*ng\s*aralin,?\s*ang\s*mga\s*mag-?aaral\s*ay\s*inaasahang:?\s*(.*?)(?=\n\n|\n[A-Z]\.|\Z)',
                 ]
-                
+
                 objectives_text = ""
                 for pattern in competency_patterns:
                     match = re.search(pattern, exemplar_content, re.IGNORECASE | re.DOTALL)
@@ -1003,9 +969,8 @@ def get_ai_suggestions(request):
                         objectives_text = match.group(1)
                         print(f"✅ Found objectives section")
                         break
-                
+
                 if objectives_text:
-                    # Try numbered list
                     numbered = re.findall(r'\d+\.\s*(.*?)(?=\n\d+\.|\n\n|\Z)', objectives_text, re.DOTALL)
                     for obj in numbered:
                         clean = obj.strip()
@@ -1014,8 +979,7 @@ def get_ai_suggestions(request):
                         clean = re.sub(r'^[•●\-]\s*', '', clean)
                         if clean and len(clean) > 10:
                             exemplar_objectives.append(clean)
-                    
-                    # If no numbered list, try bullet points
+
                     if not exemplar_objectives:
                         bullets = re.findall(r'[•●\-]\s*(.*?)(?=\n[•●\-]|\n\n|\Z)', objectives_text, re.DOTALL)
                         for obj in bullets:
@@ -1024,8 +988,7 @@ def get_ai_suggestions(request):
                             clean = re.sub(r'^[•●\-]\s*', '', clean)
                             if clean and len(clean) > 10:
                                 exemplar_objectives.append(clean)
-                
-                # Remove duplicates
+
                 seen = set()
                 unique_objectives = []
                 for obj in exemplar_objectives:
@@ -1033,13 +996,13 @@ def get_ai_suggestions(request):
                     if normalized not in seen and len(normalized) > 10:
                         seen.add(normalized)
                         unique_objectives.append(obj)
-                
+
                 exemplar_objectives = unique_objectives
-                
+
                 print(f"\n🎯 EXTRACTED {len(exemplar_objectives)} EXEMPLAR OBJECTIVES:")
                 for i, obj in enumerate(exemplar_objectives):
                     print(f"   {i+1}. {obj}")
-                    
+
         except Exemplar.DoesNotExist:
             return JsonResponse({
                 'success': False,
@@ -1051,19 +1014,16 @@ def get_ai_suggestions(request):
                 'success': False,
                 'error': f'Error loading exemplar: {str(e)}'
             }, status=500)
-        
-        # If no objectives found, return error
+
         if not exemplar_objectives:
             return JsonResponse({
                 'success': False,
                 'error': 'No learning objectives found in the selected exemplar. Please check the exemplar content.'
             }, status=400)
-        
-        # ========== LANGUAGE DETECTION ==========
+
         language = detect_language(exemplar_content) if exemplar_content else 'english'
         print(f"\n🌐 Detected language: {language.upper()}")
-        
-        # Set language-specific strings
+
         if language == 'filipino':
             lang_directive = "Generate ALL output in FILIPINO language to match the exemplar's language."
             intro_phrase = "Pagkatapos ng aralin, ang mga mag-aaral ay inaasahang:"
@@ -1098,21 +1058,20 @@ def get_ai_suggestions(request):
                 'intelligence_connection': f"Develops {intelligence_type} intelligence through lesson activities.",
                 'exemplar_alignment': "This objective is similar in style to the exemplar objectives."
             }
-        
-        # ========== BUILD PROMPT ==========
+
         prompt = f"""
         You are a DepEd curriculum specialist. Based on the exemplar objectives below, generate 4 NEW learning objectives that are SIMILAR in style and content but NOT exactly the same.
-        
+
         **IMPORTANT: {lang_directive}**
-        
+
         EXEMPLAR OBJECTIVES (use these as reference for style and topic):
         {chr(10).join([f'{i+1}. {obj}' for i, obj in enumerate(exemplar_objectives)])}
-        
+
         CURRENT LESSON:
         Subject: {form_data.get('subject', '')}
         Grade Level: {form_data.get('grade_level', '')}
         Lesson Title: {form_data.get('lesson_title', '')}
-        
+
         INSTRUCTIONS:
         1. Study the exemplar objectives above carefully – notice their style, verb usage, and topic focus.
         2. Generate 4 NEW learning objectives that:
@@ -1122,12 +1081,12 @@ def get_ai_suggestions(request):
            - Focus on the same topic area
            - Are appropriate for the specified grade level
         3. Do NOT simply copy the exemplar objectives – create new ones that are related but different.
-        
+
         Each objective should follow this format:
         - Start with "{intro_phrase}"
         - Use a bullet point (●) before each objective
         - Be clear, specific, and measurable
-        
+
         Return ONLY a JSON array with this exact format:
         [
             {{
@@ -1139,21 +1098,19 @@ def get_ai_suggestions(request):
             }}
         ]
         """
-        
+
         print("\n📤 SENDING PROMPT TO AI...")
         print("-" * 40)
         print(prompt[:500] + "..." if len(prompt) > 500 else prompt)
         print("-" * 40)
-        
-        # Generate AI suggestions
+
         response = model.generate_content(prompt)
-        
+
         print("\n🤖 RAW AI RESPONSE:")
         print("=" * 40)
         print(response.text)
         print("=" * 40)
-        
-        # Extract JSON from response
+
         suggestions = None
         json_match = re.search(r'\[\s*\{.*\}\s*\]', response.text, re.DOTALL)
         if json_match:
@@ -1172,22 +1129,19 @@ def get_ai_suggestions(request):
                 'success': False,
                 'error': 'AI failed to generate valid suggestions'
             }, status=500)
-        
-        # Validate suggestions
+
         if not suggestions or len(suggestions) == 0:
             return JsonResponse({
                 'success': False,
                 'error': 'AI generated empty suggestions'
             }, status=500)
-        
-        # Add metadata and ensure required fields exist
+
         for suggestion in suggestions:
             suggestion['is_exact'] = False
-            # Fill missing fields with appropriate fallback messages
             for field, fallback in fallback_messages.items():
                 if field not in suggestion or not suggestion[field]:
                     suggestion[field] = fallback
-        
+
         return JsonResponse({
             'success': True,
             'suggestions': suggestions,
@@ -1198,7 +1152,7 @@ def get_ai_suggestions(request):
             'language': language,
             'message': f'Generated {len(suggestions)} objectives based on the exemplar'
         })
-        
+
     except Exception as e:
         print(f"❌ Error: {str(e)}")
         import traceback
@@ -1207,6 +1161,7 @@ def get_ai_suggestions(request):
             'success': False,
             'error': str(e)
         }, status=500)
+
 
 def get_intelligence_focus_description(intelligence_type):
     """Get description for each intelligence type focus"""
@@ -1220,54 +1175,49 @@ def get_intelligence_focus_description(intelligence_type):
     }
     return descriptions.get(intelligence_type, "Balanced intelligence development approach.")
 
-# Helper function for intelligence type analytics
+
 @login_required
 def intelligence_type_analytics(request):
     """Show analytics for intelligence type usage"""
     if hasattr(request.user, 'role') and request.user.role != 'Department Head':
         messages.error(request, "Access denied. Department heads only.")
         return redirect('draft_list')
-    
-    # Get all lesson plans in the department
+
     from django.contrib.auth import get_user_model
     User = get_user_model()
-    
-    # Get users in the same department as the department head
+
     department_users = User.objects.filter(
         department=request.user.department,
         school=request.user.school
     )
-    
-    # Get lesson plans by intelligence type
+
     intelligence_stats = {}
     total_plans = 0
-    
+
     for intelligence_type, display_name in LessonPlan.INTELLIGENCE_TYPE_CHOICES:
         count = LessonPlan.objects.filter(
             created_by__in=department_users,
             intelligence_type=intelligence_type
         ).count()
-        
+
         intelligence_stats[intelligence_type] = {
             'display': display_name,
             'count': count,
             'percentage': 0
         }
         total_plans += count
-    
-    # Calculate percentages
+
     for intelligence_type in intelligence_stats:
         if total_plans > 0:
             intelligence_stats[intelligence_type]['percentage'] = round(
                 (intelligence_stats[intelligence_type]['count'] / total_plans) * 100, 1
             )
-    
-    # Get most popular intelligence type by subject
+
     subject_intelligence = {}
     subjects = LessonPlan.objects.filter(
         created_by__in=department_users
     ).values_list('subject', flat=True).distinct()
-    
+
     for subject in subjects:
         subject_stats = {}
         for intelligence_type, display_name in LessonPlan.INTELLIGENCE_TYPE_CHOICES:
@@ -1281,9 +1231,8 @@ def intelligence_type_analytics(request):
                     'display': display_name,
                     'count': count
                 }
-        
+
         if subject_stats:
-            # Find most used intelligence type for this subject
             most_used = max(subject_stats.items(), key=lambda x: x[1]['count'])
             subject_intelligence[subject] = {
                 'most_used': most_used[0],
@@ -1291,13 +1240,14 @@ def intelligence_type_analytics(request):
                 'count': most_used[1]['count'],
                 'all_stats': subject_stats
             }
-    
+
     return render(request, 'lessonGenerator/intelligence_analytics.html', {
         'intelligence_stats': intelligence_stats,
         'total_plans': total_plans,
         'subject_intelligence': subject_intelligence,
         'department_name': request.user.department if hasattr(request.user, 'department') else 'Your Department'
     })
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -1306,18 +1256,16 @@ def delete_draft(request, draft_id):
     """Delete a lesson draft"""
     try:
         draft = get_object_or_404(LessonPlan, id=draft_id, created_by=request.user)
-        
-        # Check if there are any submissions (optional: you might want to prevent deletion if submitted)
+
         submissions = LessonPlanSubmission.objects.filter(lesson_plan=draft)
-        
-        # Delete the draft
+
         draft.delete()
-        
+
         return JsonResponse({
             'success': True,
             'message': 'Lesson plan deleted successfully!'
         })
-        
+
     except LessonPlan.DoesNotExist:
         return JsonResponse({
             'success': False,
@@ -1335,24 +1283,20 @@ def get_department_exemplars(request):
     """Get exemplars for the user's department"""
     try:
         user = request.user
-        
-        # Get exemplars from the user's department
-        # Assuming you have an Exemplar model with department field
+
         from lesson.models import Exemplar
-        
-        # Check if user has department
+
         if not hasattr(user, 'department') or not user.department:
             return JsonResponse({
                 'success': False,
                 'message': 'No department assigned',
                 'exemplars': []
             })
-        
-        # Get exemplars from user's department
+
         exemplars = Exemplar.objects.filter(
             department=user.department
         ).order_by('-created_at')
-        
+
         exemplar_list = []
         for exemplar in exemplars:
             exemplar_list.append({
@@ -1362,15 +1306,14 @@ def get_department_exemplars(request):
                 'file_size_display': exemplar.file_size_display() if hasattr(exemplar, 'file_size_display') else '',
                 'upload_date': exemplar.created_at.strftime('%Y-%m-%d') if hasattr(exemplar, 'created_at') else '',
             })
-        
+
         return JsonResponse({
             'success': True,
             'exemplars': exemplar_list,
             'count': len(exemplar_list)
         })
-        
+
     except ImportError:
-        # If lesson.models.Exemplar doesn't exist, return empty list
         return JsonResponse({
             'success': True,
             'exemplars': [],
@@ -1383,8 +1326,8 @@ def get_department_exemplars(request):
             'error': str(e),
             'exemplars': []
         }, status=500)
-        
-        
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def check_exemplar_compatibility(request):
@@ -1393,23 +1336,20 @@ def check_exemplar_compatibility(request):
         data = json.loads(request.body)
         subject = data.get('subject', '').strip()
         exemplar_id = data.get('exemplar_id', '').strip()
-        
+
         if not subject or not exemplar_id:
             return JsonResponse({
                 'compatible': True,
                 'message': 'Insufficient data for compatibility check'
             })
-        
-        # Get exemplar
+
         from lesson.models import Exemplar
         try:
             exemplar = Exemplar.objects.get(id=exemplar_id)
-            
-            # Simple keyword-based compatibility check
+
             subject_lower = subject.lower()
             exemplar_text_lower = exemplar.extracted_text.lower() if exemplar.extracted_text else ""
-            
-            # Check for subject-related keywords
+
             subject_keywords = {
                 'mathematics': ['math', 'mathematics', 'algebra', 'geometry', 'calculus', 'numbers', 'equation'],
                 'science': ['science', 'biology', 'chemistry', 'physics', 'experiment', 'lab', 'scientific'],
@@ -1419,39 +1359,42 @@ def check_exemplar_compatibility(request):
                 'tle': ['technology', 'livelihood', 'education', 'technical', 'vocational', 'tle'],
                 'filipino': ['filipino', 'tagalog', 'wika', 'panitikan', 'filipino']
             }
-            
-            # Determine compatibility
+
             compatible = False
             for key, keywords in subject_keywords.items():
                 if key in subject_lower or any(kw in subject_lower for kw in keywords):
-                    # Check if exemplar contains related keywords
                     if any(kw in exemplar_text_lower for kw in keywords):
                         compatible = True
                         break
-            
+
             return JsonResponse({
                 'compatible': compatible,
                 'subject': subject,
                 'exemplar_name': exemplar.name,
                 'message': 'Compatible' if compatible else 'Potential mismatch detected'
             })
-            
+
         except Exemplar.DoesNotExist:
             return JsonResponse({
                 'compatible': True,
                 'message': 'Exemplar not found'
             })
-            
+
     except Exception as e:
         return JsonResponse({
             'compatible': True,
             'message': f'Error checking compatibility: {str(e)}'
         })
 
+
 def lesson_ai_weekly(request):
     """Render the weekly lesson plan form"""
     return render(request, 'lessonGenerator/lesson_ai_weekly.html')
 
+
+# ==============================================================================
+# MODIFIED FUNCTION: generate_weekly_lesson_plan
+# ==============================================================================
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -1465,14 +1408,12 @@ def generate_weekly_lesson_plan(request):
     - If an exemplar is selected, inputs must be related to it
     """
     try:
-        # Check if Gemini is configured properly
         if model is None:
             return JsonResponse({
                 'success': False,
                 'error': 'AI service is not configured properly. Please check your API key.'
             }, status=500)
 
-        # Parse JSON data
         try:
             data = json.loads(request.body)
             print("Weekly plan data received:", data)
@@ -1556,8 +1497,6 @@ def generate_weekly_lesson_plan(request):
                     }, status=400)
         except Exception as e:
             print(f"Relevance check AI error: {e}")
-            # If AI fails, we still proceed but log the error
-            # You could choose to reject if you want to be safe
 
         # ------------------------------------------------------------
         # 4. Extract other form data
@@ -1597,6 +1536,8 @@ def generate_weekly_lesson_plan(request):
         # ------------------------------------------------------------
         exemplar_content = ""
         exemplar_name = ""
+        exemplar_competencies_text = ""   # NEW: to store extracted competencies
+
         if form_data['exemplar_id']:
             try:
                 from lesson.models import Exemplar
@@ -1622,6 +1563,19 @@ def generate_weekly_lesson_plan(request):
                         'confidence_score': confidence,
                         'analysis_explanation': explanation
                     }, status=400)
+
+                # ----- NEW: Extract competencies from exemplar -----
+                if exemplar_content:
+                    comps = extract_weekly_competencies_from_exemplar(exemplar_content)
+                    if any(comps.values()):
+                        exemplar_competencies_text = "\n\n**EXEMPLAR COMPETENCIES TO FOLLOW (teach these same skills, with new examples):**\n"
+                        for day, items in comps.items():
+                            if items:
+                                exemplar_competencies_text += f"\n{day.upper()}:\n"
+                                for item in items:
+                                    exemplar_competencies_text += f"  • {item}\n"
+                # ----- END NEW -----
+
             except Exemplar.DoesNotExist:
                 return JsonResponse({
                     'success': False,
@@ -1687,7 +1641,7 @@ def generate_weekly_lesson_plan(request):
         prompt = f"""
         Generate a COMPLETE, DETAILED, MATATAG-aligned WEEKLY LESSON PLAN following DepEd Philippines standards.
 
-        **IMPORTANT: You MUST fill EVERY section with COMPLETE content. No placeholders. No empty brackets. Generate specific, detailed activities for each day and step.**
+        **CRITICAL: You MUST teach the SAME competencies as in the exemplar (e.g., magkakatugmang salita, diptonggo, klaster). Do not change the core topics. Only the examples, poems, and specific words should be new.**
 
         WEEKLY TITLE: {form_data['title'] or f"Week {form_data['week']}: {form_data['subject']} - Grade {form_data['grade_level']}"}
 
@@ -1714,8 +1668,9 @@ def generate_weekly_lesson_plan(request):
         DAILY LEARNING OBJECTIVES:
         {daily_objectives_text}
 
-        {'REFERENCE EXEMPLAR: ' + exemplar_name if exemplar_name else ''}
-        {'EXEMPLAR CONTENT FOR REFERENCE (use for quality and structure, not content): ' + exemplar_content[:2000] + '...' if exemplar_content else ''}
+        {f'REFERENCE EXEMPLAR: {exemplar_name}' if exemplar_name else ''}
+        {f'EXEMPLAR CONTENT (use as a guide for topic focus and progression):\n{exemplar_content[:2000]}...' if exemplar_content else ''}
+        {exemplar_competencies_text}
 
         **INTELLIGENCE TYPE ADAPTATION REQUIREMENTS - YOU MUST FOLLOW:**
 
@@ -1815,12 +1770,10 @@ def generate_weekly_lesson_plan(request):
             print("Weekly AI response received")
             print(f"Response length: {len(response.text)} characters")
 
-            # Verify the response has all required sections
             response_text = response.text
             if len(response_text) < 2000:
                 print("WARNING: Response seems too short, might be incomplete")
 
-            # Store in session
             request.session['generated_weekly_plan'] = response_text
             request.session['weekly_form_data'] = form_data
             request.session.modified = True
@@ -1851,6 +1804,7 @@ def generate_weekly_lesson_plan(request):
             'error': f'Server error: {str(e)}'
         }, status=500)
 
+
 def analyze_weekly_input_relation(user_inputs, exemplar_content, exemplar_name):
     """
     Analyze if weekly lesson inputs are related to the selected exemplar
@@ -1859,21 +1813,19 @@ def analyze_weekly_input_relation(user_inputs, exemplar_content, exemplar_name):
     try:
         if not exemplar_content or not user_inputs:
             return True, "No exemplar selected", 1.0
-        
-        # Get objectives
+
         objectives = user_inputs.get('objectives', {})
         objectives_text = ' '.join([
-            objectives.get('monday', ''), 
+            objectives.get('monday', ''),
             objectives.get('tuesday', ''),
             objectives.get('wednesday', ''),
             objectives.get('thursday', ''),
             objectives.get('friday', '')
         ])
-        
-        # Prepare analysis prompt
+
         analysis_prompt = f"""
         Analyze the relationship between the user's weekly lesson inputs and the selected exemplar.
-        
+
         USER INPUTS:
         Subject: {user_inputs.get('subject', '')}
         Grade Level: {user_inputs.get('grade_level', '')}
@@ -1881,14 +1833,14 @@ def analyze_weekly_input_relation(user_inputs, exemplar_content, exemplar_name):
         Quarter: {user_inputs.get('quarter', '')}
         Content Standards: {user_inputs.get('content_standards', '')[:200]}
         Learning Objectives: {objectives_text[:300]}
-        
+
         SELECTED EXEMPLAR: {exemplar_name}
         EXEMPLAR CONTENT (first 2000 chars): {exemplar_content[:2000]}
-        
+
         ANALYSIS TASK:
         Determine if the weekly lesson inputs are related to the exemplar.
         Check for subject alignment, grade level appropriateness, and topic compatibility.
-        
+
         Return ONLY a JSON object:
         {{
             "is_related": true/false,
@@ -1898,13 +1850,12 @@ def analyze_weekly_input_relation(user_inputs, exemplar_content, exemplar_name):
             "suggestions": ["Suggestions for alignment"]
         }}
         """
-        
+
         response = model.generate_content([
             "You are an educational content analyst. Return only JSON.",
             analysis_prompt
         ])
-        
-        # Extract JSON from response
+
         json_match = re.search(r'\{.*\}', response.text, re.DOTALL)
         if json_match:
             analysis_result = json.loads(json_match.group())
@@ -1915,7 +1866,7 @@ def analyze_weekly_input_relation(user_inputs, exemplar_content, exemplar_name):
             )
         else:
             return True, "Analysis failed, proceeding with caution", 0.5
-            
+
     except Exception as e:
         print(f"Weekly relationship analysis error: {str(e)}")
         return True, f"Analysis error: {str(e)}", 0.5
@@ -1926,31 +1877,28 @@ def view_weekly_lesson_plan(request):
     """Render the weekly lesson plan result page with structured format"""
     weekly_plan = request.session.get('generated_weekly_plan', '')
     form_data = request.session.get('weekly_form_data', {})
-    
+
     if not weekly_plan:
         messages.error(request, 'No weekly lesson plan found. Please generate one first.')
         return redirect('lesson_ai_weekly')
-    
-    # Parse the weekly plan to extract structured data
+
     parsed_plan = parse_weekly_lesson_plan(weekly_plan, form_data)
-    
-    # Day names for display
+
     day_names = {
         'monday': 'MONDAY',
-        'tuesday': 'TUESDAY', 
+        'tuesday': 'TUESDAY',
         'wednesday': 'WEDNESDAY',
         'thursday': 'THURSDAY',
         'friday': 'FRIDAY'
     }
-    
+
     return render(request, 'lessonGenerator/view_weekly_lesson_plan.html', {
-        'weekly_plan': weekly_plan,  # Keep raw for fallback
+        'weekly_plan': weekly_plan,
         'parsed_plan': parsed_plan,
         'form_data': form_data,
         'day_names': day_names,
         'intelligence_type': form_data.get('intelligence_type', 'comprehensive')
     })
-
 
 
 @login_required
@@ -1962,107 +1910,92 @@ def save_weekly_lesson_plan(request):
     Must save before editing - appears in draft list with weekly indicator
     """
     try:
-        # Get data from session
         generated_content = request.session.get('generated_weekly_plan', '')
         form_data = request.session.get('weekly_form_data', {})
-        
+
         print(f"Session data - generated_content length: {len(generated_content) if generated_content else 0}")
         print(f"Session data - form_data: {form_data}")
-        
+
         if not generated_content:
             return JsonResponse({
                 'success': False,
                 'error': 'No weekly lesson plan content found. Please generate one first.'
             }, status=400)
-        
-        # Check if user is department head for auto-approval
+
         is_department_head = hasattr(request.user, 'role') and request.user.role == 'Department Head'
-        
-        # Parse the generated content to extract structured data
+
         parsed_data = parse_weekly_lesson_plan(generated_content, form_data)
-        
-        # Create weekly lesson plan object
+
         weekly_plan = WeeklyLessonPlan(
             title=parsed_data.get('title', form_data.get('title', f"Week {form_data.get('week', '')} Lesson Plan")),
             subject=form_data.get('subject', ''),
             grade_level=form_data.get('grade_level', ''),
             quarter=form_data.get('quarter', ''),
             week_number=int(form_data.get('week', 0)) if str(form_data.get('week', '')).isdigit() else 0,
-            
-            # School info from parsed data
+
             school=parsed_data.get('school', ''),
             teacher=parsed_data.get('teacher', request.user.get_full_name() or request.user.username),
             teaching_date=parsed_data.get('teaching_date', ''),
-            
-            # Standards
+
             content_standard=parsed_data.get('content_standard', form_data.get('content_standards', '')),
             performance_standard=parsed_data.get('performance_standard', form_data.get('performance_standards', '')),
-            
-            # Daily objectives
+
             objective_monday=parsed_data.get('objective_monday', form_data.get('objectives', {}).get('monday', '')),
             objective_tuesday=parsed_data.get('objective_tuesday', form_data.get('objectives', {}).get('tuesday', '')),
             objective_wednesday=parsed_data.get('objective_wednesday', form_data.get('objectives', {}).get('wednesday', '')),
             objective_thursday=parsed_data.get('objective_thursday', form_data.get('objectives', {}).get('thursday', '')),
             objective_friday=parsed_data.get('objective_friday', form_data.get('objectives', {}).get('friday', '')),
-            
-            # Daily content
+
             content_monday=parsed_data.get('content_monday', ''),
             content_tuesday=parsed_data.get('content_tuesday', ''),
             content_wednesday=parsed_data.get('content_wednesday', ''),
             content_thursday=parsed_data.get('content_thursday', ''),
             content_friday=parsed_data.get('content_friday', ''),
-            
-            # Learning Resources
+
             teachers_guide=parsed_data.get('teachers_guide', ''),
             learning_materials=parsed_data.get('learning_materials', ''),
             textbook_pages=parsed_data.get('textbook_pages', ''),
             lr_portal=parsed_data.get('lr_portal', ''),
             other_resources=parsed_data.get('other_resources', ''),
-            
-            # Generated content
+
             generated_content=generated_content,
-            
-            # Metadata
+
             weekly_theme=form_data.get('theme', ''),
             teaching_approach=form_data.get('approach', ''),
             intelligence_type=form_data.get('intelligence_type', 'comprehensive'),
-            
-            # Status
+
             status=WeeklyLessonPlan.FINAL if is_department_head else WeeklyLessonPlan.DRAFT,
             auto_approved=is_department_head,
             created_by=request.user,
         )
-        
-        # Set all procedure fields from parsed_data
+
         days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
         steps = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
-        
+
         for day in days:
             for step in steps:
                 field_name = f'{day}_procedure_{step}'
                 setattr(weekly_plan, field_name, parsed_data.get(field_name, ''))
-        
-        # Set exemplar if used
+
         if form_data.get('exemplar_id'):
             try:
                 from lesson.models import Exemplar
                 weekly_plan.exemplar_used = Exemplar.objects.get(id=form_data['exemplar_id'])
             except:
                 pass
-        
+
         weekly_plan.save()
         print(f"Weekly lesson plan saved with ID: {weekly_plan.id}")
-        
-        # Clear session data
+
         if 'generated_weekly_plan' in request.session:
             del request.session['generated_weekly_plan']
         if 'weekly_form_data' in request.session:
             del request.session['weekly_form_data']
-        
+
         message = 'Weekly lesson plan saved as draft successfully!'
         if is_department_head:
             message = 'Weekly lesson plan created and automatically approved!'
-        
+
         return JsonResponse({
             'success': True,
             'draft_id': weekly_plan.id,
@@ -2071,7 +2004,7 @@ def save_weekly_lesson_plan(request):
             'auto_approved': is_department_head,
             'redirect_url': '/drafts/weekly/'
         })
-        
+
     except Exception as e:
         import traceback
         print(f"Error saving weekly lesson plan: {str(e)}")
@@ -2109,7 +2042,7 @@ def parse_weekly_lesson_plan(content, form_data):
         'textbook_pages': '',
         'lr_portal': '',
         'other_resources': '',
-        'other_resources_list': [],  # NEW: Store as list for better template rendering
+        'other_resources_list': [],
         'melc_codes': '',
         'values_integration': '',
         'cross_curricular': '',
@@ -2129,60 +2062,53 @@ def parse_weekly_lesson_plan(content, form_data):
             'friday': {}
         }
     }
-    
-    # Initialize procedure fields for all days
+
     days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
     steps = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
-    
+
     for day in days:
         for step in steps:
             parsed[f'{day}_procedure_{step}'] = ''
             parsed['procedures'][day][step] = ''
-    
-    # Parse school header
+
     school_match = re.search(r'School[:\s]+([^\n]+)', content, re.IGNORECASE)
     if school_match:
         parsed['school'] = school_match.group(1).strip()
-    
+
     teacher_match = re.search(r'Teacher[:\s]+([^\n]+)', content, re.IGNORECASE)
     if teacher_match:
         parsed['teacher'] = teacher_match.group(1).strip()
-    
+
     teaching_date_match = re.search(r'Teaching Date[:\s]+([^\n]+)', content, re.IGNORECASE)
     if teaching_date_match:
         parsed['teaching_date'] = teaching_date_match.group(1).strip()
-    
-    # Parse I. OBJECTIVES section
+
     objectives_pattern = r'I\.?\s*OBJECTIVES\s*(.*?)(?=II\.?\s*CONTENT|$)'
     objectives_match = re.search(objectives_pattern, content, re.DOTALL | re.IGNORECASE)
-    
+
     if objectives_match:
         objectives_section = objectives_match.group(1)
-        
-        # Content Standards
-        cs_match = re.search(r'Content Standards?[:\s]*(.*?)(?=Performance Standards?|$)', 
+
+        cs_match = re.search(r'Content Standards?[:\s]*(.*?)(?=Performance Standards?|$)',
                             objectives_section, re.DOTALL | re.IGNORECASE)
         if cs_match:
             parsed['content_standard'] = cs_match.group(1).strip()
-        
-        # Performance Standards
-        ps_match = re.search(r'Performance Standards?[:\s]*(.*?)(?=Learning Competencies?/Objectives?|$)', 
+
+        ps_match = re.search(r'Performance Standards?[:\s]*(.*?)(?=Learning Competencies?/Objectives?|$)',
                             objectives_section, re.DOTALL | re.IGNORECASE)
         if ps_match:
             parsed['performance_standard'] = ps_match.group(1).strip()
-        
-        # Daily objectives
+
         for day in days:
             day_cap = day.capitalize()
             obj_pattern = rf'{day_cap}[:\s]*(.*?)(?=Monday|Tuesday|Wednesday|Thursday|Friday|$)'
             obj_match = re.search(obj_pattern, objectives_section, re.DOTALL | re.IGNORECASE)
             if obj_match:
                 parsed[f'objective_{day}'] = obj_match.group(1).strip()
-    
-    # Parse II. CONTENT section
+
     content_pattern = r'II\.?\s*CONTENT\s*(.*?)(?=III\.?\s*LEARNING RESOURCES|$)'
     content_match = re.search(content_pattern, content, re.DOTALL | re.IGNORECASE)
-    
+
     if content_match:
         content_section = content_match.group(1)
         for day in days:
@@ -2191,22 +2117,19 @@ def parse_weekly_lesson_plan(content, form_data):
             cont_match = re.search(cont_pattern, content_section, re.DOTALL | re.IGNORECASE)
             if cont_match:
                 parsed[f'content_{day}'] = cont_match.group(1).strip()
-    
-    # ========== COMPLETE LEARNING RESOURCES PARSING ==========
+
     resources_pattern = r'III\.?\s*LEARNING RESOURCES\s*(.*?)(?=IV\.?\s*PROCEDURE|$)'
     resources_match = re.search(resources_pattern, content, re.DOTALL | re.IGNORECASE)
-    
+
     if resources_match:
         resources_section = resources_match.group(1)
-        
-        # ===== A. References subsection =====
+
         references_pattern = r'A\.?\s*References?\s*(.*?)(?=B\.?\s*Other Learning Resources|$)'
         references_match = re.search(references_pattern, resources_section, re.DOTALL | re.IGNORECASE)
-        
+
         if references_match:
             references_text = references_match.group(1)
-            
-            # 1. Teacher's Guide pages
+
             tg_patterns = [
                 r'1\.?\s*Teacher\'?s?\s*Guide\s*(?:pages?)?:?\s*([^\n]+)',
                 r'Teacher\'?s?\s*Guide\s*(?:pages?)?:?\s*([^\n]+)',
@@ -2218,8 +2141,7 @@ def parse_weekly_lesson_plan(content, form_data):
                 if tg_match:
                     parsed['teachers_guide'] = tg_match.group(1).strip()
                     break
-            
-            # 2. Learning Materials pages
+
             lm_patterns = [
                 r'2\.?\s*(?:Learner\'?s?\s*)?Materials?\s*(?:pages?)?:?\s*([^\n]+)',
                 r'(?:Learner\'?s?\s*)?Materials?\s*(?:pages?)?:?\s*([^\n]+)',
@@ -2231,8 +2153,7 @@ def parse_weekly_lesson_plan(content, form_data):
                 if lm_match:
                     parsed['learning_materials'] = lm_match.group(1).strip()
                     break
-            
-            # 3. Textbook pages
+
             tb_patterns = [
                 r'3\.?\s*Textbook\s*(?:pages?)?:?\s*([^\n]+)',
                 r'Textbook\s*(?:pages?)?:?\s*([^\n]+)',
@@ -2244,8 +2165,7 @@ def parse_weekly_lesson_plan(content, form_data):
                 if tb_match:
                     parsed['textbook_pages'] = tb_match.group(1).strip()
                     break
-            
-            # 4. Additional Materials from LR Portal
+
             lr_patterns = [
                 r'4\.?\s*(?:Additional\s*)?Materials?\s*from\s*LR\s*Portal:?\s*([^\n]+)',
                 r'(?:Additional\s*)?Materials?\s*from\s*LR\s*Portal:?\s*([^\n]+)',
@@ -2258,145 +2178,117 @@ def parse_weekly_lesson_plan(content, form_data):
                 if lr_match:
                     parsed['lr_portal'] = lr_match.group(1).strip()
                     break
-        
-        # ===== B. Other Learning Resources subsection =====
+
         other_pattern = r'B\.?\s*Other\s*Learning\s*Resources?\s*(.*?)(?=IV\.?\s*PROCEDURE|$)'
         other_match = re.search(other_pattern, resources_section, re.DOTALL | re.IGNORECASE)
-        
+
         if other_match:
             other_text = other_match.group(1).strip()
-            
-            # Clean up markdown and extra formatting
-            other_text = re.sub(r'\*\*', '', other_text)  # Remove bold markers
-            other_text = re.sub(r'#{1,6}\s*', '', other_text)  # Remove headers
-            other_text = re.sub(r'_{2,}', '', other_text)  # Remove underscores
-            
-            # Store the full text
+
+            other_text = re.sub(r'\*\*', '', other_text)
+            other_text = re.sub(r'#{1,6}\s*', '', other_text)
+            other_text = re.sub(r'_{2,}', '', other_text)
+
             parsed['other_resources'] = other_text.strip()
-            
-            # Extract as list for better template rendering
-            # Split by bullet points, numbers, or newlines
+
             resource_items = []
-            
-            # Try to split by bullet points first
+
             bullet_matches = re.findall(r'[•\-]\s*([^\n]+)', other_text)
             if bullet_matches:
                 resource_items = [item.strip() for item in bullet_matches if item.strip()]
             else:
-                # Try numbered list
                 number_matches = re.findall(r'\d+\.\s*([^\n]+)', other_text)
                 if number_matches:
                     resource_items = [item.strip() for item in number_matches if item.strip()]
                 else:
-                    # Split by newlines and clean
                     lines = other_text.split('\n')
                     for line in lines:
                         line = line.strip()
                         if line and not line.startswith('For example') and not line.startswith('Include'):
-                            # Remove any remaining bullet indicators
                             line = re.sub(r'^[•\-]\s*', '', line)
                             resource_items.append(line)
-            
+
             parsed['other_resources_list'] = resource_items
-    
-    # ========== Parse IV. PROCEDURE section ==========
+
     procedure_pattern = r'IV\.?\s*PROCEDURE\s*(.*?)(?=V\.?\s*REMARKS|$)'
     procedure_match = re.search(procedure_pattern, content, re.DOTALL | re.IGNORECASE)
-    
+
     if procedure_match:
         procedure_section = procedure_match.group(1)
-        
-        # Split by days
+
         for day in days:
             day_upper = day.upper()
-            
-            # Pattern to find each day's section - more flexible
+
             day_pattern = rf'{day_upper}[\s\n]*(?:\[[^\]]*\])?[\s\n]*(.*?)(?={", ".join([d.upper() for d in days if d != day])}|V\.?\s*REMARKS|$)'
             day_match = re.search(day_pattern, procedure_section, re.DOTALL | re.IGNORECASE)
-            
+
             if day_match:
                 day_content = day_match.group(1).strip()
-                
-                # Extract each step A-J
+
                 for i, step in enumerate(steps):
                     step_upper = step.upper()
-                    
-                    # Try multiple patterns for each step
+
                     step_patterns = [
-                        # Pattern 1: A. content (with next step letter or double newline)
                         rf'{step_upper}\.\s*(.*?)(?={chr(ord(step_upper)+1)}\.|\n\n|$)',
-                        # Pattern 2: A. content (with possible spaces and line breaks)
                         rf'{step_upper}\.\s*([^\n]+(?:\n(?!{chr(ord(step_upper)+1)}\.)[^\n]+)*)',
-                        # Pattern 3: Just look for the step letter and take everything until next step
                         rf'{step_upper}\.\s*(.*?)(?=[A-J]\.|$)',
-                        # Pattern 4: Look for step with possible theme in brackets
                         rf'{step_upper}\.\s*(?:\[[^\]]*\]\s*)?(.*?)(?=[A-J]\.|$)'
                     ]
-                    
+
                     step_text = ""
                     for pattern in step_patterns:
                         step_match = re.search(pattern, day_content, re.DOTALL | re.IGNORECASE)
                         if step_match:
                             step_text = step_match.group(1).strip()
                             break
-                    
-                    # If no match found with patterns, try line-by-line approach
+
                     if not step_text:
                         lines = day_content.split('\n')
                         for line in lines:
                             if line.strip().startswith(f'{step_upper}.'):
                                 step_text = line.strip()[2:].strip()
                                 break
-                    
-                    # Store the raw text
+
                     if step_text:
-                        # Clean up any remaining theme indicators
                         step_text = re.sub(r'\[Theme:[^\]]*\]', '', step_text).strip()
                         parsed[f'{day}_procedure_{step}'] = step_text
                         parsed['procedures'][day][step] = step_text
-    
-    # ========== Parse V. REMARKS section ==========
+
     remarks_pattern = r'V\.?\s*REMARKS\s*(.*?)(?=VI\.?\s*REFLECTION|$)'
     remarks_match = re.search(remarks_pattern, content, re.DOTALL | re.IGNORECASE)
-    
+
     if remarks_match:
         parsed['remarks'] = remarks_match.group(1).strip()
-    
-    # ========== Parse VI. REFLECTION section ==========
+
     reflection_pattern = r'VI\.?\s*REFLECTION\s*(.*?)(?=$)'
     reflection_match = re.search(reflection_pattern, content, re.DOTALL | re.IGNORECASE)
-    
+
     if reflection_match:
         reflection_section = reflection_match.group(1)
-        
-        # Parse reflection items A-G
+
         reflection_items = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
         for item in reflection_items:
             item_upper = item.upper()
-            # Pattern for A. [content] or A. content
             item_pattern = rf'{item_upper}\.?\s*(.*?)(?={chr(ord(item_upper)+1)}\.|$)'
             item_match = re.search(item_pattern, reflection_section, re.DOTALL | re.IGNORECASE)
             if item_match:
                 parsed[f'reflection_{item}'] = item_match.group(1).strip()
-    
-    # ========== Parse MELC codes if present ==========
+
     melc_pattern = r'MELC(?:\s*Code)?[:\s]*([^\n]+)'
     melc_match = re.search(melc_pattern, content, re.IGNORECASE)
     if melc_match:
         parsed['melc_codes'] = melc_match.group(1).strip()
-    
-    # ========== Parse Values Integration if present ==========
+
     values_pattern = r'Values(?:\s*Integration)?[:\s]*([^\n]+(?:\n[^\n]+)*?)(?=\n\n|\n[A-Z]\.|$)'
     values_match = re.search(values_pattern, content, re.DOTALL | re.IGNORECASE)
     if values_match:
         parsed['values_integration'] = values_match.group(1).strip()
-    
-    # ========== Parse Cross-curricular Integration if present ==========
+
     cross_pattern = r'Cross[- ]?curricular(?:\s*Integration)?[:\s]*([^\n]+(?:\n[^\n]+)*?)(?=\n\n|\n[A-Z]\.|$)'
     cross_match = re.search(cross_pattern, content, re.DOTALL | re.IGNORECASE)
     if cross_match:
         parsed['cross_curricular'] = cross_match.group(1).strip()
-    
+
     return parsed
 
 
@@ -2405,9 +2297,9 @@ def extract_section(content, start_pattern, end_pattern):
     start_match = re.search(start_pattern, content, re.IGNORECASE)
     if not start_match:
         return ""
-    
+
     start_pos = start_match.end()
-    
+
     end_match = re.search(end_pattern, content[start_pos:], re.IGNORECASE)
     if end_match:
         end_pos = start_pos + end_match.start()
@@ -2419,13 +2311,10 @@ def extract_section(content, start_pattern, end_pattern):
 @login_required
 def weekly_draft_list(request):
     """Display list of weekly lesson plan drafts with submission status"""
-    # Get active tab from query parameters
     active_tab = request.GET.get('tab', 'all')
-    
-    # Base queryset
+
     base_queryset = WeeklyLessonPlan.objects.filter(created_by=request.user)
-    
-    # Apply filters based on tab
+
     if active_tab == 'drafts':
         drafts = base_queryset.filter(submission_status='not_submitted').order_by('-created_at')
     elif active_tab == 'submitted':
@@ -2434,10 +2323,9 @@ def weekly_draft_list(request):
         drafts = base_queryset.filter(submission_status='approved').order_by('-reviewed_at')
     elif active_tab == 'revision':
         drafts = base_queryset.filter(submission_status='needs_revision').order_by('-reviewed_at')
-    else:  # all
+    else:
         drafts = base_queryset.order_by('-created_at')
-    
-    # Calculate statistics
+
     stats = {
         'total': base_queryset.count(),
         'drafts': base_queryset.filter(submission_status='not_submitted').count(),
@@ -2446,18 +2334,16 @@ def weekly_draft_list(request):
         'revision': base_queryset.filter(submission_status='needs_revision').count(),
         'rejected': base_queryset.filter(submission_status='rejected').count(),
     }
-    
-    # Prepare data for template
+
     draft_data = []
     for draft in drafts:
-        # Get department head info if submitted
         department_head = None
         if draft.submitted_to:
             department_head = {
                 'name': draft.submitted_to.get_full_name(),
                 'email': draft.submitted_to.email
             }
-        
+
         draft_data.append({
             'draft': draft,
             'submission_status': draft.get_submission_status_display_custom,
@@ -2466,7 +2352,7 @@ def weekly_draft_list(request):
             'reviewed_at': draft.reviewed_at,
             'review_notes': draft.review_notes[:100] + '...' if draft.review_notes and len(draft.review_notes) > 100 else draft.review_notes,
         })
-    
+
     return render(request, 'lessonGenerator/weekly_draft_list.html', {
         'draft_data': draft_data,
         'stats': stats,
@@ -2474,29 +2360,26 @@ def weekly_draft_list(request):
         'is_weekly': True
     })
 
+
 @login_required
 def view_weekly_draft(request, draft_id):
     """View a weekly lesson draft in read-only format with submission status"""
     draft = get_object_or_404(WeeklyLessonPlan, id=draft_id, created_by=request.user)
-    
-    # Get intelligence type display
+
     intelligence_display = dict(WeeklyLessonPlan.INTELLIGENCE_TYPE_CHOICES).get(
-        draft.intelligence_type, 
+        draft.intelligence_type,
         draft.intelligence_type
     )
-    
-    # Get daily procedures
+
     procedures = {}
     for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']:
         procedures[day] = draft.get_procedure_for_day(day)
-    
-    # Check if user can submit
+
     can_submit = draft.can_submit
-    
-    # Get the department head for this user's school and department
+
     from django.contrib.auth import get_user_model
     User = get_user_model()
-    
+
     department_head = None
     if request.user.school and request.user.department:
         department_head = User.objects.filter(
@@ -2505,7 +2388,7 @@ def view_weekly_draft(request, draft_id):
             school=request.user.school,
             is_active=True
         ).first()
-    
+
     return render(request, 'lessonGenerator/view_weekly_draft.html', {
         'draft': draft,
         'procedures': procedures,
@@ -2514,8 +2397,8 @@ def view_weekly_draft(request, draft_id):
         'content': draft.get_content_dict(),
         'can_submit': can_submit,
         'submission_status': draft.get_submission_status_display_custom,
-        'department_head': department_head,  # Pass department head to template
-        'user_school': request.user.school,  # Pass user's school
+        'department_head': department_head,
+        'user_school': request.user.school,
     })
 
 
@@ -2523,85 +2406,71 @@ def view_weekly_draft(request, draft_id):
 def edit_weekly_draft(request, draft_id):
     """Edit a saved weekly draft"""
     draft = get_object_or_404(WeeklyLessonPlan, id=draft_id, created_by=request.user)
-    
+
     if request.method == 'POST':
-        # Update basic info
         draft.title = request.POST.get('title', draft.title)
         draft.subject = request.POST.get('subject', draft.subject)
         draft.grade_level = request.POST.get('grade_level', draft.grade_level)
         draft.quarter = request.POST.get('quarter', draft.quarter)
         draft.week_number = int(request.POST.get('week_number', draft.week_number))
-        
-        # Update school info
+
         draft.school = request.POST.get('school', draft.school)
         draft.teacher = request.POST.get('teacher', draft.teacher)
         draft.teaching_date = request.POST.get('teaching_date', draft.teaching_date)
-        
-        # Update standards
+
         draft.content_standard = request.POST.get('content_standard', draft.content_standard)
         draft.performance_standard = request.POST.get('performance_standard', draft.performance_standard)
-        
-        # Update daily objectives
+
         draft.objective_monday = request.POST.get('objective_monday', draft.objective_monday)
         draft.objective_tuesday = request.POST.get('objective_tuesday', draft.objective_tuesday)
         draft.objective_wednesday = request.POST.get('objective_wednesday', draft.objective_wednesday)
         draft.objective_thursday = request.POST.get('objective_thursday', draft.objective_thursday)
         draft.objective_friday = request.POST.get('objective_friday', draft.objective_friday)
-        
-        # Update daily content
+
         draft.content_monday = request.POST.get('content_monday', draft.content_monday)
         draft.content_tuesday = request.POST.get('content_tuesday', draft.content_tuesday)
         draft.content_wednesday = request.POST.get('content_wednesday', draft.content_wednesday)
         draft.content_thursday = request.POST.get('content_thursday', draft.content_thursday)
         draft.content_friday = request.POST.get('content_friday', draft.content_friday)
-        
-        # Update resources
+
         draft.teachers_guide = request.POST.get('teachers_guide', draft.teachers_guide)
         draft.learning_materials = request.POST.get('learning_materials', draft.learning_materials)
         draft.textbook_pages = request.POST.get('textbook_pages', draft.textbook_pages)
         draft.lr_portal = request.POST.get('lr_portal', draft.lr_portal)
         draft.other_resources = request.POST.get('other_resources', draft.other_resources)
-        
-        # Update all procedures - Monday
+
         for step in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']:
-            # Monday
             field_name = f'monday_procedure_{step}'
             setattr(draft, field_name, request.POST.get(field_name, getattr(draft, field_name)))
-            
-            # Tuesday
+
             field_name = f'tuesday_procedure_{step}'
             setattr(draft, field_name, request.POST.get(field_name, getattr(draft, field_name)))
-            
-            # Wednesday
+
             field_name = f'wednesday_procedure_{step}'
             setattr(draft, field_name, request.POST.get(field_name, getattr(draft, field_name)))
-            
-            # Thursday
+
             field_name = f'thursday_procedure_{step}'
             setattr(draft, field_name, request.POST.get(field_name, getattr(draft, field_name)))
-            
-            # Friday
+
             field_name = f'friday_procedure_{step}'
             setattr(draft, field_name, request.POST.get(field_name, getattr(draft, field_name)))
-        
-        # Update metadata
+
         draft.intelligence_type = request.POST.get('intelligence_type', draft.intelligence_type)
         draft.weekly_theme = request.POST.get('weekly_theme', draft.weekly_theme)
         draft.teaching_approach = request.POST.get('teaching_approach', draft.teaching_approach)
         draft.melc_codes = request.POST.get('melc_codes', draft.melc_codes)
         draft.values_integration = request.POST.get('values_integration', draft.values_integration)
         draft.cross_curricular = request.POST.get('cross_curricular', draft.cross_curricular)
-        
+
         draft.save()
-        
+
         messages.success(request, 'Weekly draft updated successfully!')
         return redirect('weekly_draft_list')
-    
-    # Prepare data for template
+
     procedures = {}
     for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']:
         procedures[day] = draft.get_procedure_for_day(day)
-    
+
     return render(request, 'lessonGenerator/edit_weekly_draft.html', {
         'draft': draft,
         'procedures': procedures,
@@ -2626,12 +2495,12 @@ def delete_weekly_draft(request, draft_id):
     try:
         draft = get_object_or_404(WeeklyLessonPlan, id=draft_id, created_by=request.user)
         draft.delete()
-        
+
         return JsonResponse({
             'success': True,
             'message': 'Weekly lesson plan deleted successfully!'
         })
-        
+
     except WeeklyLessonPlan.DoesNotExist:
         return JsonResponse({
             'success': False,
@@ -2649,77 +2518,70 @@ def delete_weekly_draft(request, draft_id):
 def submit_weekly_plan(request, draft_id):
     """Submit weekly plan to department head for review"""
     draft = get_object_or_404(WeeklyLessonPlan, id=draft_id, created_by=request.user)
-    
-    # Check if can submit
+
     if not draft.can_submit:
         messages.error(request, "This weekly plan cannot be submitted.")
         return redirect('view_weekly_draft', draft_id=draft_id)
-    
-    # Find department head (same school and department)
+
     from django.contrib.auth import get_user_model
     User = get_user_model()
-    
+
     department_head = User.objects.filter(
         role='Department Head',
         department=request.user.department,
         school=request.user.school,
         is_active=True
     ).first()
-    
+
     if not department_head:
         messages.error(request, "No department head found for your department.")
         return redirect('view_weekly_draft', draft_id=draft_id)
-    
-    # Submit
+
     success, message = draft.submit_for_approval(department_head)
-    
+
     if success:
         messages.success(request, message)
-        # Redirect to department head's pending page
         return redirect('Dep_Pending')
     else:
         messages.error(request, message)
         return redirect('view_weekly_draft', draft_id=draft_id)
 
+
 @login_required
 def weekly_reviews_page(request):
     """Department head's page to review weekly lesson plans"""
     user = request.user
-    
-    # Only department heads can access
+
     if user.role != "Department Head":
         messages.error(request, "You are not authorized to access this page.")
         return redirect('dashboard')
-    
-    # Get pending weekly submissions
+
     pending_submissions = WeeklyLessonPlan.objects.filter(
         submitted_to=user,
         submission_status='submitted'
     ).order_by('-submitted_at')
-    
-    # Get reviewed submissions
+
     reviewed_submissions = WeeklyLessonPlan.objects.filter(
         submitted_to=user,
         submission_status__in=['approved', 'rejected', 'needs_revision']
     ).order_by('-reviewed_at')[:20]
-    
-    # Calculate statistics
+
     stats = {
         'pending': pending_submissions.count(),
         'approved': WeeklyLessonPlan.objects.filter(
-            submitted_to=user, 
+            submitted_to=user,
             submission_status='approved'
         ).count(),
         'revision': WeeklyLessonPlan.objects.filter(
-            submitted_to=user, 
+            submitted_to=user,
             submission_status='needs_revision'
         ).count(),
         'rejected': WeeklyLessonPlan.objects.filter(
-            submitted_to=user, 
+            submitted_to=user,
             submission_status='rejected'
         ).count(),
     }
-    
+
     return render(request, 'lessonGenerator/weekly_reviews.html', {
         'user': user,
         'pending_submissions': pending_submissions,
@@ -2727,24 +2589,22 @@ def weekly_reviews_page(request):
         'stats': stats,
     })
 
+
 @login_required
 def view_weekly_for_review(request, draft_id):
     """View weekly lesson plan for review (for department head)"""
     user = request.user
-    
-    # Only department heads can access
+
     if user.role != "Department Head":
         messages.error(request, "You are not authorized to access this page.")
         return redirect('dashboard')
-    
-    # Get the weekly plan
+
     draft = get_object_or_404(WeeklyLessonPlan, id=draft_id, submitted_to=user)
-    
-    # Get procedures
+
     procedures = {}
     for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']:
         procedures[day] = draft.get_procedure_for_day(day)
-    
+
     return render(request, 'lessonGenerator/review_weekly.html', {
         'draft': draft,
         'procedures': procedures,
@@ -2756,27 +2616,26 @@ def view_weekly_for_review(request, draft_id):
         'can_review': draft.submission_status == 'submitted',
     })
 
+
 @login_required
 @require_http_methods(["POST"])
 def review_weekly_plan(request, draft_id):
     """Process review action for weekly plan (approve/reject/needs_revision)"""
     user = request.user
-    
-    # Only department heads can review
+
     if user.role != "Department Head":
         return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
-    
+
     draft = get_object_or_404(WeeklyLessonPlan, id=draft_id, submitted_to=user)
-    
-    # Check if still pending
+
     if draft.submission_status != 'submitted':
         return JsonResponse({'success': False, 'error': 'This plan has already been reviewed'}, status=400)
-    
+
     try:
         data = json.loads(request.body)
         action = data.get('action')
         review_notes = data.get('review_notes', '').strip()
-        
+
         if action == 'approve':
             success, message = draft.approve(user, review_notes)
         elif action == 'reject':
@@ -2789,34 +2648,33 @@ def review_weekly_plan(request, draft_id):
             success, message = draft.needs_revision(user, review_notes)
         else:
             return JsonResponse({'success': False, 'error': 'Invalid action'}, status=400)
-        
+
         return JsonResponse({
             'success': success,
             'message': message,
             'redirect_url': '/reviews/weekly/'
         })
-        
+
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 
 @login_required
 def weekly_review_detail(request, draft_id):
     """View details of a reviewed weekly plan"""
     user = request.user
     draft = get_object_or_404(WeeklyLessonPlan, id=draft_id)
-    
-    # Check authorization (either creator or reviewer)
+
     if draft.created_by != user and draft.submitted_to != user:
         messages.error(request, "You are not authorized to view this page.")
         return redirect('dashboard')
-    
-    # Get procedures
+
     procedures = {}
     for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']:
         procedures[day] = draft.get_procedure_for_day(day)
-    
+
     return render(request, 'lessonGenerator/review_detail.html', {
         'draft': draft,
         'procedures': procedures,
