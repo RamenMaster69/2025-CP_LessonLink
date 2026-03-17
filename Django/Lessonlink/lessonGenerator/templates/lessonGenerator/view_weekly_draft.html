@@ -370,7 +370,7 @@
                         <th style="width: 15%;">School</th>
                         <td style="width: 35%;">{{ user_school.school_name }}</td>
                         <th style="width: 20%;">Grade Level & Quarter</th>
-                        <td style="width: 30%;">{{ draft.grade_level|upper }} / {{ draft.quarter|upper }}</td>
+                        <td style="width: 30%;">Grade {{ draft.grade_level|upper }} Quarter {{ draft.quarter|upper }}</td>
                         <td class="one" colspan="2" rowspan="3">
                             <img src="/media/school_logos/123456789123_1771002254.jpg" alt="Crimson West High" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentElement.classList.add('bg-gradient-to-r', 'from-[#11468F]', 'to-[#9E5EFF]'); this.style.display='none';">
                         </td>
@@ -383,8 +383,8 @@
                         <td>{{ draft.subject|upper }}</td>
                     </tr>
                     <tr>
-                        <th>Topic</th>
-                        <td colspan="3">{{ draft.topic|default:" " }}</td>
+                        <th>Title</th>
+                        <td colspan="3">{{ draft.title|default:" " }}</td>
                     </tr>
                     <!-- Teaching Date and Time row with equal columns for Monday-Friday -->
                     <tr>
@@ -474,16 +474,16 @@
                         <td class="subheader" style="padding-left: 30px;">1. Teacher's Guide</td>
                         <td>{{ draft.teachers_guide|default:" " }}</td>
                     </tr>
-                    <tr>
+                    <!-- <tr>
                         <td class="subheader" style="padding-left: 30px;">2. Learning Materials</td>
                         <td>{{ draft.learners_materials|default:" " }}</td>
-                    </tr>
+                    </tr> -->
                     <tr>
-                        <td class="subheader" style="padding-left: 30px;">3. Textbook Pages</td>
+                        <td class="subheader" style="padding-left: 30px;">2. Textbook Pages</td>
                         <td>{{ draft.textbook_pages|default:" " }}</td>
                     </tr>
                     <tr>
-                        <td class="subheader" style="padding-left: 30px;">4. Additional Materials from LR Portal</td>
+                        <td class="subheader" style="padding-left: 30px;">3. Additional Materials from LR Portal</td>
                         <td>{{ draft.lr_portal|default:" " }}</td>
                     </tr>
                     <tr>
