@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LessonLink - School Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar-transition {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .dropdown-enter {
+            animation: scaleIn 0.2s ease-out;
+        }
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header (same as admin dashboard) -->
+    <header class="bg-white shadow-sm border-b fixed top-0 left-0 right-0 z-40">
+        <div class="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
+            <button id="mobile-menu-btn" class="md:hidden p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
+                <i class="fas fa-bars text-lg"></i>
+            </button>
+            <div class="flex items-center space-x-3 flex-1 md:flex-none">
+                {% if school and school.school_logo %}
+                <div class="w-10 h-10 rounded-full overflow-hidden shadow-md">
+                    <img src="{{ school.school_logo.url }}" alt="{{ school.school_name }}" class="w-full h-full object-cover">
+                </div>
+                {% else %}
+                <div class="w-10 h-10 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] rounded-full shadow-md"></div>
+                {% endif %}
+                <div class="hidden sm:block">
+                    <h1 class="text-xl font-bold text-gray-900">LessonLink</h1>
+                    <p class="text-sm text-gray-500 hidden lg:block">{{ school.school_name|default:"School Settings" }}</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 md:space-x-4">
+                <div class="relative">
+                    <button id="profile-btn" class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                        {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="Profile" class="w-full h-full object-cover">
+                        {% else %}
+                        <i class="fas fa-user-cog text-gray-500"></i>
+                        {% endif %}
+                    </button>
+                    <div id="profile-dropdown" class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-50 dropdown-enter">
+                        <div class="p-4 border-b border-gray-100">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                                    {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" alt="Profile" class="w-full h-full object-cover">
+                                    {% else %}
+                                    <i class="fas fa-user-tie text-white"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900">{{ user.full_name }}</p>
+                                    <p class="text-sm text-gray-500">{{ user.role }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="py-2">
+                            <a href="{% url 'profile' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-user w-4"></i>
+                                <span>My Profile</span>
+                            </a>
+                            <hr class="my-2">
+                            <a href="{% url 'logout' %}" class="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors">
+                                <i class="fas fa-sign-out-alt w-4"></i>
+                                <span>Logout</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex pt-16">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-white shadow-lg h-screen fixed top-20 left-0 -translate-x-full md:translate-x-0 sidebar-transition z-30 overflow-y-auto">
+            <nav class="p-4 space-y-2">
+                <a href="{% url 'admin_dashboard' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-home text-lg w-5 group-hover:text-[#11468F]"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'admin_faculty_management' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-chalkboard-teacher text-lg w-5 group-hover:text-[#11468F]"></i>
+                    <span>Faculty Management</span>
+                </a>
+                <a href="{% url 'school_settings' %}" class="flex items-center space-x-3 px-4 py-3 text-[#11468F] bg-[#f0f5ff] rounded-lg border border-[#d6e0ff]">
+                    <i class="fas fa-school text-lg w-5"></i>
+                    <span>School Settings</span>
+                </a>
+                <a href="{% url 'admin_calendar' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-calendar-alt text-lg w-5 group-hover:text-[#11468F]"></i>
+                    <span>Calendar</span>
+                </a>
+                <a href="{% url 'admin_user_management' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-users text-lg w-5 group-hover:text-[#11468F]"></i>
+                    <span>User Management</span>
+                </a>
+                <a href="{% url 'admin_system_reports' %}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#f0f5ff] rounded-lg transition-colors group">
+                    <i class="fas fa-chart-bar text-lg w-5 group-hover:text-[#11468F]"></i>
+                    <span>Reports</span>
+                </a>
+            </nav>
+        </aside>
+
+        <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-full md:ml-64">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">School Settings</h2>
+                    <p class="text-gray-600 mt-1">Manage your school's information and logo</p>
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="mb-4 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- School Name -->
+                        <div class="col-span-2 md:col-span-1">
+                            <label for="{{ form.school_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">School Name *</label>
+                            {{ form.school_name }}
+                            {% if form.school_name.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.school_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- School Logo -->
+                        <div class="col-span-2 md:col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">School Logo</label>
+                            <div class="flex items-center space-x-4">
+                                {% if school.school_logo %}
+                                <div class="w-24 h-24 rounded-full overflow-hidden border border-gray-200">
+                                    <img src="{{ school.school_logo.url }}" alt="Current Logo" class="w-full h-full object-cover">
+                                </div>
+                                {% endif %}
+                                <div class="flex-1">
+                                    {{ form.school_logo }}
+                                    <p class="text-xs text-gray-500 mt-1">Recommended: Square image, max 2MB (JPG, PNG, GIF, WebP)</p>
+                                    {% if form.school_logo.errors %}
+                                        <p class="text-red-500 text-xs mt-1">{{ form.school_logo.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="col-span-2">
+                            <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                            {{ form.address }}
+                            {% if form.address.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.address.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div>
+                            <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                            {{ form.phone_number }}
+                            {% if form.phone_number.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.phone_number.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.email.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Website -->
+                        <div>
+                            <label for="{{ form.website.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Website</label>
+                            {{ form.website }}
+                            {% if form.website.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.website.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Facebook Page -->
+                        <div>
+                            <label for="{{ form.facebook_page.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Facebook Page</label>
+                            {{ form.facebook_page }}
+                            {% if form.facebook_page.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.facebook_page.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Contact Person -->
+                        <div>
+                            <label for="{{ form.contact_person.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Contact Person Name</label>
+                            {{ form.contact_person }}
+                            {% if form.contact_person.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.contact_person.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Position -->
+                        <div>
+                            <label for="{{ form.position.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Contact Person Position</label>
+                            {{ form.position }}
+                            {% if form.position.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.position.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Contact Email -->
+                        <div>
+                            <label for="{{ form.contact_email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Contact Email</label>
+                            {{ form.contact_email }}
+                            {% if form.contact_email.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.contact_email.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Contact Phone -->
+                        <div>
+                            <label for="{{ form.contact_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Contact Phone</label>
+                            {{ form.contact_phone }}
+                            {% if form.contact_phone.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.contact_phone.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                        <a href="{% url 'admin_dashboard' %}" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancel</a>
+                        <button type="submit" class="px-6 py-2 bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white rounded-lg hover:shadow-lg transition-all">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        if (mobileMenuBtn && sidebar && overlay) {
+            mobileMenuBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('hidden');
+            });
+            overlay.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            });
+        }
+
+        const profileBtn = document.getElementById('profile-btn');
+        const profileDropdown = document.getElementById('profile-dropdown');
+        if (profileBtn && profileDropdown) {
+            profileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('hidden');
+            });
+            document.addEventListener('click', () => {
+                profileDropdown.classList.add('hidden');
+            });
+            profileDropdown.addEventListener('click', (e) => e.stopPropagation());
+        }
+    </script>
+</body>
+</html>

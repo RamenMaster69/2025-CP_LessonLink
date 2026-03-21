@@ -132,5 +132,6 @@ urlpatterns = [
     
     # Test endpoint (commented out)
     # path('api/test/schedule/', views.test_schedule_api, name='test_schedule_api'),
+    path('school/settings/', views.school_settings, name='school_settings'),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -51,6 +51,8 @@ from .forms import ScheduleForm
 from .models import Schedule
 from datetime import datetime, timedelta, time as datetime_time
 import pytz
+from django.core.files.storage import default_storage
+from .forms import SchoolSettingsForm
 
 # ====================================================== HELPER FUNCTIONS ======================================================
 
@@ -4675,4 +4677,47 @@ def test_schedule_api(request):
         'message': 'Schedule API is working!',
         'url': request.path,
         'method': request.method
+    })
+
+@login_required
+@user_passes_test(is_admin)   # is_admin already defined in your views.py
+def school_settings(request):
+    """School admin view to edit school information (logo, name, etc.)"""
+    user = request.user
+    school = user.school
+
+    if not school:
+        messages.error(request, "You are not associated with any school. Please contact administrator.")
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        form = SchoolSettingsForm(request.POST, request.FILES, instance=school)
+        if form.is_valid():
+            # Delete old logo if a new one is uploaded
+            old_logo = school.school_logo
+            new_logo = form.cleaned_data.get('school_logo')
+            if new_logo and old_logo and old_logo != new_logo:
+                try:
+                    if default_storage.exists(old_logo.name):
+                        default_storage.delete(old_logo.name)
+                except Exception as e:
+                    logger.error(f"Error deleting old logo: {e}")
+
+            # Save the form (but commit=False to handle logo_filename)
+            school = form.save(commit=False)
+            if new_logo:
+                school.logo_filename = new_logo.name
+            school.save()
+
+            messages.success(request, "School information updated successfully!")
+            return redirect('school_settings')
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = SchoolSettingsForm(instance=school)
+
+    return render(request, 'admin/school_settings.html', {
+        'form': form,
+        'school': school,
+        'user': user,
     })
