@@ -17,7 +17,6 @@ class LessonPlan(models.Model):
         (FINAL, 'Final'),
     ]
 
-    
     INTELLIGENCE_TYPE_CHOICES = [
         ('comprehensive', 'Comprehensive (IQ+EQ+SQ+AQ)'),
         ('cognitive', 'Cognitive Focus (IQ) - Logical & Analytical'),
@@ -46,6 +45,15 @@ class LessonPlan(models.Model):
     application = models.TextField()
     evaluation = models.TextField()
     assessment = models.TextField()
+    
+    # --------------------------------------------------------------------------
+    # NEW: Image fields for each procedure section (daily lesson plan)
+    # --------------------------------------------------------------------------
+    introduction_image = models.ImageField(upload_to='daily_procedures/introduction/', blank=True, null=True)
+    instruction_image = models.ImageField(upload_to='daily_procedures/instruction/', blank=True, null=True)
+    application_image = models.ImageField(upload_to='daily_procedures/application/', blank=True, null=True)
+    evaluation_image = models.ImageField(upload_to='daily_procedures/evaluation/', blank=True, null=True)
+    assessment_image = models.ImageField(upload_to='daily_procedures/assessment/', blank=True, null=True)
     
     # MELC Alignment Fields
     melc_code = models.CharField(max_length=50, blank=True)
@@ -580,7 +588,7 @@ class WeeklyLessonPlan(models.Model):
     friday_procedure_j = models.TextField(blank=True)
 
     # --------------------------------------------------------------------------
-    # NEW: Image fields for each procedure step (A-J) for each day
+    # Image fields for each procedure step (A-J) for each day
     # --------------------------------------------------------------------------
     # Monday images
     monday_procedure_a_image = models.ImageField(upload_to='weekly_procedures/monday/', blank=True, null=True)

@@ -682,10 +682,10 @@ def draft_list(request):
 
 @login_required
 def edit_draft(request, draft_id):
-    """Edit a saved draft"""
     draft = get_object_or_404(LessonPlan, id=draft_id, created_by=request.user)
 
     if request.method == 'POST':
+        # --- Text fields ---
         draft.title = request.POST.get('title', draft.title)
         draft.subject = request.POST.get('subject', draft.subject)
         draft.grade_level = request.POST.get('grade_level', draft.grade_level)
@@ -711,8 +711,14 @@ def edit_draft(request, draft_id):
         draft.values_integration = request.POST.get('values_integration', draft.values_integration)
         draft.cross_curricular = request.POST.get('cross_curricular', draft.cross_curricular)
 
-        draft.save()
+        
+        image_fields = ['introduction_image', 'instruction_image', 'application_image',
+                        'evaluation_image', 'assessment_image']
+        for field in image_fields:
+            if field in request.FILES:
+                setattr(draft, field, request.FILES[field])
 
+        draft.save()
         messages.success(request, 'Draft updated successfully!')
 
         if hasattr(request.user, 'role') and request.user.role == 'Department Head':

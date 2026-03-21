@@ -26,7 +26,7 @@
     
     <h2 class="text-2xl font-bold text-gray-800 mb-6">Edit Lesson Plan Draft: {{ draft.title }}</h2>
     
-    <form method="post" class="space-y-6">
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
         {% csrf_token %}
         
         <!-- Basic Information -->
@@ -83,29 +83,84 @@
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Lesson Procedure</h3>
             
             <div class="space-y-4">
+                <!-- Introduction with Image Upload -->
                 <div>
                     <h4 class="font-medium text-gray-700 mb-2">Introduction</h4>
                     <textarea id="introduction" name="introduction" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.introduction }}</textarea>
+                    <div class="mt-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Attach Image (optional)</label>
+                        <input type="file" name="introduction_image" accept="image/*" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        {% if draft.introduction_image %}
+                            <div class="mt-2">
+                                <img src="{{ draft.introduction_image.url }}" alt="Current image" class="max-h-32 rounded border">
+                                <span class="text-xs text-gray-500">Current image</span>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
                 
+                <!-- Instruction/Direct Teaching with Image Upload -->
                 <div>
                     <h4 class="font-medium text-gray-700 mb-2">Instruction/Direct Teaching</h4>
                     <textarea id="instruction" name="instruction" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.instruction }}</textarea>
+                    <div class="mt-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Attach Image (optional)</label>
+                        <input type="file" name="instruction_image" accept="image/*" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        {% if draft.instruction_image %}
+                            <div class="mt-2">
+                                <img src="{{ draft.instruction_image.url }}" alt="Current image" class="max-h-32 rounded border">
+                                <span class="text-xs text-gray-500">Current image</span>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
                 
+                <!-- Guided Practice/Application with Image Upload -->
                 <div>
                     <h4 class="font-medium text-gray-700 mb-2">Guided Practice/Application</h4>
                     <textarea id="application" name="application" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.application }}</textarea>
+                    <div class="mt-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Attach Image (optional)</label>
+                        <input type="file" name="application_image" accept="image/*" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        {% if draft.application_image %}
+                            <div class="mt-2">
+                                <img src="{{ draft.application_image.url }}" alt="Current image" class="max-h-32 rounded border">
+                                <span class="text-xs text-gray-500">Current image</span>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
                 
+                <!-- Independent Practice/Evaluation with Image Upload -->
                 <div>
                     <h4 class="font-medium text-gray-700 mb-2">Independent Practice/Evaluation</h4>
                     <textarea id="evaluation" name="evaluation" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.evaluation }}</textarea>
+                    <div class="mt-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Attach Image (optional)</label>
+                        <input type="file" name="evaluation_image" accept="image/*" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        {% if draft.evaluation_image %}
+                            <div class="mt-2">
+                                <img src="{{ draft.evaluation_image.url }}" alt="Current image" class="max-h-32 rounded border">
+                                <span class="text-xs text-gray-500">Current image</span>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
                 
+                <!-- Assessment with Image Upload -->
                 <div>
                     <h4 class="font-medium text-gray-700 mb-2">Assessment</h4>
                     <textarea id="assessment" name="assessment" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.assessment }}</textarea>
+                    <div class="mt-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Attach Image (optional)</label>
+                        <input type="file" name="assessment_image" accept="image/*" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        {% if draft.assessment_image %}
+                            <div class="mt-2">
+                                <img src="{{ draft.assessment_image.url }}" alt="Current image" class="max-h-32 rounded border">
+                                <span class="text-xs text-gray-500">Current image</span>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
