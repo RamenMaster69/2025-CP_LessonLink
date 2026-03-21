@@ -7,9 +7,60 @@ from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
+
+class LessonPlanImage(models.Model):
+    SECTION_CHOICES = [
+        ('introduction', 'Introduction'),
+        ('instruction', 'Instruction'),
+        ('application', 'Application'),
+        ('evaluation', 'Evaluation'),
+        ('assessment', 'Assessment'),
+    ]
+    lesson_plan = models.ForeignKey(
+        'LessonPlan',               # string reference to avoid order issues
+        on_delete=models.CASCADE,
+        related_name='images'
+    )
+    section = models.CharField(max_length=20, choices=SECTION_CHOICES)
+    image = models.ImageField(upload_to='daily_plan_images/%Y/%m/%d/')
+    caption = models.CharField(max_length=200, blank=True)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['section', 'order']
+
+
+class WeeklyProcedureImage(models.Model):
+    DAY_CHOICES = [
+        ('monday', 'Monday'),
+        ('tuesday', 'Tuesday'),
+        ('wednesday', 'Wednesday'),
+        ('thursday', 'Thursday'),
+        ('friday', 'Friday'),
+    ]
+    STEP_CHOICES = [
+        ('a', 'A'), ('b', 'B'), ('c', 'C'), ('d', 'D'), ('e', 'E'),
+        ('f', 'F'), ('g', 'G'), ('h', 'H'), ('i', 'I'), ('j', 'J'),
+    ]
+
+    weekly_plan = models.ForeignKey(
+        'WeeklyLessonPlan',         # string reference to avoid order issues
+        on_delete=models.CASCADE,
+        related_name='procedure_images'
+    )
+    day = models.CharField(max_length=10, choices=DAY_CHOICES)
+    step = models.CharField(max_length=1, choices=STEP_CHOICES)
+    image = models.ImageField(upload_to='weekly_procedures/%Y/%m/%d/')
+    caption = models.CharField(max_length=200, blank=True)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['day', 'step', 'order']
+
+
 class LessonPlan(models.Model):
     DRAFT = 'draft'
-    SUBMITTED = 'submitted'  
+    SUBMITTED = 'submitted'
     FINAL = 'final'
     STATUS_CHOICES = [
         (DRAFT, 'Draft'),
@@ -33,38 +84,38 @@ class LessonPlan(models.Model):
     quarter = models.CharField(max_length=50, blank=True)
     duration = models.IntegerField(help_text="Duration in minutes")
     population = models.IntegerField(help_text="Number of students")
-    
+
     # Lesson Content
     learning_objectives = models.TextField()
     subject_matter = models.TextField()
     materials_needed = models.TextField()
-    
+
     # Procedure Sections
     introduction = models.TextField()
     instruction = models.TextField()
     application = models.TextField()
     evaluation = models.TextField()
     assessment = models.TextField()
-    
+
     # --------------------------------------------------------------------------
-    # NEW: Image fields for each procedure section (daily lesson plan)
+    # (Old) single‑image fields – kept for backward compatibility
     # --------------------------------------------------------------------------
     introduction_image = models.ImageField(upload_to='daily_procedures/introduction/', blank=True, null=True)
     instruction_image = models.ImageField(upload_to='daily_procedures/instruction/', blank=True, null=True)
     application_image = models.ImageField(upload_to='daily_procedures/application/', blank=True, null=True)
     evaluation_image = models.ImageField(upload_to='daily_procedures/evaluation/', blank=True, null=True)
     assessment_image = models.ImageField(upload_to='daily_procedures/assessment/', blank=True, null=True)
-    
+
     # MELC Alignment Fields
     melc_code = models.CharField(max_length=50, blank=True)
     content_standard = models.TextField(blank=True)
     performance_standard = models.TextField(blank=True)
     learning_competency = models.TextField(blank=True)
-    
+
     # Integration Fields
     values_integration = models.TextField(blank=True)
     cross_curricular = models.TextField(blank=True)
-    
+
     # System Fields
     generated_content = models.TextField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=DRAFT)
@@ -211,7 +262,7 @@ class LessonPlan(models.Model):
                 # Extract exemplar influence if present
                 exemplar_influence_match = re.search(r'\*\*Exemplar Influence:\*\*\s*(.*?)(?=\n\n|\n\*|\n###|$)', content, re.DOTALL | re.IGNORECASE)
                 exemplar_influence = exemplar_influence_match.group(1).strip() if exemplar_influence_match else ""
-                
+
                 procedure_data[subsection] = {
                     'time': match.group(1).strip(),
                     'content': content,
@@ -289,25 +340,25 @@ class LessonPlan(models.Model):
         """Submit this lesson plan to a department head for approval"""
         # Import here to avoid circular import
         from .models import LessonPlanSubmission
-        
+
         # Validate that teacher and department head are in same school and department
         if hasattr(self.created_by, 'school') and hasattr(department_head, 'school'):
             if self.created_by.school != department_head.school:
                 return False, f"Department Head {getattr(department_head, 'full_name', department_head.username)} is not in your school ({self.created_by.school})."
-        
+
         if hasattr(self.created_by, 'department') and hasattr(department_head, 'department'):
             if self.created_by.department != department_head.department:
                 return False, f"Department Head {getattr(department_head, 'full_name', department_head.username)} is not in your department ({self.created_by.department})."
-        
+
         # Check if already submitted
         existing_submission = LessonPlanSubmission.objects.filter(
-            lesson_plan=self, 
+            lesson_plan=self,
             status__in=['submitted', 'approved', 'needs_revision']
         ).first()
-        
+
         if existing_submission:
             return False, "This lesson plan has already been submitted for approval."
-        
+
         # Create new submission
         try:
             submission = LessonPlanSubmission.objects.create(
@@ -325,7 +376,7 @@ class LessonPlan(models.Model):
     def get_structured_content(self):
         """Return lesson plan content in a structured format for templates"""
         parsed = self.parse_generated_content()
-        
+
         # If we have parsed content from AI, use it
         if parsed and parsed.get('metadata_fields'):
             return {
@@ -338,7 +389,7 @@ class LessonPlan(models.Model):
                 'differentiation': parsed.get('differentiation_subsections', {}),
                 'integration': parsed.get('integration_fields', {})
             }
-        
+
         # Fallback to model fields
         return {
             'metadata': {
@@ -369,7 +420,7 @@ class LessonPlan(models.Model):
                 'cross_curricular': self.cross_curricular
             }
         }
-    
+
     def get_latest_submission(self):
         """Get the latest submission for this lesson plan"""
         try:
@@ -391,7 +442,7 @@ class LessonPlanSubmission(models.Model):
         ('needs_revision', 'Needs Revision'),
         ('rejected', 'Rejected'),
     ]
-    
+
     lesson_plan = models.ForeignKey(LessonPlan, on_delete=models.CASCADE, related_name='submissions')
     submitted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='submitted_plans')
     submitted_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_submissions')
@@ -399,10 +450,10 @@ class LessonPlanSubmission(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='submitted')
     feedback = models.TextField(blank=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
-    
+
     class Meta:
         ordering = ['-submission_date']
-    
+
     def __str__(self):
         return f"{self.lesson_plan.title} - {self.status}"
 
@@ -410,26 +461,26 @@ class LessonPlanSubmission(models.Model):
         """Submit lesson plan to supervising teacher for review - specifically for Student Teachers"""
         if not self.created_by.supervising_teacher:
             return False, "No supervising teacher assigned"
-        
+
         if self.status != self.DRAFT:
             return False, "Only draft lesson plans can be submitted"
-        
+
         # Check if already submitted to this supervising teacher
         existing_submission = LessonPlanSubmission.objects.filter(
             lesson_plan=self,
             submitted_to=self.created_by.supervising_teacher,
             status__in=['submitted', 'approved', 'needs_revision']
         ).first()
-        
+
         if existing_submission:
             status_display = existing_submission.get_status_display()
             return False, f"Already submitted to supervising teacher. Current status: {status_display}"
-        
+
         # Validate school and department match
-        if (self.created_by.school != self.created_by.supervising_teacher.school or 
+        if (self.created_by.school != self.created_by.supervising_teacher.school or
             self.created_by.department != self.created_by.supervising_teacher.department):
             return False, "Supervising teacher is not in your school/department"
-        
+
         try:
             # Create submission record
             submission = LessonPlanSubmission.objects.create(
@@ -438,22 +489,22 @@ class LessonPlanSubmission(models.Model):
                 submitted_to=self.created_by.supervising_teacher,
                 status='submitted'
             )
-            
+
             return True, f"Lesson plan submitted to {self.created_by.supervising_teacher.full_name} successfully!"
-            
+
         except ValidationError as e:
             return False, str(e)
         except Exception as e:
             return False, f"Error submitting lesson plan: {str(e)}"
-        
-        @classmethod
-        def get_active_submission_for_lesson(cls, lesson_plan, submitted_to):
-            """Get active submission for a lesson plan to a specific recipient"""
-            return cls.objects.filter(
-                lesson_plan=lesson_plan,
-                submitted_to=submitted_to,
-                status__in=['submitted', 'approved', 'needs_revision']
-            ).first()
+
+    @classmethod
+    def get_active_submission_for_lesson(cls, lesson_plan, submitted_to):
+        """Get active submission for a lesson plan to a specific recipient"""
+        return cls.objects.filter(
+            lesson_plan=lesson_plan,
+            submitted_to=submitted_to,
+            status__in=['submitted', 'approved', 'needs_revision']
+        ).first()
 
 
 # ==============================================================================
@@ -495,37 +546,37 @@ class WeeklyLessonPlan(models.Model):
     grade_level = models.CharField(max_length=50)
     quarter = models.CharField(max_length=50)
     week_number = models.IntegerField(help_text="Week number in the quarter (1-10)")
-    
+
     # School Information
     school = models.CharField(max_length=200, blank=True)
     teacher = models.CharField(max_length=200, blank=True)
     teaching_date = models.CharField(max_length=100, blank=True, help_text="Teaching date range")
-    
+
     # Weekly Standards
     content_standard = models.TextField(help_text="MATATAG Content Standards for the week")
     performance_standard = models.TextField(help_text="MATATAG Performance Standards for the week")
-    
+
     # Learning Objectives - One per day
     objective_monday = models.TextField(blank=True)
     objective_tuesday = models.TextField(blank=True)
     objective_wednesday = models.TextField(blank=True)
     objective_thursday = models.TextField(blank=True)
     objective_friday = models.TextField(blank=True)
-    
+
     # Daily Content/Topics
     content_monday = models.TextField(blank=True)
     content_tuesday = models.TextField(blank=True)
     content_wednesday = models.TextField(blank=True)
     content_thursday = models.TextField(blank=True)
     content_friday = models.TextField(blank=True)
-    
+
     # Learning Resources
     teachers_guide = models.CharField(max_length=200, blank=True)
     learning_materials = models.CharField(max_length=200, blank=True)
     textbook_pages = models.CharField(max_length=200, blank=True)
     lr_portal = models.CharField(max_length=200, blank=True, help_text="Learning Resource Portal references")
     other_resources = models.TextField(blank=True)
-    
+
     # Daily Procedures (MATATAG 10-step procedure per day)
     # Monday
     monday_procedure_a = models.TextField(blank=True, help_text="A. Reviewing previous lesson")
@@ -538,7 +589,7 @@ class WeeklyLessonPlan(models.Model):
     monday_procedure_h = models.TextField(blank=True, help_text="H. Making generalizations")
     monday_procedure_i = models.TextField(blank=True, help_text="I. Evaluating learning")
     monday_procedure_j = models.TextField(blank=True, help_text="J. Additional activities")
-    
+
     # Tuesday
     tuesday_procedure_a = models.TextField(blank=True)
     tuesday_procedure_b = models.TextField(blank=True)
@@ -550,7 +601,7 @@ class WeeklyLessonPlan(models.Model):
     tuesday_procedure_h = models.TextField(blank=True)
     tuesday_procedure_i = models.TextField(blank=True)
     tuesday_procedure_j = models.TextField(blank=True)
-    
+
     # Wednesday
     wednesday_procedure_a = models.TextField(blank=True)
     wednesday_procedure_b = models.TextField(blank=True)
@@ -562,7 +613,7 @@ class WeeklyLessonPlan(models.Model):
     wednesday_procedure_h = models.TextField(blank=True)
     wednesday_procedure_i = models.TextField(blank=True)
     wednesday_procedure_j = models.TextField(blank=True)
-    
+
     # Thursday
     thursday_procedure_a = models.TextField(blank=True)
     thursday_procedure_b = models.TextField(blank=True)
@@ -574,7 +625,7 @@ class WeeklyLessonPlan(models.Model):
     thursday_procedure_h = models.TextField(blank=True)
     thursday_procedure_i = models.TextField(blank=True)
     thursday_procedure_j = models.TextField(blank=True)
-    
+
     # Friday
     friday_procedure_a = models.TextField(blank=True)
     friday_procedure_b = models.TextField(blank=True)
@@ -588,7 +639,7 @@ class WeeklyLessonPlan(models.Model):
     friday_procedure_j = models.TextField(blank=True)
 
     # --------------------------------------------------------------------------
-    # Image fields for each procedure step (A-J) for each day
+    # Image fields for each procedure step (A-J) for each day (single‑image fields, kept for backward compatibility)
     # --------------------------------------------------------------------------
     # Monday images
     monday_procedure_a_image = models.ImageField(upload_to='weekly_procedures/monday/', blank=True, null=True)
@@ -664,7 +715,7 @@ class WeeklyLessonPlan(models.Model):
         ('hands_on', 'Hands-on/Practical'),
         ('inquiry', 'Inquiry-Based'),
     ])
-    
+
     # Intelligence Type
     intelligence_type = models.CharField(
         max_length=20,
@@ -672,28 +723,28 @@ class WeeklyLessonPlan(models.Model):
         default='comprehensive',
         help_text="Type of intelligence to focus lesson plan adaptation on"
     )
-    
+
     # Exemplar Reference
     exemplar_used = models.ForeignKey('lesson.Exemplar', on_delete=models.SET_NULL, null=True, blank=True)
     exemplar_notes = models.TextField(blank=True, help_text="How exemplar influenced this weekly plan")
-    
+
     # MELC Alignment
     melc_codes = models.TextField(blank=True, help_text="MELC codes covered this week (comma separated)")
-    
+
     # Integration
     values_integration = models.TextField(blank=True)
     cross_curricular = models.TextField(blank=True)
-    
+
     # Full Generated Content (for reference)
     generated_content = models.TextField(help_text="Full AI-generated weekly lesson plan in markdown")
-    
+
     # System Fields
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=DRAFT)
     auto_approved = models.BooleanField(default=False)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='weekly_plans')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     # Submission tracking fields (directly on the model)
     submission_status = models.CharField(
         max_length=20,
@@ -723,18 +774,18 @@ class WeeklyLessonPlan(models.Model):
         related_name='weekly_plans_reviewed'
     )
     review_notes = models.TextField(blank=True)
-    
+
     # Indicator (optional, but can stay)
     is_weekly = models.BooleanField(default=True, help_text="Indicator for weekly lesson plans")
-    
+
     class Meta:
         ordering = ['-created_at']
         verbose_name = 'Weekly Lesson Plan'
         verbose_name_plural = 'Weekly Lesson Plans'
-    
+
     def __str__(self):
         return f"Week {self.week_number}: {self.subject} - {self.grade_level} ({self.get_status_display()})"
-    
+
     def get_objectives_dict(self):
         return {
             'monday': self.objective_monday,
@@ -743,7 +794,7 @@ class WeeklyLessonPlan(models.Model):
             'thursday': self.objective_thursday,
             'friday': self.objective_friday,
         }
-    
+
     def get_content_dict(self):
         return {
             'monday': self.content_monday,
@@ -752,7 +803,7 @@ class WeeklyLessonPlan(models.Model):
             'thursday': self.content_thursday,
             'friday': self.content_friday,
         }
-    
+
     def get_procedure_for_day(self, day):
         steps = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
         procedure = {}
@@ -793,7 +844,7 @@ class WeeklyLessonPlan(models.Model):
     def latest_submission(self):
         return self.get_latest_submission()
     # ==================== END ADDED METHODS ====================
-    
+
     def submit_for_approval(self, reviewer):
         """Submit this weekly plan for approval (with notification)"""
         from django.utils import timezone
@@ -807,7 +858,7 @@ class WeeklyLessonPlan(models.Model):
         self.submitted_at = timezone.now()
         self.status = self.FINAL  # Mark as FINAL when submitted
         self.save()
-        
+
         # Create notification for reviewer
         try:
             from lesson.models import Notification   # CHANGED
@@ -823,9 +874,9 @@ class WeeklyLessonPlan(models.Model):
             logger.error(f"Failed to import Notification model for weekly submission: {e}")
         except Exception as e:
             logger.error(f"Failed to create weekly submission notification: {e}")
-        
+
         return True, f"Weekly plan submitted successfully to {reviewer.get_full_name()}!"
-    
+
     def approve(self, reviewer, notes=""):
         """Approve this weekly plan (with notification)"""
         print(f"✅ APPROVE CALLED for {self.title}")
@@ -841,7 +892,7 @@ class WeeklyLessonPlan(models.Model):
         self.review_notes = notes
         self.status = self.FINAL
         self.save()
-        
+
         try:
             from lesson.models import Notification   # CHANGED
             print("✅ Imported Notification")
@@ -858,9 +909,9 @@ class WeeklyLessonPlan(models.Model):
             print(f"❌ ImportError: {e}")
         except Exception as e:
             print(f"❌ Other error: {e}")
-        
+
         return True, "Weekly plan approved successfully!"
-    
+
     def reject(self, reviewer, notes):
         """Reject this weekly plan (with notification)"""
         from django.utils import timezone
@@ -874,7 +925,7 @@ class WeeklyLessonPlan(models.Model):
         self.review_notes = notes
         self.status = self.DRAFT  # Revert to draft
         self.save()
-        
+
         try:
             from lesson.models import Notification   # CHANGED
             Notification.objects.create(
@@ -889,9 +940,9 @@ class WeeklyLessonPlan(models.Model):
             logger.error(f"Failed to import Notification model for weekly rejection: {e}")
         except Exception as e:
             logger.error(f"Failed to create weekly rejection notification: {e}")
-        
+
         return True, "Weekly plan rejected with feedback."
-    
+
     def needs_revision(self, reviewer, notes):
         """Request revision for this weekly plan (with notification)"""
         from django.utils import timezone
@@ -905,7 +956,7 @@ class WeeklyLessonPlan(models.Model):
         self.review_notes = notes
         self.status = self.DRAFT
         self.save()
-        
+
         try:
             from lesson.models import Notification   # CHANGED
             Notification.objects.create(
@@ -920,7 +971,7 @@ class WeeklyLessonPlan(models.Model):
             logger.error(f"Failed to import Notification model for weekly needs_revision: {e}")
         except Exception as e:
             logger.error(f"Failed to create weekly needs_revision notification: {e}")
-        
+
         return True, "Weekly plan marked for revision with feedback."
 
     @property
@@ -933,7 +984,7 @@ class WeeklyLessonPlan(models.Model):
             'needs_revision': 'Needs Revision',
         }
         return status_map.get(self.submission_status, self.submission_status)
-    
+
     @property
     def can_submit(self):
         return self.submission_status in ['not_submitted', 'rejected', 'needs_revision']
