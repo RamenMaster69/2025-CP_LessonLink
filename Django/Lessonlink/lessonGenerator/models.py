@@ -578,7 +578,70 @@ class WeeklyLessonPlan(models.Model):
     friday_procedure_h = models.TextField(blank=True)
     friday_procedure_i = models.TextField(blank=True)
     friday_procedure_j = models.TextField(blank=True)
-    
+
+    # --------------------------------------------------------------------------
+    # NEW: Image fields for each procedure step (A-J) for each day
+    # --------------------------------------------------------------------------
+    # Monday images
+    monday_procedure_a_image = models.ImageField(upload_to='weekly_procedures/monday/', blank=True, null=True)
+    monday_procedure_b_image = models.ImageField(upload_to='weekly_procedures/monday/', blank=True, null=True)
+    monday_procedure_c_image = models.ImageField(upload_to='weekly_procedures/monday/', blank=True, null=True)
+    monday_procedure_d_image = models.ImageField(upload_to='weekly_procedures/monday/', blank=True, null=True)
+    monday_procedure_e_image = models.ImageField(upload_to='weekly_procedures/monday/', blank=True, null=True)
+    monday_procedure_f_image = models.ImageField(upload_to='weekly_procedures/monday/', blank=True, null=True)
+    monday_procedure_g_image = models.ImageField(upload_to='weekly_procedures/monday/', blank=True, null=True)
+    monday_procedure_h_image = models.ImageField(upload_to='weekly_procedures/monday/', blank=True, null=True)
+    monday_procedure_i_image = models.ImageField(upload_to='weekly_procedures/monday/', blank=True, null=True)
+    monday_procedure_j_image = models.ImageField(upload_to='weekly_procedures/monday/', blank=True, null=True)
+
+    # Tuesday images
+    tuesday_procedure_a_image = models.ImageField(upload_to='weekly_procedures/tuesday/', blank=True, null=True)
+    tuesday_procedure_b_image = models.ImageField(upload_to='weekly_procedures/tuesday/', blank=True, null=True)
+    tuesday_procedure_c_image = models.ImageField(upload_to='weekly_procedures/tuesday/', blank=True, null=True)
+    tuesday_procedure_d_image = models.ImageField(upload_to='weekly_procedures/tuesday/', blank=True, null=True)
+    tuesday_procedure_e_image = models.ImageField(upload_to='weekly_procedures/tuesday/', blank=True, null=True)
+    tuesday_procedure_f_image = models.ImageField(upload_to='weekly_procedures/tuesday/', blank=True, null=True)
+    tuesday_procedure_g_image = models.ImageField(upload_to='weekly_procedures/tuesday/', blank=True, null=True)
+    tuesday_procedure_h_image = models.ImageField(upload_to='weekly_procedures/tuesday/', blank=True, null=True)
+    tuesday_procedure_i_image = models.ImageField(upload_to='weekly_procedures/tuesday/', blank=True, null=True)
+    tuesday_procedure_j_image = models.ImageField(upload_to='weekly_procedures/tuesday/', blank=True, null=True)
+
+    # Wednesday images
+    wednesday_procedure_a_image = models.ImageField(upload_to='weekly_procedures/wednesday/', blank=True, null=True)
+    wednesday_procedure_b_image = models.ImageField(upload_to='weekly_procedures/wednesday/', blank=True, null=True)
+    wednesday_procedure_c_image = models.ImageField(upload_to='weekly_procedures/wednesday/', blank=True, null=True)
+    wednesday_procedure_d_image = models.ImageField(upload_to='weekly_procedures/wednesday/', blank=True, null=True)
+    wednesday_procedure_e_image = models.ImageField(upload_to='weekly_procedures/wednesday/', blank=True, null=True)
+    wednesday_procedure_f_image = models.ImageField(upload_to='weekly_procedures/wednesday/', blank=True, null=True)
+    wednesday_procedure_g_image = models.ImageField(upload_to='weekly_procedures/wednesday/', blank=True, null=True)
+    wednesday_procedure_h_image = models.ImageField(upload_to='weekly_procedures/wednesday/', blank=True, null=True)
+    wednesday_procedure_i_image = models.ImageField(upload_to='weekly_procedures/wednesday/', blank=True, null=True)
+    wednesday_procedure_j_image = models.ImageField(upload_to='weekly_procedures/wednesday/', blank=True, null=True)
+
+    # Thursday images
+    thursday_procedure_a_image = models.ImageField(upload_to='weekly_procedures/thursday/', blank=True, null=True)
+    thursday_procedure_b_image = models.ImageField(upload_to='weekly_procedures/thursday/', blank=True, null=True)
+    thursday_procedure_c_image = models.ImageField(upload_to='weekly_procedures/thursday/', blank=True, null=True)
+    thursday_procedure_d_image = models.ImageField(upload_to='weekly_procedures/thursday/', blank=True, null=True)
+    thursday_procedure_e_image = models.ImageField(upload_to='weekly_procedures/thursday/', blank=True, null=True)
+    thursday_procedure_f_image = models.ImageField(upload_to='weekly_procedures/thursday/', blank=True, null=True)
+    thursday_procedure_g_image = models.ImageField(upload_to='weekly_procedures/thursday/', blank=True, null=True)
+    thursday_procedure_h_image = models.ImageField(upload_to='weekly_procedures/thursday/', blank=True, null=True)
+    thursday_procedure_i_image = models.ImageField(upload_to='weekly_procedures/thursday/', blank=True, null=True)
+    thursday_procedure_j_image = models.ImageField(upload_to='weekly_procedures/thursday/', blank=True, null=True)
+
+    # Friday images
+    friday_procedure_a_image = models.ImageField(upload_to='weekly_procedures/friday/', blank=True, null=True)
+    friday_procedure_b_image = models.ImageField(upload_to='weekly_procedures/friday/', blank=True, null=True)
+    friday_procedure_c_image = models.ImageField(upload_to='weekly_procedures/friday/', blank=True, null=True)
+    friday_procedure_d_image = models.ImageField(upload_to='weekly_procedures/friday/', blank=True, null=True)
+    friday_procedure_e_image = models.ImageField(upload_to='weekly_procedures/friday/', blank=True, null=True)
+    friday_procedure_f_image = models.ImageField(upload_to='weekly_procedures/friday/', blank=True, null=True)
+    friday_procedure_g_image = models.ImageField(upload_to='weekly_procedures/friday/', blank=True, null=True)
+    friday_procedure_h_image = models.ImageField(upload_to='weekly_procedures/friday/', blank=True, null=True)
+    friday_procedure_i_image = models.ImageField(upload_to='weekly_procedures/friday/', blank=True, null=True)
+    friday_procedure_j_image = models.ImageField(upload_to='weekly_procedures/friday/', blank=True, null=True)
+
     # Weekly Theme and Approach
     weekly_theme = models.CharField(max_length=50, blank=True, choices=[
         ('introduction', 'Introduction'),

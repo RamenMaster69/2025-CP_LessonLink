@@ -2402,12 +2402,19 @@ def view_weekly_draft(request, draft_id):
     })
 
 
+# views.py (inside lessonGenerator app)
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import WeeklyLessonPlan
+
 @login_required
 def edit_weekly_draft(request, draft_id):
-    """Edit a saved weekly draft"""
     draft = get_object_or_404(WeeklyLessonPlan, id=draft_id, created_by=request.user)
 
     if request.method == 'POST':
+        # --- Update text fields (all existing) ---
         draft.title = request.POST.get('title', draft.title)
         draft.subject = request.POST.get('subject', draft.subject)
         draft.grade_level = request.POST.get('grade_level', draft.grade_level)
@@ -2439,22 +2446,27 @@ def edit_weekly_draft(request, draft_id):
         draft.lr_portal = request.POST.get('lr_portal', draft.lr_portal)
         draft.other_resources = request.POST.get('other_resources', draft.other_resources)
 
-        for step in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']:
-            field_name = f'monday_procedure_{step}'
-            setattr(draft, field_name, request.POST.get(field_name, getattr(draft, field_name)))
+        # Daily procedures text fields (Monday to Friday, A-J)
+        days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+        steps = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
+        for day in days:
+            for step in steps:
+                field_name = f"{day}_procedure_{step}"
+                if field_name in request.POST:
+                    setattr(draft, field_name, request.POST.get(field_name, ''))
 
-            field_name = f'tuesday_procedure_{step}'
-            setattr(draft, field_name, request.POST.get(field_name, getattr(draft, field_name)))
+        # --- NEW: Handle image uploads for all 50 fields ---
+        # Define image field names
+        image_fields = []
+        for day in days:
+            for step in steps:
+                image_fields.append(f"{day}_procedure_{step}_image")
 
-            field_name = f'wednesday_procedure_{step}'
-            setattr(draft, field_name, request.POST.get(field_name, getattr(draft, field_name)))
+        for field_name in image_fields:
+            if field_name in request.FILES:
+                setattr(draft, field_name, request.FILES[field_name])
 
-            field_name = f'thursday_procedure_{step}'
-            setattr(draft, field_name, request.POST.get(field_name, getattr(draft, field_name)))
-
-            field_name = f'friday_procedure_{step}'
-            setattr(draft, field_name, request.POST.get(field_name, getattr(draft, field_name)))
-
+        # --- Other fields ---
         draft.intelligence_type = request.POST.get('intelligence_type', draft.intelligence_type)
         draft.weekly_theme = request.POST.get('weekly_theme', draft.weekly_theme)
         draft.teaching_approach = request.POST.get('teaching_approach', draft.teaching_approach)
@@ -2463,13 +2475,23 @@ def edit_weekly_draft(request, draft_id):
         draft.cross_curricular = request.POST.get('cross_curricular', draft.cross_curricular)
 
         draft.save()
-
         messages.success(request, 'Weekly draft updated successfully!')
         return redirect('weekly_draft_list')
 
+    # --- GET: Prepare context for the template ---
+    # Prepare procedures dictionary for the template (if needed)
     procedures = {}
     for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']:
         procedures[day] = draft.get_procedure_for_day(day)
+
+    # Prepare days and steps for dynamic loops in the template
+    days = [('monday', 'Monday'), ('tuesday', 'Tuesday'), ('wednesday', 'Wednesday'),
+            ('thursday', 'Thursday'), ('friday', 'Friday')]
+    steps = [('a', 'A'), ('b', 'B'), ('c', 'C'), ('d', 'D'), ('e', 'E'),
+             ('f', 'F'), ('g', 'G'), ('h', 'H'), ('i', 'I'), ('j', 'J')]
+
+    # Pass user school info (assuming you have a context processor, but we can pass explicitly)
+    user_school = request.user.school if hasattr(request.user, 'school') else None
 
     return render(request, 'lessonGenerator/edit_weekly_draft.html', {
         'draft': draft,
@@ -2477,15 +2499,17 @@ def edit_weekly_draft(request, draft_id):
         'objectives': draft.get_objectives_dict(),
         'content': draft.get_content_dict(),
         'intelligence_choices': WeeklyLessonPlan.INTELLIGENCE_TYPE_CHOICES,
-        'theme_choices': WeeklyLessonPlan.WEEK_DAYS,
+        'theme_choices': WeeklyLessonPlan.WEEK_DAYS,  # This is a list of tuples (monday, Monday) etc.
         'approach_choices': [
             ('direct', 'Direct Instruction'),
             ('collaborative', 'Collaborative Learning'),
             ('hands_on', 'Hands-on/Practical'),
             ('inquiry', 'Inquiry-Based'),
         ],
+        'days': days,
+        'steps': steps,
+        'user_school': user_school,
     })
-
 
 @csrf_exempt
 @require_http_methods(["POST"])

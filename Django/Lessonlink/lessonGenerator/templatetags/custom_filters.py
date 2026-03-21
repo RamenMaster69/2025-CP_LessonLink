@@ -108,6 +108,7 @@ def is_fragment(text):
     
     return False
 
+
 @register.filter
 def get_range(value):
     """
@@ -156,3 +157,13 @@ def divide(value, arg):
         return 0
     except (ValueError, TypeError, ZeroDivisionError):
         return 0
+
+
+# ========== ADD THIS FILTER ==========
+@register.filter
+def attr(obj, attr_name):
+    """
+    Alias for get_item filter (attribute/dictionary access).
+    Usage: {{ object|attr:"attribute_name" }}
+    """
+    return get_item(obj, attr_name)

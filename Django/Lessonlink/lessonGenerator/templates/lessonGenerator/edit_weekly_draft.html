@@ -1,3 +1,4 @@
+{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,6 +50,13 @@
             padding-left: 12px;
             margin-bottom: 16px;
         }
+        .image-preview {
+            max-width: 200px;
+            max-height: 150px;
+            margin-top: 8px;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -77,7 +85,7 @@
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 py-8">
-        <form method="post" class="space-y-6">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
             {% csrf_token %}
             
             <!-- Basic Info Section -->
@@ -230,7 +238,7 @@
                 </div>
             </div>
 
-            <!-- Daily Procedures with Tabs -->
+            <!-- Daily Procedures with Tabs (Dynamic version with image uploads) -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div class="bg-gray-50 px-6 py-3 border-b">
                     <h2 class="text-lg font-semibold flex items-center">
@@ -241,118 +249,55 @@
                 
                 <!-- Day Tabs -->
                 <div class="flex flex-wrap px-6 pt-4 border-b">
-                    <div class="day-tab active" onclick="showDay('monday')">MONDAY</div>
-                    <div class="day-tab" onclick="showDay('tuesday')">TUESDAY</div>
-                    <div class="day-tab" onclick="showDay('wednesday')">WEDNESDAY</div>
-                    <div class="day-tab" onclick="showDay('thursday')">THURSDAY</div>
-                    <div class="day-tab" onclick="showDay('friday')">FRIDAY</div>
+                    {% for day, day_name in days %}
+                        <div class="day-tab {% if forloop.first %}active{% endif %}" onclick="showDay('{{ day }}')">{{ day_name|upper }}</div>
+                    {% endfor %}
                 </div>
                 
                 <div class="p-6">
-                    <!-- Monday Procedures -->
-                    <div id="monday-procedures" class="day-procedures space-y-4">
-                        <h3 class="font-semibold text-[#11468F] mb-4">Monday - {{ draft.content_monday|default:"Procedures" }}</h3>
-                        <div class="procedure-step">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">A. Reviewing previous lesson</label>
-                            <textarea name="monday_procedure_a" rows="2" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">{{ draft.monday_procedure_a }}</textarea>
-                        </div>
-                        <div class="procedure-step">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">B. Establishing purpose</label>
-                            <textarea name="monday_procedure_b" rows="2" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">{{ draft.monday_procedure_b }}</textarea>
-                        </div>
-                        <div class="procedure-step">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">C. Presenting examples</label>
-                            <textarea name="monday_procedure_c" rows="2" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">{{ draft.monday_procedure_c }}</textarea>
-                        </div>
-                        <div class="procedure-step">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">D. Discussing concepts #1</label>
-                            <textarea name="monday_procedure_d" rows="2" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">{{ draft.monday_procedure_d }}</textarea>
-                        </div>
-                        <div class="procedure-step">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">E. Discussing concepts #2</label>
-                            <textarea name="monday_procedure_e" rows="2" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">{{ draft.monday_procedure_e }}</textarea>
-                        </div>
-                        <div class="procedure-step">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">F. Developing mastery</label>
-                            <textarea name="monday_procedure_f" rows="2" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">{{ draft.monday_procedure_f }}</textarea>
-                        </div>
-                        <div class="procedure-step">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">G. Practical applications</label>
-                            <textarea name="monday_procedure_g" rows="2" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">{{ draft.monday_procedure_g }}</textarea>
-                        </div>
-                        <div class="procedure-step">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">H. Generalizations</label>
-                            <textarea name="monday_procedure_h" rows="2" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">{{ draft.monday_procedure_h }}</textarea>
-                        </div>
-                        <div class="procedure-step">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">I. Evaluating learning</label>
-                            <textarea name="monday_procedure_i" rows="2" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">{{ draft.monday_procedure_i }}</textarea>
-                        </div>
-                        <div class="procedure-step">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">J. Additional activities</label>
-                            <textarea name="monday_procedure_j" rows="2" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">{{ draft.monday_procedure_j }}</textarea>
-                        </div>
-                    </div>
+                    {% for day, day_name in days %}
+                        <div id="{{ day }}-procedures" class="day-procedures {% if not forloop.first %}hidden{% endif %} space-y-4">
+                            <h3 class="font-semibold text-[#11468F] mb-4">{{ day_name|upper }} - {{ draft|attr:"content_"|add:day|default:"Procedures" }}</h3>
 
-                    <!-- Tuesday Procedures (similar structure) - hidden by default -->
-                    <div id="tuesday-procedures" class="day-procedures hidden space-y-4">
-                        <h3 class="font-semibold text-[#11468F] mb-4">Tuesday - {{ draft.content_tuesday|default:"Procedures" }}</h3>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">A. Reviewing previous lesson</label><textarea name="tuesday_procedure_a" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.tuesday_procedure_a }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">B. Establishing purpose</label><textarea name="tuesday_procedure_b" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.tuesday_procedure_b }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">C. Presenting examples</label><textarea name="tuesday_procedure_c" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.tuesday_procedure_c }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">D. Discussing concepts #1</label><textarea name="tuesday_procedure_d" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.tuesday_procedure_d }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">E. Discussing concepts #2</label><textarea name="tuesday_procedure_e" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.tuesday_procedure_e }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">F. Developing mastery</label><textarea name="tuesday_procedure_f" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.tuesday_procedure_f }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">G. Practical applications</label><textarea name="tuesday_procedure_g" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.tuesday_procedure_g }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">H. Generalizations</label><textarea name="tuesday_procedure_h" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.tuesday_procedure_h }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">I. Evaluating learning</label><textarea name="tuesday_procedure_i" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.tuesday_procedure_i }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">J. Additional activities</label><textarea name="tuesday_procedure_j" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.tuesday_procedure_j }}</textarea></div>
-                    </div>
+                            {% for step, step_upper in steps %}
+                                {% with field_name=day|add:"_procedure_"|add:step %}
+                                    <div class="procedure-step">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                                            {{ step_upper }}. 
+                                            {% if step == 'a' %}Reviewing previous lesson
+                                            {% elif step == 'b' %}Establishing purpose
+                                            {% elif step == 'c' %}Presenting examples
+                                            {% elif step == 'd' %}Discussing concepts #1
+                                            {% elif step == 'e' %}Discussing concepts #2
+                                            {% elif step == 'f' %}Developing mastery
+                                            {% elif step == 'g' %}Practical applications
+                                            {% elif step == 'h' %}Generalizations
+                                            {% elif step == 'i' %}Evaluating learning
+                                            {% elif step == 'j' %}Additional activities
+                                            {% endif %}
+                                        </label>
+                                        <textarea name="{{ field_name }}" rows="2" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#11468F]">{{ draft|attr:field_name }}</textarea>
 
-                    <!-- Wednesday Procedures -->
-                    <div id="wednesday-procedures" class="day-procedures hidden space-y-4">
-                        <h3 class="font-semibold text-[#11468F] mb-4">Wednesday - {{ draft.content_wednesday|default:"Procedures" }}</h3>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">A. Reviewing previous lesson</label><textarea name="wednesday_procedure_a" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.wednesday_procedure_a }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">B. Establishing purpose</label><textarea name="wednesday_procedure_b" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.wednesday_procedure_b }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">C. Presenting examples</label><textarea name="wednesday_procedure_c" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.wednesday_procedure_c }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">D. Discussing concepts #1</label><textarea name="wednesday_procedure_d" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.wednesday_procedure_d }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">E. Discussing concepts #2</label><textarea name="wednesday_procedure_e" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.wednesday_procedure_e }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">F. Developing mastery</label><textarea name="wednesday_procedure_f" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.wednesday_procedure_f }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">G. Practical applications</label><textarea name="wednesday_procedure_g" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.wednesday_procedure_g }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">H. Generalizations</label><textarea name="wednesday_procedure_h" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.wednesday_procedure_h }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">I. Evaluating learning</label><textarea name="wednesday_procedure_i" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.wednesday_procedure_i }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">J. Additional activities</label><textarea name="wednesday_procedure_j" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.wednesday_procedure_j }}</textarea></div>
-                    </div>
-
-                    <!-- Thursday Procedures -->
-                    <div id="thursday-procedures" class="day-procedures hidden space-y-4">
-                        <h3 class="font-semibold text-[#11468F] mb-4">Thursday - {{ draft.content_thursday|default:"Procedures" }}</h3>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">A. Reviewing previous lesson</label><textarea name="thursday_procedure_a" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.thursday_procedure_a }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">B. Establishing purpose</label><textarea name="thursday_procedure_b" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.thursday_procedure_b }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">C. Presenting examples</label><textarea name="thursday_procedure_c" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.thursday_procedure_c }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">D. Discussing concepts #1</label><textarea name="thursday_procedure_d" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.thursday_procedure_d }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">E. Discussing concepts #2</label><textarea name="thursday_procedure_e" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.thursday_procedure_e }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">F. Developing mastery</label><textarea name="thursday_procedure_f" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.thursday_procedure_f }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">G. Practical applications</label><textarea name="thursday_procedure_g" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.thursday_procedure_g }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">H. Generalizations</label><textarea name="thursday_procedure_h" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.thursday_procedure_h }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">I. Evaluating learning</label><textarea name="thursday_procedure_i" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.thursday_procedure_i }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">J. Additional activities</label><textarea name="thursday_procedure_j" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.thursday_procedure_j }}</textarea></div>
-                    </div>
-
-                    <!-- Friday Procedures -->
-                    <div id="friday-procedures" class="day-procedures hidden space-y-4">
-                        <h3 class="font-semibold text-[#11468F] mb-4">Friday - {{ draft.content_friday|default:"Procedures" }}</h3>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">A. Reviewing previous lesson</label><textarea name="friday_procedure_a" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.friday_procedure_a }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">B. Establishing purpose</label><textarea name="friday_procedure_b" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.friday_procedure_b }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">C. Presenting examples</label><textarea name="friday_procedure_c" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.friday_procedure_c }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">D. Discussing concepts #1</label><textarea name="friday_procedure_d" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.friday_procedure_d }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">E. Discussing concepts #2</label><textarea name="friday_procedure_e" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.friday_procedure_e }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">F. Developing mastery</label><textarea name="friday_procedure_f" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.friday_procedure_f }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">G. Practical applications</label><textarea name="friday_procedure_g" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.friday_procedure_g }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">H. Generalizations</label><textarea name="friday_procedure_h" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.friday_procedure_h }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">I. Evaluating learning</label><textarea name="friday_procedure_i" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.friday_procedure_i }}</textarea></div>
-                        <div class="procedure-step"><label class="block text-sm font-medium text-gray-700 mb-1">J. Additional activities</label><textarea name="friday_procedure_j" rows="2" class="w-full border rounded-lg px-3 py-2">{{ draft.friday_procedure_j }}</textarea></div>
-                    </div>
+                                        <!-- Image Upload Field -->
+                                        <div class="mt-2">
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Attach Image (optional)</label>
+                                            <input type="file" name="{{ field_name }}_image" accept="image/*" class="w-full border rounded-lg px-3 py-2">
+                                            {% with image_field=field_name|add:"_image" %}
+                                                {% with image_value=draft|attr:image_field %}
+                                                    {% if image_value %}
+                                                        <div class="mt-2">
+                                                            <img src="{{ image_value.url }}" alt="Current image" class="image-preview">
+                                                            <span class="text-xs text-gray-500">Current image</span>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% endwith %}
+                                        </div>
+                                    </div>
+                                {% endwith %}
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
 
@@ -392,7 +337,6 @@
                             <option value="inquiry" {% if draft.teaching_approach == 'inquiry' %}selected{% endif %}>Inquiry-Based</option>
                         </select>
                     </div>
-                    
                 </div>
             </div>
 
