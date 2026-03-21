@@ -385,7 +385,16 @@
                         <th style="width: 20%;">Grade Level & Quarter</th>
                         <td style="width: 30%;">Grade {{ draft.grade_level|upper }} Quarter {{ draft.quarter|upper }}</td>
                         <td class="one" colspan="2" rowspan="3">
-                            <img src="{{ user_school.school_logo.url }}" alt="{{ user_school.school_name }}" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentElement.classList.add('bg-gradient-to-r', 'from-[#11468F]', 'to-[#9E5EFF]'); this.style.display='none';">
+                            {% if user_school.school_logo %}
+                                <img src="{{ user_school.school_logo.url }}" 
+                                    alt="{{ user_school.school_name }}" 
+                                    class="w-full h-full object-cover"
+                                    onerror="this.onerror=null; this.style.display='none'; this.parentElement.classList.add('bg-gradient-to-r','from-[#11468F]','to-[#9E5EFF]');">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center bg-gradient-to-r from-[#11468F] to-[#9E5EFF] text-white font-semibold">
+                                    No Logo
+                                </div>
+                            {% endif %}                        
                         </td>
                     </tr>
                     <tr>
