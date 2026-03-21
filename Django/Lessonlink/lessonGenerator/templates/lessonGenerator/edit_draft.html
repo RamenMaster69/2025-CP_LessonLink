@@ -83,95 +83,166 @@
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Lesson Procedure</h3>
             
             <div class="space-y-4">
-                <!-- Introduction with Image Upload -->
+                <!-- Introduction -->
                 <div>
                     <h4 class="font-medium text-gray-700 mb-2">Introduction</h4>
                     <textarea id="introduction" name="introduction" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.introduction }}</textarea>
+                    <!-- Multi‑image container -->
                     <div class="mt-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Attach Image (optional)</label>
-                        <input type="file" name="introduction_image" accept="image/*" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        {% if draft.introduction_image %}
-                            <div class="mt-2">
-                                <img src="{{ draft.introduction_image.url }}" alt="Current image" class="max-h-32 rounded border">
-                                <span class="text-xs text-gray-500">Current image</span>
+                        <div class="flex justify-between items-center">
+                            <label class="text-sm font-medium text-gray-700">Images (optional)</label>
+                            <button type="button" class="add-image-btn text-sm text-blue-600 hover:text-blue-800" data-section="introduction">
+                                <i class="fas fa-plus-circle mr-1"></i> Add Image
+                            </button>
+                        </div>
+                        <div id="image-container-introduction" class="mt-2 space-y-2">
+                            {% for img in images_by_section.introduction %}
+                            <div class="existing-image flex items-center space-x-2 border p-2 rounded">
+                                <img src="{{ img.image.url }}" class="h-12 w-auto object-cover">
+                                <span class="text-xs text-gray-500 flex-1">{{ img.image.name|truncatechars:40 }}</span>
+                                <label class="flex items-center text-sm">
+                                    <input type="checkbox" name="keep_image_ids" value="{{ img.id }}" checked> Keep
+                                </label>
                             </div>
-                        {% endif %}
+                            {% endfor %}
+                        </div>
+                        <template id="image-template-introduction">
+                            <div class="new-image-item flex items-center space-x-2 mt-2">
+                                <input type="file" name="image_introduction" accept="image/*" class="flex-1 border rounded p-1">
+                                <button type="button" class="remove-image-btn text-red-500">✖</button>
+                            </div>
+                        </template>
                     </div>
                 </div>
                 
-                <!-- Instruction/Direct Teaching with Image Upload -->
+                <!-- Instruction/Direct Teaching -->
                 <div>
                     <h4 class="font-medium text-gray-700 mb-2">Instruction/Direct Teaching</h4>
                     <textarea id="instruction" name="instruction" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.instruction }}</textarea>
                     <div class="mt-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Attach Image (optional)</label>
-                        <input type="file" name="instruction_image" accept="image/*" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        {% if draft.instruction_image %}
-                            <div class="mt-2">
-                                <img src="{{ draft.instruction_image.url }}" alt="Current image" class="max-h-32 rounded border">
-                                <span class="text-xs text-gray-500">Current image</span>
+                        <div class="flex justify-between items-center">
+                            <label class="text-sm font-medium text-gray-700">Images (optional)</label>
+                            <button type="button" class="add-image-btn text-sm text-blue-600 hover:text-blue-800" data-section="instruction">
+                                <i class="fas fa-plus-circle mr-1"></i> Add Image
+                            </button>
+                        </div>
+                        <div id="image-container-instruction" class="mt-2 space-y-2">
+                            {% for img in images_by_section.instruction %}
+                            <div class="existing-image flex items-center space-x-2 border p-2 rounded">
+                                <img src="{{ img.image.url }}" class="h-12 w-auto object-cover">
+                                <span class="text-xs text-gray-500 flex-1">{{ img.image.name|truncatechars:40 }}</span>
+                                <label class="flex items-center text-sm">
+                                    <input type="checkbox" name="keep_image_ids" value="{{ img.id }}" checked> Keep
+                                </label>
                             </div>
-                        {% endif %}
+                            {% endfor %}
+                        </div>
+                        <template id="image-template-instruction">
+                            <div class="new-image-item flex items-center space-x-2 mt-2">
+                                <input type="file" name="image_instruction" accept="image/*" class="flex-1 border rounded p-1">
+                                <button type="button" class="remove-image-btn text-red-500">✖</button>
+                            </div>
+                        </template>
                     </div>
                 </div>
                 
-                <!-- Guided Practice/Application with Image Upload -->
+                <!-- Guided Practice/Application -->
                 <div>
                     <h4 class="font-medium text-gray-700 mb-2">Guided Practice/Application</h4>
                     <textarea id="application" name="application" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.application }}</textarea>
                     <div class="mt-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Attach Image (optional)</label>
-                        <input type="file" name="application_image" accept="image/*" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        {% if draft.application_image %}
-                            <div class="mt-2">
-                                <img src="{{ draft.application_image.url }}" alt="Current image" class="max-h-32 rounded border">
-                                <span class="text-xs text-gray-500">Current image</span>
+                        <div class="flex justify-between items-center">
+                            <label class="text-sm font-medium text-gray-700">Images (optional)</label>
+                            <button type="button" class="add-image-btn text-sm text-blue-600 hover:text-blue-800" data-section="application">
+                                <i class="fas fa-plus-circle mr-1"></i> Add Image
+                            </button>
+                        </div>
+                        <div id="image-container-application" class="mt-2 space-y-2">
+                            {% for img in images_by_section.application %}
+                            <div class="existing-image flex items-center space-x-2 border p-2 rounded">
+                                <img src="{{ img.image.url }}" class="h-12 w-auto object-cover">
+                                <span class="text-xs text-gray-500 flex-1">{{ img.image.name|truncatechars:40 }}</span>
+                                <label class="flex items-center text-sm">
+                                    <input type="checkbox" name="keep_image_ids" value="{{ img.id }}" checked> Keep
+                                </label>
                             </div>
-                        {% endif %}
+                            {% endfor %}
+                        </div>
+                        <template id="image-template-application">
+                            <div class="new-image-item flex items-center space-x-2 mt-2">
+                                <input type="file" name="image_application" accept="image/*" class="flex-1 border rounded p-1">
+                                <button type="button" class="remove-image-btn text-red-500">✖</button>
+                            </div>
+                        </template>
                     </div>
                 </div>
                 
-                <!-- Independent Practice/Evaluation with Image Upload -->
+                <!-- Independent Practice/Evaluation -->
                 <div>
                     <h4 class="font-medium text-gray-700 mb-2">Independent Practice/Evaluation</h4>
                     <textarea id="evaluation" name="evaluation" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.evaluation }}</textarea>
                     <div class="mt-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Attach Image (optional)</label>
-                        <input type="file" name="evaluation_image" accept="image/*" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        {% if draft.evaluation_image %}
-                            <div class="mt-2">
-                                <img src="{{ draft.evaluation_image.url }}" alt="Current image" class="max-h-32 rounded border">
-                                <span class="text-xs text-gray-500">Current image</span>
+                        <div class="flex justify-between items-center">
+                            <label class="text-sm font-medium text-gray-700">Images (optional)</label>
+                            <button type="button" class="add-image-btn text-sm text-blue-600 hover:text-blue-800" data-section="evaluation">
+                                <i class="fas fa-plus-circle mr-1"></i> Add Image
+                            </button>
+                        </div>
+                        <div id="image-container-evaluation" class="mt-2 space-y-2">
+                            {% for img in images_by_section.evaluation %}
+                            <div class="existing-image flex items-center space-x-2 border p-2 rounded">
+                                <img src="{{ img.image.url }}" class="h-12 w-auto object-cover">
+                                <span class="text-xs text-gray-500 flex-1">{{ img.image.name|truncatechars:40 }}</span>
+                                <label class="flex items-center text-sm">
+                                    <input type="checkbox" name="keep_image_ids" value="{{ img.id }}" checked> Keep
+                                </label>
                             </div>
-                        {% endif %}
+                            {% endfor %}
+                        </div>
+                        <template id="image-template-evaluation">
+                            <div class="new-image-item flex items-center space-x-2 mt-2">
+                                <input type="file" name="image_evaluation" accept="image/*" class="flex-1 border rounded p-1">
+                                <button type="button" class="remove-image-btn text-red-500">✖</button>
+                            </div>
+                        </template>
                     </div>
                 </div>
                 
-                <!-- Assessment with Image Upload -->
+                <!-- Assessment -->
                 <div>
                     <h4 class="font-medium text-gray-700 mb-2">Assessment</h4>
                     <textarea id="assessment" name="assessment" class="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>{{ draft.assessment }}</textarea>
                     <div class="mt-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Attach Image (optional)</label>
-                        <input type="file" name="assessment_image" accept="image/*" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        {% if draft.assessment_image %}
-                            <div class="mt-2">
-                                <img src="{{ draft.assessment_image.url }}" alt="Current image" class="max-h-32 rounded border">
-                                <span class="text-xs text-gray-500">Current image</span>
+                        <div class="flex justify-between items-center">
+                            <label class="text-sm font-medium text-gray-700">Images (optional)</label>
+                            <button type="button" class="add-image-btn text-sm text-blue-600 hover:text-blue-800" data-section="assessment">
+                                <i class="fas fa-plus-circle mr-1"></i> Add Image
+                            </button>
+                        </div>
+                        <div id="image-container-assessment" class="mt-2 space-y-2">
+                            {% for img in images_by_section.assessment %}
+                            <div class="existing-image flex items-center space-x-2 border p-2 rounded">
+                                <img src="{{ img.image.url }}" class="h-12 w-auto object-cover">
+                                <span class="text-xs text-gray-500 flex-1">{{ img.image.name|truncatechars:40 }}</span>
+                                <label class="flex items-center text-sm">
+                                    <input type="checkbox" name="keep_image_ids" value="{{ img.id }}" checked> Keep
+                                </label>
                             </div>
-                        {% endif %}
+                            {% endfor %}
+                        </div>
+                        <template id="image-template-assessment">
+                            <div class="new-image-item flex items-center space-x-2 mt-2">
+                                <input type="file" name="image_assessment" accept="image/*" class="flex-1 border rounded p-1">
+                                <button type="button" class="remove-image-btn text-red-500">✖</button>
+                            </div>
+                        </template>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Generated Content (for reference) -->
-        <!-- <div class="border-b border-gray-200 pb-4">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">AI-Generated Content (Read-only Reference)</h3>
-            <div class="bg-gray-100 p-4 rounded-lg overflow-auto max-h-64">
-                <pre class="whitespace-pre-wrap text-sm text-gray-700">{{ draft.generated_content }}</pre>
-            </div>
-        </div> -->
+        <!-- Generated Content (for reference) – hidden but kept for regeneration? -->
+        <input type="hidden" name="generated_content" value="{{ draft.generated_content }}">
         
         <div class="flex space-x-4">
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium">
@@ -197,9 +268,50 @@
 </div>
 
 <script>
+// Helper: get CSRF token from cookie
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Attach click handlers for "Add Image" buttons
+document.querySelectorAll('.add-image-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const section = this.dataset.section;
+        const template = document.getElementById(`image-template-${section}`);
+        const container = document.getElementById(`image-container-${section}`);
+        const clone = template.content.cloneNode(true);
+        container.appendChild(clone);
+        
+        // Attach remove event to the new button
+        const removeBtn = clone.querySelector('.remove-image-btn');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function() {
+                this.closest('.new-image-item').remove();
+            });
+        }
+    });
+});
+
+// Also attach remove events to existing remove buttons (if any, e.g., after page load)
+document.querySelectorAll('.remove-image-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        this.closest('.new-image-item').remove();
+    });
+});
+
 function regenerateContent() {
     if (confirm('This will regenerate the AI content based on your current inputs. Continue?')) {
-        // Gather form data and send to regeneration endpoint
         const formData = {
             subject: document.getElementById('subject').value,
             grade_level: document.getElementById('grade_level').value,
@@ -216,7 +328,6 @@ function regenerateContent() {
             assessment: document.getElementById('assessment').value,
         };
         
-        // Send request to regenerate endpoint
         fetch('/regenerate-lesson-content/', {
             method: 'POST',
             headers: {
@@ -228,8 +339,8 @@ function regenerateContent() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Update the generated content display
-                document.querySelector('pre').textContent = data.generated_content;
+                // The regeneration endpoint may update the generated content field.
+                // For simplicity, we could display a success message.
                 alert('Content regenerated successfully!');
             } else {
                 alert('Error: ' + data.error);
@@ -240,22 +351,6 @@ function regenerateContent() {
             alert('An error occurred while regenerating content.');
         });
     }
-}
-
-// Function to get CSRF token from cookies
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
 }
 </script>
 {% endblock %}

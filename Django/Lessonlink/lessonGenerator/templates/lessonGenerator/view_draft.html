@@ -353,38 +353,38 @@
 
                 <!-- Basic Information Table -->
                  <table class="w-full">
-                     <tr>
+                      <tr>
                         <th style="width: 15%;">Subject</th>
                         <td style="width: 35%;">{{ draft.subject|default:"Not specified" }}</td>
                         <th style="width: 20%;">Grade Level</th>
                         <td style="width: 30%;">{{ draft.grade_level|default:"Not specified" }}</td>
-                     </tr>
-                     <tr>
+                      </tr>
+                      <tr>
                         <th>Teacher</th>
                         <td>{{ request.user.get_full_name|default:request.user.username }}</td>
                         <th>Duration</th>
                         <td>{{ draft.duration|default:"0" }} minutes</td>
-                     </tr>
+                      </tr>
                     {% if draft.quarter %}
-                     <tr>
+                      <tr>
                         <th>Quarter</th>
                         <td>{{ draft.quarter }}</td>
                         <th>Class Size</th>
                         <td>{{ draft.population|default:"0" }} students</td>
-                     </tr>
+                      </tr>
                     {% endif %}
                     <!-- Added intelligence type display -->
                     {% if draft.intelligence_type %}
-                     <tr>
+                      <tr>
                         <th>Intelligence Focus</th>
                         <td colspan="3">
                             <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm">
                                 {{ draft.get_intelligence_type_display }}
                             </span>
                         </td>
-                     </tr>
+                      </tr>
                     {% endif %}
-                 </table>
+                  </table>
 
                 <!-- Learning Objectives -->
                 {% if draft.learning_objectives %}
@@ -463,10 +463,12 @@
                         <td class="subheader" style="width: 25%;">Introduction</td>
                         <td>
                             {{ draft.introduction|striptags|linebreaks }}
-                            {% if draft.introduction_image %}
-                                <div class="mt-2">
-                                    <img src="{{ draft.introduction_image.url }}" alt="Introduction image" class="procedure-image">
-                                </div>
+                            {% if images_by_section.introduction %}
+                                {% for img in images_by_section.introduction %}
+                                    <div class="mt-2">
+                                        <img src="{{ img.image.url }}" alt="Introduction image" class="procedure-image">
+                                    </div>
+                                {% endfor %}
                             {% endif %}
                         </td>
                     </tr>
@@ -478,10 +480,12 @@
                         <td class="subheader">Instruction/Direct Teaching</td>
                         <td>
                             {{ draft.instruction|striptags|linebreaks }}
-                            {% if draft.instruction_image %}
-                                <div class="mt-2">
-                                    <img src="{{ draft.instruction_image.url }}" alt="Instruction image" class="procedure-image">
-                                </div>
+                            {% if images_by_section.instruction %}
+                                {% for img in images_by_section.instruction %}
+                                    <div class="mt-2">
+                                        <img src="{{ img.image.url }}" alt="Instruction image" class="procedure-image">
+                                    </div>
+                                {% endfor %}
                             {% endif %}
                         </td>
                     </tr>
@@ -493,10 +497,12 @@
                         <td class="subheader">Guided Practice/Application</td>
                         <td>
                             {{ draft.application|striptags|linebreaks }}
-                            {% if draft.application_image %}
-                                <div class="mt-2">
-                                    <img src="{{ draft.application_image.url }}" alt="Application image" class="procedure-image">
-                                </div>
+                            {% if images_by_section.application %}
+                                {% for img in images_by_section.application %}
+                                    <div class="mt-2">
+                                        <img src="{{ img.image.url }}" alt="Application image" class="procedure-image">
+                                    </div>
+                                {% endfor %}
                             {% endif %}
                         </td>
                     </tr>
@@ -508,10 +514,12 @@
                         <td class="subheader">Independent Practice/Evaluation</td>
                         <td>
                             {{ draft.evaluation|striptags|linebreaks }}
-                            {% if draft.evaluation_image %}
-                                <div class="mt-2">
-                                    <img src="{{ draft.evaluation_image.url }}" alt="Evaluation image" class="procedure-image">
-                                </div>
+                            {% if images_by_section.evaluation %}
+                                {% for img in images_by_section.evaluation %}
+                                    <div class="mt-2">
+                                        <img src="{{ img.image.url }}" alt="Evaluation image" class="procedure-image">
+                                    </div>
+                                {% endfor %}
                             {% endif %}
                         </td>
                     </tr>
@@ -523,10 +531,12 @@
                         <td class="subheader">Assessment</td>
                         <td>
                             {{ draft.assessment|striptags|linebreaks }}
-                            {% if draft.assessment_image %}
-                                <div class="mt-2">
-                                    <img src="{{ draft.assessment_image.url }}" alt="Assessment image" class="procedure-image">
-                                </div>
+                            {% if images_by_section.assessment %}
+                                {% for img in images_by_section.assessment %}
+                                    <div class="mt-2">
+                                        <img src="{{ img.image.url }}" alt="Assessment image" class="procedure-image">
+                                    </div>
+                                {% endfor %}
                             {% endif %}
                         </td>
                     </tr>

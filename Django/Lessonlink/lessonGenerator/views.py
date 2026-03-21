@@ -8,9 +8,11 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from .models import WeeklyLessonPlan, WeeklyProcedureImage
 import re
 import markdown
 import PyPDF2
+from .models import LessonPlanImage
 
 from .models import LessonPlan, LessonPlanSubmission, WeeklyLessonPlan
 from .ai_instructions import (
@@ -530,6 +532,20 @@ def save_lesson_plan(request):
 
         lesson_plan.save()
 
+        # ========== NEW: Process multiple images ==========
+        sections = ['introduction', 'instruction', 'application', 'evaluation', 'assessment']
+        for section in sections:
+            files = request.FILES.getlist(f'image_{section}')
+            for idx, file in enumerate(files):
+                LessonPlanImage.objects.create(
+                    lesson_plan=lesson_plan,
+                    section=section,
+                    image=file,
+                    order=idx
+                )
+        # =================================================
+
+        # Clear session data
         if 'generated_lesson_plan' in request.session:
             del request.session['generated_lesson_plan']
         if 'parsed_lesson_plan' in request.session:
@@ -711,24 +727,46 @@ def edit_draft(request, draft_id):
         draft.values_integration = request.POST.get('values_integration', draft.values_integration)
         draft.cross_curricular = request.POST.get('cross_curricular', draft.cross_curricular)
 
-        
-        image_fields = ['introduction_image', 'instruction_image', 'application_image',
-                        'evaluation_image', 'assessment_image']
-        for field in image_fields:
-            if field in request.FILES:
-                setattr(draft, field, request.FILES[field])
+        # ========== NEW: Handle multiple images ==========
+        # Keep images that the user wants to keep
+        keep_ids = request.POST.getlist('keep_image_ids')
+        # Delete images not kept
+        for img in draft.images.all():
+            if str(img.id) not in keep_ids:
+                img.delete()
 
+        # Process new uploads
+        sections = ['introduction', 'instruction', 'application', 'evaluation', 'assessment']
+        for section in sections:
+            files = request.FILES.getlist(f'image_{section}')
+            for idx, file in enumerate(files):
+                LessonPlanImage.objects.create(
+                    lesson_plan=draft,
+                    section=section,
+                    image=file,
+                    order=idx
+                )
+        # =================================================
+
+        # Save draft
         draft.save()
         messages.success(request, 'Draft updated successfully!')
 
+        # Redirect based on role
         if hasattr(request.user, 'role') and request.user.role == 'Department Head':
             return redirect('department_head_drafts')
         else:
             return redirect('draft_list')
 
+    # GET – prepare context
+    images_by_section = {}
+    for img in draft.images.all():
+        images_by_section.setdefault(img.section, []).append(img)
+
     return render(request, 'lessonGenerator/edit_draft.html', {
         'draft': draft,
-        'intelligence_choices': LessonPlan.INTELLIGENCE_TYPE_CHOICES
+        'intelligence_choices': LessonPlan.INTELLIGENCE_TYPE_CHOICES,
+        'images_by_section': images_by_section,
     })
 
 
@@ -811,7 +849,6 @@ def regenerate_lesson_content(request):
 
 @login_required
 def view_draft(request, draft_id):
-    """View a lesson draft in read-only format"""
     draft = get_object_or_404(LessonPlan, id=draft_id, created_by=request.user)
 
     latest_submission = LessonPlanSubmission.objects.filter(
@@ -823,10 +860,17 @@ def view_draft(request, draft_id):
         draft.intelligence_type
     )
 
+    # ========== NEW: Group images by section ==========
+    images_by_section = {}
+    for img in draft.images.all():
+        images_by_section.setdefault(img.section, []).append(img)
+    # =================================================
+
     return render(request, 'lessonGenerator/view_draft.html', {
         'draft': draft,
         'latest_submission': latest_submission,
-        'intelligence_display': intelligence_display
+        'intelligence_display': intelligence_display,
+        'images_by_section': images_by_section,
     })
 
 
@@ -2369,23 +2413,35 @@ def weekly_draft_list(request):
 
 @login_required
 def view_weekly_draft(request, draft_id):
-    """View a weekly lesson draft in read-only format with submission status"""
     draft = get_object_or_404(WeeklyLessonPlan, id=draft_id, created_by=request.user)
 
-    intelligence_display = dict(WeeklyLessonPlan.INTELLIGENCE_TYPE_CHOICES).get(
-        draft.intelligence_type,
-        draft.intelligence_type
-    )
+    # Prepare days and steps
+    days = [('monday', 'Monday'), ('tuesday', 'Tuesday'), ('wednesday', 'Wednesday'),
+            ('thursday', 'Thursday'), ('friday', 'Friday')]
+    steps = [('a', 'A'), ('b', 'B'), ('c', 'C'), ('d', 'D'), ('e', 'E'),
+             ('f', 'F'), ('g', 'G'), ('h', 'H'), ('i', 'I'), ('j', 'J')]
 
+    # Group images
+    images_by_step = {}
+    for img in draft.procedure_images.all():
+        key = f"{img.day}_{img.step}"
+        images_by_step.setdefault(key, []).append(img)
+
+    objectives = draft.get_objectives_dict()
+    content = draft.get_content_dict()
     procedures = {}
-    for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']:
+    for day, _ in days:
         procedures[day] = draft.get_procedure_for_day(day)
+
+    intelligence_display = dict(WeeklyLessonPlan.INTELLIGENCE_TYPE_CHOICES).get(
+        draft.intelligence_type, draft.intelligence_type
+    )
 
     can_submit = draft.can_submit
 
+    # Find department head (optional, for submit button)
     from django.contrib.auth import get_user_model
     User = get_user_model()
-
     department_head = None
     if request.user.school and request.user.department:
         department_head = User.objects.filter(
@@ -2398,13 +2454,15 @@ def view_weekly_draft(request, draft_id):
     return render(request, 'lessonGenerator/view_weekly_draft.html', {
         'draft': draft,
         'procedures': procedures,
+        'objectives': objectives,
+        'content': content,
         'intelligence_display': intelligence_display,
-        'objectives': draft.get_objectives_dict(),
-        'content': draft.get_content_dict(),
         'can_submit': can_submit,
-        'submission_status': draft.get_submission_status_display_custom,
         'department_head': department_head,
         'user_school': request.user.school,
+        'days': days,
+        'steps': steps,
+        'images_by_step': images_by_step,
     })
 
 
@@ -2419,14 +2477,19 @@ from .models import WeeklyLessonPlan
 def edit_weekly_draft(request, draft_id):
     draft = get_object_or_404(WeeklyLessonPlan, id=draft_id, created_by=request.user)
 
+    # Prepare days and steps for dynamic loops
+    days = [('monday', 'Monday'), ('tuesday', 'Tuesday'), ('wednesday', 'Wednesday'),
+            ('thursday', 'Thursday'), ('friday', 'Friday')]
+    steps = [('a', 'A'), ('b', 'B'), ('c', 'C'), ('d', 'D'), ('e', 'E'),
+             ('f', 'F'), ('g', 'G'), ('h', 'H'), ('i', 'I'), ('j', 'J')]
+
     if request.method == 'POST':
-        # --- Update text fields (all existing) ---
+        # --- Update basic text fields ---
         draft.title = request.POST.get('title', draft.title)
         draft.subject = request.POST.get('subject', draft.subject)
         draft.grade_level = request.POST.get('grade_level', draft.grade_level)
         draft.quarter = request.POST.get('quarter', draft.quarter)
         draft.week_number = int(request.POST.get('week_number', draft.week_number))
-
         draft.school = request.POST.get('school', draft.school)
         draft.teacher = request.POST.get('teacher', draft.teacher)
         draft.teaching_date = request.POST.get('teaching_date', draft.teaching_date)
@@ -2452,27 +2515,14 @@ def edit_weekly_draft(request, draft_id):
         draft.lr_portal = request.POST.get('lr_portal', draft.lr_portal)
         draft.other_resources = request.POST.get('other_resources', draft.other_resources)
 
-        # Daily procedures text fields (Monday to Friday, A-J)
-        days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
-        steps = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
-        for day in days:
-            for step in steps:
+        # Update daily procedures text
+        for day, _ in days:
+            for step, _ in steps:
                 field_name = f"{day}_procedure_{step}"
                 if field_name in request.POST:
                     setattr(draft, field_name, request.POST.get(field_name, ''))
 
-        # --- NEW: Handle image uploads for all 50 fields ---
-        # Define image field names
-        image_fields = []
-        for day in days:
-            for step in steps:
-                image_fields.append(f"{day}_procedure_{step}_image")
-
-        for field_name in image_fields:
-            if field_name in request.FILES:
-                setattr(draft, field_name, request.FILES[field_name])
-
-        # --- Other fields ---
+        # --- Additional settings ---
         draft.intelligence_type = request.POST.get('intelligence_type', draft.intelligence_type)
         draft.weekly_theme = request.POST.get('weekly_theme', draft.weekly_theme)
         draft.teaching_approach = request.POST.get('teaching_approach', draft.teaching_approach)
@@ -2480,32 +2530,58 @@ def edit_weekly_draft(request, draft_id):
         draft.values_integration = request.POST.get('values_integration', draft.values_integration)
         draft.cross_curricular = request.POST.get('cross_curricular', draft.cross_curricular)
 
+        # --- Handle multiple images ---
+        # Keep track of existing images that should be kept
+        keep_ids = request.POST.getlist('keep_image_ids')
+        # Delete images not kept
+        for img in draft.procedure_images.all():
+            if str(img.id) not in keep_ids:
+                img.delete()
+
+        # Process new image uploads for each day/step
+        for day, _ in days:
+            for step, _ in steps:
+                # The file input name: "image_{day}_{step}" (multiple)
+                files = request.FILES.getlist(f'image_{day}_{step}')
+                for idx, file in enumerate(files):
+                    WeeklyProcedureImage.objects.create(
+                        weekly_plan=draft,
+                        day=day,
+                        step=step,
+                        image=file,
+                        order=idx
+                    )
+
         draft.save()
         messages.success(request, 'Weekly draft updated successfully!')
         return redirect('weekly_draft_list')
 
-    # --- GET: Prepare context for the template ---
-    # Prepare procedures dictionary for the template (if needed)
+    # --- GET: Prepare context ---
+    # Group existing images by day+step for easy access in template
+    images_by_step = {}
+    for img in draft.procedure_images.all():
+        key = f"{img.day}_{img.step}"
+        images_by_step.setdefault(key, []).append(img)
+
+    # Prepare objectives and content dicts
+    objectives = draft.get_objectives_dict()
+    content = draft.get_content_dict()
+
+    # Procedure dict for each day (still needed for text fields)
     procedures = {}
-    for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']:
+    for day, _ in days:
         procedures[day] = draft.get_procedure_for_day(day)
 
-    # Prepare days and steps for dynamic loops in the template
-    days = [('monday', 'Monday'), ('tuesday', 'Tuesday'), ('wednesday', 'Wednesday'),
-            ('thursday', 'Thursday'), ('friday', 'Friday')]
-    steps = [('a', 'A'), ('b', 'B'), ('c', 'C'), ('d', 'D'), ('e', 'E'),
-             ('f', 'F'), ('g', 'G'), ('h', 'H'), ('i', 'I'), ('j', 'J')]
-
-    # Pass user school info (assuming you have a context processor, but we can pass explicitly)
+    # User school (optional)
     user_school = request.user.school if hasattr(request.user, 'school') else None
 
     return render(request, 'lessonGenerator/edit_weekly_draft.html', {
         'draft': draft,
         'procedures': procedures,
-        'objectives': draft.get_objectives_dict(),
-        'content': draft.get_content_dict(),
+        'objectives': objectives,
+        'content': content,
         'intelligence_choices': WeeklyLessonPlan.INTELLIGENCE_TYPE_CHOICES,
-        'theme_choices': WeeklyLessonPlan.WEEK_DAYS,  # This is a list of tuples (monday, Monday) etc.
+        'theme_choices': WeeklyLessonPlan.WEEK_DAYS,
         'approach_choices': [
             ('direct', 'Direct Instruction'),
             ('collaborative', 'Collaborative Learning'),
@@ -2515,6 +2591,7 @@ def edit_weekly_draft(request, draft_id):
         'days': days,
         'steps': steps,
         'user_school': user_school,
+        'images_by_step': images_by_step,
     })
 
 @csrf_exempt

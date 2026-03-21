@@ -379,7 +379,7 @@
 
                 <!-- School Header Table (4 columns) with School Logo placeholder on the right -->
                 <table class="w-full">
-                    <tr>
+                     <tr>
                         <th style="width: 15%;">School</th>
                         <td style="width: 35%;">{{ user_school.school_name }}</td>
                         <th style="width: 20%;">Grade Level & Quarter</th>
@@ -535,42 +535,42 @@
                         <td class="procedure-step">A.</td>
                         <td>
                             {{ procedures.monday.a }}
-                            {% with image_field=draft|attr:"monday_procedure_a_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for A">
-                                {% endif %}
+                            {% with key="monday_a" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for A">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.tuesday.a|default:"" }}
-                            {% with image_field=draft|attr:"tuesday_procedure_a_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for A">
-                                {% endif %}
+                            {% with key="tuesday_a" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for A">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.wednesday.a|default:"" }}
-                            {% with image_field=draft|attr:"wednesday_procedure_a_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for A">
-                                {% endif %}
+                            {% with key="wednesday_a" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for A">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.thursday.a|default:"" }}
-                            {% with image_field=draft|attr:"thursday_procedure_a_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for A">
-                                {% endif %}
+                            {% with key="thursday_a" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for A">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.friday.a|default:"" }}
-                            {% with image_field=draft|attr:"friday_procedure_a_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for A">
-                                {% endif %}
+                            {% with key="friday_a" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for A">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                     </tr>
@@ -580,42 +580,42 @@
                         <td class="procedure-step">B.</td>
                         <td>
                             {{ procedures.monday.b }}
-                            {% with image_field=draft|attr:"monday_procedure_b_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for B">
-                                {% endif %}
+                            {% with key="monday_b" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for B">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.tuesday.b|default:"" }}
-                            {% with image_field=draft|attr:"tuesday_procedure_b_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for B">
-                                {% endif %}
+                            {% with key="tuesday_b" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for B">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.wednesday.b|default:"" }}
-                            {% with image_field=draft|attr:"wednesday_procedure_b_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for B">
-                                {% endif %}
+                            {% with key="wednesday_b" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for B">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.thursday.b|default:"" }}
-                            {% with image_field=draft|attr:"thursday_procedure_b_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for B">
-                                {% endif %}
+                            {% with key="thursday_b" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for B">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.friday.b|default:"" }}
-                            {% with image_field=draft|attr:"friday_procedure_b_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for B">
-                                {% endif %}
+                            {% with key="friday_b" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for B">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                     </tr>
@@ -625,42 +625,42 @@
                         <td class="procedure-step">C.</td>
                         <td>
                             {{ procedures.monday.c }}
-                            {% with image_field=draft|attr:"monday_procedure_c_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for C">
-                                {% endif %}
+                            {% with key="monday_c" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for C">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.tuesday.c|default:"" }}
-                            {% with image_field=draft|attr:"tuesday_procedure_c_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for C">
-                                {% endif %}
+                            {% with key="tuesday_c" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for C">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.wednesday.c|default:"" }}
-                            {% with image_field=draft|attr:"wednesday_procedure_c_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for C">
-                                {% endif %}
+                            {% with key="wednesday_c" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for C">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.thursday.c|default:"" }}
-                            {% with image_field=draft|attr:"thursday_procedure_c_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for C">
-                                {% endif %}
+                            {% with key="thursday_c" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for C">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.friday.c|default:"" }}
-                            {% with image_field=draft|attr:"friday_procedure_c_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for C">
-                                {% endif %}
+                            {% with key="friday_c" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for C">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                     </tr>
@@ -670,42 +670,42 @@
                         <td class="procedure-step">D.</td>
                         <td>
                             {{ procedures.monday.d }}
-                            {% with image_field=draft|attr:"monday_procedure_d_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for D">
-                                {% endif %}
+                            {% with key="monday_d" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for D">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.tuesday.d|default:"" }}
-                            {% with image_field=draft|attr:"tuesday_procedure_d_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for D">
-                                {% endif %}
+                            {% with key="tuesday_d" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for D">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.wednesday.d|default:"" }}
-                            {% with image_field=draft|attr:"wednesday_procedure_d_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for D">
-                                {% endif %}
+                            {% with key="wednesday_d" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for D">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.thursday.d|default:"" }}
-                            {% with image_field=draft|attr:"thursday_procedure_d_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for D">
-                                {% endif %}
+                            {% with key="thursday_d" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for D">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.friday.d|default:"" }}
-                            {% with image_field=draft|attr:"friday_procedure_d_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for D">
-                                {% endif %}
+                            {% with key="friday_d" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for D">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                     </tr>
@@ -715,42 +715,42 @@
                         <td class="procedure-step">E.</td>
                         <td>
                             {{ procedures.monday.e }}
-                            {% with image_field=draft|attr:"monday_procedure_e_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for E">
-                                {% endif %}
+                            {% with key="monday_e" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for E">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.tuesday.e|default:"" }}
-                            {% with image_field=draft|attr:"tuesday_procedure_e_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for E">
-                                {% endif %}
+                            {% with key="tuesday_e" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for E">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.wednesday.e|default:"" }}
-                            {% with image_field=draft|attr:"wednesday_procedure_e_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for E">
-                                {% endif %}
+                            {% with key="wednesday_e" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for E">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.thursday.e|default:"" }}
-                            {% with image_field=draft|attr:"thursday_procedure_e_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for E">
-                                {% endif %}
+                            {% with key="thursday_e" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for E">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.friday.e|default:"" }}
-                            {% with image_field=draft|attr:"friday_procedure_e_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for E">
-                                {% endif %}
+                            {% with key="friday_e" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for E">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                     </tr>
@@ -760,42 +760,42 @@
                         <td class="procedure-step">F.</td>
                         <td>
                             {{ procedures.monday.f }}
-                            {% with image_field=draft|attr:"monday_procedure_f_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for F">
-                                {% endif %}
+                            {% with key="monday_f" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for F">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.tuesday.f|default:"" }}
-                            {% with image_field=draft|attr:"tuesday_procedure_f_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for F">
-                                {% endif %}
+                            {% with key="tuesday_f" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for F">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.wednesday.f|default:"" }}
-                            {% with image_field=draft|attr:"wednesday_procedure_f_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for F">
-                                {% endif %}
+                            {% with key="wednesday_f" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for F">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.thursday.f|default:"" }}
-                            {% with image_field=draft|attr:"thursday_procedure_f_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for F">
-                                {% endif %}
+                            {% with key="thursday_f" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for F">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.friday.f|default:"" }}
-                            {% with image_field=draft|attr:"friday_procedure_f_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for F">
-                                {% endif %}
+                            {% with key="friday_f" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for F">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                     </tr>
@@ -805,42 +805,42 @@
                         <td class="procedure-step">G.</td>
                         <td>
                             {{ procedures.monday.g }}
-                            {% with image_field=draft|attr:"monday_procedure_g_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for G">
-                                {% endif %}
+                            {% with key="monday_g" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for G">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.tuesday.g|default:"" }}
-                            {% with image_field=draft|attr:"tuesday_procedure_g_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for G">
-                                {% endif %}
+                            {% with key="tuesday_g" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for G">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.wednesday.g|default:"" }}
-                            {% with image_field=draft|attr:"wednesday_procedure_g_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for G">
-                                {% endif %}
+                            {% with key="wednesday_g" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for G">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.thursday.g|default:"" }}
-                            {% with image_field=draft|attr:"thursday_procedure_g_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for G">
-                                {% endif %}
+                            {% with key="thursday_g" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for G">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.friday.g|default:"" }}
-                            {% with image_field=draft|attr:"friday_procedure_g_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for G">
-                                {% endif %}
+                            {% with key="friday_g" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for G">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                     </tr>
@@ -850,42 +850,42 @@
                         <td class="procedure-step">H.</td>
                         <td>
                             {{ procedures.monday.h }}
-                            {% with image_field=draft|attr:"monday_procedure_h_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for H">
-                                {% endif %}
+                            {% with key="monday_h" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for H">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.tuesday.h|default:"" }}
-                            {% with image_field=draft|attr:"tuesday_procedure_h_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for H">
-                                {% endif %}
+                            {% with key="tuesday_h" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for H">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.wednesday.h|default:"" }}
-                            {% with image_field=draft|attr:"wednesday_procedure_h_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for H">
-                                {% endif %}
+                            {% with key="wednesday_h" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for H">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.thursday.h|default:"" }}
-                            {% with image_field=draft|attr:"thursday_procedure_h_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for H">
-                                {% endif %}
+                            {% with key="thursday_h" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for H">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.friday.h|default:"" }}
-                            {% with image_field=draft|attr:"friday_procedure_h_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for H">
-                                {% endif %}
+                            {% with key="friday_h" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for H">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                     </tr>
@@ -895,42 +895,42 @@
                         <td class="procedure-step">I.</td>
                         <td>
                             {{ procedures.monday.i }}
-                            {% with image_field=draft|attr:"monday_procedure_i_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for I">
-                                {% endif %}
+                            {% with key="monday_i" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for I">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.tuesday.i|default:"" }}
-                            {% with image_field=draft|attr:"tuesday_procedure_i_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for I">
-                                {% endif %}
+                            {% with key="tuesday_i" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for I">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.wednesday.i|default:"" }}
-                            {% with image_field=draft|attr:"wednesday_procedure_i_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for I">
-                                {% endif %}
+                            {% with key="wednesday_i" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for I">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.thursday.i|default:"" }}
-                            {% with image_field=draft|attr:"thursday_procedure_i_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for I">
-                                {% endif %}
+                            {% with key="thursday_i" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for I">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.friday.i|default:"" }}
-                            {% with image_field=draft|attr:"friday_procedure_i_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for I">
-                                {% endif %}
+                            {% with key="friday_i" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for I">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                     </tr>
@@ -940,42 +940,42 @@
                         <td class="procedure-step">J.</td>
                         <td>
                             {{ procedures.monday.j }}
-                            {% with image_field=draft|attr:"monday_procedure_j_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for J">
-                                {% endif %}
+                            {% with key="monday_j" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for J">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.tuesday.j|default:"" }}
-                            {% with image_field=draft|attr:"tuesday_procedure_j_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for J">
-                                {% endif %}
+                            {% with key="tuesday_j" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for J">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.wednesday.j|default:"" }}
-                            {% with image_field=draft|attr:"wednesday_procedure_j_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for J">
-                                {% endif %}
+                            {% with key="wednesday_j" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for J">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.thursday.j|default:"" }}
-                            {% with image_field=draft|attr:"thursday_procedure_j_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for J">
-                                {% endif %}
+                            {% with key="thursday_j" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for J">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                         <td>
                             {{ procedures.friday.j|default:"" }}
-                            {% with image_field=draft|attr:"friday_procedure_j_image" %}
-                                {% if image_field %}
-                                    <br><img src="{{ image_field.url }}" class="procedure-image" alt="Image for J">
-                                {% endif %}
+                            {% with key="friday_j" %}
+                                {% for img in images_by_step|get_item:key %}
+                                    <br><img src="{{ img.image.url }}" class="procedure-image" alt="Image for J">
+                                {% endfor %}
                             {% endwith %}
                         </td>
                     </tr>
