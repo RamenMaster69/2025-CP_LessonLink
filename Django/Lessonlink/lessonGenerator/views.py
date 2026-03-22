@@ -1586,7 +1586,7 @@ def generate_weekly_lesson_plan(request):
         # ------------------------------------------------------------
         exemplar_content = ""
         exemplar_name = ""
-        exemplar_competencies_text = ""   # NEW: to store extracted competencies
+        exemplar_competencies_text = ""
 
         if form_data['exemplar_id']:
             try:
@@ -1614,7 +1614,6 @@ def generate_weekly_lesson_plan(request):
                         'analysis_explanation': explanation
                     }, status=400)
 
-                # ----- NEW: Extract competencies from exemplar -----
                 if exemplar_content:
                     comps = extract_weekly_competencies_from_exemplar(exemplar_content)
                     if any(comps.values()):
@@ -1624,7 +1623,6 @@ def generate_weekly_lesson_plan(request):
                                 exemplar_competencies_text += f"\n{day.upper()}:\n"
                                 for item in items:
                                     exemplar_competencies_text += f"  • {item}\n"
-                # ----- END NEW -----
 
             except Exemplar.DoesNotExist:
                 return JsonResponse({
@@ -1686,10 +1684,59 @@ def generate_weekly_lesson_plan(request):
         approach_desc = approach_descriptions.get(form_data['approach'], 'Varied instructional strategies throughout the week.')
 
         # ------------------------------------------------------------
+        # 8a. Build reference instruction with legitimate citations (IMPROVED)
+        # ------------------------------------------------------------
+        subject_caps = form_data['subject'].upper()
+        grade = form_data['grade_level']
+        if exemplar_name and form_data['exemplar_id']:
+            reference_instruction = f"""
+            **REFERENCE LINK – LEGITIMATE CITATION**
+            In the final lesson plan, include a proper academic reference in section V (REMARKS) or as a footnote. Use this exact format with clickable links.
+
+            **CRITICAL – NO FABRICATED RESOURCES:**
+            - DO NOT invent specific textbook titles, author names, or publisher names.
+            - DO NOT invent LRMDS resource names or external website URLs.
+            - For textbooks, use the exact placeholder: "[Insert approved textbook title and pages, if any]". If no approved textbook is available, omit the entry.
+            - For LRMDS, always use the full name: "Learning Resources Management and Development System (LRMDS)" and describe the resource generically (e.g., "interactive quiz on the topic").
+
+            **References:**
+            1. {exemplar_name} (Exemplar ID: {form_data['exemplar_id']}). Adapted from the Department of Education. (2023). *MATATAG Curriculum: K to 10 Curriculum Guide – {subject_caps} (Grade {grade})*. Pasig City, Philippines.
+               - Access the full exemplar at: [View Exemplar](https://yourdomain.com/exemplar/{form_data['exemplar_id']}/)   *(replace with actual URL)*
+
+            2. Department of Education. (2023). *MATATAG Curriculum: K to 10 Curriculum Guide – {subject_caps} (Grade {grade})*. Retrieved from [https://www.deped.gov.ph/matatag-curriculum/](https://www.deped.gov.ph/matatag-curriculum/)
+
+            **For other learning resources** (e.g., textbooks, LRMDS materials, online games), describe them generically:
+            - Textbook: [Insert approved textbook title and pages, if any]  *(omit if none)*
+            - Additional resources: Teacher-made materials, manipulatives, and/or resources from the DepEd Learning Resources Management and Development System (LRMDS) (e.g., interactive quiz on the topic).
+            - Online activities: Suggest using the DepEd Commons or a safe educational website (avoid inventing specific URLs).
+            """
+        else:
+            reference_instruction = f"""
+            **REFERENCE LINK – LEGITIMATE CITATION**
+            Since no specific exemplar was selected, include a proper academic citation referencing the official DepEd MATATAG Curriculum with a clickable link.
+
+            **CRITICAL – NO FABRICATED RESOURCES:**
+            - DO NOT invent specific textbook titles, author names, or publisher names.
+            - DO NOT invent LRMDS resource names or external website URLs.
+            - Use generic placeholders where needed.
+
+            **Reference:**
+            Department of Education. (2023). *MATATAG Curriculum: K to 10 Curriculum Guide – {subject_caps} (Grade {grade})*. Retrieved from [https://www.deped.gov.ph/matatag-curriculum/](https://www.deped.gov.ph/matatag-curriculum/)
+
+            **For other learning resources** (e.g., textbooks, LRMDS materials, online games), describe them generically:
+            - Textbook: [Insert approved textbook title and pages, if any]  *(omit if none)*
+            - Additional resources: Teacher-made materials, manipulatives, and/or resources from the DepEd Learning Resources Management and Development System (LRMDS) (e.g., interactive quiz on the topic).
+            - Online activities: Suggest using the DepEd Commons or a safe educational website (avoid inventing specific URLs).
+            """
+
+        # ------------------------------------------------------------
         # 9. Build the AI prompt (with verbatim standards instruction)
         # ------------------------------------------------------------
         prompt = f"""
         Generate a COMPLETE, DETAILED, MATATAG-aligned WEEKLY LESSON PLAN following DepEd Philippines standards.
+
+        **CRITICAL – NO FABRICATION RULE:**
+        You MUST NOT invent textbook titles, LRMDS resource names, online game URLs, or any other specific external resource. Use generic placeholders like "[Insert approved textbook title and pages, if any]". For online activities, simply say "use a safe educational website (e.g., DepEd Commons)" – never invent a URL.
 
         **CRITICAL: You MUST teach the SAME competencies as in the exemplar (e.g., magkakatugmang salita, diptonggo, klaster). Do not change the core topics. Only the examples, poems, and specific words should be new.**
 
@@ -1721,6 +1768,8 @@ def generate_weekly_lesson_plan(request):
         {f'REFERENCE EXEMPLAR: {exemplar_name}' if exemplar_name else ''}
         {f'EXEMPLAR CONTENT (use as a guide for topic focus and progression):\n{exemplar_content[:2000]}...' if exemplar_content else ''}
         {exemplar_competencies_text}
+
+        {reference_instruction}
 
         **INTELLIGENCE TYPE ADAPTATION REQUIREMENTS - YOU MUST FOLLOW:**
 
@@ -1799,7 +1848,7 @@ def generate_weekly_lesson_plan(request):
                 exemplar_content=exemplar_content
             )
 
-            # Add additional strict formatting instructions
+            # Add additional strict formatting instructions and the no-fabrication rule
             system_instruction += """
 
             **STRICT FORMATTING REMINDER:**
@@ -1810,6 +1859,12 @@ def generate_weekly_lesson_plan(request):
             - Generate SPECIFIC, IMPLEMENTABLE activities that a teacher can use immediately
             - Include REALISTIC page numbers, resource titles, and materials
             - Ensure Friday includes a comprehensive assessment covering all week's objectives
+
+            **NO FABRICATION RULE (repeat):**
+            - Do NOT invent textbook titles, LRMDS resource names, or online game URLs.
+            - For textbooks, use the exact placeholder: "[Insert approved textbook title and pages, if any]". If no approved textbook is known, omit the entry.
+            - For LRMDS, always use the full name: "Learning Resources Management and Development System (LRMDS)" and describe the resource generically.
+            - For online activities, suggest using DepEd Commons or a safe educational website – never invent a URL.
             """
 
             response = model.generate_content([
