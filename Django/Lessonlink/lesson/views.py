@@ -53,6 +53,8 @@ from datetime import datetime, timedelta, time as datetime_time
 import pytz
 from django.core.files.storage import default_storage
 from .forms import SchoolSettingsForm
+from django.db import IntegrityError
+from datetime import datetime
 
 # ====================================================== HELPER FUNCTIONS ======================================================
 
@@ -4570,79 +4572,103 @@ def get_all_schedules(request):
 @login_required
 @api_view(['POST'])
 def create_schedule_api(request):
-    """Create a new schedule via API - USING DRF"""
     try:
-        # DRF's request.data handles the body reading properly
         data = request.data
-        
         print(f"DEBUG: Received data: {data}")
-        
+
         # Validate required fields
         required_fields = ['title', 'day', 'start_time', 'end_time', 'instructor']
-        missing_fields = []
-        for field in required_fields:
-            if field not in data or not data[field]:
-                missing_fields.append(field)
-        
+        missing_fields = [field for field in required_fields if not data.get(field)]
         if missing_fields:
             return Response({
                 'success': False,
                 'error': f'Missing required fields: {", ".join(missing_fields)}'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Create the schedule
+
+        # Convert time strings to time objects
+        start_time_str = data['start_time']
+        end_time_str = data['end_time']
+        try:
+            start_time = datetime.strptime(start_time_str, '%H:%M').time()
+            end_time = datetime.strptime(end_time_str, '%H:%M').time()
+        except ValueError:
+            return Response({
+                'success': False,
+                'error': 'Invalid time format. Use HH:MM (24-hour).'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check for overlapping schedules (using the time objects)
+        overlapping = Schedule.objects.filter(
+            user=request.user,
+            day=data['day'],
+            start_time__lt=end_time,
+            end_time__gt=start_time
+        )
+        if overlapping.exists():
+            return Response({
+                'success': False,
+                'error': 'This time slot overlaps with another class.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create the schedule with time objects
         schedule = Schedule.objects.create(
             user=request.user,
             title=data['title'],
             day=data['day'],
-            start_time=data['start_time'],
-            end_time=data['end_time'],
+            start_time=start_time,
+            end_time=end_time,
             instructor=data['instructor'],
             color=data.get('color', '#3b82f6'),
             description=data.get('description', '')
         )
-        
-        # Create schedule reminder notification
+
+        # Create schedule reminder (now formatted_start_time works)
         create_schedule_reminder(schedule)
-        
-        # Format response
-        def format_time_24_to_12(time_str):
-            try:
-                hours, minutes = map(int, time_str.split(':'))
-                am_pm = "AM" if hours < 12 else "PM"
-                hours_12 = hours % 12
-                if hours_12 == 0:
-                    hours_12 = 12
-                return f"{hours_12}:{minutes:02d} {am_pm}"
-            except:
-                return time_str
-        
+
+        # Helper to format time for JSON response
+        def format_time_24_to_12(time_obj):
+            hour = time_obj.hour
+            minute = time_obj.minute
+            am_pm = "AM" if hour < 12 else "PM"
+            hour_12 = hour % 12
+            if hour_12 == 0:
+                hour_12 = 12
+            return f"{hour_12}:{minute:02d} {am_pm}"
+
         response_data = {
             'id': schedule.id,
             'title': schedule.title,
             'day': schedule.day,
             'start': format_time_24_to_12(schedule.start_time),
             'end': format_time_24_to_12(schedule.end_time),
-            'start_time': schedule.start_time,
-            'end_time': schedule.end_time,
+            'start_time': schedule.start_time.strftime('%H:%M'),
+            'end_time': schedule.end_time.strftime('%H:%M'),
             'instructor': schedule.instructor,
             'color': schedule.color,
             'description': schedule.description or ''
         }
-        
+
         return JsonResponse(response_data)
-        
+
+    except IntegrityError:
+        # Handle the UNIQUE constraint failure
+        return Response({
+            'success': False,
+            'error': 'A class already exists at this time on the selected day.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
     except json.JSONDecodeError:
-        return JsonResponse({
+        return Response({
             'success': False,
             'error': 'Invalid JSON data'
-        }, status=400)
+        }, status=status.HTTP_400_BAD_REQUEST)
+
     except Exception as e:
         logger.error(f"Error creating schedule: {str(e)}")
-        return JsonResponse({
+        return Response({
             'success': False,
-            'error': str(e)
-        }, status=500)
+            'error': 'Internal server error. Please try again.'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @csrf_exempt
 @login_required
