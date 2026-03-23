@@ -7,7 +7,7 @@
     <div class="flex justify-between items-center mb-6">
         <div>
             <!-- Dynamic Back Link -->
-            {% if user.role == 'Department Head' %}
+            {% if user.role == 'Department Head' %} 
                 <a href="{% url 'department_head_drafts' %}" class="text-blue-600 hover:text-blue-800">
                     <i class="fas fa-arrow-left mr-2"></i>Back to department drafts
                 </a>
@@ -260,9 +260,9 @@
                 </a>
             {% endif %}
             
-            <button type="button" onclick="regenerateContent()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium">
+            <!-- <button type="button" onclick="regenerateContent()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium">
                 Regenerate AI Content
-            </button>
+            </button> -->
         </div>
     </form>
 </div>
